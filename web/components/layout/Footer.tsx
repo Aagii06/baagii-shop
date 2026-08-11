@@ -115,9 +115,9 @@ export default function Footer() {
               <Link
                 className="text-2xl tracking-tight text-gray-900 hover:text-gray-700 transition-colors"
                 href="/"
-                aria-label="BloomShop Home"
+                aria-label="BaagiiShop Home"
               >
-                BLOOM<span className="text-primary">SHOP</span>
+                BAAGII<span className="text-primary">SHOP</span>
               </Link>
               <p className="text-muted-foreground mb-6 max-w-sm">
                 Discover unique products that inspire your lifestyle. Quality
