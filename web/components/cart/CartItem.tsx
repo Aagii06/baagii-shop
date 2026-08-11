@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useCart } from "@/context/CartContext";
+import { removeFromCart, updateQuantity } from "@/store/cartSlice";
+import { useAppDispatch } from "@/store/hooks";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 
@@ -18,7 +19,7 @@ interface CartItemProps {
 }
 
 export default function CartItem({ item, isLast }: CartItemProps) {
-  const { removeFromCart, updateQuantity } = useCart();
+  const dispatch = useAppDispatch();
 
   return (
     <div>
@@ -47,7 +48,7 @@ export default function CartItem({ item, isLast }: CartItemProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => removeFromCart(item.id)}
+              onClick={() => dispatch(removeFromCart(item.id))}
               className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0"
             >
               <Trash2 className="h-4 w-4" />
@@ -60,7 +61,12 @@ export default function CartItem({ item, isLast }: CartItemProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() =>
-                  updateQuantity(item.id, Math.max(1, item.quantity - 1))
+                  dispatch(
+                    updateQuantity({
+                      id: item.id,
+                      quantity: Math.max(1, item.quantity - 1),
+                    })
+                  )
                 }
                 disabled={item.quantity <= 1}
                 className="h-8 w-8 rounded-r-none"
@@ -73,7 +79,11 @@ export default function CartItem({ item, isLast }: CartItemProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                onClick={() =>
+                  dispatch(
+                    updateQuantity({ id: item.id, quantity: item.quantity + 1 })
+                  )
+                }
                 className="h-8 w-8 rounded-l-none"
               >
                 <Plus className="h-3 w-3" />

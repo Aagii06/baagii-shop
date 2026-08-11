@@ -4,12 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useCart } from "@/context/CartContext";
+import { useAppSelector } from "@/store/hooks";
 import { CreditCard, Heart, Shield, Truck } from "lucide-react";
 import Link from "next/link";
 
 export default function OrderSummary() {
-  const { cart } = useCart();
+  const cart = useAppSelector((state) => state.cart);
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,

@@ -5,12 +5,12 @@ import EmptyCart from "@/components/cart/EmptyCart";
 import OrderSummary from "@/components/cart/OrderSummary";
 import Recommendations from "@/components/cart/Recommendations";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/context/CartContext";
+import { useAppSelector } from "@/store/hooks";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function Cart() {
-  const { cart } = useCart();
+  const cart = useAppSelector((state) => state.cart);
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   if (cart.length === 0) {

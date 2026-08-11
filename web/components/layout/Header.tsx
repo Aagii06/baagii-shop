@@ -1,6 +1,6 @@
 "use client";
 
-import { useCart } from "@/context/CartContext";
+import { useAppSelector } from "@/store/hooks";
 import { Menu, Search, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 
 export default function Header() {
-  const { cart } = useCart();
+  const cart = useAppSelector((state) => state.cart);
   const cartCount =
     cart?.reduce((total, item) => total + item.quantity, 0) || 0;
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -135,7 +135,7 @@ export default function Header() {
               )}
             </Link>
 
-            <div className="hidden sm:flex items-center space-x-2">
+            {/* <div className="hidden sm:flex items-center space-x-2">
               <Link href="/">
                 <Button variant="ghost" size="sm" className="text-sm">
                   Sign In
@@ -146,7 +146,7 @@ export default function Header() {
                   Sign Up
                 </Button>
               </Link>
-            </div>
+            </div> */}
           </div>
         </div>
 

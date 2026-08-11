@@ -2,12 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCart } from "@/context/CartContext";
+import { clearCart } from "@/store/cartSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Trash2 } from "lucide-react";
 import CartItem from "./CartItem";
 
 export default function CartItemList() {
-  const { cart, clearCart } = useCart();
+  const cart = useAppSelector((state) => state.cart);
+  const dispatch = useAppDispatch();
 
   return (
     <Card>
@@ -16,7 +18,7 @@ export default function CartItemList() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={clearCart}
+          onClick={() => dispatch(clearCart())}
           className="text-muted-foreground hover:text-destructive"
         >
           <Trash2 className="h-4 w-4 mr-2" />

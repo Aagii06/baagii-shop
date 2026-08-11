@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useCart } from "@/context/CartContext";
+import { addToCart } from "@/store/cartSlice";
+import { useAppDispatch } from "@/store/hooks";
 import { cn } from "@/lib/utils";
 import { Check, Eye, Heart, ShoppingCart } from "lucide-react";
 import Image from "next/image";
@@ -23,7 +24,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 
-  const { addToCart } = useCart();
+  const dispatch = useAppDispatch();
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,13 +34,15 @@ export default function ProductCard({ product }: { product: Product }) {
 
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      quantity: 1,
-    });
+    dispatch(
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        quantity: 1,
+      })
+    );
 
     setIsAdding(false);
     setJustAdded(true);
