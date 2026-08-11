@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { calculatePricing } from "@/lib/pricing";
 import { useAppSelector } from "@/store/hooks";
 import { CreditCard, Heart, Shield, Truck } from "lucide-react";
 import Link from "next/link";
@@ -11,13 +12,7 @@ import Link from "next/link";
 export default function OrderSummary() {
   const cart = useAppSelector((state) => state.cart);
 
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  const shipping = subtotal > 50 ? 0 : 9.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const { subtotal, shipping, tax, total } = calculatePricing(cart);
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
