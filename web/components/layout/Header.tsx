@@ -40,7 +40,10 @@ export default function Header() {
 
   const isActivePath = (path: string) => pathname === path;
 
-  const navItems = [{ href: "/contact", label: "Contact" }];
+  const navItems = [
+    { href: "/orders", label: "Orders" },
+    { href: "/contact", label: "Contact" },
+  ];
 
   return (
     <header
