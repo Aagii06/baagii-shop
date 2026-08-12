@@ -1,18 +1,32 @@
-import ProductList from "@/components/home/ProductList";
+import CategoryScrollRow from "@/components/home/CategoryScrollRow";
+import CategorySidebar from "@/components/home/CategorySidebar";
+import HeroBanner from "@/components/home/HeroBanner";
+import QuickSale from "@/components/home/QuickSale";
+import TrustBadges from "@/components/layout/TrustBadges";
+import products from "@/data/products.json";
 
 export default function Home() {
+  const discounted = products.filter(
+    (p) => p.originalPrice && p.originalPrice > p.price
+  );
+
   return (
-    <div className="bg-background px-4 py-8 sm:py-12 lg:py-16 lg:px-8 min-h-screen">
-      <div className="text-center mx-auto mb-18 space-y-3">
-        <h1 className="text-primary leading-tighter text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
-          Step Into Style
-        </h1>
-        <p className="text-foreground text-base max-w-3xl mx-auto text-balance sm:text-lg">
-          Discover our latest collection of premium sneakers — comfort, design,
-          and performance in every pair.
-        </p>
+    <div className="bg-background">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex gap-6">
+          <CategorySidebar />
+
+          <div className="flex-1 min-w-0 space-y-8">
+            <CategoryScrollRow />
+            <HeroBanner />
+            <QuickSale products={discounted} />
+          </div>
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-border">
+          <TrustBadges />
+        </div>
       </div>
-      <ProductList />
     </div>
   );
 }
