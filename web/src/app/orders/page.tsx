@@ -6,19 +6,13 @@ import OrdersSidebar from "@/components/orders/OrdersSidebar";
 import { Button } from "@/components/ui/button";
 import PlaceholderImage from "@/components/ui/placeholder-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { formatMNT } from "@/lib/utils";
+import { formatDate, formatMNT } from "@/lib/utils";
 import { useAppSelector } from "@/store/hooks";
 import { Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 type Tab = "active" | "delivered" | "cancelled";
-
-const localeTags: Record<string, string> = {
-  mn: "mn-MN",
-  en: "en-US",
-  ru: "ru-RU",
-};
 
 export default function OrdersPage() {
   const { t, locale } = useLanguage();
@@ -99,10 +93,7 @@ export default function OrdersPage() {
                       </span>
                       <span className="text-sm text-muted-foreground">
                         {t("orders.items", { count: order.items.length })} ·{" "}
-                        {new Date(order.createdAt).toLocaleDateString(
-                          localeTags[locale],
-                          { month: "long", day: "numeric" }
-                        )}
+                        {formatDate(order.createdAt, locale)}
                       </span>
                       <OrderStatusBadge status={order.status} />
                     </div>

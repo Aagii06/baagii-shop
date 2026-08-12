@@ -5,17 +5,11 @@ import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
 import PlaceholderImage from "@/components/ui/placeholder-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { formatMNT } from "@/lib/utils";
+import { formatDateTime, formatMNT } from "@/lib/utils";
 import { useAppSelector } from "@/store/hooks";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-
-const localeTags: Record<string, string> = {
-  mn: "mn-MN",
-  en: "en-US",
-  ru: "ru-RU",
-};
 
 export default function OrderDetailPage() {
   const { t, locale } = useLanguage();
@@ -63,9 +57,7 @@ export default function OrderDetailPage() {
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
             {t("orders.detailPage.placedAt", {
-              date: new Date(order.createdAt).toLocaleString(
-                localeTags[locale]
-              ),
+              date: formatDateTime(order.createdAt, locale),
             })}
           </p>
         </div>
