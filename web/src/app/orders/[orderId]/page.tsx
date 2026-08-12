@@ -1,14 +1,19 @@
 "use client";
 
+import OrderProgress from "@/components/orders/OrderProgress";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import PlaceholderImage from "@/components/ui/placeholder-image";
+import { formatMNT } from "@/lib/utils";
 import { useAppSelector } from "@/store/hooks";
 import { ArrowLeft } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+
+const deliveryLabels: Record<string, string> = {
+  city: "Хотын хүргэлт, 1-2 хоног",
+  region: "Орон нутаг, шуудан, 3-5 хоног",
+};
 
 export default function OrderDetailPage() {
   const { orderId } = useParams();
@@ -21,17 +26,17 @@ export default function OrderDetailPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Order not found
+          Захиалга олдсонгүй
         </h1>
         <Button asChild>
-          <Link href="/orders">View Orders</Link>
+          <Link href="/orders">Захиалгууд руу очих</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-3xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-3xl">
       <Button
         variant="ghost"
         asChild
@@ -39,116 +44,116 @@ export default function OrderDetailPage() {
       >
         <Link href="/orders" className="flex items-center gap-2">
           <ArrowLeft className="h-4 w-4" />
-          Back to Orders
+          Захиалгууд руу буцах
         </Link>
       </Button>
 
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            {order.id}
+            #{order.id}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Placed on {new Date(order.createdAt).toLocaleString()}
+          <p className="text-muted-foreground mt-1 text-sm">
+            {new Date(order.createdAt).toLocaleString("mn-MN")}-д үүсгэсэн
           </p>
         </div>
         <OrderStatusBadge status={order.status} />
       </div>
 
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 mb-6">
+        <OrderProgress
+          status={order.status}
+          caption={
+            order.status === "confirmed"
+              ? "Удахгүй хүргэгдэнэ"
+              : "Төлбөр хүлээгдэж байна"
+          }
+        />
+      </div>
+
       {order.status === "pending" && (
-        <Card className="mb-6 border-amber-300 bg-amber-50">
-          <CardContent className="p-4 sm:p-6 flex items-center justify-between gap-4 flex-wrap">
-            <p className="text-sm text-amber-800">
-              This order is awaiting payment.
-            </p>
-            <Button asChild size="sm">
-              <Link href={`/checkout/${order.id}/pay`}>Pay Now</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-6 flex items-center justify-between gap-4 flex-wrap mb-6">
+          <p className="text-sm text-amber-800">
+            Энэ захиалгын төлбөр хараахан төлөгдөөгүй байна.
+          </p>
+          <Button
+            asChild
+            size="sm"
+            className="brand-gradient text-white shrink-0"
+          >
+            <Link href={`/checkout/${order.id}/pay`}>Одоо төлөх</Link>
+          </Button>
+        </div>
       )}
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Items</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 mb-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">
+          Бараа
+        </h2>
+        <div className="space-y-4">
           {order.items.map((item) => (
             <div key={item.id} className="flex items-center gap-4">
-              <div className="relative w-16 h-16 shrink-0">
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  fill
-                  sizes="64px"
-                  className="rounded-lg object-cover bg-muted"
-                />
-              </div>
+              <PlaceholderImage className="w-16 h-16 rounded-lg shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground line-clamp-1">
                   {item.name}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  ${item.price.toFixed(2)} × {item.quantity}
+                  {formatMNT(item.price)} × {item.quantity}
                 </p>
               </div>
               <span className="font-semibold text-foreground shrink-0">
-                ${(item.price * item.quantity).toFixed(2)}
+                {formatMNT(item.price * item.quantity)}
               </span>
             </div>
           ))}
 
-          <Separator />
-
-          <div className="space-y-2">
+          <div className="space-y-2 pt-4 border-t border-border">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">Барааны дүн</span>
+              <span className="font-medium">{formatMNT(order.subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Хүргэлт</span>
               <span className="font-medium">
-                ${order.subtotal.toFixed(2)}
+                {order.shipping === 0 ? "Үнэгүй" : formatMNT(order.shipping)}
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Shipping</span>
-              <span className="font-medium">
-                {order.shipping === 0
-                  ? "Free"
-                  : `$${order.shipping.toFixed(2)}`}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax</span>
-              <span className="font-medium">${order.tax.toFixed(2)}</span>
-            </div>
+            {order.coupon > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Купон</span>
+                <span className="font-medium text-emerald-600">
+                  -{formatMNT(order.coupon)}
+                </span>
+              </div>
+            )}
           </div>
 
-          <Separator />
-
-          <div className="flex justify-between">
-            <span className="text-lg font-semibold">Total</span>
+          <div className="flex justify-between pt-3 border-t border-border">
+            <span className="text-lg font-semibold">Нийт дүн</span>
             <span className="text-lg font-bold text-primary">
-              ${order.total.toFixed(2)}
+              {formatMNT(order.total)}
             </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            Shipping Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-1">
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">
+          Хүргэлтийн мэдээлэл
+        </h2>
+        <div className="text-sm text-muted-foreground space-y-1">
           <p className="text-foreground font-medium">
             {order.shippingInfo.fullName}
           </p>
           <p>{order.shippingInfo.phone}</p>
-          <p>{order.shippingInfo.address}</p>
           <p>
-            {order.shippingInfo.city}, {order.shippingInfo.postalCode}
+            {order.shippingInfo.addressLabel} · {order.shippingInfo.address}
           </p>
-        </CardContent>
-      </Card>
+          <p>{deliveryLabels[order.shippingInfo.deliveryMethod]}</p>
+          {order.shippingInfo.note && <p>Тайлбар: {order.shippingInfo.note}</p>}
+        </div>
+      </div>
     </div>
   );
 }
