@@ -4,6 +4,7 @@ import CartItemList from "@/components/cart/CartItemList";
 import EmptyCart from "@/components/cart/EmptyCart";
 import OrderSummary from "@/components/cart/OrderSummary";
 import Recommendations from "@/components/cart/Recommendations";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { clearCart } from "@/store/cartSlice";
 import { clearCoupon } from "@/store/couponSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -11,6 +12,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function Cart() {
+  const { t } = useLanguage();
   const cart = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -23,9 +25,9 @@ export default function Cart() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-          Миний сагс{" "}
+          {t("cart.title")}{" "}
           <span className="text-base font-normal text-muted-foreground">
-            · {itemCount} бараа
+            · {t("cart.itemsCount", { count: itemCount })}
           </span>
         </h1>
       </div>
@@ -40,7 +42,7 @@ export default function Cart() {
               className="flex items-center gap-2 text-sm text-primary hover:underline"
             >
               <ArrowLeft className="h-4 w-4" />
-              Үргэлжлүүлэн худалдан авах
+              {t("cart.continueShopping")}
             </Link>
             <button
               onClick={() => {
@@ -49,7 +51,7 @@ export default function Cart() {
               }}
               className="text-sm text-muted-foreground hover:text-destructive transition-colors"
             >
-              Сагс хоослох
+              {t("cart.clear")}
             </button>
           </div>
         </div>

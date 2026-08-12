@@ -1,6 +1,9 @@
+"use client";
+
 import ProductCard from "@/components/home/ProductCard";
 import { Button } from "@/components/ui/button";
 import productsData from "@/data/products.json";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Product } from "@/types/product";
 import Link from "next/link";
 
@@ -11,6 +14,7 @@ interface RelatedProductsProps {
 }
 
 export default function RelatedProducts({ product }: RelatedProductsProps) {
+  const { t } = useLanguage();
   const related = products
     .filter((p) => p.id !== product.id && p.category === product.category)
     .slice(0, 4);
@@ -21,14 +25,14 @@ export default function RelatedProducts({ product }: RelatedProductsProps) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-          Төстэй бараа
+          {t("product.related")}
         </h2>
         <Button variant="ghost" asChild>
           <Link
             href={`/search?category=${product.category}`}
             className="text-primary hover:text-primary/80"
           >
-            Бүгдийг үзэх
+            {t("product.viewAll")}
           </Link>
         </Button>
       </div>

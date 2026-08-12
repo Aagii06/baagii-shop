@@ -1,6 +1,7 @@
 "use client";
 
 import PlaceholderImage from "@/components/ui/placeholder-image";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { removeFromCart, updateQuantity } from "@/store/cartSlice";
 import { useAppDispatch } from "@/store/hooks";
@@ -17,6 +18,7 @@ interface CartItemProps {
 }
 
 export default function CartItem({ item }: CartItemProps) {
+  const { t } = useLanguage();
   const dispatch = useAppDispatch();
 
   return (
@@ -30,13 +32,13 @@ export default function CartItem({ item }: CartItemProps) {
               {item.name}
             </h3>
             <p className="text-xs font-medium text-emerald-600 mt-1">
-              Нөөцөд байна
+              {t("cart.inStock")}
             </p>
           </div>
 
           <button
             onClick={() => dispatch(removeFromCart(item.id))}
-            aria-label="Устгах"
+            aria-label={t("cart.removeAria")}
             className="text-muted-foreground hover:text-destructive shrink-0 p-1"
           >
             <X className="h-4 w-4" />
