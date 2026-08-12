@@ -1,38 +1,6 @@
-import {
-  BadgeCheck,
-  Headset,
-  RefreshCcw,
-  Store,
-  Truck,
-} from "lucide-react";
+import { Store } from "lucide-react";
 import Link from "next/link";
-
-const trustItems = [
-  {
-    icon: Truck,
-    title: "Монгол даяар хүргэлт",
-    desc: "21 аймаг, 330 сум",
-    tint: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    icon: RefreshCcw,
-    title: "14 хоногийн буцаалт",
-    desc: "Хялбар шийдвэрлэнэ",
-    tint: "bg-violet-100 text-violet-700",
-  },
-  {
-    icon: BadgeCheck,
-    title: "Баталгаат бараа",
-    desc: "Шалгагдсан худалдагчид",
-    tint: "bg-blue-100 text-blue-700",
-  },
-  {
-    icon: Headset,
-    title: "24/7 тусламж",
-    desc: "7045-1234",
-    tint: "bg-amber-100 text-amber-700",
-  },
-];
+import TrustBadges from "./TrustBadges";
 
 const footerSections = [
   {
@@ -68,22 +36,8 @@ export default function Footer() {
   return (
     <footer className="bg-background border-t border-border mt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-8 grid grid-cols-2 sm:grid-cols-4 gap-6 border-b border-border">
-          {trustItems.map(({ icon: Icon, title, desc, tint }) => (
-            <div key={title} className="flex items-start gap-3">
-              <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tint}`}
-              >
-                <Icon className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground leading-tight">
-                  {title}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
-              </div>
-            </div>
-          ))}
+        <div className="py-8 border-b border-border">
+          <TrustBadges />
         </div>
 
         <div className="py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
