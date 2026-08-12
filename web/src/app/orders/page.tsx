@@ -5,6 +5,7 @@ import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import OrdersSidebar from "@/components/orders/OrdersSidebar";
 import { Button } from "@/components/ui/button";
 import PlaceholderImage from "@/components/ui/placeholder-image";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { useAppSelector } from "@/store/hooks";
 import { Package } from "lucide-react";
@@ -13,15 +14,22 @@ import { useState } from "react";
 
 type Tab = "active" | "delivered" | "cancelled";
 
-const tabs: { id: Tab; label: string }[] = [
-  { id: "active", label: "Идэвхтэй" },
-  { id: "delivered", label: "Хүргэгдсэн" },
-  { id: "cancelled", label: "Цуцлагдсан" },
-];
+const localeTags: Record<string, string> = {
+  mn: "mn-MN",
+  en: "en-US",
+  ru: "ru-RU",
+};
 
 export default function OrdersPage() {
+  const { t, locale } = useLanguage();
   const orders = useAppSelector((state) => state.orders);
   const [tab, setTab] = useState<Tab>("active");
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "active", label: t("orders.tabs.active") },
+    { id: "delivered", label: t("orders.tabs.delivered") },
+    { id: "cancelled", label: t("orders.tabs.cancelled") },
+  ];
 
   const filtered = orders.filter((order) =>
     tab === "active"
@@ -36,13 +44,11 @@ export default function OrdersPage() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Захиалга алга байна
+          {t("orders.empty.title")}
         </h1>
-        <p className="text-muted-foreground mb-6">
-          Таны хийсэн захиалгууд энд харагдана.
-        </p>
+        <p className="text-muted-foreground mb-6">{t("orders.empty.desc")}</p>
         <Button asChild>
-          <Link href="/">Худалдан авалт хийх</Link>
+          <Link href="/">{t("orders.empty.cta")}</Link>
         </Button>
       </div>
     );
@@ -56,20 +62,20 @@ export default function OrdersPage() {
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl font-bold text-foreground">
-              Миний захиалга
+              {t("orders.title")}
             </h1>
             <div className="flex items-center gap-1 rounded-full bg-muted p-1">
-              {tabs.map((t) => (
+              {tabs.map((tabOption) => (
                 <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
+                  key={tabOption.id}
+                  onClick={() => setTab(tabOption.id)}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                    tab === t.id
+                    tab === tabOption.id
                       ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground"
                   }`}
                 >
-                  {t.label}
+                  {tabOption.label}
                 </button>
               ))}
             </div>
@@ -77,7 +83,7 @@ export default function OrdersPage() {
 
           {filtered.length === 0 ? (
             <div className="rounded-2xl border border-border bg-card p-12 text-center text-muted-foreground">
-              Энэ ангилалд захиалга алга байна
+              {t("orders.emptyTab")}
             </div>
           ) : (
             <div className="space-y-4">
@@ -92,11 +98,11 @@ export default function OrdersPage() {
                         #{order.id}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {order.items.length} бараа ·{" "}
-                        {new Date(order.createdAt).toLocaleDateString("mn-MN", {
-                          month: "long",
-                          day: "numeric",
-                        })}
+                        {t("orders.items", { count: order.items.length })} ·{" "}
+                        {new Date(order.createdAt).toLocaleDateString(
+                          localeTags[locale],
+                          { month: "long", day: "numeric" }
+                        )}
                       </span>
                       <OrderStatusBadge status={order.status} />
                     </div>
@@ -119,13 +125,15 @@ export default function OrdersPage() {
                       status={order.status}
                       caption={
                         order.status === "confirmed"
-                          ? "Удахгүй хүргэгдэнэ"
-                          : "Төлбөр хүлээгдэж байна"
+                          ? t("orders.caption.confirmed")
+                          : t("orders.caption.pending")
                       }
                     />
                     <div className="flex gap-2 shrink-0">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/orders/${order.id}`}>Дэлгэрэнгүй</Link>
+                        <Link href={`/orders/${order.id}`}>
+                          {t("orders.detail")}
+                        </Link>
                       </Button>
                       {order.status === "pending" ? (
                         <Button
@@ -134,7 +142,7 @@ export default function OrdersPage() {
                           asChild
                         >
                           <Link href={`/checkout/${order.id}/pay`}>
-                            Төлөх
+                            {t("orders.pay")}
                           </Link>
                         </Button>
                       ) : (
@@ -143,7 +151,9 @@ export default function OrdersPage() {
                           className="brand-gradient text-white"
                           asChild
                         >
-                          <Link href={`/orders/${order.id}`}>Хянах</Link>
+                          <Link href={`/orders/${order.id}`}>
+                            {t("orders.track")}
+                          </Link>
                         </Button>
                       )}
                     </div>
