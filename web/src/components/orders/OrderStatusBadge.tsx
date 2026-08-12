@@ -4,11 +4,15 @@ import type { OrderStatus } from "@/types/order";
 export default function OrderStatusBadge({ status }: { status: OrderStatus }) {
   if (status === "confirmed") {
     return (
-      <Badge className="bg-green-600 text-white hover:bg-green-600">
-        Confirmed
+      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-transparent">
+        Бэлтгэгдэж байна
       </Badge>
     );
   }
 
-  return <Badge variant="secondary">Pending Payment</Badge>;
+  return (
+    <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-transparent">
+      Төлбөр хүлээгдэж байна
+    </Badge>
+  );
 }
