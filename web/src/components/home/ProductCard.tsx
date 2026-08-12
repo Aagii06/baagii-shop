@@ -64,7 +64,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <Link href={`/product/${product.id}`} className="block relative">
         <div className="relative aspect-square overflow-hidden">
           <PlaceholderImage
-            label="бүтээгдэхүүн"
+            label={t("product.mainImageLabel")}
             className="w-full h-full transition-transform duration-300 group-hover:scale-105"
           />
           {discount > 0 && (
@@ -88,7 +88,9 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="font-medium text-foreground">
               {product.rating.toFixed(1)}
             </span>
-            <span>· {product.soldCount ?? product.reviewCount} зарагдсан</span>
+            <span>
+              · {t("product.sold", { count: product.soldCount ?? product.reviewCount ?? 0 })}
+            </span>
           </div>
         )}
 
@@ -99,7 +101,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <button
             onClick={handleAddToCart}
             disabled={isAdding}
-            aria-label="Сагсанд нэмэх"
+            aria-label={t("product.addToCartAria")}
             className={cn(
               "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition-all",
               justAdded ? "bg-emerald-600" : "brand-gradient hover:opacity-90"
