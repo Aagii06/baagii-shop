@@ -1,6 +1,6 @@
 "use client";
 
-import PlaceholderImage from "@/components/ui/placeholder-image";
+import ProductImage from "@/components/ui/product-image";
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductNotFound from "@/components/product/ProductNotFound";
 import RelatedProducts from "@/components/product/RelatedProducts";
@@ -83,8 +83,8 @@ export default function ProductPage() {
       <div className="grid lg:grid-cols-[1.1fr_1fr_320px] gap-8 mb-16">
         <div className="space-y-3">
           <div className="relative rounded-2xl overflow-hidden">
-            <PlaceholderImage
-              label={t("product.mainImageLabel")}
+            <ProductImage
+              category={product.category}
               className="w-full aspect-square"
             />
             {discount > 0 && (
@@ -103,7 +103,7 @@ export default function ProductPage() {
                   activeThumb === i ? "border-primary" : "border-transparent"
                 )}
               >
-                <PlaceholderImage className="w-full aspect-square" />
+                <ProductImage category={product.category} className="w-full aspect-square" />
               </button>
             ))}
           </div>

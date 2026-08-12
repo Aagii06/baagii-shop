@@ -1,6 +1,6 @@
 "use client";
 
-import PlaceholderImage from "@/components/ui/placeholder-image";
+import ProductImage from "@/components/ui/product-image";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
@@ -14,6 +14,7 @@ import { useState } from "react";
 interface Product {
   id: number;
   image: string;
+  category?: string;
   name: string;
   price: number;
   originalPrice?: number;
@@ -63,8 +64,8 @@ export default function ProductCard({ product }: { product: Product }) {
     <Card className="group overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 py-0 gap-0">
       <Link href={`/product/${product.id}`} className="block relative">
         <div className="relative aspect-square overflow-hidden">
-          <PlaceholderImage
-            label={t("product.mainImageLabel")}
+          <ProductImage
+            category={product.category}
             className="w-full h-full transition-transform duration-300 group-hover:scale-105"
           />
           {discount > 0 && (
