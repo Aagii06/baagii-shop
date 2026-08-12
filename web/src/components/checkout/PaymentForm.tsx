@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn, formatMNT } from "@/lib/utils";
 import type { PaymentMethod, ShippingInfo } from "@/types/order";
 import { CreditCard, Landmark, Lock, Smartphone, Wallet } from "lucide-react";
@@ -14,19 +15,25 @@ interface PaymentFormProps {
   isSubmitting: boolean;
 }
 
-const methods: { id: PaymentMethod; label: string; icon: typeof CreditCard }[] = [
-  { id: "card", label: "Карт", icon: CreditCard },
-  { id: "qpay", label: "QPay", icon: Smartphone },
-  { id: "socialpay", label: "SocialPay", icon: Wallet },
-  { id: "cash", label: "Бэлнээр", icon: Landmark },
-];
-
 export default function PaymentForm({
   total,
   shippingInfo,
   onSubmit,
   isSubmitting,
 }: PaymentFormProps) {
+  const { t } = useLanguage();
+
+  const methods: {
+    id: PaymentMethod;
+    labelKey: string;
+    icon: typeof CreditCard;
+  }[] = [
+    { id: "card", labelKey: "checkout.payment.card", icon: CreditCard },
+    { id: "qpay", labelKey: "checkout.payment.qpay", icon: Smartphone },
+    { id: "socialpay", labelKey: "checkout.payment.socialpay", icon: Wallet },
+    { id: "cash", labelKey: "checkout.payment.cash", icon: Landmark },
+  ];
+
   const [method, setMethod] = useState<PaymentMethod>("card");
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -40,14 +47,14 @@ export default function PaymentForm({
 
   const deliveryLabel =
     shippingInfo.deliveryMethod === "city"
-      ? "Хотын хүргэлт, 1-2 хоног"
-      : "Орон нутаг, шуудан, 3-5 хоног";
+      ? t("orders.delivery.city")
+      : t("orders.delivery.region");
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-foreground mb-4">
-          Төлбөрийн хэрэгсэл
+          {t("checkout.payment.methodsTitle")}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           {methods.map((m) => (
@@ -64,7 +71,7 @@ export default function PaymentForm({
             >
               <m.icon className="h-5 w-5 text-foreground" />
               <span className="text-sm font-medium text-foreground">
-                {m.label}
+                {t(m.labelKey)}
               </span>
             </button>
           ))}
@@ -74,7 +81,7 @@ export default function PaymentForm({
           <div className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">
-                Картын дугаар
+                {t("checkout.payment.cardNumber")}
               </label>
               <Input
                 required
@@ -86,18 +93,18 @@ export default function PaymentForm({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">
-                  Хүчинтэй хугацаа
+                  {t("checkout.payment.expiry")}
                 </label>
                 <Input
                   required
-                  placeholder="ММ / ЖЖ"
+                  placeholder="MM / YY"
                   value={expiry}
                   onChange={(e) => setExpiry(e.target.value)}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">
-                  CVV
+                  {t("checkout.payment.cvv")}
                 </label>
                 <Input
                   required
@@ -114,22 +121,25 @@ export default function PaymentForm({
                 onChange={(e) => setSaveCard(e.target.checked)}
                 className="h-4 w-4 accent-primary"
               />
-              Картыг дараагийн худалдан авалтад хадгалах
+              {t("checkout.payment.saveCard")}
             </label>
           </div>
         )}
 
         {method !== "card" && (
           <p className="text-sm text-muted-foreground">
-            Дараагийн алхамд {methods.find((m) => m.id === method)?.label}{" "}
-            аппликейшн рүү шилжинэ.
+            {t("checkout.payment.redirectNote", {
+              method: t(methods.find((m) => m.id === method)?.labelKey ?? ""),
+            })}
           </p>
         )}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-foreground">Хүргэлт</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            {t("checkout.payment.deliveryTitle")}
+          </h2>
         </div>
         <p className="text-sm text-foreground">
           {shippingInfo.fullName} · {shippingInfo.phone}
@@ -142,7 +152,7 @@ export default function PaymentForm({
       <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3 flex items-start gap-2.5">
         <Lock className="h-4 w-4 text-emerald-700 mt-0.5 shrink-0" />
         <p className="text-xs text-emerald-800">
-          Төлбөрийн мэдээлэл шифрлэгдэн дамжина. Карт дугаарыг хадгалахгүй.
+          {t("checkout.payment.secureNote")}
         </p>
       </div>
 
@@ -152,7 +162,9 @@ export default function PaymentForm({
         className="w-full brand-gradient text-white"
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Боловсруулж байна..." : `${formatMNT(total)} төлөх`}
+        {isSubmitting
+          ? t("checkout.summary.processing")
+          : t("checkout.payment.pay", { amount: formatMNT(total) })}
       </Button>
     </form>
   );
