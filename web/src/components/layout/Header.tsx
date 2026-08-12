@@ -3,15 +3,16 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAppSelector } from "@/store/hooks";
+import logo from "@/assets/logo.png";
 import {
   Heart,
   Menu,
   Search,
   ShoppingCart,
-  Store,
   User,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
@@ -73,7 +74,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+    <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="hidden lg:block brand-gradient text-white/90 text-xs">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -113,9 +114,12 @@ export default function Header() {
             aria-label={`${t("header.brand.name")} ${t("header.brand.tagline")}`}
             className="flex items-center gap-2.5 shrink-0"
           >
-            <span className="brand-gradient flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-white shadow-sm">
-              <Store className="h-5 w-5" />
-            </span>
+            <Image
+              src={logo}
+              alt=""
+              className="h-11 w-11 sm:h-12 sm:w-12 object-contain"
+              priority
+            />
             <span className="hidden sm:flex flex-col leading-none">
               <span className="text-lg font-bold tracking-tight text-foreground">
                 {t("header.brand.name")}
