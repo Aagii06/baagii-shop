@@ -6,15 +6,22 @@ export interface OrderItem {
   quantity: number;
 }
 
+export type DeliveryMethod = "city" | "region";
+
 export interface ShippingInfo {
+  addressLabel: string;
+  address: string;
   fullName: string;
   phone: string;
-  address: string;
-  city: string;
-  postalCode: string;
+  email?: string;
+  note?: string;
+  deliveryMethod: DeliveryMethod;
+  deliveryFee: number;
 }
 
 export type OrderStatus = "pending" | "confirmed";
+
+export type PaymentMethod = "card" | "qpay" | "socialpay" | "cash";
 
 export interface Order {
   id: string;
@@ -22,9 +29,10 @@ export interface Order {
   shippingInfo: ShippingInfo;
   subtotal: number;
   shipping: number;
-  tax: number;
+  coupon: number;
   total: number;
   status: OrderStatus;
+  paymentMethod?: PaymentMethod;
   createdAt: string;
   confirmedAt?: string;
 }
