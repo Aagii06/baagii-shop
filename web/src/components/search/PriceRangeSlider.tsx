@@ -48,7 +48,7 @@ export default function PriceRangeSlider({
             onChange([Math.min(Number(e.target.value), high - 1), high])
           }
           className={thumbClass}
-          aria-label="Хамгийн бага үнэ"
+          aria-label={t("search.priceMinAria")}
         />
         <input
           type="range"
@@ -59,7 +59,7 @@ export default function PriceRangeSlider({
             onChange([low, Math.max(Number(e.target.value), low + 1)])
           }
           className={thumbClass}
-          aria-label="Хамгийн их үнэ"
+          aria-label={t("search.priceMaxAria")}
         />
       </div>
 

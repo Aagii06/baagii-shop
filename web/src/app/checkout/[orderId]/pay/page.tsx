@@ -86,7 +86,7 @@ export default function PayOrderPage() {
                 <div key={item.id} className="flex justify-between gap-3 text-sm">
                   <span className="text-muted-foreground line-clamp-1">
                     {item.name}
-                    <span className="text-xs"> · {item.quantity}ш</span>
+                    <span className="text-xs"> × {item.quantity}</span>
                   </span>
                   <span className="font-medium shrink-0">
                     {formatMNT(item.price * item.quantity)}
