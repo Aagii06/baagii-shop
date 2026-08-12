@@ -1,38 +1,43 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Store } from "lucide-react";
 import Link from "next/link";
 import TrustBadges from "./TrustBadges";
 
-const footerSections = [
-  {
-    title: "ДЭЛГҮҮР",
-    links: [
-      { href: "/search", label: "Бүх ангилал" },
-      { href: "/search?sale=1", label: "Хямдрал" },
-      { href: "/search?sort=new", label: "Шинэ бараа" },
-      { href: "/search", label: "Брэндүүд" },
-    ],
-  },
-  {
-    title: "ҮЙЛЧИЛГЭЭ",
-    links: [
-      { href: "/contact", label: "Хүргэлтийн нөхцөл" },
-      { href: "/contact", label: "Буцаалт, солилт" },
-      { href: "/contact", label: "Төлбөрийн заавар" },
-      { href: "/contact", label: "Түгээмэл асуулт" },
-    ],
-  },
-  {
-    title: "КОМПАНИ",
-    links: [
-      { href: "/contact", label: "Бидний тухай" },
-      { href: "/contact", label: "Худалдагч болох" },
-      { href: "/contact", label: "Ажлын байр" },
-      { href: "/contact", label: "Холбоо барих" },
-    ],
-  },
-];
-
 export default function Footer() {
+  const { t } = useLanguage();
+
+  const footerSections = [
+    {
+      title: t("footer.sections.shop"),
+      links: [
+        { href: "/search", label: t("footer.links.allCategories") },
+        { href: "/search?sale=1", label: t("footer.links.sale") },
+        { href: "/search?sort=new", label: t("footer.links.newArrivals") },
+        { href: "/search", label: t("footer.links.brands") },
+      ],
+    },
+    {
+      title: t("footer.sections.service"),
+      links: [
+        { href: "/contact", label: t("footer.links.shippingTerms") },
+        { href: "/contact", label: t("footer.links.returns") },
+        { href: "/contact", label: t("footer.links.paymentGuide") },
+        { href: "/contact", label: t("footer.links.faq") },
+      ],
+    },
+    {
+      title: t("footer.sections.company"),
+      links: [
+        { href: "/contact", label: t("footer.links.about") },
+        { href: "/contact", label: t("footer.links.becomeSeller") },
+        { href: "/contact", label: t("footer.links.careers") },
+        { href: "/contact", label: t("footer.links.contact") },
+      ],
+    },
+  ];
+
   return (
     <footer className="bg-background border-t border-border mt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,11 +52,11 @@ export default function Footer() {
                 <Store className="h-5 w-5" />
               </span>
               <span className="text-lg font-bold tracking-tight text-foreground">
-                UVS Online Shop
+                {t("header.brand.name")} {t("header.brand.tagline")}
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs mb-4">
-              Монгол даяар хүргэлттэй, найдвартай худалдаа.
+              {t("footer.tagline")}
             </p>
             <a
               href="tel:70451234"
@@ -84,7 +89,11 @@ export default function Footer() {
 
         <div className="py-6 border-t border-border text-center sm:text-left">
           <p className="text-sm text-muted-foreground">
-            © 2026 UVS <span className="uppercase text-foreground">Online Shop</span>™. Бүх эрх хуулиар хамгаалагдсан.
+            {t("footer.copyrightPrefix")}{" "}
+            <span className="uppercase text-foreground">
+              {t("footer.copyrightBrand")}
+            </span>
+            {t("footer.copyrightSuffix")}
           </p>
         </div>
       </div>
