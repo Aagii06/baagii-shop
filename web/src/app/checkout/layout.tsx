@@ -1,6 +1,7 @@
 "use client";
 
 import StepIndicator from "@/components/checkout/StepIndicator";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Lock } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -9,6 +10,7 @@ export default function CheckoutLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const current = pathname.includes("/pay") ? 3 : 2;
 
@@ -19,7 +21,7 @@ export default function CheckoutLayout({
           <StepIndicator current={current} />
           <span className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
             <Lock className="h-3.5 w-3.5" />
-            Аюулгүй төлбөр
+            {t("checkout.secure")}
           </span>
         </div>
       </div>

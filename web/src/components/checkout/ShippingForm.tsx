@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CITY_SHIPPING_FEE, REGION_SHIPPING_FEE } from "@/lib/pricing";
 import { cn, formatMNT } from "@/lib/utils";
 import type { DeliveryMethod, ShippingInfo } from "@/types/order";
@@ -12,41 +13,43 @@ interface ShippingFormProps {
   isSubmitting: boolean;
 }
 
-const savedAddresses = [
-  {
-    label: "Гэр",
-    address: "Улаанбаатар, ХУД 11-р хороо, Мишээл экспо 4-р байр, 42 тоот",
-  },
-  {
-    label: "Ажил",
-    address: "Улаанбаатар, СБД 1-р хороо, Централ тауэр, 8 давхар",
-  },
-];
-
-const deliveryOptions: {
-  id: DeliveryMethod;
-  title: string;
-  desc: string;
-  fee: number;
-}[] = [
-  {
-    id: "city",
-    title: "Хотын хүргэлт",
-    desc: "1-2 хоног",
-    fee: CITY_SHIPPING_FEE,
-  },
-  {
-    id: "region",
-    title: "Орон нутаг, шуудан",
-    desc: "3-5 хоног",
-    fee: REGION_SHIPPING_FEE,
-  },
-];
-
 export default function ShippingForm({
   onSubmit,
   isSubmitting,
 }: ShippingFormProps) {
+  const { t } = useLanguage();
+
+  const savedAddresses = [
+    {
+      labelKey: "checkout.address.home",
+      addressKey: "checkout.address.homeAddr",
+    },
+    {
+      labelKey: "checkout.address.work",
+      addressKey: "checkout.address.workAddr",
+    },
+  ];
+
+  const deliveryOptions: {
+    id: DeliveryMethod;
+    titleKey: string;
+    descKey: string;
+    fee: number;
+  }[] = [
+    {
+      id: "city",
+      titleKey: "checkout.delivery.city",
+      descKey: "checkout.delivery.cityDesc",
+      fee: CITY_SHIPPING_FEE,
+    },
+    {
+      id: "region",
+      titleKey: "checkout.delivery.region",
+      descKey: "checkout.delivery.regionDesc",
+      fee: REGION_SHIPPING_FEE,
+    },
+  ];
+
   const [addressIndex, setAddressIndex] = useState(0);
   const [customAddress, setCustomAddress] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
@@ -63,8 +66,11 @@ export default function ShippingForm({
       CITY_SHIPPING_FEE;
 
     onSubmit({
-      addressLabel: customAddress !== null ? "Шинэ хаяг" : selected.label,
-      address: customAddress ?? selected.address,
+      addressLabel:
+        customAddress !== null
+          ? t("checkout.address.newLabel")
+          : t(selected.labelKey),
+      address: customAddress ?? t(selected.addressKey),
       fullName,
       phone,
       email: email || undefined,
@@ -83,7 +89,7 @@ export default function ShippingForm({
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground">
-            Хүргэлтийн хаяг
+            {t("checkout.address.title")}
           </h2>
           <button
             type="button"
@@ -91,7 +97,9 @@ export default function ShippingForm({
             className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
             <Plus className="h-3.5 w-3.5" />
-            {customAddress === null ? "Шинэ хаяг нэмэх" : "Хадгалсан хаягууд"}
+            {customAddress === null
+              ? t("checkout.address.addNew")
+              : t("checkout.address.savedAddresses")}
           </button>
         </div>
 
@@ -100,7 +108,7 @@ export default function ShippingForm({
             {savedAddresses.map((addr, i) => (
               <button
                 type="button"
-                key={addr.label}
+                key={addr.labelKey}
                 onClick={() => setAddressIndex(i)}
                 className={cn(
                   "text-left rounded-xl border-2 p-4 transition-colors",
@@ -110,10 +118,10 @@ export default function ShippingForm({
                 )}
               >
                 <p className="font-semibold text-foreground mb-1">
-                  {addr.label}
+                  {t(addr.labelKey)}
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {addr.address}
+                  {t(addr.addressKey)}
                 </p>
               </button>
             ))}
@@ -124,7 +132,7 @@ export default function ShippingForm({
             onChange={(e) => setCustomAddress(e.target.value)}
             required
             rows={3}
-            placeholder="Дүүрэг, хороо, байр, тоот..."
+            placeholder={t("checkout.address.placeholder")}
             className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
           />
         )}
@@ -132,23 +140,23 @@ export default function ShippingForm({
 
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-foreground mb-4">
-          Хүлээн авагчийн мэдээлэл
+          {t("checkout.recipient.title")}
         </h2>
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              Овог, нэр
+              {t("checkout.recipient.fullName")}
             </label>
             <Input
               required
-              placeholder="Бат-Эрдэнэ Д."
+              placeholder={t("checkout.recipient.fullNamePlaceholder")}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              Утасны дугаар
+              {t("checkout.recipient.phone")}
             </label>
             <Input
               type="tel"
@@ -160,7 +168,7 @@ export default function ShippingForm({
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              И-мэйл
+              {t("checkout.recipient.email")}
             </label>
             <Input
               type="email"
@@ -171,10 +179,10 @@ export default function ShippingForm({
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              Нэмэлт тайлбар
+              {t("checkout.recipient.note")}
             </label>
             <Input
-              placeholder="Жишээ: хаалганы код 1234"
+              placeholder={t("checkout.recipient.notePlaceholder")}
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
@@ -184,7 +192,7 @@ export default function ShippingForm({
 
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-foreground mb-4">
-          Хүргэлтийн хэлбэр
+          {t("checkout.delivery.title")}
         </h2>
         <div className="space-y-3">
           {deliveryOptions.map((option) => (
@@ -207,10 +215,10 @@ export default function ShippingForm({
                 />
                 <div>
                   <p className="font-medium text-foreground">
-                    {option.title}
+                    {t(option.titleKey)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {option.desc}
+                    {t(option.descKey)}
                   </p>
                 </div>
               </div>

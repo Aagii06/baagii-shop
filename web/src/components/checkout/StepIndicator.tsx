@@ -1,13 +1,18 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 
-const steps = [
-  { n: 1, label: "Сагс" },
-  { n: 2, label: "Хүргэлт" },
-  { n: 3, label: "Төлбөр" },
-];
-
 export default function StepIndicator({ current }: { current: number }) {
+  const { t } = useLanguage();
+
+  const steps = [
+    { n: 1, label: t("checkout.step.cart") },
+    { n: 2, label: t("checkout.step.shipping") },
+    { n: 3, label: t("checkout.step.payment") },
+  ];
+
   return (
     <div className="flex items-center gap-2 sm:gap-3">
       {steps.map((step, i) => {
