@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import PlaceholderImage from "@/components/ui/placeholder-image";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatMNT } from "@/lib/utils";
 import { addToCart } from "@/store/cartSlice";
 import { useAppDispatch } from "@/store/hooks";
 import { cn } from "@/lib/utils";
-import { Check, Eye, Heart, ShoppingCart } from "lucide-react";
-import Image from "next/image";
+import { Check, Plus, Star } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -15,24 +15,32 @@ interface Product {
   image: string;
   name: string;
   price: number;
-  category?: string;
+  originalPrice?: number;
+  rating?: number;
+  reviewCount?: number;
+  soldCount?: number;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 
   const dispatch = useAppDispatch();
+
+  const discount =
+    product.originalPrice && product.originalPrice > product.price
+      ? Math.round(
+          ((product.originalPrice - product.price) / product.originalPrice) *
+            100
+        )
+      : 0;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     setIsAdding(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 250));
 
     dispatch(
       addToCart({
@@ -46,107 +54,64 @@ export default function ProductCard({ product }: { product: Product }) {
 
     setIsAdding(false);
     setJustAdded(true);
-
-    setTimeout(() => setJustAdded(false), 2000);
-  };
-
-  const handleToggleLike = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsLiked(!isLiked);
+    setTimeout(() => setJustAdded(false), 1500);
   };
 
   return (
-    <Card className="group overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-      <div className="relative overflow-hidden">
-        <Button
-          variant="ghost"
-          size="icon"
-          name="Like Button"
-          className={cn(
-            "absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-background/80 backdrop-blur-sm hover:bg-background",
-            isLiked && "opacity-100 text-destructive"
-          )}
-          onClick={handleToggleLike}
-        >
-          <Heart
-            name="Like Icon"
-            className={cn("h-4 w-4", isLiked && "fill-current")}
+    <Card className="group overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 py-0 gap-0">
+      <Link href={`/product/${product.id}`} className="block relative">
+        <div className="relative aspect-square overflow-hidden">
+          <PlaceholderImage
+            label="бүтээгдэхүүн"
+            className="w-full h-full transition-transform duration-300 group-hover:scale-105"
           />
-        </Button>
-
-        <Link href={`/product/${product.id}`} className="block relative">
-          <div className="aspect-square overflow-hidden bg-muted">
-            {!imageError ? (
-              <Image
-                src={product.image}
-                alt={product.name}
-                width={400}
-                height={400}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <div className="text-muted-foreground text-sm">
-                  Image not available
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-            <Button
-              size="sm"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Quick View
-            </Button>
-          </div>
-        </Link>
-      </div>
-
-      <CardContent className="p-4 space-y-3">
-        <Link href={`/product/${product.id}`}>
-          <h2 className="font-semibold text-foreground line-clamp-2 hover:text-primary transition-colors">
-            {product.name}
-          </h2>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-foreground">
-            ${product.price.toFixed(2)}
-          </span>
+          {discount > 0 && (
+            <span className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded-md">
+              -{discount}%
+            </span>
+          )}
         </div>
+      </Link>
 
-        <Button
-          className={cn(
-            "w-full transition-all duration-300",
-            justAdded
-              ? "bg-green-600 text-white hover:bg-green-600"
-              : "bg-primary text-primary-foreground hover:bg-primary/90"
-          )}
-          onClick={handleAddToCart}
-          disabled={isAdding}
-        >
-          {isAdding ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              Adding...
-            </div>
-          ) : justAdded ? (
-            <div className="flex items-center gap-2">
+      <CardContent className="p-4 space-y-2">
+        <Link href={`/product/${product.id}`}>
+          <h3 className="font-medium text-sm text-foreground line-clamp-2 hover:text-primary transition-colors min-h-10">
+            {product.name}
+          </h3>
+        </Link>
+
+        {product.rating && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="font-medium text-foreground">
+              {product.rating.toFixed(1)}
+            </span>
+            <span>· {product.soldCount ?? product.reviewCount} зарагдсан</span>
+          </div>
+        )}
+
+        <div className="flex items-end justify-between pt-1">
+          <span className="text-base font-bold text-foreground">
+            {formatMNT(product.price)}
+          </span>
+          <button
+            onClick={handleAddToCart}
+            disabled={isAdding}
+            aria-label="Сагсанд нэмэх"
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition-all",
+              justAdded ? "bg-emerald-600" : "brand-gradient hover:opacity-90"
+            )}
+          >
+            {isAdding ? (
+              <span className="h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : justAdded ? (
               <Check className="h-4 w-4" />
-              Added to Cart!
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Add to Cart
-            </div>
-          )}
-        </Button>
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </CardContent>
     </Card>
   );
