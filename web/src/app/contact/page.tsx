@@ -54,7 +54,7 @@ export default function Contact() {
     {
       icon: Mail,
       title: "И-мэйл",
-      details: ["hello@baagiishop.mn", "support@baagiishop.mn"],
+      details: ["hello@uvs.mn", "support@uvs.mn"],
       description: "Бид танд хамгийн богино хугацаанд хариу өгнө",
     },
     {
