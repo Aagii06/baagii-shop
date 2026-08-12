@@ -114,7 +114,7 @@ export default function Header() {
               <span className="text-lg font-bold tracking-tight text-foreground">
                 UVS
               </span>
-              <span className="text-[10px] font-medium tracking-widest text-muted-foreground">
+              <span className="text-xs font-medium tracking-widest text-muted-foreground">
                 Online Shop
               </span>
             </span>

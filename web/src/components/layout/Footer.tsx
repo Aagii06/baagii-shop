@@ -83,8 +83,8 @@ export default function Footer() {
         </div>
 
         <div className="py-6 border-t border-border text-center sm:text-left">
-          <p className="text-xs text-muted-foreground">
-            © 2026 UVS Online Shop™. Бүх эрх хуулиар хамгаалагдсан.
+          <p className="text-sm text-muted-foreground">
+            © 2026 UVS <span className="font-semibold text-foreground">Online Shop</span>™. Бүх эрх хуулиар хамгаалагдсан.
           </p>
         </div>
       </div>
