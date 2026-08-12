@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 
 interface PriceRangeSliderProps {
@@ -25,6 +26,7 @@ export default function PriceRangeSlider({
   value,
   onChange,
 }: PriceRangeSliderProps) {
+  const { t } = useLanguage();
   const [low, high] = value;
   const range = Math.max(1, max - min);
   const lowPct = ((low - min) / range) * 100;

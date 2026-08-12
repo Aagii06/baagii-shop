@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import {
   CheckCircle,
   Clock,
@@ -19,6 +20,7 @@ import {
 import { useState } from "react";
 
 export default function Contact() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -53,68 +55,53 @@ export default function Contact() {
   const contactInfo = [
     {
       icon: Mail,
-      title: "И-мэйл",
+      title: t("contact.info.email.title"),
       details: ["hello@uvs.mn", "support@uvs.mn"],
-      description: "Бид танд хамгийн богино хугацаанд хариу өгнө",
+      description: t("contact.info.email.desc"),
     },
     {
       icon: Phone,
-      title: "Утас",
+      title: t("contact.info.phone.title"),
       details: ["7045-1234", "+976 8811 2345"],
-      description: "Даваа-Баасан 09:00 - 18:00",
+      description: t("contact.info.phone.desc"),
     },
     {
       icon: MapPin,
-      title: "Хаяг",
-      details: ["Улаанбаатар хот", "Сүхбаатар дүүрэг"],
-      description: "Бидэнтэй уулзаарай",
+      title: t("contact.info.address.title"),
+      details: [t("contact.info.address.line1"), t("contact.info.address.line2")],
+      description: t("contact.info.address.desc"),
     },
     {
       icon: Clock,
-      title: "Ажиллах цаг",
-      details: ["Даваа - Баасан: 09:00 - 18:00", "Бямба: 10:00 - 16:00"],
-      description: "Ням гараг амарна",
+      title: t("contact.info.hours.title"),
+      details: [t("contact.info.hours.line1"), t("contact.info.hours.line2")],
+      description: t("contact.info.hours.desc"),
     },
   ];
 
   const features = [
     {
       icon: Headset,
-      title: "24/7 тусламж",
-      description: "Хүссэн үедээ тусламж авах боломжтой",
+      title: t("contact.why.support247.title"),
+      description: t("contact.why.support247.desc"),
     },
     {
       icon: MessageSquare,
-      title: "Түргэн хариу",
-      description: "2 цагийн дотор хариу өгнө",
+      title: t("contact.why.quickReply.title"),
+      description: t("contact.why.quickReply.desc"),
     },
     {
       icon: Shield,
-      title: "Аюулгүй, нууцлалтай",
-      description: "Таны мэдээлэл хамгаалагдсан",
+      title: t("contact.why.secure.title"),
+      description: t("contact.why.secure.desc"),
     },
   ];
 
   const faqs = [
-    {
-      question: "Хүргэлтийн нөхцөл ямар вэ?",
-      answer:
-        "50,000₮-с дээш захиалгад Улаанбаатар хотод хүргэлт үнэгүй. Стандарт хүргэлт 1-2 хоногт хийгдэнэ.",
-    },
-    {
-      question: "Захиалгаа хэрхэн хянах вэ?",
-      answer:
-        "Захиалга баталгаажсаны дараа 'Миний захиалга' хэсгээс явцыг бодит цагт хянах боломжтой.",
-    },
-    {
-      question: "Буцаалт, солилтын нөхцөл?",
-      answer:
-        "Бүтээгдэхүүнийг 14 хоногийн дотор, анхны байдлаар нь буцаах боломжтой.",
-    },
-    {
-      question: "Орон нутагт хүргэлт хийдэг үү?",
-      answer: "Тийм ээ, Монгол даяар 21 аймаг, 330 сум руу хүргэлт хийдэг.",
-    },
+    { question: t("contact.faq.q1"), answer: t("contact.faq.a1") },
+    { question: t("contact.faq.q2"), answer: t("contact.faq.a2") },
+    { question: t("contact.faq.q3"), answer: t("contact.faq.a3") },
+    { question: t("contact.faq.q4"), answer: t("contact.faq.a4") },
   ];
 
   return (
@@ -123,13 +110,13 @@ export default function Contact() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto">
             <Badge className="mb-5 bg-white/15 text-white border-transparent hover:bg-white/15">
-              Холбоо барих
+              {t("contact.badge")}
             </Badge>
             <h1 className="text-3xl lg:text-5xl font-bold mb-5 text-balance">
-              Танд туслахад бид үргэлж бэлэн
+              {t("contact.heroTitle")}
             </h1>
             <p className="text-white/85 max-w-xl mx-auto">
-              Асуулт, санал хүсэлт байвал бидэнтэй чөлөөтэй холбогдоорой.
+              {t("contact.heroDesc")}
             </p>
           </div>
         </div>
@@ -141,22 +128,22 @@ export default function Contact() {
             <div className="lg:col-span-2">
               <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
                 <h2 className="text-xl font-bold text-foreground mb-1">
-                  Бидэнд бичнэ үү
+                  {t("contact.formTitle")}
                 </h2>
                 <p className="text-muted-foreground mb-6">
-                  Доорх маягтыг бөглөнө үү, бид тун удахгүй хариу өгөх болно.
+                  {t("contact.formDesc")}
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="name" className="text-sm font-medium">
-                        Таны нэр
+                        {t("contact.form.name")}
                       </label>
                       <Input
                         id="name"
                         name="name"
-                        placeholder="Бат-Эрдэнэ"
+                        placeholder={t("contact.form.namePlaceholder")}
                         value={formData.name}
                         onChange={handleInputChange}
                         required
@@ -164,13 +151,13 @@ export default function Contact() {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="email" className="text-sm font-medium">
-                        И-мэйл
+                        {t("contact.form.email")}
                       </label>
                       <Input
                         id="email"
                         name="email"
                         type="email"
-                        placeholder="tanii@email.mn"
+                        placeholder={t("contact.form.emailPlaceholder")}
                         value={formData.email}
                         onChange={handleInputChange}
                         required
@@ -180,12 +167,12 @@ export default function Contact() {
 
                   <div className="space-y-2">
                     <label htmlFor="subject" className="text-sm font-medium">
-                      Гарчиг
+                      {t("contact.form.subject")}
                     </label>
                     <Input
                       id="subject"
                       name="subject"
-                      placeholder="Танд юугаар туслах вэ?"
+                      placeholder={t("contact.form.subjectPlaceholder")}
                       value={formData.subject}
                       onChange={handleInputChange}
                       required
@@ -194,12 +181,12 @@ export default function Contact() {
 
                   <div className="space-y-2">
                     <label htmlFor="message" className="text-sm font-medium">
-                      Мессеж
+                      {t("contact.form.message")}
                     </label>
                     <Textarea
                       id="message"
                       name="message"
-                      placeholder="Асуулт, санал хүсэлтээ энд бичнэ үү..."
+                      placeholder={t("contact.form.messagePlaceholder")}
                       rows={6}
                       value={formData.message}
                       onChange={handleInputChange}
@@ -217,17 +204,17 @@ export default function Contact() {
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Илгээж байна...
+                        {t("contact.form.sending")}
                       </span>
                     ) : isSubmitted ? (
                       <span className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4" />
-                        Илгээгдлээ!
+                        {t("contact.form.sent")}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
                         <Send className="h-4 w-4" />
-                        Илгээх
+                        {t("contact.form.send")}
                       </span>
                     )}
                   </Button>
@@ -238,7 +225,7 @@ export default function Contact() {
             <div className="space-y-6">
               <div className="rounded-2xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-5">
-                  Холбоо барих мэдээлэл
+                  {t("contact.info.title")}
                 </h3>
                 <div className="space-y-6">
                   {contactInfo.map((info, index) => (
@@ -266,7 +253,7 @@ export default function Contact() {
 
               <div className="rounded-2xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Яагаад бидэнтэй холбогдох вэ?
+                  {t("contact.why.title")}
                 </h3>
                 <div className="space-y-4">
                   {features.map((feature, index) => (
@@ -300,10 +287,10 @@ export default function Contact() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <Badge variant="outline" className="mb-5">
-              Түгээмэл асуулт
+              {t("contact.faq.badge")}
             </Badge>
             <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
-              Танд туслах хариултууд
+              {t("contact.faq.title")}
             </h2>
           </div>
 
@@ -327,15 +314,15 @@ export default function Contact() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl brand-gradient text-white p-10 sm:p-14 text-center">
             <h2 className="text-2xl lg:text-3xl font-bold mb-3">
-              Өөр асуулт байна уу?
+              {t("contact.cta.title")}
             </h2>
             <p className="text-white/85 mb-8 max-w-xl mx-auto">
-              Манай үйлчилгээний баг танд туслахад бэлэн байна.
+              {t("contact.cta.desc")}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button size="lg" className="bg-white text-primary hover:bg-white/90">
                 <Phone className="h-4 w-4 mr-2" />
-                Одоо залгах
+                {t("contact.cta.call")}
               </Button>
               <Button
                 size="lg"
@@ -343,7 +330,7 @@ export default function Contact() {
                 className="border-white/40 text-white hover:bg-white/10 hover:text-white"
               >
                 <Mail className="h-4 w-4 mr-2" />
-                Чатаар холбогдох
+                {t("contact.cta.chat")}
               </Button>
             </div>
           </div>
