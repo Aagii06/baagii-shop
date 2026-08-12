@@ -1,214 +1,295 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { categories } from "@/lib/categories";
 import { useAppSelector } from "@/store/hooks";
-import { Menu, Search, ShoppingCart, X } from "lucide-react";
+import {
+  Heart,
+  Menu,
+  Search,
+  ShoppingCart,
+  Store,
+  User,
+  X,
+} from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "../ui/button";
+
+const categoryTabs = [
+  { label: "Бүх ангилал", href: "/search" },
+  { label: "Хямдрал", href: "/search?sale=1" },
+  { label: "Хүнс", href: "/search?category=huns" },
+  { label: "Хувцас", href: "/search?category=huvtsas" },
+  { label: "Цахилгаан бараа", href: "/search?category=tsahilgaan-baraa" },
+  { label: "Гэр ахуй", href: "/search?category=ger-akhui" },
+  { label: "Шинэ бараа", href: "/search?sort=new" },
+];
 
 export default function Header() {
   const cart = useAppSelector((state) => state.cart);
   const cartCount =
     cart?.reduce((total, item) => total + item.quantity, 0) || 0;
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     setIsMobileOpen(false);
+    setIsMobileSearchOpen(false);
   }, [pathname]);
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileOpen((prev) => !prev);
   }, []);
 
-  const closeMobileMenu = useCallback(() => {
-    setIsMobileOpen(false);
-  }, []);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(
+      searchQuery ? `/search?q=${encodeURIComponent(searchQuery)}` : "/search"
+    );
+  };
 
-  const isActivePath = (path: string) => pathname === path;
+  const activeCategory = searchParams.get("category");
+  const activeSale = searchParams.get("sale");
+  const activeSort = searchParams.get("sort");
 
-  const navItems = [
-    { href: "/orders", label: "Orders" },
-    { href: "/contact", label: "Contact" },
-  ];
+  const isTabActive = (href: string) => {
+    if (pathname !== "/search") return false;
+    if (href === "/search") return !activeCategory && !activeSale && !activeSort;
+    if (href.includes("sale=1")) return activeSale === "1";
+    if (href.includes("sort=new")) return activeSort === "new";
+    const cat = href.split("category=")[1];
+    return cat ? activeCategory === cat : false;
+  };
 
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-lg"
-          : "bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm"
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-8 lg:space-x-12">
-            <Link
-              className="text-2xl tracking-tight text-gray-900 hover:text-gray-700 transition-colors"
-              href="/"
-              aria-label="BloomShop Home"
-            >
-              BAAGII<span className="text-primary">SHOP</span>
-            </Link>
-
-            <nav
-              className="hidden md:flex items-center space-x-1"
-              role="navigation"
-              aria-label="Main navigation"
-            >
-              {navItems.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`relative py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActivePath(href)
-                      ? "bg-orange-100 shadow-md"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                  aria-current={isActivePath(href) ? "page" : undefined}
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+      <div className="hidden lg:block brand-gradient text-white/90 text-xs">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span>Монгол даяар хүргэлттэй</span>
+            <span className="w-px h-3 bg-white/30" />
+            <span>50,000₮-с дээш захиалгад хүргэлт үнэгүй</span>
           </div>
-
-          <div className="hidden lg:flex flex-1 max-w-md mx-8">
-            <form className="relative w-full">
-              <input
-                type="search"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
-                aria-label="Search products"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </form>
-          </div>
-
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <button
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="lg:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Search"
-            >
-              <Search className="h-5 w-5 text-gray-700" />
-            </button>
-
-            <button
-              onClick={toggleMobileMenu}
-              className="md:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Toggle navigation menu"
-              aria-expanded={isMobileOpen}
-            >
-              {isMobileOpen ? (
-                <X className="h-6 w-6 text-gray-700" />
-              ) : (
-                <Menu className="h-6 w-6 text-gray-700" />
-              )}
-            </button>
-
-            <Link
-              href="/cart"
-              className="relative p-2 rounded-full hover:bg-gray-100 transition-all duration-200 group"
-              aria-label={`Shopping cart with ${cartCount} items`}
-            >
-              <ShoppingCart className="h-6 w-6 text-gray-700 group-hover:text-gray-900 transition-colors" />
-              {cartCount > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1"
-                  aria-label={`${cartCount} items in cart`}
-                >
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
-              )}
+          <div className="flex items-center gap-4">
+            <Link href="/contact" className="hover:text-white transition-colors">
+              Тусламж
             </Link>
-
-            {/* <div className="hidden sm:flex items-center space-x-2">
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="text-sm">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button size="sm" variant="default" className="text-sm">
-                  Sign Up
-                </Button>
-              </Link>
-            </div> */}
+            <Link href="/contact" className="hover:text-white transition-colors">
+              Худалдагч болох
+            </Link>
+            <span>MN / EN</span>
           </div>
         </div>
+      </div>
 
-        {isSearchOpen && (
-          <div className="lg:hidden mt-4 animate-in slide-in-from-top duration-200">
-            <form className="relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
+        <div className="flex items-center gap-3 lg:gap-6">
+          <button
+            onClick={toggleMobileMenu}
+            className="lg:hidden p-2 -ml-2 rounded-full hover:bg-muted transition-colors shrink-0"
+            aria-label="Цэс нээх"
+            aria-expanded={isMobileOpen}
+          >
+            {isMobileOpen ? (
+              <X className="h-5 w-5 text-foreground" />
+            ) : (
+              <Menu className="h-5 w-5 text-foreground" />
+            )}
+          </button>
+
+          <Link
+            href="/"
+            aria-label="BAAGII SHOP Нүүр"
+            className="flex items-center gap-2.5 shrink-0"
+          >
+            <span className="brand-gradient flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-white shadow-sm">
+              <Store className="h-5 w-5" />
+            </span>
+            <span className="hidden sm:flex flex-col leading-none">
+              <span className="text-lg font-bold tracking-tight text-foreground">
+                BAAGII
+              </span>
+              <span className="text-[10px] font-medium tracking-widest text-muted-foreground">
+                ОНЛАЙН ДЭЛГҮҮР
+              </span>
+            </span>
+          </Link>
+
+          <form
+            onSubmit={handleSearchSubmit}
+            className="hidden md:flex flex-1 max-w-2xl mx-auto"
+          >
+            <div className="flex w-full rounded-full border border-border bg-muted/40 focus-within:ring-2 focus-within:ring-primary/40 transition-shadow overflow-hidden">
               <input
                 type="search"
-                placeholder="Search products..."
+                placeholder="Бараа, брэнд, ангилал хайх..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                aria-label="Search products"
+                className="w-full bg-transparent pl-5 pr-2 py-2.5 text-sm focus:outline-none"
+                aria-label="Бараа хайх"
+              />
+              <button
+                type="submit"
+                className="brand-gradient text-white text-sm font-medium px-5 shrink-0 hover:opacity-90 transition-opacity"
+              >
+                Хайх
+              </button>
+            </div>
+          </form>
+
+          <button
+            onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+            className="md:hidden ml-auto p-2 rounded-full hover:bg-muted transition-colors"
+            aria-label="Хайх"
+          >
+            <Search className="h-5 w-5 text-foreground" />
+          </button>
+
+          <div className="hidden md:flex items-center gap-1 shrink-0">
+            <Button
+              variant="ghost"
+              asChild
+              className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+            >
+              <Link href="/orders">
+                <Heart className="h-5 w-5" />
+                Хадгалсан
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              asChild
+              className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+            >
+              <Link href="/orders">
+                <User className="h-5 w-5" />
+                Профайл
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              asChild
+              className="relative flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+            >
+              <Link href="/cart">
+                <span className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                      {cartCount > 99 ? "99+" : cartCount}
+                    </span>
+                  )}
+                </span>
+                Сагс
+              </Link>
+            </Button>
+          </div>
+
+          <Link
+            href="/cart"
+            className="relative md:hidden p-2 rounded-full hover:bg-muted transition-colors"
+            aria-label={`Сагс, ${cartCount} бараа`}
+          >
+            <ShoppingCart className="h-5 w-5 text-foreground" />
+            {cartCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
+          </Link>
+        </div>
+
+        {isMobileSearchOpen && (
+          <form
+            onSubmit={handleSearchSubmit}
+            className="md:hidden mt-3 animate-in slide-in-from-top duration-200"
+          >
+            <div className="flex w-full rounded-full border border-border bg-muted/40 overflow-hidden">
+              <input
+                type="search"
+                placeholder="Бараа хайх..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent pl-5 pr-2 py-2.5 text-sm focus:outline-none"
+                aria-label="Бараа хайх"
                 autoFocus
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </form>
-          </div>
-        )}
-
-        {isMobileOpen && (
-          <nav
-            className="md:hidden mt-4 animate-in slide-in-from-top duration-200"
-            role="navigation"
-            aria-label="Mobile navigation"
-          >
-            <div className="flex flex-col space-y-3 pb-4 border-b border-gray-200">
-              {navItems.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={closeMobileMenu}
-                  className={`text-sm font-medium py-2 px-3 rounded-lg transition-all ${
-                    isActivePath(href)
-                      ? "bg-orange-100"
-                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                  aria-current={isActivePath(href) ? "page" : undefined}
-                >
-                  {label}
-                </Link>
-              ))}
+              <button
+                type="submit"
+                className="brand-gradient text-white text-sm font-medium px-5 shrink-0"
+              >
+                Хайх
+              </button>
             </div>
-
-            <div className="flex flex-col space-y-3 pt-4 sm:hidden">
-              <Button variant="outline" className="w-full text-sm" asChild>
-                <Link href="/" onClick={closeMobileMenu}>
-                  Sign In
-                </Link>
-              </Button>
-              <Button className="w-full text-sm" variant="default" asChild>
-                <Link href="/" onClick={closeMobileMenu}>
-                  Sign Up
-                </Link>
-              </Button>
-            </div>
-          </nav>
+          </form>
         )}
       </div>
+
+      <nav
+        className="hidden lg:block border-t border-border"
+        role="navigation"
+        aria-label="Ангилал"
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            {categoryTabs.map(({ href, label }) => (
+              <Link
+                key={label}
+                href={href}
+                className={`relative py-3 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
+                  isTabActive(href)
+                    ? "text-primary"
+                    : "text-foreground/80 hover:text-foreground"
+                }`}
+              >
+                {label}
+                {isTabActive(href) && (
+                  <span className="absolute left-4 right-4 -bottom-px h-0.5 bg-primary rounded-full" />
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      {isMobileOpen && (
+        <nav
+          className="lg:hidden border-t border-border animate-in slide-in-from-top duration-200"
+          role="navigation"
+          aria-label="Гар утасны цэс"
+        >
+          <div className="container mx-auto px-4 py-4 space-y-1">
+            {categoryTabs.map(({ href, label }) => (
+              <Link
+                key={label}
+                href={href}
+                className="block py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
+            <div className="h-px bg-border my-2" />
+            <Link
+              href="/orders"
+              className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              <User className="h-4 w-4" /> Миний профайл
+            </Link>
+            <Link
+              href="/contact"
+              className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              Тусламж
+            </Link>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }
