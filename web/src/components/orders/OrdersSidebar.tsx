@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import {
   ClipboardList,
@@ -12,17 +13,48 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const items = [
-  { href: "/orders", label: "Миний захиалга", icon: ClipboardList, active: true },
-  { href: "#", label: "Хадгалсан бараа", icon: Heart, active: false },
-  { href: "#", label: "Хүргэлтийн хаяг", icon: MapPin, active: false },
-  { href: "#", label: "Төлбөрийн хэрэгсэл", icon: CreditCard, active: false },
-  { href: "#", label: "Купон, урамшуулал", icon: Ticket, active: false },
-  { href: "#", label: "Тохиргоо", icon: Settings, active: false },
-];
-
 export default function OrdersSidebar() {
+  const { t } = useLanguage();
   const pathname = usePathname();
+
+  const items = [
+    {
+      href: "/orders",
+      label: t("orders.sidebar.myOrders"),
+      icon: ClipboardList,
+      active: true,
+    },
+    {
+      href: "#",
+      label: t("orders.sidebar.saved"),
+      icon: Heart,
+      active: false,
+    },
+    {
+      href: "#",
+      label: t("orders.sidebar.addresses"),
+      icon: MapPin,
+      active: false,
+    },
+    {
+      href: "#",
+      label: t("orders.sidebar.payment"),
+      icon: CreditCard,
+      active: false,
+    },
+    {
+      href: "#",
+      label: t("orders.sidebar.coupons"),
+      icon: Ticket,
+      active: false,
+    },
+    {
+      href: "#",
+      label: t("orders.sidebar.settings"),
+      icon: Settings,
+      active: false,
+    },
+  ];
 
   return (
     <aside className="hidden lg:block w-64 shrink-0">

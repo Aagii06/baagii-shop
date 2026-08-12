@@ -1,7 +1,8 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import type { OrderStatus } from "@/types/order";
-
-const stageLabels = ["Хүлээн авсан", "Төлбөр баталгаажсан", "Хүргэгдэх"];
 
 export default function OrderProgress({
   status,
@@ -10,6 +11,12 @@ export default function OrderProgress({
   status: OrderStatus;
   caption: string;
 }) {
+  const { t } = useLanguage();
+  const stageLabels = [
+    t("orders.progress.received"),
+    t("orders.progress.paid"),
+    t("orders.progress.delivering"),
+  ];
   const filled = status === "confirmed" ? 2 : 1;
 
   return (
