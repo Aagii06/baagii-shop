@@ -11,6 +11,8 @@ export const defaultLocale: Locale = "mn";
 type Dict = Record<string, string>;
 
 const mn: Dict = {
+  "common.other": "Бусад",
+
   "header.topbar.delivery": "Монгол даяар хүргэлттэй",
   "header.topbar.freeShipping": "50,000₮-с дээш захиалгад хүргэлт үнэгүй",
   "header.topbar.help": "Тусламж",
@@ -308,6 +310,8 @@ const mn: Dict = {
 };
 
 const en: Dict = {
+  "common.other": "Other",
+
   "header.topbar.delivery": "Nationwide delivery",
   "header.topbar.freeShipping": "Free delivery on orders over 50,000₮",
   "header.topbar.help": "Help",
@@ -604,6 +608,8 @@ const en: Dict = {
 };
 
 const ru: Dict = {
+  "common.other": "Другое",
+
   "header.topbar.delivery": "Доставка по всей Монголии",
   "header.topbar.freeShipping": "Бесплатная доставка при заказе от 50,000₮",
   "header.topbar.help": "Помощь",

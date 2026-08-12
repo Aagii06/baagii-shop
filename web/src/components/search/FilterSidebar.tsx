@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { brands, categories } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import PriceRangeSlider from "./PriceRangeSlider";
@@ -67,6 +68,8 @@ export default function FilterSidebar({
   priceBounds,
   counts,
 }: FilterSidebarProps) {
+  const { t } = useLanguage();
+
   const toggleCategory = (slug: string) => {
     const next = filters.categories.includes(slug)
       ? filters.categories.filter((c) => c !== slug)
@@ -85,27 +88,29 @@ export default function FilterSidebar({
     <aside className="w-full lg:w-64 shrink-0 space-y-6">
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="font-semibold text-sm text-foreground mb-2">
-          Ангилал
+          {t("search.filters.category")}
         </h3>
         {categories.map((category) => (
           <Checkbox
             key={category.slug}
             checked={filters.categories.includes(category.slug)}
             onChange={() => toggleCategory(category.slug)}
-            label={category.name}
+            label={t(`category.${category.slug}`)}
             count={counts.category[category.slug] ?? 0}
           />
         ))}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
-        <h3 className="font-semibold text-sm text-foreground mb-2">Брэнд</h3>
+        <h3 className="font-semibold text-sm text-foreground mb-2">
+          {t("search.filters.brand")}
+        </h3>
         {brands.map((brand) => (
           <Checkbox
             key={brand}
             checked={filters.brands.includes(brand)}
             onChange={() => toggleBrand(brand)}
-            label={brand}
+            label={brand === "Бусад" ? t("common.other") : brand}
             count={counts.brand[brand] ?? 0}
           />
         ))}
@@ -113,7 +118,7 @@ export default function FilterSidebar({
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="font-semibold text-sm text-foreground mb-2">
-          Хүргэлт
+          {t("search.filters.delivery")}
         </h3>
         <Checkbox
           checked={filters.freeDeliveryOnly}
@@ -123,14 +128,14 @@ export default function FilterSidebar({
               freeDeliveryOnly: !filters.freeDeliveryOnly,
             })
           }
-          label="Үнэгүй хүргэлт"
+          label={t("search.filters.freeDelivery")}
           count={counts.freeDelivery}
         />
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="font-semibold text-sm text-foreground mb-1">
-          Үнийн хязгаар
+          {t("search.filters.priceRange")}
         </h3>
         <PriceRangeSlider
           min={priceBounds[0]}

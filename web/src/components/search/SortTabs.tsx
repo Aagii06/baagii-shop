@@ -1,15 +1,9 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 
 export type SortOption = "popular" | "new" | "price-asc" | "rating";
-
-const options: { value: SortOption; label: string }[] = [
-  { value: "popular", label: "Эрэлттэй" },
-  { value: "new", label: "Шинэ" },
-  { value: "price-asc", label: "Үнэ өсөхөөр" },
-  { value: "rating", label: "Үнэлгээ" },
-];
 
 export default function SortTabs({
   value,
@@ -18,6 +12,15 @@ export default function SortTabs({
   value: SortOption;
   onChange: (value: SortOption) => void;
 }) {
+  const { t } = useLanguage();
+
+  const options: { value: SortOption; label: string }[] = [
+    { value: "popular", label: t("search.sort.popular") },
+    { value: "new", label: t("search.sort.new") },
+    { value: "price-asc", label: t("search.sort.priceAsc") },
+    { value: "rating", label: t("search.sort.rating") },
+  ];
+
   return (
     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
       {options.map((option) => (

@@ -6,6 +6,7 @@ import FilterSidebar, {
 } from "@/components/search/FilterSidebar";
 import Pagination from "@/components/search/Pagination";
 import SortTabs, { type SortOption } from "@/components/search/SortTabs";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getCategory } from "@/lib/categories";
 import productsData from "@/data/products.json";
 import type { Product } from "@/types/product";
@@ -28,6 +29,7 @@ function computePriceBounds(): [number, number] {
 const PRICE_BOUNDS = computePriceBounds();
 
 function SearchContent() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category");
   const initialSale = searchParams.get("sale") === "1";
@@ -124,7 +126,7 @@ function SearchContent() {
       const cat = getCategory(slug);
       return {
         key: `cat-${slug}`,
-        label: cat?.name ?? slug,
+        label: cat ? t(`category.${cat.slug}`) : slug,
         onRemove: () =>
           setFilters((f) => ({
             ...f,
