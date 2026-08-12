@@ -147,7 +147,7 @@ function SearchContent() {
       ? [
           {
             key: "free-delivery",
-            label: "Үнэгүй хүргэлт",
+            label: t("search.filters.freeDelivery"),
             onRemove: () =>
               setFilters((f) => ({ ...f, freeDeliveryOnly: false })),
           },
@@ -170,10 +170,10 @@ function SearchContent() {
   const breadcrumbLabel = query
     ? `«${query}»`
     : activeCategory
-    ? activeCategory.name
+    ? t(`category.${activeCategory.slug}`)
     : saleOnly
-    ? "Хямдрал"
-    : "Бүх бараа";
+    ? t("search.breadcrumb.sale")
+    : t("search.breadcrumb.allProducts");
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -181,10 +181,10 @@ function SearchContent() {
         <div>
           <nav className="text-sm text-muted-foreground mb-1">
             <Link href="/" className="hover:text-foreground">
-              Нүүр
+              {t("search.breadcrumb.home")}
             </Link>{" "}
             <span className="mx-1">›</span>
-            <span>Хайлт</span> <span className="mx-1">›</span>
+            <span>{t("search.breadcrumb.search")}</span> <span className="mx-1">›</span>
             <span className="text-foreground font-medium">
               {breadcrumbLabel}
             </span>
@@ -192,7 +192,7 @@ function SearchContent() {
           <h1 className="text-2xl font-bold text-foreground">
             {breadcrumbLabel}{" "}
             <span className="text-base font-normal text-muted-foreground">
-              {filtered.length} бараа олдлоо
+              {t("search.resultsCount", { count: filtered.length })}
             </span>
           </h1>
         </div>
