@@ -86,9 +86,9 @@ export default function Header() {
             <Link href="/contact" className="hover:text-white transition-colors">
               {t("header.topbar.help")}
             </Link>
-            {/* <Link href="/contact" className="hover:text-white transition-colors">
-              {t("header.topbar.becomeSeller")}
-            </Link> */}
+            <Link href="/contact" className="hover:text-white transition-colors">
+              {t("header.topbar.contact")}
+            </Link>
             <LanguageSwitcher variant="dark" />
           </div>
         </div>
