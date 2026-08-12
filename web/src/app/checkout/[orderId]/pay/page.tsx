@@ -2,6 +2,7 @@
 
 import PaymentForm from "@/components/checkout/PaymentForm";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { confirmOrder } from "@/store/orderSlice";
@@ -11,6 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function PayOrderPage() {
+  const { t } = useLanguage();
   const { orderId } = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -34,10 +36,10 @@ export default function PayOrderPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Захиалга олдсонгүй
+          {t("checkout.payment.notFound.title")}
         </h1>
         <Button asChild>
-          <Link href="/orders">Захиалгууд руу очих</Link>
+          <Link href="/orders">{t("checkout.payment.notFound.cta")}</Link>
         </Button>
       </div>
     );
@@ -47,13 +49,15 @@ export default function PayOrderPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Захиалга төлөгдсөн байна
+          {t("checkout.payment.alreadyPaid.title")}
         </h1>
         <p className="text-muted-foreground mb-6">
-          {order.id} захиалга аль хэдийн баталгаажсан.
+          {t("checkout.payment.alreadyPaid.desc", { id: order.id })}
         </p>
         <Button asChild>
-          <Link href={`/orders/${order.id}`}>Захиалга харах</Link>
+          <Link href={`/orders/${order.id}`}>
+            {t("checkout.payment.alreadyPaid.cta")}
+          </Link>
         </Button>
       </div>
     );
@@ -74,7 +78,7 @@ export default function PayOrderPage() {
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-24 rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
-              Захиалгын дүн
+              {t("checkout.summary.title")}
             </h2>
 
             <div className="space-y-3">
@@ -93,22 +97,28 @@ export default function PayOrderPage() {
 
             <div className="space-y-2 pt-3 border-t border-border">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Барааны дүн</span>
+                <span className="text-muted-foreground">
+                  {t("cart.summary.subtotal")}
+                </span>
                 <span className="font-medium">
                   {formatMNT(order.subtotal)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Хүргэлт</span>
+                <span className="text-muted-foreground">
+                  {t("cart.summary.shipping")}
+                </span>
                 <span className="font-medium">
                   {order.shipping === 0
-                    ? "Үнэгүй"
+                    ? t("cart.summary.free")
                     : formatMNT(order.shipping)}
                 </span>
               </div>
               {order.coupon > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Купон</span>
+                  <span className="text-muted-foreground">
+                    {t("cart.summary.couponGeneric")}
+                  </span>
                   <span className="font-medium text-emerald-600">
                     -{formatMNT(order.coupon)}
                   </span>
@@ -118,7 +128,7 @@ export default function PayOrderPage() {
 
             <div className="flex justify-between items-center pt-3 border-t border-border">
               <span className="font-semibold text-foreground">
-                Төлөх дүн
+                {t("checkout.summary.payable")}
               </span>
               <span className="text-xl font-bold text-primary">
                 {formatMNT(order.total)}

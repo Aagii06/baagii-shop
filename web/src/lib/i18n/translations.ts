@@ -150,6 +150,7 @@ const mn: Dict = {
   "cart.summary.shipping": "Хүргэлт",
   "cart.summary.free": "Үнэгүй",
   "cart.summary.coupon": "Купон {code}",
+  "cart.summary.couponGeneric": "Купон",
   "cart.summary.total": "Нийт дүн",
   "cart.summary.freeShipHint": "{amount} нэмж захиалбал хүргэлт үнэгүй болно",
   "cart.summary.checkout": "Захиалга баталгаажуулах",
@@ -449,6 +450,7 @@ const en: Dict = {
   "cart.summary.shipping": "Shipping",
   "cart.summary.free": "Free",
   "cart.summary.coupon": "Coupon {code}",
+  "cart.summary.couponGeneric": "Coupon",
   "cart.summary.total": "Total",
   "cart.summary.freeShipHint": "Add {amount} more for free shipping",
   "cart.summary.checkout": "Proceed to checkout",
@@ -747,6 +749,7 @@ const ru: Dict = {
   "cart.summary.shipping": "Доставка",
   "cart.summary.free": "Бесплатно",
   "cart.summary.coupon": "Промокод {code}",
+  "cart.summary.couponGeneric": "Промокод",
   "cart.summary.total": "Итого",
   "cart.summary.freeShipHint":
     "Добавьте ещё {amount} для бесплатной доставки",
