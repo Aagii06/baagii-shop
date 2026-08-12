@@ -4,6 +4,7 @@ import ProductList from "@/components/home/ProductList";
 import FilterSidebar, {
   type SearchFilters,
 } from "@/components/search/FilterSidebar";
+import MobileFilterDrawer from "@/components/search/MobileFilterDrawer";
 import Pagination from "@/components/search/Pagination";
 import SortTabs, { type SortOption } from "@/components/search/SortTabs";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -208,8 +209,17 @@ function SearchContent() {
         />
 
         <div className="flex-1 min-w-0 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-            <SortTabs value={sort} onChange={setSort} />
+          <div className="flex items-center gap-3 justify-between">
+            <div className="min-w-0 flex-1">
+              <SortTabs value={sort} onChange={setSort} />
+            </div>
+            <MobileFilterDrawer
+              filters={filters}
+              onChange={setFilters}
+              priceBounds={PRICE_BOUNDS}
+              counts={counts}
+              activeCount={chips.length}
+            />
           </div>
 
           {chips.length > 0 && (
