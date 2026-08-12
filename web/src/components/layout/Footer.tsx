@@ -1,219 +1,137 @@
-"use client";
-
 import {
-  ArrowRight,
-  Facebook,
-  Github,
-  Heart,
-  Instagram,
-  Mail,
-  MapPin,
-  Phone,
-  Twitter,
+  BadgeCheck,
+  Headset,
+  RefreshCcw,
+  Store,
+  Truck,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Separator } from "../ui/separator";
+
+const trustItems = [
+  {
+    icon: Truck,
+    title: "Монгол даяар хүргэлт",
+    desc: "21 аймаг, 330 сум",
+    tint: "bg-emerald-100 text-emerald-700",
+  },
+  {
+    icon: RefreshCcw,
+    title: "14 хоногийн буцаалт",
+    desc: "Хялбар шийдвэрлэнэ",
+    tint: "bg-violet-100 text-violet-700",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Баталгаат бараа",
+    desc: "Шалгагдсан худалдагчид",
+    tint: "bg-blue-100 text-blue-700",
+  },
+  {
+    icon: Headset,
+    title: "24/7 тусламж",
+    desc: "7045-1234",
+    tint: "bg-amber-100 text-amber-700",
+  },
+];
+
+const footerSections = [
+  {
+    title: "ДЭЛГҮҮР",
+    links: [
+      { href: "/search", label: "Бүх ангилал" },
+      { href: "/search?sale=1", label: "Хямдрал" },
+      { href: "/search?sort=new", label: "Шинэ бараа" },
+      { href: "/search", label: "Брэндүүд" },
+    ],
+  },
+  {
+    title: "ҮЙЛЧИЛГЭЭ",
+    links: [
+      { href: "/contact", label: "Хүргэлтийн нөхцөл" },
+      { href: "/contact", label: "Буцаалт, солилт" },
+      { href: "/contact", label: "Төлбөрийн заавар" },
+      { href: "/contact", label: "Түгээмэл асуулт" },
+    ],
+  },
+  {
+    title: "КОМПАНИ",
+    links: [
+      { href: "/contact", label: "Бидний тухай" },
+      { href: "/contact", label: "Худалдагч болох" },
+      { href: "/contact", label: "Ажлын байр" },
+      { href: "/contact", label: "Холбоо барих" },
+    ],
+  },
+];
 
 export default function Footer() {
-  const [email, setEmail] = useState("");
-
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      console.log("Newsletter subscription:", email);
-      setEmail("");
-    }
-  };
-
-  const footerSections = [
-    {
-      title: "Shop",
-      links: [
-        { href: "/shop", label: "All Products" },
-        { href: "/shop", label: "New Arrivals" },
-        { href: "/shop", label: "Sale" },
-        { href: "/shop", label: "Featured" },
-      ],
-    },
-    {
-      title: "Customer Care",
-      links: [
-        { href: "/contact", label: "Contact Us" },
-        { href: "/", label: "Help Center" },
-        { href: "/", label: "Shipping Info" },
-        { href: "/", label: "Returns & Exchanges" },
-      ],
-    },
-    {
-      title: "Company",
-      links: [
-        { href: "/about", label: "About Us" },
-        { href: "/", label: "Careers" },
-        { href: "/", label: "Blog" },
-        { href: "/", label: "Press" },
-      ],
-    },
-    {
-      title: "Legal",
-      links: [
-        { href: "/", label: "Privacy Policy" },
-        { href: "/", label: "Terms & Conditions" },
-        { href: "/", label: "Cookie Policy" },
-        { href: "/", label: "Accessibility" },
-      ],
-    },
-  ];
-
-  const socialLinks = [
-    { href: "#", icon: Facebook, label: "Facebook" },
-    { href: "#", icon: Twitter, label: "Twitter" },
-    { href: "#", icon: Instagram, label: "Instagram" },
-    { href: "#", icon: Github, label: "GitHub" },
-  ];
-
   return (
-    <footer className="bg-background border-t border-border">
+    <footer className="bg-background border-t border-border mt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-12 border-b border-border">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              Stay in the loop
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              Subscribe to our newsletter for exclusive offers, new arrivals,
-              and style inspiration.
+        <div className="py-8 grid grid-cols-2 sm:grid-cols-4 gap-6 border-b border-border">
+          {trustItems.map(({ icon: Icon, title, desc, tint }) => (
+            <div key={title} className="flex items-start gap-3">
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tint}`}
+              >
+                <Icon className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground leading-tight">
+                  {title}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+          <div className="lg:col-span-2">
+            <Link href="/" className="flex items-center gap-2.5 mb-4">
+              <span className="brand-gradient flex h-9 w-9 items-center justify-center rounded-xl text-white">
+                <Store className="h-5 w-5" />
+              </span>
+              <span className="text-lg font-bold tracking-tight text-foreground">
+                BAAGII SHOP
+              </span>
+            </Link>
+            <p className="text-sm text-muted-foreground max-w-xs mb-4">
+              Монгол даяар хүргэлттэй, найдвартай худалдаа.
             </p>
-            <form
-              onSubmit={handleNewsletterSubmit}
-              className="flex max-w-md mx-auto gap-2"
+            <a
+              href="tel:70451234"
+              className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
             >
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1"
-                required
-              />
-              <Button
-                type="submit"
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <ArrowRight className="h-4 w-4" />
-                <span className="sr-only">Subscribe</span>
-              </Button>
-            </form>
+              ☎ 7045-1234
+            </a>
           </div>
-        </div>
 
-        <div className="py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-            <div className="lg:col-span-2">
-              <Link
-                className="text-2xl tracking-tight text-gray-900 hover:text-gray-700 transition-colors"
-                href="/"
-                aria-label="BaagiiShop Home"
-              >
-                BAAGII<span className="text-primary">SHOP</span>
-              </Link>
-              <p className="text-muted-foreground mb-6 max-w-sm">
-                Discover unique products that inspire your lifestyle. Quality
-                craftsmanship meets modern design.
-              </p>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  <span>123 Fashion Street, Style City, SC 12345</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4 text-primary" />
-                  <span>+1 (555) 123-4567</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4 text-primary" />
-                  <span>hello@bloomshop.com</span>
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                {socialLinks.map(({ href, icon: Icon, label }) => (
-                  <Button
-                    key={label}
-                    variant="ghost"
-                    size="icon"
-                    asChild
-                    className="h-10 w-10 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    <Link href={href} aria-label={label}>
-                      <Icon className="h-4 w-4" />
+          {footerSections.map((section) => (
+            <div key={section.title}>
+              <h4 className="text-xs font-semibold text-foreground mb-4 tracking-wider">
+                {section.title}
+              </h4>
+              <ul className="space-y-3">
+                {section.links.map((link, i) => (
+                  <li key={`${section.title}-${i}`}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-block"
+                    >
+                      {link.label}
                     </Link>
-                  </Button>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
-
-            {footerSections.map((section, index) => (
-              <div
-                key={section.title}
-                className={`${index >= 2 ? "lg:col-span-1" : ""}`}
-              >
-                <h4 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wider">
-                  {section.title}
-                </h4>
-                <ul className="space-y-3">
-                  {section.links.map((link) => (
-                    <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-block"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
 
-        <Separator className="my-8" />
-
-        <div className="py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>© 2025 BloomShop™. Made with</span>
-              <Heart className="h-4 w-4 text-red-500 fill-current" />
-              <span>All Rights Reserved.</span>
-              <br />
-            </div>
-            <p className="text-sm text-muted-foreground">Developed by <a href="https://github.com/bloomtpl" target="_blank" rel="noopener noreferrer" className="font-bold hover:text-primary transition-colors">Bloomtpl</a> • Distributed by <a href="https://themewagon.com" target="_blank" rel="noopener noreferrer" className="font-bold hover:text-primary transition-colors">ThemeWagon</a></p>
-          </div>
-
-          <div className="flex items-center gap-6 text-sm">
-            <Link
-              href="/privacy"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/terms"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Terms
-            </Link>
-            <Link
-              href="/cookies"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Cookies
-            </Link>
-          </div>
+        <div className="py-6 border-t border-border text-center sm:text-left">
+          <p className="text-xs text-muted-foreground">
+            © 2026 BAAGII SHOP™. Бүх эрх хуулиар хамгаалагдсан.
+          </p>
         </div>
       </div>
     </footer>

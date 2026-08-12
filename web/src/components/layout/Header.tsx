@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { categories } from "@/lib/categories";
 import { useAppSelector } from "@/store/hooks";
 import {
   Heart,
@@ -181,7 +180,7 @@ export default function Header() {
                 <span className="relative">
                   <ShoppingCart className="h-5 w-5" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+                    <span className="absolute -top-1.5 -right-2 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1">
                       {cartCount > 99 ? "99+" : cartCount}
                     </span>
                   )}
@@ -198,7 +197,7 @@ export default function Header() {
           >
             <ShoppingCart className="h-5 w-5 text-foreground" />
             {cartCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+              <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1">
                 {cartCount > 99 ? "99+" : cartCount}
               </span>
             )}
