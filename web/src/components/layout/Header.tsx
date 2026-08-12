@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAppSelector } from "@/store/hooks";
 import {
   Heart,
@@ -15,18 +16,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-
-const categoryTabs = [
-  { label: "Бүх ангилал", href: "/search" },
-  { label: "Хямдрал", href: "/search?sale=1" },
-  { label: "Хүнс", href: "/search?category=huns" },
-  { label: "Хувцас", href: "/search?category=huvtsas" },
-  { label: "Цахилгаан бараа", href: "/search?category=tsahilgaan-baraa" },
-  { label: "Гэр ахуй", href: "/search?category=ger-akhui" },
-  { label: "Шинэ бараа", href: "/search?sort=new" },
-];
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
+  const { t } = useLanguage();
   const cart = useAppSelector((state) => state.cart);
   const cartCount =
     cart?.reduce((total, item) => total + item.quantity, 0) || 0;
@@ -36,6 +29,19 @@ export default function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  const categoryTabs = [
+    { key: "header.tabs.all", href: "/search" },
+    { key: "header.tabs.sale", href: "/search?sale=1" },
+    { key: "header.tabs.food", href: "/search?category=huns" },
+    { key: "header.tabs.clothing", href: "/search?category=huvtsas" },
+    {
+      key: "header.tabs.electronics",
+      href: "/search?category=tsahilgaan-baraa",
+    },
+    { key: "header.tabs.home", href: "/search?category=ger-akhui" },
+    { key: "header.tabs.newArrivals", href: "/search?sort=new" },
+  ];
 
   useEffect(() => {
     setIsMobileOpen(false);
@@ -71,18 +77,18 @@ export default function Header() {
       <div className="hidden lg:block brand-gradient text-white/90 text-xs">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span>Монгол даяар хүргэлттэй</span>
+            <span>{t("header.topbar.delivery")}</span>
             <span className="w-px h-3 bg-white/30" />
-            <span>50,000₮-с дээш захиалгад хүргэлт үнэгүй</span>
+            <span>{t("header.topbar.freeShipping")}</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/contact" className="hover:text-white transition-colors">
-              Тусламж
+              {t("header.topbar.help")}
             </Link>
             <Link href="/contact" className="hover:text-white transition-colors">
-              Худалдагч болох
+              {t("header.topbar.becomeSeller")}
             </Link>
-            <span>MN / EN</span>
+            <LanguageSwitcher variant="dark" />
           </div>
         </div>
       </div>
@@ -92,7 +98,7 @@ export default function Header() {
           <button
             onClick={toggleMobileMenu}
             className="lg:hidden p-2 -ml-2 rounded-full hover:bg-muted transition-colors shrink-0"
-            aria-label="Цэс нээх"
+            aria-label={t("header.menuOpen")}
             aria-expanded={isMobileOpen}
           >
             {isMobileOpen ? (
@@ -104,7 +110,7 @@ export default function Header() {
 
           <Link
             href="/"
-            aria-label="UVS Online Shop Нүүр"
+            aria-label={`${t("header.brand.name")} ${t("header.brand.tagline")}`}
             className="flex items-center gap-2.5 shrink-0"
           >
             <span className="brand-gradient flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-white shadow-sm">
@@ -112,10 +118,10 @@ export default function Header() {
             </span>
             <span className="hidden sm:flex flex-col leading-none">
               <span className="text-lg font-bold tracking-tight text-foreground">
-                UVS
+                {t("header.brand.name")}
               </span>
               <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                Online Shop
+                {t("header.brand.tagline")}
               </span>
             </span>
           </Link>
@@ -127,17 +133,17 @@ export default function Header() {
             <div className="flex w-full rounded-full border border-border bg-muted/40 focus-within:ring-2 focus-within:ring-primary/40 transition-shadow overflow-hidden">
               <input
                 type="search"
-                placeholder="Бараа, брэнд, ангилал хайх..."
+                placeholder={t("header.search.placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent pl-5 pr-2 py-2.5 text-sm focus:outline-none"
-                aria-label="Бараа хайх"
+                aria-label={t("header.search.aria")}
               />
               <button
                 type="submit"
                 className="brand-gradient text-white text-sm font-medium px-5 shrink-0 hover:opacity-90 transition-opacity"
               >
-                Хайх
+                {t("header.search.button")}
               </button>
             </div>
           </form>
@@ -145,7 +151,7 @@ export default function Header() {
           <button
             onClick={() => setIsMobileSearchOpen((prev) => !prev)}
             className="md:hidden ml-auto p-2 rounded-full hover:bg-muted transition-colors"
-            aria-label="Хайх"
+            aria-label={t("header.search.aria")}
           >
             <Search className="h-5 w-5 text-foreground" />
           </button>
@@ -158,7 +164,7 @@ export default function Header() {
             >
               <Link href="/orders">
                 <Heart className="h-5 w-5" />
-                Хадгалсан
+                {t("header.nav.saved")}
               </Link>
             </Button>
             <Button
@@ -168,7 +174,7 @@ export default function Header() {
             >
               <Link href="/orders">
                 <User className="h-5 w-5" />
-                Профайл
+                {t("header.nav.profile")}
               </Link>
             </Button>
             <Button
@@ -185,7 +191,7 @@ export default function Header() {
                     </span>
                   )}
                 </span>
-                Сагс
+                {t("header.nav.cart")}
               </Link>
             </Button>
           </div>
@@ -193,7 +199,7 @@ export default function Header() {
           <Link
             href="/cart"
             className="relative md:hidden p-2 rounded-full hover:bg-muted transition-colors"
-            aria-label={`Сагс, ${cartCount} бараа`}
+            aria-label={t("header.nav.cartAria", { count: cartCount })}
           >
             <ShoppingCart className="h-5 w-5 text-foreground" />
             {cartCount > 0 && (
@@ -212,18 +218,18 @@ export default function Header() {
             <div className="flex w-full rounded-full border border-border bg-muted/40 overflow-hidden">
               <input
                 type="search"
-                placeholder="Бараа хайх..."
+                placeholder={t("header.search.placeholderShort")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent pl-5 pr-2 py-2.5 text-sm focus:outline-none"
-                aria-label="Бараа хайх"
+                aria-label={t("header.search.aria")}
                 autoFocus
               />
               <button
                 type="submit"
                 className="brand-gradient text-white text-sm font-medium px-5 shrink-0"
               >
-                Хайх
+                {t("header.search.button")}
               </button>
             </div>
           </form>
@@ -233,13 +239,13 @@ export default function Header() {
       <nav
         className="hidden lg:block border-t border-border"
         role="navigation"
-        aria-label="Ангилал"
+        aria-label={t("header.tabs.all")}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            {categoryTabs.map(({ href, label }) => (
+            {categoryTabs.map(({ href, key }) => (
               <Link
-                key={label}
+                key={key}
                 href={href}
                 className={`relative py-3 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
                   isTabActive(href)
@@ -247,7 +253,7 @@ export default function Header() {
                     : "text-foreground/80 hover:text-foreground"
                 }`}
               >
-                {label}
+                {t(key)}
                 {isTabActive(href) && (
                   <span className="absolute left-4 right-4 -bottom-px h-0.5 bg-primary rounded-full" />
                 )}
@@ -261,16 +267,16 @@ export default function Header() {
         <nav
           className="lg:hidden border-t border-border animate-in slide-in-from-top duration-200"
           role="navigation"
-          aria-label="Гар утасны цэс"
+          aria-label={t("header.mobileNavAria")}
         >
           <div className="container mx-auto px-4 py-4 space-y-1">
-            {categoryTabs.map(({ href, label }) => (
+            {categoryTabs.map(({ href, key }) => (
               <Link
-                key={label}
+                key={key}
                 href={href}
                 className="block py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
-                {label}
+                {t(key)}
               </Link>
             ))}
             <div className="h-px bg-border my-2" />
@@ -278,14 +284,17 @@ export default function Header() {
               href="/orders"
               className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
             >
-              <User className="h-4 w-4" /> Миний профайл
+              <User className="h-4 w-4" /> {t("header.nav.myProfile")}
             </Link>
             <Link
               href="/contact"
               className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
             >
-              Тусламж
+              {t("header.topbar.help")}
             </Link>
+            <div className="flex items-center gap-2 py-2.5 px-3">
+              <LanguageSwitcher />
+            </div>
           </div>
         </nav>
       )}
