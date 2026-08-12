@@ -1,103 +1,130 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { calculatePricing } from "@/lib/pricing";
-import { useAppSelector } from "@/store/hooks";
-import { CreditCard, Heart, Shield, Truck } from "lucide-react";
+import {
+  calculatePricing,
+  FREE_SHIPPING_THRESHOLD,
+  VALID_COUPONS,
+} from "@/lib/pricing";
+import { formatMNT } from "@/lib/utils";
+import { clearCoupon, setCoupon } from "@/store/couponSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function OrderSummary() {
   const cart = useAppSelector((state) => state.cart);
+  const coupon = useAppSelector((state) => state.coupon);
+  const dispatch = useAppDispatch();
+  const [couponInput, setCouponInput] = useState("");
+  const [couponError, setCouponError] = useState(false);
 
-  const { subtotal, shipping, tax, total } = calculatePricing(cart);
-  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const { subtotal, shipping, coupon: couponAmount, total } = calculatePricing(
+    cart,
+    { couponAmount: coupon.amount }
+  );
+
+  const handleApplyCoupon = () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    const amount = VALID_COUPONS[code];
+    if (amount) {
+      dispatch(setCoupon({ code, amount }));
+      setCouponError(false);
+    } else {
+      setCouponError(true);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    dispatch(clearCoupon());
+    setCouponInput("");
+    setCouponError(false);
+  };
 
   return (
-    <Card className="sticky top-4">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Order Summary</CardTitle>
-      </CardHeader>
+    <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-5">
+      <h2 className="text-lg font-semibold text-foreground">
+        Захиалгын дүн
+      </h2>
 
-      <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">
-              Subtotal ({itemCount} items)
-            </span>
-            <span className="font-medium">${subtotal.toFixed(2)}</span>
-          </div>
-
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Shipping</span>
-            <span className="font-medium">
-              {shipping === 0 ? (
-                <Badge variant="secondary" className="text-xs">
-                  Free
-                </Badge>
-              ) : (
-                `$${shipping.toFixed(2)}`
-              )}
-            </span>
-          </div>
-
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Tax</span>
-            <span className="font-medium">${tax.toFixed(2)}</span>
-          </div>
-
-          <Separator />
-
-          <div className="flex justify-between">
-            <span className="text-lg font-semibold">Total</span>
-            <span className="text-lg font-bold text-primary">
-              ${total.toFixed(2)}
-            </span>
-          </div>
+      <div className="space-y-2">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Купон код"
+            value={couponInput}
+            onChange={(e) => setCouponInput(e.target.value)}
+            className="flex-1 min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          {coupon.code ? (
+            <Button variant="outline" size="sm" onClick={handleRemoveCoupon}>
+              Хасах
+            </Button>
+          ) : (
+            <Button variant="secondary" size="sm" onClick={handleApplyCoupon}>
+              Нэмэх
+            </Button>
+          )}
         </div>
+        {couponError && (
+          <p className="text-xs text-destructive">Купон код буруу байна</p>
+        )}
+        {coupon.code && (
+          <p className="text-xs font-medium text-emerald-600">
+            Купон {coupon.code} хэрэглэгдлээ
+          </p>
+        )}
+      </div>
 
-        {shipping > 0 && (
-          <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Truck className="h-4 w-4 text-accent-foreground" />
-              <span className="text-sm font-medium text-accent-foreground">
-                Free shipping on orders over $50
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Add ${(50 - subtotal).toFixed(2)} more to qualify!
-            </p>
+      <div className="space-y-2.5 pt-1 border-t border-border">
+        <div className="flex justify-between text-sm pt-3">
+          <span className="text-muted-foreground">Барааны дүн</span>
+          <span className="font-medium text-foreground">
+            {formatMNT(subtotal)}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Хүргэлт</span>
+          <span className="font-medium text-foreground">
+            {shipping === 0 ? "Үнэгүй" : formatMNT(shipping)}
+          </span>
+        </div>
+        {couponAmount > 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Купон {coupon.code}</span>
+            <span className="font-medium text-emerald-600">
+              -{formatMNT(couponAmount)}
+            </span>
           </div>
         )}
+      </div>
 
-        <Button
-          size="lg"
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-          asChild
-        >
-          <Link href="/checkout" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Proceed to Checkout
-          </Link>
-        </Button>
+      <div className="flex justify-between items-center pt-3 border-t border-border">
+        <span className="text-base font-semibold text-foreground">
+          Нийт дүн
+        </span>
+        <span className="text-xl font-bold text-primary">
+          {formatMNT(total)}
+        </span>
+      </div>
 
-        <div className="space-y-3 pt-4 border-t border-border">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Shield className="h-4 w-4 text-green-500" />
-            <span>Secure SSL checkout</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Truck className="h-4 w-4 text-blue-500" />
-            <span>Free returns within 30 days</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Heart className="h-4 w-4 text-red-500" />
-            <span>24/7 customer support</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      {shipping > 0 && (
+        <p className="text-xs text-muted-foreground">
+          {formatMNT(FREE_SHIPPING_THRESHOLD - subtotal)} нэмж захиалбал
+          хүргэлт үнэгүй болно
+        </p>
+      )}
+
+      <Button size="lg" className="w-full brand-gradient text-white" asChild>
+        <Link href="/checkout">Захиалга баталгаажуулах</Link>
+      </Button>
+
+      <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center pt-1">
+        <ShieldCheck className="h-3.5 w-3.5" />
+        <span>Аюулгүй, баталгаат төлбөр</span>
+      </div>
+    </div>
   );
 }

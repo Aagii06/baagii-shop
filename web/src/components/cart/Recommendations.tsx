@@ -1,25 +1,18 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+import ProductList from "@/components/home/ProductList";
+import productsData from "@/data/products.json";
+import type { Product } from "@/types/product";
+
+const products = productsData as Product[];
 
 export default function Recommendations() {
+  const suggestions = products.slice(0, 5);
+
   return (
     <div className="mt-16">
-      <Card>
-        <CardHeader>
-          <CardTitle>You might also like</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">
-              Discover more products that match your style
-            </p>
-            <Button variant="outline" asChild>
-              <Link href="/">Browse Products</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6">
+        Танд санал болгох
+      </h2>
+      <ProductList products={suggestions} />
     </div>
   );
 }
