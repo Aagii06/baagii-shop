@@ -12,9 +12,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Baagii Online Shop",
+  title: "UVS Онлайн Дэлгүүр",
   description:
-    "Discover a wide selection of trendy clothes, shoes and accessories on Bloom E-Commerce. Enjoy fast delivery and free returns. Shop now!",
+    "Монгол даяар хүргэлттэй, найдвартай онлайн худалдаа. Хүнс, хувцас, цахилгаан бараа, гэр ахуйн бараа UVS-ээс.",
   manifest: "/icons/site.webmanifest",
   icons: {
     icon: [

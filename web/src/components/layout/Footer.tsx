@@ -47,7 +47,7 @@ export default function Footer() {
                 <Store className="h-5 w-5" />
               </span>
               <span className="text-lg font-bold tracking-tight text-foreground">
-                BAAGII SHOP
+                UVS ОНЛАЙН ДЭЛГҮҮР
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs mb-4">
@@ -84,7 +84,7 @@ export default function Footer() {
 
         <div className="py-6 border-t border-border text-center sm:text-left">
           <p className="text-xs text-muted-foreground">
-            © 2026 BAAGII SHOP™. Бүх эрх хуулиар хамгаалагдсан.
+            © 2026 UVS ОНЛАЙН ДЭЛГҮҮР™. Бүх эрх хуулиар хамгаалагдсан.
           </p>
         </div>
       </div>
