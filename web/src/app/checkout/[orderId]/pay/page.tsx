@@ -2,10 +2,10 @@
 
 import PaymentForm from "@/components/checkout/PaymentForm";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { formatMNT } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { confirmOrder } from "@/store/orderSlice";
+import type { PaymentMethod } from "@/types/order";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,13 +20,13 @@ export default function PayOrderPage() {
     state.orders.find((order) => order.id === orderId)
   );
 
-  const handlePay = async () => {
+  const handlePay = async (method: PaymentMethod) => {
     if (!order) return;
 
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    dispatch(confirmOrder(order.id));
+    dispatch(confirmOrder({ id: order.id, paymentMethod: method }));
     router.push(`/orders/${order.id}`);
   };
 
@@ -34,10 +34,10 @@ export default function PayOrderPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Order not found
+          Захиалга олдсонгүй
         </h1>
         <Button asChild>
-          <Link href="/orders">View Orders</Link>
+          <Link href="/orders">Захиалгууд руу очих</Link>
         </Button>
       </div>
     );
@@ -47,69 +47,85 @@ export default function PayOrderPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Order already paid
+          Захиалга төлөгдсөн байна
         </h1>
         <p className="text-muted-foreground mb-6">
-          Order {order.id} has already been confirmed.
+          {order.id} захиалга аль хэдийн баталгаажсан.
         </p>
         <Button asChild>
-          <Link href={`/orders/${order.id}`}>View Order</Link>
+          <Link href={`/orders/${order.id}`}>Захиалга харах</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-3xl">
-      <h1 className="text-3xl font-bold text-foreground mb-2">
-        Complete Payment
-      </h1>
-      <p className="text-muted-foreground mb-8">
-        Order {order.id} • {order.items.length}{" "}
-        {order.items.length === 1 ? "item" : "items"}
-      </p>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="lg:col-span-2">
+          <PaymentForm
+            total={order.total}
+            shippingInfo={order.shippingInfo}
+            onSubmit={handlePay}
+            isSubmitting={isSubmitting}
+          />
+        </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <PaymentForm
-          total={order.total}
-          onSubmit={handlePay}
-          isSubmitting={isSubmitting}
-        />
+        <div className="lg:col-span-1">
+          <div className="lg:sticky lg:top-24 rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">
+              Захиалгын дүн
+            </h2>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">
-              Order Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-medium">
-                ${order.subtotal.toFixed(2)}
+            <div className="space-y-3">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground line-clamp-1">
+                    {item.name}
+                    <span className="text-xs"> · {item.quantity}ш</span>
+                  </span>
+                  <span className="font-medium shrink-0">
+                    {formatMNT(item.price * item.quantity)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2 pt-3 border-t border-border">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Барааны дүн</span>
+                <span className="font-medium">
+                  {formatMNT(order.subtotal)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Хүргэлт</span>
+                <span className="font-medium">
+                  {order.shipping === 0
+                    ? "Үнэгүй"
+                    : formatMNT(order.shipping)}
+                </span>
+              </div>
+              {order.coupon > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Купон</span>
+                  <span className="font-medium text-emerald-600">
+                    -{formatMNT(order.coupon)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center pt-3 border-t border-border">
+              <span className="font-semibold text-foreground">
+                Төлөх дүн
+              </span>
+              <span className="text-xl font-bold text-primary">
+                {formatMNT(order.total)}
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Shipping</span>
-              <span className="font-medium">
-                {order.shipping === 0
-                  ? "Free"
-                  : `$${order.shipping.toFixed(2)}`}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax</span>
-              <span className="font-medium">${order.tax.toFixed(2)}</span>
-            </div>
-            <Separator />
-            <div className="flex justify-between">
-              <span className="text-lg font-semibold">Total</span>
-              <span className="text-lg font-bold text-primary">
-                ${order.total.toFixed(2)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
