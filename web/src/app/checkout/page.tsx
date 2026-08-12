@@ -2,6 +2,7 @@
 
 import ShippingForm from "@/components/checkout/ShippingForm";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { calculatePricing } from "@/lib/pricing";
 import { formatMNT } from "@/lib/utils";
 import { clearCart } from "@/store/cartSlice";
@@ -14,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function CheckoutPage() {
+  const { t } = useLanguage();
   const cart = useAppSelector((state) => state.cart);
   const coupon = useAppSelector((state) => state.coupon);
   const dispatch = useAppDispatch();
@@ -60,13 +62,13 @@ export default function CheckoutPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Таны сагс хоосон байна
+          {t("cart.emptyCheckout.title")}
         </h1>
         <p className="text-muted-foreground mb-6">
-          Захиалга хийхийн өмнө сагсандаа бараа нэмнэ үү.
+          {t("cart.emptyCheckout.desc")}
         </p>
         <Button asChild>
-          <Link href="/">Худалдан авалт хийх</Link>
+          <Link href="/">{t("cart.empty.cta")}</Link>
         </Button>
       </div>
     );
@@ -85,7 +87,7 @@ export default function CheckoutPage() {
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-24 rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-4">
             <h2 className="text-lg font-semibold text-foreground">
-              Захиалгын дүн
+              {t("checkout.summary.title")}
             </h2>
 
             <div className="space-y-3">
@@ -104,19 +106,23 @@ export default function CheckoutPage() {
 
             <div className="space-y-2 pt-3 border-t border-border">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Барааны дүн</span>
+                <span className="text-muted-foreground">
+                  {t("cart.summary.subtotal")}
+                </span>
                 <span className="font-medium">{formatMNT(subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Хүргэлт</span>
+                <span className="text-muted-foreground">
+                  {t("cart.summary.shipping")}
+                </span>
                 <span className="font-medium">
-                  {shipping === 0 ? "Үнэгүй" : formatMNT(shipping)}
+                  {shipping === 0 ? t("cart.summary.free") : formatMNT(shipping)}
                 </span>
               </div>
               {couponAmount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    Купон {coupon.code}
+                    {t("cart.summary.coupon", { code: coupon.code ?? "" })}
                   </span>
                   <span className="font-medium text-emerald-600">
                     -{formatMNT(couponAmount)}
@@ -127,7 +133,7 @@ export default function CheckoutPage() {
 
             <div className="flex justify-between items-center pt-3 border-t border-border">
               <span className="font-semibold text-foreground">
-                Төлөх дүн
+                {t("checkout.summary.payable")}
               </span>
               <span className="text-xl font-bold text-primary">
                 {formatMNT(total)}
@@ -141,7 +147,9 @@ export default function CheckoutPage() {
               className="w-full brand-gradient text-white"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Боловсруулж байна..." : "Үргэлжлүүлэх →"}
+              {isSubmitting
+                ? t("checkout.summary.processing")
+                : `${t("checkout.summary.continue")} →`}
             </Button>
           </div>
         </div>
