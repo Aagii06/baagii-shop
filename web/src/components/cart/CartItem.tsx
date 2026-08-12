@@ -1,11 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import PlaceholderImage from "@/components/ui/placeholder-image";
+import { formatMNT } from "@/lib/utils";
 import { removeFromCart, updateQuantity } from "@/store/cartSlice";
 import { useAppDispatch } from "@/store/hooks";
-import { Minus, Plus, Trash2 } from "lucide-react";
-import Image from "next/image";
+import { Minus, Plus, X } from "lucide-react";
 
 interface CartItemProps {
   item: {
@@ -15,91 +14,71 @@ interface CartItemProps {
     image: string;
     quantity: number;
   };
-  isLast: boolean;
 }
 
-export default function CartItem({ item, isLast }: CartItemProps) {
+export default function CartItem({ item }: CartItemProps) {
   const dispatch = useAppDispatch();
 
   return (
-    <div>
-      <div className="flex items-start gap-4">
-        <div className="relative w-[100px] h-[100px]">
-          <Image
-            src={item.image}
-            alt={item.name}
-            fill
-            sizes="100px"
-            className="rounded-lg object-cover bg-muted"
-          />
+    <div className="flex items-start gap-4 py-4 border-b border-border last:border-b-0">
+      <PlaceholderImage className="w-20 h-20 rounded-xl shrink-0" />
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="font-medium text-foreground text-sm sm:text-base line-clamp-2">
+              {item.name}
+            </h3>
+            <p className="text-xs font-medium text-emerald-600 mt-1">
+              Нөөцөд байна
+            </p>
+          </div>
+
+          <button
+            onClick={() => dispatch(removeFromCart(item.id))}
+            aria-label="Устгах"
+            className="text-muted-foreground hover:text-destructive shrink-0 p-1"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0 pr-4">
-              <h2 className="font-semibold text-foreground line-clamp-2">
-                {item.name}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                ${item.price.toFixed(2)} each
-              </p>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => dispatch(removeFromCart(item.id))}
-              className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0"
+        <div className="flex items-center justify-between mt-3 flex-wrap gap-3">
+          <div className="flex items-center border border-border rounded-lg">
+            <button
+              onClick={() =>
+                dispatch(
+                  updateQuantity({
+                    id: item.id,
+                    quantity: Math.max(1, item.quantity - 1),
+                  })
+                )
+              }
+              disabled={item.quantity <= 1}
+              className="h-8 w-8 flex items-center justify-center disabled:opacity-40 hover:bg-muted rounded-l-lg transition-colors"
             >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+              <Minus className="h-3.5 w-3.5" />
+            </button>
+            <span className="px-3 text-sm font-medium min-w-9 text-center">
+              {item.quantity}
+            </span>
+            <button
+              onClick={() =>
+                dispatch(
+                  updateQuantity({ id: item.id, quantity: item.quantity + 1 })
+                )
+              }
+              className="h-8 w-8 flex items-center justify-center hover:bg-muted rounded-r-lg transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
           </div>
 
-          <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center border border-border rounded-lg">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  dispatch(
-                    updateQuantity({
-                      id: item.id,
-                      quantity: Math.max(1, item.quantity - 1),
-                    })
-                  )
-                }
-                disabled={item.quantity <= 1}
-                className="h-8 w-8 rounded-r-none"
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <span className="px-4 py-2 min-w-[50px] text-center text-sm font-medium">
-                {item.quantity}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  dispatch(
-                    updateQuantity({ id: item.id, quantity: item.quantity + 1 })
-                  )
-                }
-                className="h-8 w-8 rounded-l-none"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-
-            <div className="text-right">
-              <p className="text-lg font-bold text-foreground">
-                ${(item.price * item.quantity).toFixed(2)}
-              </p>
-            </div>
-          </div>
+          <span className="text-base font-bold text-foreground">
+            {formatMNT(item.price * item.quantity)}
+          </span>
         </div>
       </div>
-
-      {!isLast && <Separator className="mt-4" />}
     </div>
   );
 }
