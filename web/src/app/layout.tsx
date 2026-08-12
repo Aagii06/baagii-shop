@@ -1,5 +1,6 @@
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
+import LanguageProvider from "@/lib/i18n/LanguageProvider";
 import StoreProvider from "@/store/StoreProvider";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
@@ -43,11 +44,13 @@ export default function RootLayout({
       <body
         className={`${inter.className}  antialiased flex flex-col min-h-screen`}
       >
-        <StoreProvider>
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <Footer />
-        </StoreProvider>
+        <LanguageProvider>
+          <StoreProvider>
+            <Header />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+          </StoreProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
