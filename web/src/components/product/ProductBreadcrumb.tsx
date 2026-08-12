@@ -1,20 +1,35 @@
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { getCategory } from "@/lib/categories";
 import Link from "next/link";
 
-export default function ProductBreadcrumb() {
+export default function ProductBreadcrumb({
+  category,
+  name,
+}: {
+  category?: string;
+  name: string;
+}) {
+  const cat = getCategory(category);
+
   return (
-    <nav className="mb-8">
-      <Button
-        variant="ghost"
-        asChild
-        className="text-muted-foreground hover:text-foreground"
-      >
-        <Link href="/" className="flex items-center gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Return to Shop
-        </Link>
-      </Button>
+    <nav className="mb-6 text-sm text-muted-foreground">
+      <Link href="/" className="hover:text-foreground">
+        Нүүр
+      </Link>
+      {cat && (
+        <>
+          <span className="mx-1.5">›</span>
+          <Link
+            href={`/search?category=${cat.slug}`}
+            className="hover:text-foreground"
+          >
+            {cat.name}
+          </Link>
+        </>
+      )}
+      <span className="mx-1.5">›</span>
+      <span className="text-foreground font-medium line-clamp-1 align-middle">
+        {name}
+      </span>
     </nav>
   );
 }
