@@ -1,3 +1,6 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getCategory } from "@/lib/categories";
 import Link from "next/link";
 
@@ -8,12 +11,13 @@ export default function ProductBreadcrumb({
   category?: string;
   name: string;
 }) {
+  const { t } = useLanguage();
   const cat = getCategory(category);
 
   return (
     <nav className="mb-6 text-sm text-muted-foreground">
       <Link href="/" className="hover:text-foreground">
-        Нүүр
+        {t("search.breadcrumb.home")}
       </Link>
       {cat && (
         <>
@@ -22,7 +26,7 @@ export default function ProductBreadcrumb({
             href={`/search?category=${cat.slug}`}
             className="hover:text-foreground"
           >
-            {cat.name}
+            {t(`category.${cat.slug}`)}
           </Link>
         </>
       )}

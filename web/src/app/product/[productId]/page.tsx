@@ -7,6 +7,7 @@ import RelatedProducts from "@/components/product/RelatedProducts";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import productsData from "@/data/products.json";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn, formatMNT } from "@/lib/utils";
 import { addToCart } from "@/store/cartSlice";
 import { useAppDispatch } from "@/store/hooks";
@@ -17,14 +18,15 @@ import { useState } from "react";
 
 const products = productsData as Product[];
 
-const specLabels: { key: keyof Product; label: string }[] = [
-  { key: "material", label: "Материал" },
-  { key: "dimensions", label: "Хэмжээ" },
-  { key: "weight", label: "Жин" },
-  { key: "origin", label: "Үйлдвэрлэгч" },
+const specKeys: { key: keyof Product; labelKey: string }[] = [
+  { key: "material", labelKey: "product.spec.material" },
+  { key: "dimensions", labelKey: "product.spec.dimensions" },
+  { key: "weight", labelKey: "product.spec.weight" },
+  { key: "origin", labelKey: "product.spec.origin" },
 ];
 
 export default function ProductPage() {
+  const { t } = useLanguage();
   const dispatch = useAppDispatch();
   const { productId } = useParams();
   const router = useRouter();
@@ -82,7 +84,7 @@ export default function ProductPage() {
         <div className="space-y-3">
           <div className="relative rounded-2xl overflow-hidden">
             <PlaceholderImage
-              label="барааны үндсэн зураг"
+              label={t("product.mainImageLabel")}
               className="w-full aspect-square"
             />
             {discount > 0 && (
@@ -116,8 +118,8 @@ export default function ProductPage() {
               </span>
             </div>
             <span className="text-muted-foreground">
-              · {product.reviewCount ?? 0} үнэлгээ · {product.soldCount ?? 0}{" "}
-              зарагдсан
+              · {t("product.reviews", { count: product.reviewCount ?? 0 })} ·{" "}
+              {t("product.sold", { count: product.soldCount ?? 0 })}
             </span>
           </div>
 
@@ -138,7 +140,9 @@ export default function ProductPage() {
 
           {product.colors && product.colors.length > 0 && (
             <div>
-              <p className="text-sm font-medium text-foreground mb-2">Өнгө</p>
+              <p className="text-sm font-medium text-foreground mb-2">
+                {t("product.color")}
+              </p>
               <div className="flex items-center gap-3">
                 {product.colors.map((color, i) => (
                   <button
@@ -168,15 +172,15 @@ export default function ProductPage() {
           <Separator />
 
           <div className="space-y-0">
-            {specLabels.map(
-              ({ key, label }) =>
+            {specKeys.map(
+              ({ key, labelKey }) =>
                 product[key] && (
                   <div
                     key={key}
                     className="flex items-center justify-between py-2.5 border-b border-border last:border-b-0"
                   >
                     <span className="text-sm text-muted-foreground">
-                      {label}
+                      {t(labelKey)}
                     </span>
                     <span className="text-sm font-semibold text-foreground">
                       {String(product[key])}
@@ -193,7 +197,9 @@ export default function ProductPage() {
               {formatMNT(product.price)}
             </span>
             <span className="text-sm font-medium text-emerald-600">
-              {(product.stock ?? 0) > 0 ? "Нөөцөд байна" : "Дууссан"}
+              {(product.stock ?? 0) > 0
+                ? t("product.inStock")
+                : t("product.outOfStock")}
             </span>
           </div>
 
@@ -234,17 +240,17 @@ export default function ProductPage() {
             {isAdding ? (
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                Нэмж байна...
+                {t("product.addingToCart")}
               </span>
             ) : justAdded ? (
               <span className="flex items-center gap-2">
                 <Check className="h-4 w-4" />
-                Сагсанд нэмэгдлээ
+                {t("product.addedToCart")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4" />
-                Сагсанд нэмэх
+                {t("product.addToCart")}
               </span>
             )}
           </Button>
@@ -255,21 +261,21 @@ export default function ProductPage() {
             onClick={handleBuyNow}
             className="w-full"
           >
-            Шууд худалдаж авах
+            {t("product.buyNow")}
           </Button>
 
           <div className="space-y-2.5 pt-2 border-t border-border">
             <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
               <CircleCheck className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
-              <span>50,000₮-с дээш захиалгад хүргэлт үнэгүй</span>
+              <span>{t("product.trust.freeShip")}</span>
             </div>
             <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
               <CircleCheck className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
-              <span>14 хоногийн дотор буцаах боломжтой</span>
+              <span>{t("product.trust.returns")}</span>
             </div>
             <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
               <CircleCheck className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
-              <span>Хаан банк, QPay, SocialPay-аар төлнө</span>
+              <span>{t("product.trust.payment")}</span>
             </div>
           </div>
         </div>
