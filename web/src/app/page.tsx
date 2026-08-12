@@ -2,7 +2,6 @@ import CategoryScrollRow from "@/components/home/CategoryScrollRow";
 import CategorySidebar from "@/components/home/CategorySidebar";
 import HeroBanner from "@/components/home/HeroBanner";
 import QuickSale from "@/components/home/QuickSale";
-import TrustBadges from "@/components/layout/TrustBadges";
 import products from "@/data/products.json";
 
 export default function Home() {
@@ -21,10 +20,6 @@ export default function Home() {
             <HeroBanner />
             <QuickSale products={discounted} />
           </div>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-border">
-          <TrustBadges />
         </div>
       </div>
     </div>
