@@ -1,33 +1,38 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { BadgeCheck, Headset, RefreshCcw, Truck } from "lucide-react";
 
-const trustItems = [
-  {
-    icon: Truck,
-    title: "Монгол даяар хүргэлт",
-    desc: "21 аймаг, 330 сум",
-    tint: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    icon: RefreshCcw,
-    title: "14 хоногийн буцаалт",
-    desc: "Хялбар шийдвэрлэнэ",
-    tint: "bg-violet-100 text-violet-700",
-  },
-  {
-    icon: BadgeCheck,
-    title: "Баталгаат бараа",
-    desc: "Шалгагдсан худалдагчид",
-    tint: "bg-blue-100 text-blue-700",
-  },
-  {
-    icon: Headset,
-    title: "24/7 тусламж",
-    desc: "7045-1234",
-    tint: "bg-amber-100 text-amber-700",
-  },
-];
-
 export default function TrustBadges() {
+  const { t } = useLanguage();
+
+  const trustItems = [
+    {
+      icon: Truck,
+      title: t("trust.delivery.title"),
+      desc: t("trust.delivery.desc"),
+      tint: "bg-emerald-100 text-emerald-700",
+    },
+    {
+      icon: RefreshCcw,
+      title: t("trust.returns.title"),
+      desc: t("trust.returns.desc"),
+      tint: "bg-violet-100 text-violet-700",
+    },
+    {
+      icon: BadgeCheck,
+      title: t("trust.verified.title"),
+      desc: t("trust.verified.desc"),
+      tint: "bg-blue-100 text-blue-700",
+    },
+    {
+      icon: Headset,
+      title: t("trust.support.title"),
+      desc: t("trust.support.desc"),
+      tint: "bg-amber-100 text-amber-700",
+    },
+  ];
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
       {trustItems.map(({ icon: Icon, title, desc, tint }) => (
