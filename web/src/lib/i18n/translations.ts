@@ -12,6 +12,7 @@ type Dict = Record<string, string>;
 
 const mn: Dict = {
   "common.other": "Бусад",
+  "common.scrollToTop": "Дээш буцах",
 
   "header.topbar.delivery": "Монгол даяар хүргэлттэй",
   "header.topbar.freeShipping": "50,000₮-с дээш захиалгад хүргэлт үнэгүй",
@@ -314,6 +315,7 @@ const mn: Dict = {
 
 const en: Dict = {
   "common.other": "Other",
+  "common.scrollToTop": "Scroll to top",
 
   "header.topbar.delivery": "Nationwide delivery",
   "header.topbar.freeShipping": "Free delivery on orders over 50,000₮",
@@ -615,6 +617,7 @@ const en: Dict = {
 
 const ru: Dict = {
   "common.other": "Другое",
+  "common.scrollToTop": "Наверх",
 
   "header.topbar.delivery": "Доставка по всей Монголии",
   "header.topbar.freeShipping": "Бесплатная доставка при заказе от 50,000₮",
