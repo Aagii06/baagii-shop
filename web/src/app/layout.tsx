@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "UVS Онлайн Дэлгүүр",
+  title: "UVS Online Shop",
   description:
     "Монгол даяар хүргэлттэй, найдвартай онлайн худалдаа. Хүнс, хувцас, цахилгаан бараа, гэр ахуйн бараа UVS-ээс.",
   manifest: "/icons/site.webmanifest",

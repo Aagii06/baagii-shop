@@ -104,7 +104,7 @@ export default function Header() {
 
           <Link
             href="/"
-            aria-label="UVS Онлайн Дэлгүүр Нүүр"
+            aria-label="UVS Online Shop Нүүр"
             className="flex items-center gap-2.5 shrink-0"
           >
             <span className="brand-gradient flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl text-white shadow-sm">
@@ -115,7 +115,7 @@ export default function Header() {
                 UVS
               </span>
               <span className="text-[10px] font-medium tracking-widest text-muted-foreground">
-                ОНЛАЙН ДЭЛГҮҮР
+                Online Shop
               </span>
             </span>
           </Link>
