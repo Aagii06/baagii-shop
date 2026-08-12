@@ -4,13 +4,15 @@ import CartItemList from "@/components/cart/CartItemList";
 import EmptyCart from "@/components/cart/EmptyCart";
 import OrderSummary from "@/components/cart/OrderSummary";
 import Recommendations from "@/components/cart/Recommendations";
-import { Button } from "@/components/ui/button";
-import { useAppSelector } from "@/store/hooks";
+import { clearCart } from "@/store/cartSlice";
+import { clearCoupon } from "@/store/couponSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function Cart() {
   const cart = useAppSelector((state) => state.cart);
+  const dispatch = useAppDispatch();
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   if (cart.length === 0) {
@@ -18,30 +20,38 @@ export default function Cart() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Shopping Cart</h1>
-          <p className="text-muted-foreground mt-2">
-            {itemCount} {itemCount === 1 ? "item" : "items"} in your cart
-          </p>
-        </div>
-
-        <Button
-          variant="ghost"
-          asChild
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Link href="/" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Continue Shopping
-          </Link>
-        </Button>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          Миний сагс{" "}
+          <span className="text-base font-normal text-muted-foreground">
+            · {itemCount} бараа
+          </span>
+        </h1>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="lg:col-span-2 space-y-4">
           <CartItemList />
+
+          <div className="flex items-center justify-between px-1">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-sm text-primary hover:underline"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Үргэлжлүүлэн худалдан авах
+            </Link>
+            <button
+              onClick={() => {
+                dispatch(clearCart());
+                dispatch(clearCoupon());
+              }}
+              className="text-sm text-muted-foreground hover:text-destructive transition-colors"
+            >
+              Сагс хоослох
+            </button>
+          </div>
         </div>
 
         <div className="lg:col-span-1">
