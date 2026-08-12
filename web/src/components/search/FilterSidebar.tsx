@@ -62,7 +62,7 @@ function Checkbox({
   );
 }
 
-export default function FilterSidebar({
+export function FilterPanelContent({
   filters,
   onChange,
   priceBounds,
@@ -85,7 +85,7 @@ export default function FilterSidebar({
   };
 
   return (
-    <aside className="w-full lg:w-64 shrink-0 space-y-6">
+    <div className="space-y-6">
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="font-semibold text-sm text-foreground mb-2">
           {t("search.filters.category")}
@@ -144,6 +144,14 @@ export default function FilterSidebar({
           onChange={(priceRange) => onChange({ ...filters, priceRange })}
         />
       </div>
+    </div>
+  );
+}
+
+export default function FilterSidebar(props: FilterSidebarProps) {
+  return (
+    <aside className="hidden lg:block lg:w-64 shrink-0">
+      <FilterPanelContent {...props} />
     </aside>
   );
 }
