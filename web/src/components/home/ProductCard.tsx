@@ -2,6 +2,7 @@
 
 import PlaceholderImage from "@/components/ui/placeholder-image";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { addToCart } from "@/store/cartSlice";
 import { useAppDispatch } from "@/store/hooks";
@@ -22,6 +23,7 @@ interface Product {
 }
 
 export default function ProductCard({ product }: { product: Product }) {
+  const { t } = useLanguage();
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 

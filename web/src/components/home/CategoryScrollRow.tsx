@@ -1,7 +1,12 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { categories } from "@/lib/categories";
 import Link from "next/link";
 
 export default function CategoryScrollRow() {
+  const { t } = useLanguage();
+
   return (
     <div className="lg:hidden flex gap-4 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
       {categories.slice(0, 6).map((category) => (
@@ -16,7 +21,7 @@ export default function CategoryScrollRow() {
             {category.letter}
           </span>
           <span className="text-xs text-center text-foreground leading-tight">
-            {category.name}
+            {t(`category.${category.slug}`)}
           </span>
         </Link>
       ))}

@@ -1,8 +1,13 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { categories } from "@/lib/categories";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export default function CategorySidebar() {
+  const { t } = useLanguage();
+
   return (
     <aside className="hidden lg:block w-60 shrink-0">
       <nav className="rounded-2xl border border-border bg-card overflow-hidden">
@@ -18,7 +23,7 @@ export default function CategorySidebar() {
               {category.letter}
             </span>
             <span className="flex-1 text-sm font-medium text-foreground">
-              {category.name}
+              {t(`category.${category.slug}`)}
             </span>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Link>
