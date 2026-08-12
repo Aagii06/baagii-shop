@@ -75,7 +75,11 @@ export default function ShippingForm({
   };
 
   return (
-    <form id="shipping-form" onSubmit={handleSubmit} className="space-y-6">
+    <form id="shipping-form" onSubmit={handleSubmit}>
+    <fieldset
+      disabled={isSubmitting}
+      className="space-y-6 disabled:opacity-60"
+    >
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground">
@@ -218,6 +222,7 @@ export default function ShippingForm({
         </div>
       </div>
 
+    </fieldset>
     </form>
   );
 }
