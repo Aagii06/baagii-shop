@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i '' 's/\"header.brand.name\": \"UVS\"/\"header.brand.name\": \"GOLDEN UVS\"/g; s/\"footer.copyrightPrefix\": \"© 2026 UVS\"/\"footer.copyrightPrefix\": \"© 2026 GOLDEN UVS\"/g' src/lib/i18n/translations.ts)"
+    ],
+    "additionalDirectories": [
+      "/Users/admin/Documents/GitHub/baagii-shop/web/src/lib/i18n"
+    ]
+  }
+}
