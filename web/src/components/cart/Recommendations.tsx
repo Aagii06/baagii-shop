@@ -1,15 +1,20 @@
 "use client";
 
 import ProductList from "@/components/home/ProductList";
-import productsData from "@/data/products.json";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
-
-const products = productsData as Product[];
+import { useEffect, useState } from "react";
 
 export default function Recommendations() {
   const { t } = useLanguage();
-  const suggestions = products.slice(0, 5);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getProducts()
+      .then((products) => setSuggestions(products.slice(0, 5)))
+      .catch(() => setSuggestions([]));
+  }, []);
 
   return (
     <div className="mt-16">

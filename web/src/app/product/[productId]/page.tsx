@@ -6,17 +6,26 @@ import ProductNotFound from "@/components/product/ProductNotFound";
 import RelatedProducts from "@/components/product/RelatedProducts";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import productsData from "@/data/products.json";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { getProduct } from "@/lib/api/products";
 import { cn, formatMNT } from "@/lib/utils";
 import { addToCart } from "@/store/cartSlice";
 import { useAppDispatch } from "@/store/hooks";
-import type { Product } from "@/types/product";
+import type { Product, ProductDetail, ProductVariant } from "@/types/product";
 import { Check, CircleCheck, Minus, Plus, ShoppingCart, Star } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const products = productsData as Product[];
+function findMatchingVariant(
+  variants: ProductVariant[],
+  selectedAttrs: Record<number, string>
+) {
+  return (
+    variants.find((v) =>
+      Object.entries(selectedAttrs).every(([attrId, value]) => v.attrs[Number(attrId)] === value)
+    ) ?? null
+  );
+}
 
 const specKeys: { key: keyof Product; labelKey: string }[] = [
   { key: "material", labelKey: "product.spec.material" },
@@ -31,26 +40,76 @@ export default function ProductPage() {
   const { productId } = useParams();
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(0);
+  const [selectedAttrs, setSelectedAttrs] = useState<Record<number, string>>({});
   const [activeThumb, setActiveThumb] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const product = products.find((p) => p.id === parseInt(productId as string));
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getProduct(parseInt(productId as string))
+      .then((p) => {
+        if (!cancelled) {
+          setProduct(p);
+          setSelectedAttrs(p.variants[0]?.attrs ?? {});
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setProduct(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [productId]);
+
+  const currentVariant = useMemo(
+    () => (product ? findMatchingVariant(product.variants, selectedAttrs) : null),
+    [product, selectedAttrs]
+  );
+
+  useEffect(() => {
+    setQuantity(1);
+  }, [currentVariant?.id]);
+
+  if (loading) {
+    return null;
+  }
 
   if (!product) {
     return <ProductNotFound />;
   }
 
+  const hasVariants = product.variants.length > 0;
+  const price = currentVariant?.price ?? product.price;
+  const originalPrice = currentVariant?.originalPrice ?? product.originalPrice;
+  const stock = currentVariant ? currentVariant.stock : product.stock ?? 0;
+  const canAddToCart = (!hasVariants || currentVariant !== null) && stock > 0;
+
   const discount =
-    product.originalPrice && product.originalPrice > product.price
-      ? Math.round(
-          ((product.originalPrice - product.price) / product.originalPrice) *
-            100
-        )
+    originalPrice && originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : 0;
 
+  const handleSelectAttrValue = (attrId: number, value: string) => {
+    const next = { ...selectedAttrs, [attrId]: value };
+    const exact = findMatchingVariant(product.variants, next);
+    if (exact) {
+      setSelectedAttrs(exact.attrs);
+      return;
+    }
+    const fallback = product.variants.find((v) => v.attrs[attrId] === value);
+    setSelectedAttrs(fallback ? fallback.attrs : next);
+  };
+
   const handleAddToCart = async () => {
+    if (!canAddToCart) return;
+
     setIsAdding(true);
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -58,8 +117,9 @@ export default function ProductPage() {
       dispatch(
         addToCart({
           id: product.id,
-          name: product.name,
-          price: product.price,
+          variantId: currentVariant?.id,
+          name: currentVariant?.name ?? product.name,
+          price,
           image: product.image,
           quantity: 1,
         })
@@ -129,39 +189,60 @@ export default function ProductPage() {
 
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-foreground">
-              {formatMNT(product.price)}
+              {formatMNT(price)}
             </span>
-            {product.originalPrice && product.originalPrice > product.price && (
+            {originalPrice && originalPrice > price && (
               <span className="text-lg text-muted-foreground line-through">
-                {formatMNT(product.originalPrice)}
+                {formatMNT(originalPrice)}
               </span>
             )}
           </div>
 
-          {product.colors && product.colors.length > 0 && (
-            <div>
+          {product.attrs.map((attr) => (
+            <div key={attr.id}>
               <p className="text-sm font-medium text-foreground mb-2">
-                {t("product.color")}
+                {attr.name}
               </p>
-              <div className="flex items-center gap-3">
-                {product.colors.map((color, i) => (
-                  <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(i)}
-                    title={color.name}
-                    aria-label={color.name}
-                    className={cn(
-                      "h-8 w-8 rounded-full border-2 transition-shadow",
-                      selectedColor === i
-                        ? "border-primary shadow-[0_0_0_2px_var(--background)]"
-                        : "border-border"
-                    )}
-                    style={{ backgroundColor: color.hex }}
-                  />
-                ))}
+              <div className="flex flex-wrap items-center gap-3">
+                {attr.values.map((val) => {
+                  const isSelected = selectedAttrs[attr.id] === val.value;
+
+                  if (attr.viewType === "image") {
+                    return (
+                      <button
+                        key={val.value}
+                        onClick={() => handleSelectAttrValue(attr.id, val.value)}
+                        title={val.value}
+                        aria-label={val.value}
+                        className={cn(
+                          "h-8 w-8 rounded-full border-2 transition-shadow",
+                          isSelected
+                            ? "border-primary shadow-[0_0_0_2px_var(--background)]"
+                            : "border-border"
+                        )}
+                        style={{ backgroundColor: val.color ?? "var(--muted)" }}
+                      />
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={val.value}
+                      onClick={() => handleSelectAttrValue(attr.id, val.value)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors",
+                        isSelected
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border text-foreground hover:border-primary/50"
+                      )}
+                    >
+                      {val.value}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          )}
+          ))}
 
           {product.description && (
             <p className="text-muted-foreground leading-relaxed">
@@ -194,12 +275,15 @@ export default function ProductPage() {
         <div className="lg:sticky lg:top-24 h-fit rounded-2xl border border-border bg-card p-6 space-y-5">
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-foreground">
-              {formatMNT(product.price)}
+              {formatMNT(price)}
             </span>
-            <span className="text-sm font-medium text-emerald-600">
-              {(product.stock ?? 0) > 0
-                ? t("product.inStock")
-                : t("product.outOfStock")}
+            <span
+              className={cn(
+                "text-sm font-medium",
+                stock > 0 ? "text-emerald-600" : "text-destructive"
+              )}
+            >
+              {stock > 0 ? t("product.inStock") : t("product.outOfStock")}
             </span>
           </div>
 
@@ -219,7 +303,8 @@ export default function ProductPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setQuantity((q) => q + 1)}
+              onClick={() => setQuantity((q) => Math.min(stock || q + 1, q + 1))}
+              disabled={stock > 0 && quantity >= stock}
               className="h-10 w-10 rounded-l-none"
             >
               <Plus className="h-4 w-4" />
@@ -235,7 +320,7 @@ export default function ProductPage() {
                 : "brand-gradient text-white hover:opacity-90"
             )}
             onClick={handleAddToCart}
-            disabled={isAdding}
+            disabled={isAdding || !canAddToCart}
           >
             {isAdding ? (
               <span className="flex items-center gap-2">
@@ -259,6 +344,7 @@ export default function ProductPage() {
             size="lg"
             variant="outline"
             onClick={handleBuyNow}
+            disabled={isAdding || !canAddToCart}
             className="w-full"
           >
             {t("product.buyNow")}

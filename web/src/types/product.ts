@@ -10,7 +10,7 @@ export interface Product {
   originalPrice?: number;
   image: string;
   description?: string;
-  category: string;
+  category?: string;
   brand?: string;
   rating?: number;
   reviewCount?: number;
@@ -22,4 +22,33 @@ export interface Product {
   weight?: string;
   origin?: string;
   freeDelivery?: boolean;
+}
+
+export interface ProductVariant {
+  id: number;
+  code?: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  stock: number;
+  attrs: Record<number, string>;
+}
+
+export interface ProductAttrValue {
+  id: number | null;
+  value: string;
+  color?: string | null;
+  image?: string | null;
+}
+
+export interface ProductAttr {
+  id: number;
+  name: string;
+  viewType: "image" | "text";
+  values: ProductAttrValue[];
+}
+
+export interface ProductDetail extends Product {
+  variants: ProductVariant[];
+  attrs: ProductAttr[];
 }

@@ -8,8 +8,8 @@ export default function CartItemList() {
 
   return (
     <div className="rounded-2xl border border-border bg-card px-5">
-      {cart.map((item, index) => (
-        <CartItem key={`${item.id}-${index}`} item={item} />
+      {cart.map((item) => (
+        <CartItem key={`${item.id}-${item.variantId ?? "base"}`} item={item} />
       ))}
     </div>
   );

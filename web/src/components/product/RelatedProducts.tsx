@@ -2,12 +2,11 @@
 
 import ProductCard from "@/components/home/ProductCard";
 import { Button } from "@/components/ui/button";
-import productsData from "@/data/products.json";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { getProducts } from "@/lib/api/products";
 import { Product } from "@/types/product";
 import Link from "next/link";
-
-const products = productsData as Product[];
+import { useEffect, useState } from "react";
 
 interface RelatedProductsProps {
   product: Product;
@@ -15,9 +14,19 @@ interface RelatedProductsProps {
 
 export default function RelatedProducts({ product }: RelatedProductsProps) {
   const { t } = useLanguage();
-  const related = products
-    .filter((p) => p.id !== product.id && p.category === product.category)
-    .slice(0, 4);
+  const [related, setRelated] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getProducts()
+      .then((products) => {
+        const others = products.filter((p) => p.id !== product.id);
+        const sameCategory = product.category
+          ? others.filter((p) => p.category === product.category)
+          : [];
+        setRelated((sameCategory.length > 0 ? sameCategory : others).slice(0, 4));
+      })
+      .catch(() => setRelated([]));
+  }, [product.id, product.category]);
 
   if (related.length === 0) return null;
 

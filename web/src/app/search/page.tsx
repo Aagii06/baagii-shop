@@ -64,7 +64,7 @@ function SearchContent() {
     const brand: Record<string, number> = {};
     let freeDelivery = 0;
     for (const p of products) {
-      category[p.category] = (category[p.category] ?? 0) + 1;
+      if (p.category) category[p.category] = (category[p.category] ?? 0) + 1;
       if (p.brand) brand[p.brand] = (brand[p.brand] ?? 0) + 1;
       if (p.freeDelivery) freeDelivery += 1;
     }
@@ -84,7 +84,9 @@ function SearchContent() {
       );
     }
     if (filters.categories.length > 0) {
-      result = result.filter((p) => filters.categories.includes(p.category));
+      result = result.filter(
+        (p) => !!p.category && filters.categories.includes(p.category)
+      );
     }
     if (filters.brands.length > 0) {
       result = result.filter((p) => p.brand && filters.brands.includes(p.brand));

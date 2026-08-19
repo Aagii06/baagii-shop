@@ -10,6 +10,7 @@ import { Minus, Plus, X } from "lucide-react";
 interface CartItemProps {
   item: {
     id: number;
+    variantId?: number;
     name: string;
     price: number;
     image: string;
@@ -37,7 +38,9 @@ export default function CartItem({ item }: CartItemProps) {
           </div>
 
           <button
-            onClick={() => dispatch(removeFromCart(item.id))}
+            onClick={() =>
+              dispatch(removeFromCart({ id: item.id, variantId: item.variantId }))
+            }
             aria-label={t("cart.removeAria")}
             className="text-muted-foreground hover:text-destructive shrink-0 p-1"
           >
@@ -52,6 +55,7 @@ export default function CartItem({ item }: CartItemProps) {
                 dispatch(
                   updateQuantity({
                     id: item.id,
+                    variantId: item.variantId,
                     quantity: Math.max(1, item.quantity - 1),
                   })
                 )
@@ -67,7 +71,11 @@ export default function CartItem({ item }: CartItemProps) {
             <button
               onClick={() =>
                 dispatch(
-                  updateQuantity({ id: item.id, quantity: item.quantity + 1 })
+                  updateQuantity({
+                    id: item.id,
+                    variantId: item.variantId,
+                    quantity: item.quantity + 1,
+                  })
                 )
               }
               className="h-8 w-8 flex items-center justify-center hover:bg-muted rounded-r-lg transition-colors"
