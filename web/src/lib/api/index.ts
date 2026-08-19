@@ -4,3 +4,4 @@ export { ApiError } from "./errors";
 export { getAuthToken, setAuthToken, clearAuthToken } from "./token";
 export * from "./products";
 export * from "./orders";
+export * from "./cart";

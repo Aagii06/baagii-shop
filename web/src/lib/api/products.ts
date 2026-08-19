@@ -43,13 +43,14 @@ interface ApiItemResponse<T> {
 }
 
 interface ApiPostProduct {
-  variantId: number;
+  id: number;
   variantCode?: string;
   variantName?: string;
   price: string;
   mainPrice: string;
   remain?: string;
   attr?: Record<string, string>;
+  postProductBranches?: { branchId: number; remain?: string }[];
 }
 
 interface ApiPostAttrValue {
@@ -118,12 +119,13 @@ function mapApiProductDetail(p: ApiProductDetail): ProductDetail {
     const mainPrice = Number(v.mainPrice);
 
     return {
-      id: v.variantId,
+      id: v.id,
       code: v.variantCode,
       name: v.variantName || base.name,
       price,
       originalPrice: mainPrice > price ? mainPrice : undefined,
       stock: v.remain !== undefined ? Number(v.remain) : 0,
+      branchId: v.postProductBranches?.[0]?.branchId,
       attrs: Object.fromEntries(
         Object.entries(v.attr ?? {}).map(([attrId, value]) => [
           Number(attrId),

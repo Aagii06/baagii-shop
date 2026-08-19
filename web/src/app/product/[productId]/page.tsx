@@ -7,6 +7,7 @@ import RelatedProducts from "@/components/product/RelatedProducts";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { addProductToCart } from "@/lib/api/cart";
 import { getProduct } from "@/lib/api/products";
 import { cn, formatMNT } from "@/lib/utils";
 import { addToCart } from "@/store/cartSlice";
@@ -124,6 +125,14 @@ export default function ProductPage() {
           quantity: 1,
         })
       );
+    }
+
+    if (currentVariant?.branchId !== undefined) {
+      addProductToCart({
+        postProductId: currentVariant.id,
+        qty: quantity,
+        branchId: currentVariant.branchId,
+      }).catch(() => {});
     }
 
     setIsAdding(false);

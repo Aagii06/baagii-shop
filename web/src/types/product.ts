@@ -31,6 +31,7 @@ export interface ProductVariant {
   price: number;
   originalPrice?: number;
   stock: number;
+  branchId?: number;
   attrs: Record<number, string>;
 }
 

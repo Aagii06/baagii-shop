@@ -30,11 +30,12 @@ export async function apiFetch<T>(
     ?.includes("application/json");
   const data = isJson ? await response.json() : undefined;
 
-  if (!response.ok) {
+  if (!response.ok || data?.success === false) {
     throw new ApiError(
       response.status,
       data?.message ?? response.statusText,
-      data
+      data,
+      data?.errorType
     );
   }
 
