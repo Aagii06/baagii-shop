@@ -29,3 +29,20 @@ export function removeCartItem(cartDetailId: number) {
     method: "DELETE",
   });
 }
+
+// Field shape inside each cart row is unconfirmed (same generic Swagger
+// placeholder as the other cart endpoints) — kept untyped until verified
+// against a live authenticated response.
+export async function getActiveCarts() {
+  const res = await apiFetch<ApiItemResponse<unknown[]>>(
+    "/cart/getActiveCarts"
+  );
+  return res.data;
+}
+
+export async function getCartsProductCnt() {
+  const res = await apiFetch<ApiItemResponse<number>>(
+    "/cart/getCartsProductCnt"
+  );
+  return res.data;
+}
