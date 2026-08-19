@@ -46,3 +46,25 @@ export async function getCartsProductCnt() {
   );
   return res.data;
 }
+
+export interface CreatePaymentAndInvoicePayload {
+  cartId: number;
+  ctPaymentMethodId: number;
+  deliveryOrder: {
+    notes: number[];
+    customerAddressId: number;
+    note?: string;
+  };
+}
+
+// Return shape unconfirmed (generic Swagger placeholder). Not yet wired
+// into the checkout flow — see conversation for why.
+export async function createPaymentAndInvoice(
+  payload: CreatePaymentAndInvoicePayload
+) {
+  const res = await apiFetch<ApiItemResponse<unknown>>(
+    "/cart/createPaymentAndInvoice",
+    { method: "POST", body: payload }
+  );
+  return res.data;
+}
