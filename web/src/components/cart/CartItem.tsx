@@ -1,6 +1,7 @@
 "use client";
 
 import PlaceholderImage from "@/components/ui/placeholder-image";
+import { removeCartItem } from "@/lib/api/cart";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { removeFromCart, updateQuantity } from "@/store/cartSlice";
@@ -11,6 +12,7 @@ interface CartItemProps {
   item: {
     id: number;
     variantId?: number;
+    cartDetailId?: number;
     name: string;
     price: number;
     image: string;
@@ -38,9 +40,12 @@ export default function CartItem({ item }: CartItemProps) {
           </div>
 
           <button
-            onClick={() =>
-              dispatch(removeFromCart({ id: item.id, variantId: item.variantId }))
-            }
+            onClick={() => {
+              dispatch(removeFromCart({ id: item.id, variantId: item.variantId }));
+              if (item.cartDetailId !== undefined) {
+                removeCartItem(item.cartDetailId).catch(() => {});
+              }
+            }}
             aria-label={t("cart.removeAria")}
             className="text-muted-foreground hover:text-destructive shrink-0 p-1"
           >

@@ -10,7 +10,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { addProductToCart } from "@/lib/api/cart";
 import { getProduct } from "@/lib/api/products";
 import { cn, formatMNT } from "@/lib/utils";
-import { addToCart } from "@/store/cartSlice";
+import { addToCart, setCartDetailId } from "@/store/cartSlice";
 import { useAppDispatch } from "@/store/hooks";
 import type { Product, ProductDetail, ProductVariant } from "@/types/product";
 import { Check, CircleCheck, Minus, Plus, ShoppingCart, Star } from "lucide-react";
@@ -132,7 +132,17 @@ export default function ProductPage() {
         postProductId: currentVariant.id,
         qty: quantity,
         branchId: currentVariant.branchId,
-      }).catch(() => {});
+      })
+        .then((cartDetailId) => {
+          dispatch(
+            setCartDetailId({
+              id: product.id,
+              variantId: currentVariant.id,
+              cartDetailId,
+            })
+          );
+        })
+        .catch(() => {});
     }
 
     setIsAdding(false);

@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export interface CartItem {
   id: number;
   variantId?: number;
+  cartDetailId?: number;
   name: string;
   price: number;
   image: string;
@@ -44,10 +45,25 @@ const cartSlice = createSlice({
         item.quantity = Math.max(1, action.payload.quantity);
       }
     },
+    setCartDetailId: (
+      state,
+      action: PayloadAction<CartLineKey & { cartDetailId: number }>
+    ) => {
+      const item = state.find((item) => isSameLine(item, action.payload));
+      if (item) {
+        item.cartDetailId = action.payload.cartDetailId;
+      }
+    },
   },
 });
 
-export const { setCart, addToCart, removeFromCart, clearCart, updateQuantity } =
-  cartSlice.actions;
+export const {
+  setCart,
+  addToCart,
+  removeFromCart,
+  clearCart,
+  updateQuantity,
+  setCartDetailId,
+} = cartSlice.actions;
 
 export default cartSlice.reducer;
