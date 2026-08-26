@@ -8,26 +8,25 @@ import MobileFilterDrawer from "@/components/search/MobileFilterDrawer";
 import Pagination from "@/components/search/Pagination";
 import SortTabs, { type SortOption } from "@/components/search/SortTabs";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { getCategory } from "@/lib/categories";
-import productsData from "@/data/products.json";
+import { categories, getCategory } from "@/lib/categories";
+import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
-const products = productsData as Product[];
 const PAGE_SIZE = 12;
+const DEFAULT_PRICE_BOUNDS: [number, number] = [0, 10_000_000];
 
-function computePriceBounds(): [number, number] {
+function computePriceBounds(products: Product[]): [number, number] {
+  if (products.length === 0) return DEFAULT_PRICE_BOUNDS;
   const prices = products.map((p) => p.price);
   return [
     Math.floor(Math.min(...prices) / 1000) * 1000,
     Math.ceil(Math.max(...prices) / 1000) * 1000,
   ];
 }
-
-const PRICE_BOUNDS = computePriceBounds();
 
 function SearchContent() {
   const { t } = useLanguage();
@@ -41,13 +40,19 @@ function SearchContent() {
     categories: initialCategory ? [initialCategory] : [],
     brands: [],
     freeDeliveryOnly: false,
-    priceRange: PRICE_BOUNDS,
+    priceRange: DEFAULT_PRICE_BOUNDS,
   });
   const [saleOnly, setSaleOnly] = useState(initialSale);
   const [sort, setSort] = useState<SortOption>(
     initialSort === "new" ? "new" : "popular"
   );
   const [page, setPage] = useState(1);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+
+  const activeCategorySlug = filters.categories[0];
 
   useEffect(() => {
     setFilters((prev) => ({
@@ -59,33 +64,68 @@ function SearchContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialCategory, initialSale, query]);
 
+  // Category and text search are filtered server-side by the product API;
+  // everything else (brand, price, delivery, sort) is applied client-side below.
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getProducts({ category: activeCategorySlug, search: query || undefined })
+      .then((result) => {
+        if (cancelled) return;
+        setProducts(result);
+        setPage(1);
+        setFilters((prev) => ({
+          ...prev,
+          priceRange: computePriceBounds(result),
+        }));
+      })
+      .catch(() => {
+        if (!cancelled) setProducts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeCategorySlug, query]);
+
+  // Per-category counts need a dedicated call each since the API only
+  // filters by a single category at a time.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(
+      categories.map((c) =>
+        getProducts({ category: c.slug, search: query || undefined })
+          .then((list): [string, number] => [c.slug, list.length])
+          .catch((): [string, number] => [c.slug, 0])
+      )
+    ).then((entries) => {
+      if (!cancelled) setCategoryCounts(Object.fromEntries(entries));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
+
+  const priceBounds = useMemo(() => computePriceBounds(products), [products]);
+
   const counts = useMemo(() => {
-    const category: Record<string, number> = {};
     const brand: Record<string, number> = {};
     let freeDelivery = 0;
     for (const p of products) {
-      if (p.category) category[p.category] = (category[p.category] ?? 0) + 1;
       if (p.brand) brand[p.brand] = (brand[p.brand] ?? 0) + 1;
       if (p.freeDelivery) freeDelivery += 1;
     }
-    return { category, brand, freeDelivery };
-  }, []);
+    return { category: categoryCounts, brand, freeDelivery };
+  }, [products, categoryCounts]);
 
   const filtered = useMemo(() => {
     let result = products.slice();
 
-    if (query) {
-      const q = query.toLowerCase();
-      result = result.filter((p) => p.name.toLowerCase().includes(q));
-    }
     if (saleOnly) {
       result = result.filter(
         (p) => p.originalPrice && p.originalPrice > p.price
-      );
-    }
-    if (filters.categories.length > 0) {
-      result = result.filter(
-        (p) => !!p.category && filters.categories.includes(p.category)
       );
     }
     if (filters.brands.length > 0) {
@@ -114,15 +154,15 @@ function SearchContent() {
     }
 
     return result;
-  }, [query, saleOnly, filters, sort]);
+  }, [products, saleOnly, filters.brands, filters.freeDeliveryOnly, filters.priceRange, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const activeCategory = getCategory(filters.categories[0]);
   const priceChanged =
-    filters.priceRange[0] !== PRICE_BOUNDS[0] ||
-    filters.priceRange[1] !== PRICE_BOUNDS[1];
+    filters.priceRange[0] !== priceBounds[0] ||
+    filters.priceRange[1] !== priceBounds[1];
 
   const chips: { key: string; label: string; onRemove: () => void }[] = [
     ...filters.categories.map((slug) => {
@@ -164,7 +204,7 @@ function SearchContent() {
               "mn-MN"
             )}-${filters.priceRange[1].toLocaleString("mn-MN")}₮`,
             onRemove: () =>
-              setFilters((f) => ({ ...f, priceRange: PRICE_BOUNDS })),
+              setFilters((f) => ({ ...f, priceRange: priceBounds })),
           },
         ]
       : []),
@@ -206,7 +246,7 @@ function SearchContent() {
         <FilterSidebar
           filters={filters}
           onChange={setFilters}
-          priceBounds={PRICE_BOUNDS}
+          priceBounds={priceBounds}
           counts={counts}
         />
 
@@ -218,7 +258,7 @@ function SearchContent() {
             <MobileFilterDrawer
               filters={filters}
               onChange={setFilters}
-              priceBounds={PRICE_BOUNDS}
+              priceBounds={priceBounds}
               counts={counts}
               activeCount={chips.length}
             />
@@ -239,7 +279,9 @@ function SearchContent() {
             </div>
           )}
 
-          <ProductList products={paged} />
+          <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
+            <ProductList products={paged} />
+          </div>
 
           <div className="flex justify-center pt-4">
             <Pagination page={page} totalPages={totalPages} onChange={setPage} />
