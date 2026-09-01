@@ -124,9 +124,7 @@ export async function getProducts(params?: GetProductsParams) {
       ).toString()
     : "";
 
-  const res = await apiFetch<ApiListResponse<ApiProduct>>(`/post${query}`, {
-    auth: false,
-  });
+  const res = await apiFetch<ApiListResponse<ApiProduct>>(`/post${query}`);
 
   return res.data.rows
     .filter((p) => p.isActive !== false)
@@ -180,9 +178,7 @@ function mapApiProductDetail(p: ApiProductDetail): ProductDetail {
 }
 
 export async function getProduct(id: number) {
-  const res = await apiFetch<ApiItemResponse<ApiProductDetail>>(`/post/${id}`, {
-    auth: false,
-  });
+  const res = await apiFetch<ApiItemResponse<ApiProductDetail>>(`/post/${id}`);
 
   return mapApiProductDetail(res.data);
 }
