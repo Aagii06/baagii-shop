@@ -1,12 +1,21 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import ProductList from "./ProductList";
 
-export default function AllProducts({ products }: { products: Product[] }) {
+export default function AllProducts() {
   const { t } = useLanguage();
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getProducts()
+      .then(setProducts)
+      .catch(() => setProducts([]));
+  }, []);
 
   return (
     <section>
