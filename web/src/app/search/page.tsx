@@ -63,7 +63,6 @@ function SearchContent() {
     }));
     setSaleOnly(initialSale);
     setPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialCategory, initialSale, query]);
 
   // Category and text search are filtered server-side by the product API;

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { useAppSelector } from "@/store/hooks";
 import logo from "@/assets/logo.png";
 import {
@@ -21,6 +22,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   const { t } = useLanguage();
+  const { categories } = useCategories();
   const cart = useAppSelector((state) => state.cart);
   const cartCount =
     cart?.reduce((total, item) => total + item.quantity, 0) || 0;
@@ -32,16 +34,13 @@ export default function Header() {
   const router = useRouter();
 
   const categoryTabs = [
-    { key: "header.tabs.all", href: "/search" },
-    { key: "header.tabs.sale", href: "/search?sale=1" },
-    { key: "header.tabs.food", href: "/search?category=huns" },
-    { key: "header.tabs.clothing", href: "/search?category=huvtsas" },
-    {
-      key: "header.tabs.electronics",
-      href: "/search?category=tsahilgaan-baraa",
-    },
-    { key: "header.tabs.home", href: "/search?category=ger-akhui" },
-    { key: "header.tabs.newArrivals", href: "/search?sort=new" },
+    { label: t("header.tabs.all"), href: "/search" },
+    { label: t("header.tabs.sale"), href: "/search?sale=1" },
+    ...categories.slice(0, 4).map((category) => ({
+      label: category.name,
+      href: `/search?category=${category.code}`,
+    })),
+    { label: t("header.tabs.newArrivals"), href: "/search?sort=new" },
   ];
 
   useEffect(() => {
@@ -247,9 +246,9 @@ export default function Header() {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            {categoryTabs.map(({ href, key }) => (
+            {categoryTabs.map(({ href, label }) => (
               <Link
-                key={key}
+                key={href}
                 href={href}
                 className={`relative py-3 px-4 text-sm font-medium whitespace-nowrap transition-colors ${
                   isTabActive(href)
@@ -257,7 +256,7 @@ export default function Header() {
                     : "text-foreground/80 hover:text-foreground"
                 }`}
               >
-                {t(key)}
+                {label}
                 {isTabActive(href) && (
                   <span className="absolute left-4 right-4 -bottom-px h-0.5 bg-primary rounded-full" />
                 )}
@@ -274,13 +273,13 @@ export default function Header() {
           aria-label={t("header.mobileNavAria")}
         >
           <div className="container mx-auto px-4 py-4 space-y-1">
-            {categoryTabs.map(({ href, key }) => (
+            {categoryTabs.map(({ href, label }) => (
               <Link
-                key={key}
+                key={href}
                 href={href}
                 className="block py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
-                {t(key)}
+                {label}
               </Link>
             ))}
             <div className="h-px bg-border my-2" />

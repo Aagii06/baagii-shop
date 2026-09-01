@@ -6,6 +6,7 @@ import LanguageProvider from "@/lib/i18n/LanguageProvider";
 import StoreProvider from "@/store/StoreProvider";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 
 const inter = Inter({
@@ -49,7 +50,11 @@ export default function RootLayout({
         <LanguageProvider>
           <CategoriesProvider>
             <StoreProvider>
-              <Header />
+              {/* Header reads useSearchParams; a boundary keeps the
+                  not-found / error pages statically prerenderable. */}
+              <Suspense fallback={<div className="h-16 border-b border-border" />}>
+                <Header />
+              </Suspense>
               <main className="grow">{children}</main>
               <Footer />
               <ScrollToTop />

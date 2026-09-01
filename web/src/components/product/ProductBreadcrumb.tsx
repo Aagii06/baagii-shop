@@ -1,7 +1,8 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { getCategory } from "@/lib/categories";
+import { useCategories } from "@/lib/categories/CategoriesProvider";
+import { findCategory } from "@/lib/categories";
 import Link from "next/link";
 
 export default function ProductBreadcrumb({
@@ -12,7 +13,8 @@ export default function ProductBreadcrumb({
   name: string;
 }) {
   const { t } = useLanguage();
-  const cat = getCategory(category);
+  const { categories } = useCategories();
+  const cat = findCategory(categories, category);
 
   return (
     <nav className="mb-6 text-sm text-muted-foreground">
@@ -23,10 +25,10 @@ export default function ProductBreadcrumb({
         <>
           <span className="mx-1.5">›</span>
           <Link
-            href={`/search?category=${cat.slug}`}
+            href={`/search?category=${cat.code}`}
             className="hover:text-foreground"
           >
-            {t(`category.${cat.slug}`)}
+            {cat.name}
           </Link>
         </>
       )}
