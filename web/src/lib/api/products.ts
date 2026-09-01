@@ -87,6 +87,7 @@ function mapApiProduct(p: ApiProduct): Product {
     originalPrice: mainPrice > price ? mainPrice : undefined,
     image: "",
     description: p.note ?? undefined,
+    categoryId: p.categoryId ?? p.category?.id,
     brand: p.company?.name,
     stock: p.remain !== undefined ? Number(p.remain) : undefined,
   };
@@ -106,10 +107,9 @@ export async function getProducts(params?: GetProductsParams) {
       ).toString()
     : "";
 
-  const res = await apiFetch<ApiListResponse<ApiProduct>>(
-    `/post/product${query}`,
-    { auth: false }
-  );
+  const res = await apiFetch<ApiListResponse<ApiProduct>>(`/post${query}`, {
+    auth: false,
+  });
 
   return res.data.rows
     .filter((p) => p.isActive !== false)
@@ -156,10 +156,9 @@ function mapApiProductDetail(p: ApiProductDetail): ProductDetail {
 }
 
 export async function getProduct(id: number) {
-  const res = await apiFetch<ApiItemResponse<ApiProductDetail>>(
-    `/post/product/${id}`,
-    { auth: false }
-  );
+  const res = await apiFetch<ApiItemResponse<ApiProductDetail>>(`/post/${id}`, {
+    auth: false,
+  });
 
   return mapApiProductDetail(res.data);
 }
