@@ -1,6 +1,5 @@
 import { API_BASE_URL } from "./config";
 import { ApiError } from "./errors";
-import { getAuthToken } from "./token";
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -15,7 +14,10 @@ export async function apiFetch<T>(
   requestHeaders.set("Content-Type", "application/json");
 
   if (auth) {
-    const token = getAuthToken();
+    // Dynamic import avoids a static cycle: ./auth calls apiFetch itself
+    // (with auth: false) to hit /auth/loginGuest.
+    const { ensureGuestToken } = await import("./auth");
+    const token = await ensureGuestToken();
     if (token) requestHeaders.set("Authorization", `Bearer ${token}`);
   }
 
