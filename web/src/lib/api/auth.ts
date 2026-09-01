@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import { getAuthToken, setAuthToken } from "./token";
+import { clearAuthToken, getAuthToken, setAuthToken } from "./token";
 
 // Client-side TTL for guest sessions; the backend token itself doesn't
 // carry an expiry, so we age it out locally and re-login after this long.
@@ -28,8 +28,12 @@ let pendingLogin: Promise<string | null> | null = null;
 // Guarantees an auth token is available before a protected request goes
 // out, logging in as a guest (e.g. for adding products to the cart) if
 // none is stored yet or the previous guest token has expired.
-export function ensureGuestToken(): Promise<string | null> {
+export function ensureGuestToken(
+  { forceRefresh = false }: { forceRefresh?: boolean } = {}
+): Promise<string | null> {
   if (typeof window === "undefined") return Promise.resolve(null);
+
+  if (forceRefresh) clearAuthToken();
 
   const existing = getAuthToken();
   if (existing) return Promise.resolve(existing);
