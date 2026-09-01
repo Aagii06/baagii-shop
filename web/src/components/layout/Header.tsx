@@ -29,6 +29,7 @@ export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -44,9 +45,15 @@ export default function Header() {
   ];
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
     setIsMobileOpen(false);
     setIsMobileSearchOpen(false);
   }, [pathname]);
+
+  const showCartCount = isMounted && cartCount > 0;
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileOpen((prev) => !prev);
@@ -188,7 +195,7 @@ export default function Header() {
               <Link href="/cart">
                 <span className="relative">
                   <ShoppingCart className="h-5 w-5" />
-                  {cartCount > 0 && (
+                  {showCartCount && (
                     <span className="absolute -top-1.5 -right-2 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1">
                       {cartCount > 99 ? "99+" : cartCount}
                     </span>
@@ -202,10 +209,10 @@ export default function Header() {
           <Link
             href="/cart"
             className="relative md:hidden p-2 rounded-full hover:bg-muted transition-colors"
-            aria-label={t("header.nav.cartAria", { count: cartCount })}
+            aria-label={t("header.nav.cartAria", { count: isMounted ? cartCount : 0 })}
           >
             <ShoppingCart className="h-5 w-5 text-foreground" />
-            {cartCount > 0 && (
+            {showCartCount && (
               <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1">
                 {cartCount > 99 ? "99+" : cartCount}
               </span>
