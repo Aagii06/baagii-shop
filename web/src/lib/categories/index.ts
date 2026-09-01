@@ -11,51 +11,6 @@ export interface Category {
   children: Category[];
 }
 
-// Rendered before the API responds and if the request fails. Mirrors the
-// live tree so navigation stays usable offline / during the first paint.
-export const fallbackCategories: Category[] = [
-  {
-    id: 1,
-    parentId: null,
-    code: "electronics",
-    name: "Цахилгаан бараа",
-    image: "49",
-    style: null,
-    children: [
-      { id: 2, parentId: 1, code: "phone", name: "Гар утас", image: null, style: null, children: [] },
-      { id: 3, parentId: 1, code: "computer", name: "Компьютер", image: null, style: null, children: [] },
-      { id: 4, parentId: 1, code: "tv", name: "Телевизор", image: null, style: null, children: [] },
-    ],
-  },
-  {
-    id: 5,
-    parentId: null,
-    code: "clothing",
-    name: "Хувцас",
-    image: null,
-    style: null,
-    children: [
-      { id: 6, parentId: 5, code: "men", name: "Эрэгтэй хувцас", image: null, style: null, children: [] },
-      { id: 7, parentId: 5, code: "women", name: "Эмэгтэй хувцас", image: null, style: null, children: [] },
-      { id: 8, parentId: 5, code: "kids", name: "Хүүхдийн хувцас", image: null, style: null, children: [] },
-    ],
-  },
-  {
-    id: 9,
-    parentId: null,
-    code: "food",
-    name: "Хүнс",
-    image: null,
-    style: null,
-    children: [
-      { id: 10, parentId: 9, code: "drinks", name: "Ундаа", image: null, style: null, children: [] },
-      { id: 11, parentId: 9, code: "snacks", name: "Зууш", image: null, style: null, children: [] },
-    ],
-  },
-  { id: 12, parentId: null, code: "home", name: "Гэр ахуй", image: null, style: null, children: [] },
-  { id: 13, parentId: null, code: "beauty", name: "Гоо сайхан", image: null, style: null, children: [] },
-];
-
 export const brands = ["Гоби", "Эрдэнэт", "Буян", "Бусад"] as const;
 
 const CATEGORY_PALETTE = [

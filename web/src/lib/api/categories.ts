@@ -8,11 +8,12 @@ interface ApiCategoriesResponse {
 }
 
 // The endpoint returns the full category tree already nested via `children`,
-// so the response shape matches our `Category` type as-is.
+// so the response shape matches our `Category` type as-is. It requires a
+// (guest) auth token and must be a GET request.
 export async function getCategories(): Promise<Category[]> {
   const res = await apiFetch<ApiCategoriesResponse>(
     "/category/getCategoryTree",
-    { auth: false }
+    { method: "GET" }
   );
   return res.data ?? [];
 }

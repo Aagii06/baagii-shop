@@ -2,13 +2,15 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { getCategories } from "@/lib/api/categories";
-import { fallbackCategories, type Category } from "@/lib/categories";
+import type { Category } from "@/lib/categories";
 
 interface CategoriesContextValue {
   /** Top-level categories, each with a `children` array. */
   categories: Category[];
   /** True until the live tree has been fetched (or the fetch failed). */
   loading: boolean;
+  /** Set when the category fetch failed. */
+  error: boolean;
 }
 
 const CategoriesContext = createContext<CategoriesContextValue | null>(null);
@@ -18,17 +20,18 @@ export default function CategoriesProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [categories, setCategories] = useState<Category[]>(fallbackCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     getCategories()
       .then((tree) => {
-        if (!cancelled && tree.length > 0) setCategories(tree);
+        if (!cancelled) setCategories(tree);
       })
       .catch(() => {
-        // Keep the fallback tree on failure.
+        if (!cancelled) setError(true);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -39,7 +42,7 @@ export default function CategoriesProvider({
   }, []);
 
   return (
-    <CategoriesContext.Provider value={{ categories, loading }}>
+    <CategoriesContext.Provider value={{ categories, loading, error }}>
       {children}
     </CategoriesContext.Provider>
   );
