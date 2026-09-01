@@ -48,28 +48,43 @@ interface ApiItemResponse<T> {
   data: T;
 }
 
+interface ApiPostProductBranch {
+  id: number;
+  branchId: number;
+  remain?: string;
+  branch?: { id: number; name: string };
+}
+
 interface ApiPostProduct {
   id: number;
+  variantId?: number;
   variantCode?: string;
   variantName?: string;
+  image?: string | null;
+  images?: string[];
   price: string;
   mainPrice: string;
   remain?: string;
   attr?: Record<string, string>;
-  postProductBranches?: { branchId: number; remain?: string }[];
+  postProductBranches?: ApiPostProductBranch[];
 }
 
 interface ApiPostAttrValue {
+  id?: number;
   attrValueId: number | null;
   value: string;
   color?: string | null;
   image?: string | null;
+  images?: string[];
+  orderNumber?: number;
 }
 
 interface ApiPostAttr {
+  id?: number;
   attrId: number;
   attrName: string;
   viewType: string;
+  orderNumber?: number;
   postAttrValues?: ApiPostAttrValue[];
 }
 
@@ -132,7 +147,9 @@ function mapApiProductDetail(p: ApiProductDetail): ProductDetail {
       price,
       originalPrice: mainPrice > price ? mainPrice : undefined,
       stock: v.remain !== undefined ? Number(v.remain) : 0,
-      branchId: v.postProductBranches?.[0]?.branchId,
+      branchId:
+        v.postProductBranches?.[0]?.branch?.id ??
+        v.postProductBranches?.[0]?.branchId,
       attrs: Object.fromEntries(
         Object.entries(v.attr ?? {}).map(([attrId, value]) => [
           Number(attrId),
@@ -142,17 +159,22 @@ function mapApiProductDetail(p: ApiProductDetail): ProductDetail {
     };
   });
 
-  const attrs: ProductAttr[] = (p.postAttrs ?? []).map((a) => ({
-    id: a.attrId,
-    name: a.attrName,
-    viewType: a.viewType === "image" ? "image" : "text",
-    values: (a.postAttrValues ?? []).map((v) => ({
-      id: v.attrValueId,
-      value: v.value,
-      color: v.color,
-      image: v.image,
-    })),
-  }));
+  const byOrder = (a: { orderNumber?: number }, b: { orderNumber?: number }) =>
+    (a.orderNumber ?? 0) - (b.orderNumber ?? 0);
+
+  const attrs: ProductAttr[] = [...(p.postAttrs ?? [])]
+    .sort(byOrder)
+    .map((a) => ({
+      id: a.attrId,
+      name: a.attrName,
+      viewType: a.viewType === "image" ? "image" : "text",
+      values: [...(a.postAttrValues ?? [])].sort(byOrder).map((v) => ({
+        id: v.attrValueId,
+        value: v.value,
+        color: v.color,
+        image: v.image,
+      })),
+    }));
 
   return { ...base, variants, attrs };
 }
