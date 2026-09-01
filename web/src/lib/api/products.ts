@@ -9,12 +9,14 @@ export interface GetProductsParams {
   cartTypeId?: number;
 }
 
-// Raw shape returned by the eshop-service backend. Only fields we
-// consume are declared; the response carries more (createdById,
-// isStock, deepLink, etc.) that we don't map.
+// Raw "post" (listing) shape returned by the eshop-service backend. Only
+// fields we consume are declared; the response carries more (createdById,
+// isStock, deepLink, cartTypeId, timestamps, ...) that we don't map.
+// `id` is the post id (used by `/post/{id}` and product links); `productId`
+// points at the underlying catalogue product.
 interface ApiProduct {
   id: number;
-  productId: number;
+  productId?: number;
   productCode?: string;
   productName?: string;
   name?: string;
@@ -81,7 +83,7 @@ function mapApiProduct(p: ApiProduct): Product {
   const mainPrice = Number(p.mainPrice);
 
   return {
-    id: p.productId,
+    id: p.id,
     name: p.productName || p.name || "",
     price,
     originalPrice: mainPrice > price ? mainPrice : undefined,
