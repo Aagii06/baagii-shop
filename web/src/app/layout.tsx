@@ -1,6 +1,7 @@
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import ScrollToTop from "@/components/layout/ScrollToTop";
+import CategoriesProvider from "@/lib/categories/CategoriesProvider";
 import LanguageProvider from "@/lib/i18n/LanguageProvider";
 import StoreProvider from "@/store/StoreProvider";
 import type { Metadata, Viewport } from "next";
@@ -46,12 +47,14 @@ export default function RootLayout({
         className={`${inter.className}  antialiased flex flex-col min-h-screen`}
       >
         <LanguageProvider>
-          <StoreProvider>
-            <Header />
-            <main className="grow">{children}</main>
-            <Footer />
-            <ScrollToTop />
-          </StoreProvider>
+          <CategoriesProvider>
+            <StoreProvider>
+              <Header />
+              <main className="grow">{children}</main>
+              <Footer />
+              <ScrollToTop />
+            </StoreProvider>
+          </CategoriesProvider>
         </LanguageProvider>
       </body>
     </html>

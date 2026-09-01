@@ -8,7 +8,8 @@ import MobileFilterDrawer from "@/components/search/MobileFilterDrawer";
 import Pagination from "@/components/search/Pagination";
 import SortTabs, { type SortOption } from "@/components/search/SortTabs";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { categories, getCategory } from "@/lib/categories";
+import { useCategories } from "@/lib/categories/CategoriesProvider";
+import { findCategory } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
 import { X } from "lucide-react";
@@ -30,6 +31,7 @@ function computePriceBounds(products: Product[]): [number, number] {
 
 function SearchContent() {
   const { t } = useLanguage();
+  const { categories } = useCategories();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category");
   const initialSale = searchParams.get("sale") === "1";
@@ -96,9 +98,9 @@ function SearchContent() {
     let cancelled = false;
     Promise.all(
       categories.map((c) =>
-        getProducts({ category: c.slug, search: query || undefined })
-          .then((list): [string, number] => [c.slug, list.length])
-          .catch((): [string, number] => [c.slug, 0])
+        getProducts({ category: c.code, search: query || undefined })
+          .then((list): [string, number] => [c.code, list.length])
+          .catch((): [string, number] => [c.code, 0])
       )
     ).then((entries) => {
       if (!cancelled) setCategoryCounts(Object.fromEntries(entries));
@@ -106,7 +108,7 @@ function SearchContent() {
     return () => {
       cancelled = true;
     };
-  }, [query]);
+  }, [query, categories]);
 
   const priceBounds = useMemo(() => computePriceBounds(products), [products]);
 
@@ -159,17 +161,17 @@ function SearchContent() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const activeCategory = getCategory(filters.categories[0]);
+  const activeCategory = findCategory(categories, filters.categories[0]);
   const priceChanged =
     filters.priceRange[0] !== priceBounds[0] ||
     filters.priceRange[1] !== priceBounds[1];
 
   const chips: { key: string; label: string; onRemove: () => void }[] = [
     ...filters.categories.map((slug) => {
-      const cat = getCategory(slug);
+      const cat = findCategory(categories, slug);
       return {
         key: `cat-${slug}`,
-        label: cat ? t(`category.${cat.slug}`) : slug,
+        label: cat ? cat.name : slug,
         onRemove: () =>
           setFilters((f) => ({
             ...f,
@@ -213,7 +215,7 @@ function SearchContent() {
   const breadcrumbLabel = query
     ? `«${query}»`
     : activeCategory
-    ? t(`category.${activeCategory.slug}`)
+    ? activeCategory.name
     : saleOnly
     ? t("search.breadcrumb.sale")
     : t("search.breadcrumb.allProducts");

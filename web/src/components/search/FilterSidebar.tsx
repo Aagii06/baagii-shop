@@ -1,7 +1,8 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { brands, categories } from "@/lib/categories";
+import { useCategories } from "@/lib/categories/CategoriesProvider";
+import { brands } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import PriceRangeSlider from "./PriceRangeSlider";
 
@@ -69,6 +70,7 @@ export function FilterPanelContent({
   counts,
 }: FilterSidebarProps) {
   const { t } = useLanguage();
+  const { categories } = useCategories();
 
   const toggleCategory = (slug: string) => {
     const next = filters.categories.includes(slug)
@@ -92,11 +94,11 @@ export function FilterPanelContent({
         </h3>
         {categories.map((category) => (
           <Checkbox
-            key={category.slug}
-            checked={filters.categories.includes(category.slug)}
-            onChange={() => toggleCategory(category.slug)}
-            label={t(`category.${category.slug}`)}
-            count={counts.category[category.slug] ?? 0}
+            key={category.code}
+            checked={filters.categories.includes(category.code)}
+            onChange={() => toggleCategory(category.code)}
+            label={category.name}
+            count={counts.category[category.code] ?? 0}
           />
         ))}
       </div>
