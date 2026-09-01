@@ -23,6 +23,10 @@ interface ApiProduct {
   mainPrice: string;
   remain?: string;
   isActive?: boolean;
+  isHot?: boolean;
+  categoryId?: number;
+  category?: { id: number; name: string; image?: string | null };
+  images?: string[];
   company?: { id: number; name: string };
 }
 
