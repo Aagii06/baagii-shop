@@ -11,6 +11,7 @@ export interface Product {
   image: string;
   description?: string;
   category?: string;
+  categoryId?: number;
   brand?: string;
   rating?: number;
   reviewCount?: number;
