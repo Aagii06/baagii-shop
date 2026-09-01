@@ -1,13 +1,10 @@
+import AllProducts from "@/components/home/AllProducts";
 import CategoryScrollRow from "@/components/home/CategoryScrollRow";
 import HeroBanner from "@/components/home/HeroBanner";
-import QuickSale from "@/components/home/QuickSale";
 import { getProducts } from "@/lib/api/products";
 
 export default async function Home() {
   const products = await getProducts().catch(() => []);
-  const discounted = products.filter(
-    (p) => p.originalPrice && p.originalPrice > p.price
-  );
 
   return (
     <div className="bg-background">
@@ -15,7 +12,7 @@ export default async function Home() {
         <div className="space-y-8">
           <CategoryScrollRow />
           <HeroBanner />
-          <QuickSale products={discounted} />
+          <AllProducts products={products} />
         </div>
       </div>
     </div>

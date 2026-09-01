@@ -88,8 +88,8 @@ const mn: Dict = {
   "home.promo.freeShipBadge": "Үнэгүй хүргэлт",
   "home.promo.freeShipTitle": "150,000₮-с дээш",
   "home.promo.freeShipDesc": "Улаанбаатар хотод",
-  "home.quickSale.title": "Шуурхай хямдрал",
-  "home.quickSale.viewAll": "Бүгдийг үзэх",
+  "home.allProducts.title": "Бүх бараа",
+  "home.allProducts.viewAll": "Бүгдийг үзэх",
 
   "product.addToCartAria": "Сагсанд нэмэх",
   "product.sold": "{count} зарагдсан",
@@ -396,8 +396,8 @@ const en: Dict = {
   "home.promo.freeShipBadge": "Free delivery",
   "home.promo.freeShipTitle": "On orders over 50,000₮",
   "home.promo.freeShipDesc": "In Ulaanbaatar",
-  "home.quickSale.title": "Flash deals",
-  "home.quickSale.viewAll": "View all",
+  "home.allProducts.title": "All products",
+  "home.allProducts.viewAll": "View all",
 
   "product.addToCartAria": "Add to cart",
   "product.sold": "{count} sold",
@@ -703,8 +703,8 @@ const ru: Dict = {
   "home.promo.freeShipBadge": "Бесплатная доставка",
   "home.promo.freeShipTitle": "При заказе от 50,000₮",
   "home.promo.freeShipDesc": "По Улан-Батору",
-  "home.quickSale.title": "Быстрые скидки",
-  "home.quickSale.viewAll": "Смотреть все",
+  "home.allProducts.title": "Все товары",
+  "home.allProducts.viewAll": "Смотреть все",
 
   "product.addToCartAria": "Добавить в корзину",
   "product.sold": "продано: {count}",

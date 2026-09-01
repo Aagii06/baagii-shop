@@ -55,6 +55,7 @@ function SearchContent() {
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
   const activeCategorySlug = filters.categories[0];
+  const activeCategoryId = findCategory(categories, activeCategorySlug)?.id;
 
   useEffect(() => {
     setFilters((prev) => ({
@@ -70,7 +71,7 @@ function SearchContent() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getProducts({ category: activeCategorySlug, search: query || undefined })
+    getProducts({ categoryId: activeCategoryId, search: query || undefined })
       .then((result) => {
         if (cancelled) return;
         setProducts(result);
@@ -89,7 +90,7 @@ function SearchContent() {
     return () => {
       cancelled = true;
     };
-  }, [activeCategorySlug, query]);
+  }, [activeCategoryId, query]);
 
   // Per-category counts need a dedicated call each since the API only
   // filters by a single category at a time.
@@ -97,7 +98,7 @@ function SearchContent() {
     let cancelled = false;
     Promise.all(
       categories.map((c) =>
-        getProducts({ category: c.code, search: query || undefined })
+        getProducts({ categoryId: c.id, search: query || undefined })
           .then((list): [string, number] => [c.code, list.length])
           .catch((): [string, number] => [c.code, 0])
       )

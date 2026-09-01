@@ -2,7 +2,7 @@ import type { Product, ProductAttr, ProductDetail, ProductVariant } from "@/type
 import { apiFetch } from "./client";
 
 export interface GetProductsParams {
-  category?: string;
+  categoryId?: number;
   search?: string;
   page?: number;
   limit?: number;
@@ -103,7 +103,8 @@ export async function getProducts(params?: GetProductsParams) {
     : "";
 
   const res = await apiFetch<ApiListResponse<ApiProduct>>(
-    `/post/product${query}`
+    `/post/product${query}`,
+    { auth: false }
   );
 
   return res.data.rows
@@ -152,7 +153,8 @@ function mapApiProductDetail(p: ApiProductDetail): ProductDetail {
 
 export async function getProduct(id: number) {
   const res = await apiFetch<ApiItemResponse<ApiProductDetail>>(
-    `/post/product/${id}`
+    `/post/product/${id}`,
+    { auth: false }
   );
 
   return mapApiProductDetail(res.data);
