@@ -16,6 +16,44 @@ interface LoginGuestData {
   guestId: string;
 }
 
+export interface AuthUser {
+  id: number;
+  name: string;
+  userName: string;
+  email: string;
+  roles: number[];
+  roleNames: string;
+}
+
+export interface ObjectPermission {
+  isShow: boolean;
+  isCreate: boolean;
+  isUpdate: boolean;
+  isDestroy: boolean;
+}
+
+// A guest token is accepted but carries no user, so every field can be
+// absent; callers must null-check `user` before using it.
+export interface UserData {
+  user?: AuthUser;
+  /** Keyed by menu code. */
+  menuPermission?: Record<string, boolean>;
+  /** Keyed by custom action code. */
+  customActionPermission?: Record<string, boolean>;
+  /** Keyed by object/entity code. */
+  objectPermission?: Record<string, ObjectPermission>;
+}
+
+// Logged-in user info + permission maps. `checkAuth` is required on the
+// backend, but a guest token is accepted too (and then `data` comes back
+// as `{}`), so this goes through the normal auth flow (ensureGuestToken)
+// like every other protected call.
+export function getUserData() {
+  return apiFetch<ApiItemResponse<UserData>>("/auth/getUserData", {
+    method: "GET",
+  }).then((res) => res.data);
+}
+
 function loginGuest() {
   return apiFetch<ApiItemResponse<LoginGuestData>>("/auth/loginGuest", {
     method: "POST",
