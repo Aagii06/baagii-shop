@@ -1,13 +1,22 @@
-// Category tree shape as returned by the eshop-service `/category` endpoint.
-// The API is the source of truth for names (Mongolian only); `code` doubles
-// as the slug used in `/search?category=<code>` links and product filtering.
+// Category tree shape (`CategoryTreeNode` in the eshop-service OpenAPI doc,
+// from `GET /category/getCategoryTree`). The API is the source of truth for
+// names (Mongolian only); `code` doubles as the slug used in
+// `/search?category=<code>` links and product filtering — nullable in the
+// doc but present for every real category today.
+export interface CategoryStyle {
+  borderColor?: string;
+  txtColor?: string;
+  bgColor?: string;
+  icon?: string;
+}
+
 export interface Category {
   id: number;
   parentId: number | null;
   code: string;
   name: string;
   image: string | null;
-  style: string | null;
+  style: CategoryStyle | null;
   children: Category[];
 }
 

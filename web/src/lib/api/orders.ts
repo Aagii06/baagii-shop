@@ -1,26 +1,28 @@
-import type { Order } from "@/types/order";
 import { apiFetch } from "./client";
 
-export type CreateOrderPayload = Omit<
-  Order,
-  "id" | "status" | "createdAt" | "confirmedAt"
->;
-
-export function getOrders() {
-  return apiFetch<Order[]>("/orders");
+interface ApiItemResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
 }
 
-export function getOrder(id: string) {
-  return apiFetch<Order>(`/orders/${id}`);
-}
+// The eshop-service has no REST CRUD for orders — creating one goes through
+// `POST /cart/createPaymentAndInvoice` (see `./cart`). The only order
+// endpoint is a status poll used after checkout to reconcile the local
+// (Redux) order with the backend.
+export type BackendOrderStatus =
+  | "draft"
+  | "pending"
+  | "confirmed"
+  | "cancelled";
 
-export function createOrder(payload: CreateOrderPayload) {
-  return apiFetch<Order>("/orders", { method: "POST", body: payload });
-}
-
-export function confirmOrder(id: string, paymentMethod?: Order["paymentMethod"]) {
-  return apiFetch<Order>(`/orders/${id}/confirm`, {
-    method: "POST",
-    body: { paymentMethod },
-  });
+// `POST /order/checkOrders` — body `{ orderIds }`, returns the resolved
+// status. `data` is nullable when none of the ids match.
+export async function checkOrders(
+  orderIds: number[]
+): Promise<{ status: BackendOrderStatus } | null> {
+  const res = await apiFetch<
+    ApiItemResponse<{ status: BackendOrderStatus } | null>
+  >("/order/checkOrders", { method: "POST", body: { orderIds } });
+  return res.data;
 }
