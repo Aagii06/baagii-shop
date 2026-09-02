@@ -17,10 +17,10 @@ import {
 
 function mapCartDetail(cd: ApiCartDetail): CartItem {
   return {
-    id: cd.postId,
+    id: cd.postId ?? 0,
     variantId: cd.variantId,
     cartDetailId: cd.id,
-    postProductId: cd.postProductId,
+    postProductId: cd.postProductId ?? undefined,
     branchId: cd.branchId,
     name: cd.variantName || cd.productName,
     price: Number(cd.price),

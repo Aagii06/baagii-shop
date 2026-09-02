@@ -20,9 +20,9 @@ export interface AuthUser {
   id: number;
   name: string;
   userName: string;
-  email: string;
+  email: string | null;
   roles: number[];
-  roleNames: string;
+  roleNames: string | null;
 }
 
 export interface ObjectPermission {

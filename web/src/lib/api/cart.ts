@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import { ApiError } from "./errors";
 
 export interface AddProductToCartPayload {
   postProductId: number;
@@ -26,16 +27,20 @@ interface ApiListResponse<T> {
 }
 
 // One line of an active cart, as returned by `/cart/addProduct` (the whole
-// row) and inside `/cart/getActiveCarts` (`rows[].cartDetails[]`).
+// row) and inside `/cart/getActiveCarts` (`rows[].cartDetails[]`). Shapes
+// match the eshop-service OpenAPI doc; `postId` / `postProductId` are
+// nullable there (e.g. after the catalogue post is removed).
 export interface ApiCartDetail {
   id: number;
   cartId: number;
   branchId: number;
-  postId: number;
-  postProductId: number;
+  postId: number | null;
+  postProductId: number | null;
   productId: number;
+  productCode: string;
   productName: string;
   variantId: number;
+  variantCode: string;
   variantName: string;
   image: string | null;
   price: string;
@@ -57,13 +62,18 @@ export interface ApiActiveCart {
 // (cartDetailId), needed later to update or remove that same line.
 // `qty` is the resulting absolute quantity, not a delta.
 export async function addProductToCart(payload: AddProductToCartPayload) {
-  const res = await apiFetch<ApiItemResponse<ApiCartDetail>>(
+  const res = await apiFetch<ApiItemResponse<ApiCartDetail | null>>(
     "/cart/addProduct",
     {
       method: "POST",
       body: { cartDetailId: 0, ...payload },
     }
   );
+  // Per the doc `data` is nullable even on success; a successful add/update
+  // always carries the line, so treat a missing body as a failure.
+  if (!res.data) {
+    throw new ApiError(200, res.message || "cart.error.generic", res);
+  }
   return res.data.id;
 }
 
