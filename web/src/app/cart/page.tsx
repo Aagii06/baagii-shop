@@ -5,7 +5,7 @@ import EmptyCart from "@/components/cart/EmptyCart";
 import OrderSummary from "@/components/cart/OrderSummary";
 import Recommendations from "@/components/cart/Recommendations";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { clearCart } from "@/store/cartSlice";
+import { clearServerCart } from "@/store/cartThunks";
 import { clearCoupon } from "@/store/couponSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { ArrowLeft } from "lucide-react";
@@ -46,7 +46,7 @@ export default function Cart() {
             </Link>
             <button
               onClick={() => {
-                dispatch(clearCart());
+                dispatch(clearServerCart());
                 dispatch(clearCoupon());
               }}
               className="text-sm text-muted-foreground hover:text-destructive transition-colors"

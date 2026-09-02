@@ -7,10 +7,9 @@ import RelatedProducts from "@/components/product/RelatedProducts";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { addProductToCart } from "@/lib/api/cart";
 import { getProduct } from "@/lib/api/products";
 import { cn, formatMNT } from "@/lib/utils";
-import { addToCart, setCartDetailId } from "@/store/cartSlice";
+import { addLineToCart } from "@/store/cartThunks";
 import { useAppDispatch } from "@/store/hooks";
 import type { Product, ProductDetail, ProductVariant } from "@/types/product";
 import { Check, CircleCheck, Minus, Plus, ShoppingCart, Star } from "lucide-react";
@@ -90,7 +89,10 @@ export default function ProductPage() {
   const price = currentVariant?.price ?? product.price;
   const originalPrice = currentVariant?.originalPrice ?? product.originalPrice;
   const stock = currentVariant ? currentVariant.stock : product.stock ?? 0;
-  const canAddToCart = (!hasVariants || currentVariant !== null) && stock > 0;
+  const canAddToCart =
+    (!hasVariants || currentVariant !== null) &&
+    stock > 0 &&
+    currentVariant?.branchId != null;
 
   const discount =
     originalPrice && originalPrice > price
@@ -109,42 +111,18 @@ export default function ProductPage() {
   };
 
   const handleAddToCart = async () => {
-    if (!canAddToCart) return;
+    if (!canAddToCart || !currentVariant || currentVariant.branchId == null) {
+      return;
+    }
 
     setIsAdding(true);
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    for (let i = 0; i < quantity; i++) {
-      dispatch(
-        addToCart({
-          id: product.id,
-          variantId: currentVariant?.id,
-          name: currentVariant?.name ?? product.name,
-          price,
-          image: product.image,
-          quantity: 1,
-        })
-      );
-    }
-
-    if (currentVariant?.branchId !== undefined) {
-      addProductToCart({
+    await dispatch(
+      addLineToCart({
         postProductId: currentVariant.id,
-        qty: quantity,
         branchId: currentVariant.branchId,
+        qty: quantity,
       })
-        .then((cartDetailId) => {
-          dispatch(
-            setCartDetailId({
-              id: product.id,
-              variantId: currentVariant.id,
-              cartDetailId,
-            })
-          );
-        })
-        .catch(() => {});
-    }
-
+    );
     setIsAdding(false);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);

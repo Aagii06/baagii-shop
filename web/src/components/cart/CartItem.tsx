@@ -1,10 +1,9 @@
 "use client";
 
 import PlaceholderImage from "@/components/ui/placeholder-image";
-import { removeCartItem } from "@/lib/api/cart";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
-import { removeFromCart, updateQuantity } from "@/store/cartSlice";
+import { removeLine, setLineQty } from "@/store/cartThunks";
 import { useAppDispatch } from "@/store/hooks";
 import { Minus, Plus, X } from "lucide-react";
 
@@ -13,6 +12,8 @@ interface CartItemProps {
     id: number;
     variantId?: number;
     cartDetailId?: number;
+    postProductId?: number;
+    branchId?: number;
     name: string;
     price: number;
     image: string;
@@ -23,6 +24,24 @@ interface CartItemProps {
 export default function CartItem({ item }: CartItemProps) {
   const { t } = useLanguage();
   const dispatch = useAppDispatch();
+
+  // Quantity / remove act on a specific server line; disabled until the
+  // cart has synced and we know the line's ids.
+  const syncable =
+    item.cartDetailId != null &&
+    item.postProductId != null &&
+    item.branchId != null;
+
+  const line = {
+    cartDetailId: item.cartDetailId!,
+    postProductId: item.postProductId!,
+    branchId: item.branchId!,
+  };
+
+  const changeQty = (qty: number) => {
+    if (!syncable) return;
+    dispatch(setLineQty({ ...line, qty }));
+  };
 
   return (
     <div className="flex items-start gap-4 py-4 border-b border-border last:border-b-0">
@@ -40,14 +59,10 @@ export default function CartItem({ item }: CartItemProps) {
           </div>
 
           <button
-            onClick={() => {
-              dispatch(removeFromCart({ id: item.id, variantId: item.variantId }));
-              if (item.cartDetailId !== undefined) {
-                removeCartItem(item.cartDetailId).catch(() => {});
-              }
-            }}
+            onClick={() => dispatch(removeLine(line))}
+            disabled={!syncable}
             aria-label={t("cart.removeAria")}
-            className="text-muted-foreground hover:text-destructive shrink-0 p-1"
+            className="text-muted-foreground hover:text-destructive shrink-0 p-1 disabled:opacity-40"
           >
             <X className="h-4 w-4" />
           </button>
@@ -56,16 +71,8 @@ export default function CartItem({ item }: CartItemProps) {
         <div className="flex items-center justify-between mt-3 flex-wrap gap-3">
           <div className="flex items-center border border-border rounded-lg">
             <button
-              onClick={() =>
-                dispatch(
-                  updateQuantity({
-                    id: item.id,
-                    variantId: item.variantId,
-                    quantity: Math.max(1, item.quantity - 1),
-                  })
-                )
-              }
-              disabled={item.quantity <= 1}
+              onClick={() => changeQty(item.quantity - 1)}
+              disabled={!syncable || item.quantity <= 1}
               className="h-8 w-8 flex items-center justify-center disabled:opacity-40 hover:bg-muted rounded-l-lg transition-colors"
             >
               <Minus className="h-3.5 w-3.5" />
@@ -74,16 +81,9 @@ export default function CartItem({ item }: CartItemProps) {
               {item.quantity}
             </span>
             <button
-              onClick={() =>
-                dispatch(
-                  updateQuantity({
-                    id: item.id,
-                    variantId: item.variantId,
-                    quantity: item.quantity + 1,
-                  })
-                )
-              }
-              className="h-8 w-8 flex items-center justify-center hover:bg-muted rounded-r-lg transition-colors"
+              onClick={() => changeQty(item.quantity + 1)}
+              disabled={!syncable}
+              className="h-8 w-8 flex items-center justify-center disabled:opacity-40 hover:bg-muted rounded-r-lg transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
             </button>

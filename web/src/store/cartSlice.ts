@@ -4,6 +4,10 @@ export interface CartItem {
   id: number;
   variantId?: number;
   cartDetailId?: number;
+  /** Catalogue post-product id — needed to update/remove the line server-side. */
+  postProductId?: number;
+  /** Branch the line is reserved from — required by `/cart/addProduct`. */
+  branchId?: number;
   name: string;
   price: number;
   image: string;

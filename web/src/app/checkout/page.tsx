@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { calculatePricing } from "@/lib/pricing";
 import { formatMNT } from "@/lib/utils";
-import { clearCart } from "@/store/cartSlice";
+import { clearServerCart } from "@/store/cartThunks";
 import { clearCoupon } from "@/store/couponSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { createOrder } from "@/store/orderSlice";
@@ -52,7 +52,7 @@ export default function CheckoutPage() {
         createdAt: new Date().toISOString(),
       })
     );
-    dispatch(clearCart());
+    dispatch(clearServerCart());
     dispatch(clearCoupon());
 
     router.push(`/checkout/${orderId}/pay`);

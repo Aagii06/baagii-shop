@@ -4,11 +4,12 @@ import ProductImage from "@/components/ui/product-image";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
-import { addToCart } from "@/store/cartSlice";
+import { quickAddToCart } from "@/store/cartThunks";
 import { useAppDispatch } from "@/store/hooks";
 import { cn } from "@/lib/utils";
 import { Check, Plus, Star } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface Product {
@@ -29,6 +30,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const [justAdded, setJustAdded] = useState(false);
 
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const discount =
     product.originalPrice && product.originalPrice > product.price
@@ -43,19 +45,18 @@ export default function ProductCard({ product }: { product: Product }) {
     e.stopPropagation();
 
     setIsAdding(true);
-    await new Promise((resolve) => setTimeout(resolve, 250));
 
-    dispatch(
-      addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        quantity: 1,
-      })
-    );
+    const { ok, redirectTo } = await dispatch(quickAddToCart(product.id));
 
     setIsAdding(false);
+
+    if (redirectTo) {
+      router.push(redirectTo);
+      return;
+    }
+
+    if (!ok) return;
+
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1500);
   };
