@@ -8,7 +8,12 @@ import { getProduct } from "@/lib/api/products";
 import { ApiError } from "@/lib/api/errors";
 import type { AppThunk } from "./store";
 import { setCart, type CartItem } from "./cartSlice";
-import { setCartError, setCartMeta, setSyncing } from "./cartUiSlice";
+import {
+  setCartError,
+  setCartMeta,
+  setHydrated,
+  setSyncing,
+} from "./cartUiSlice";
 
 function mapCartDetail(cd: ApiCartDetail): CartItem {
   return {
@@ -43,6 +48,7 @@ export const refreshCart = (): AppThunk<Promise<void>> => async (dispatch) => {
     dispatch(setCartMeta({ cartId: null }));
   } finally {
     dispatch(setSyncing(false));
+    dispatch(setHydrated());
   }
 };
 

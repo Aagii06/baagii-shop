@@ -5,6 +5,8 @@ export interface CartUiState {
   cartId: number | null;
   /** True while a cart request is in flight. */
   syncing: boolean;
+  /** True once the first server sync has completed. */
+  hydrated: boolean;
   /** Last cart mutation error message, shown as a transient toast. */
   error: string | null;
 }
@@ -12,6 +14,7 @@ export interface CartUiState {
 const initialState: CartUiState = {
   cartId: null,
   syncing: false,
+  hydrated: false,
   error: null,
 };
 
@@ -28,6 +31,9 @@ const cartUiSlice = createSlice({
     setSyncing: (state, action: PayloadAction<boolean>) => {
       state.syncing = action.payload;
     },
+    setHydrated: (state) => {
+      state.hydrated = true;
+    },
     setCartError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
@@ -37,7 +43,12 @@ const cartUiSlice = createSlice({
   },
 });
 
-export const { setCartMeta, setSyncing, setCartError, clearCartError } =
-  cartUiSlice.actions;
+export const {
+  setCartMeta,
+  setSyncing,
+  setHydrated,
+  setCartError,
+  clearCartError,
+} = cartUiSlice.actions;
 
 export default cartUiSlice.reducer;

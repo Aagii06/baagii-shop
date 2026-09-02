@@ -17,6 +17,7 @@ import { useState } from "react";
 export default function CheckoutPage() {
   const { t } = useLanguage();
   const cart = useAppSelector((state) => state.cart);
+  const cartHydrated = useAppSelector((state) => state.cartUi.hydrated);
   const coupon = useAppSelector((state) => state.coupon);
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -57,6 +58,10 @@ export default function CheckoutPage() {
 
     router.push(`/checkout/${orderId}/pay`);
   };
+
+  if (cart.length === 0 && !cartHydrated) {
+    return null;
+  }
 
   if (cart.length === 0) {
     return (

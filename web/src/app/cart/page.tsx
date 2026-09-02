@@ -8,14 +8,23 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { clearServerCart } from "@/store/cartThunks";
 import { clearCoupon } from "@/store/couponSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function Cart() {
   const { t } = useLanguage();
   const cart = useAppSelector((state) => state.cart);
+  const hydrated = useAppSelector((state) => state.cartUi.hydrated);
   const dispatch = useAppDispatch();
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  if (!hydrated && cart.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-24 flex justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (cart.length === 0) {
     return <EmptyCart />;
