@@ -17,13 +17,22 @@ export default function CategorySidebar() {
             href={`/search?category=${category.code}`}
             className="flex items-center gap-3 px-4 py-3 hover:bg-muted/60 transition-colors border-b border-border last:border-b-0"
           >
-            <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${categoryColor(
-                category.code
-              )}`}
-            >
-              {categoryLetter(category.name)}
-            </span>
+            {category.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={category.image}
+                alt=""
+                className="h-8 w-8 shrink-0 rounded-lg object-cover bg-muted"
+              />
+            ) : (
+              <span
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${categoryColor(
+                  category.code
+                )}`}
+              >
+                {categoryLetter(category.name)}
+              </span>
+            )}
             <span className="flex-1 text-sm font-medium text-foreground">
               {category.name}
             </span>

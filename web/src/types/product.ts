@@ -9,6 +9,8 @@ export interface Product {
   price: number;
   originalPrice?: number;
   image: string;
+  thumbnail?: string;
+  images?: string[];
   description?: string;
   category?: string;
   categoryId?: number;
@@ -29,6 +31,7 @@ export interface ProductVariant {
   id: number;
   code?: string;
   name: string;
+  image?: string;
   price: number;
   originalPrice?: number;
   stock: number;
@@ -41,6 +44,7 @@ export interface ProductAttrValue {
   value: string;
   color?: string | null;
   image?: string | null;
+  images?: string[];
 }
 
 export interface ProductAttr {

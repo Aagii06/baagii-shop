@@ -12,9 +12,18 @@ import { cn, formatMNT } from "@/lib/utils";
 import { addLineToCart } from "@/store/cartThunks";
 import { useAppDispatch } from "@/store/hooks";
 import type { Product, ProductDetail, ProductVariant } from "@/types/product";
-import { Check, CircleCheck, Minus, Plus, ShoppingCart, Star } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheck,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Star,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 function findMatchingVariant(
   variants: ProductVariant[],
@@ -46,6 +55,7 @@ export default function ProductPage() {
   const [justAdded, setJustAdded] = useState(false);
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const galleryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,6 +65,7 @@ export default function ProductPage() {
         if (!cancelled) {
           setProduct(p);
           setSelectedAttrs(p.variants[0]?.attrs ?? {});
+          setActiveThumb(0);
         }
       })
       .catch(() => {
@@ -77,6 +88,19 @@ export default function ProductPage() {
     setQuantity(1);
   }, [currentVariant?.id]);
 
+  useEffect(() => {
+    setActiveThumb(0);
+  }, [selectedAttrs]);
+
+  useEffect(() => {
+    const el = galleryRef.current;
+    if (!el) return;
+    const target = el.clientWidth * activeThumb;
+    if (Math.abs(el.scrollLeft - target) > 4) {
+      el.scrollTo({ left: target, behavior: "smooth" });
+    }
+  }, [activeThumb]);
+
   if (loading) {
     return null;
   }
@@ -86,6 +110,33 @@ export default function ProductPage() {
   }
 
   const hasVariants = product.variants.length > 0;
+  const selectedAttrImages = Array.from(
+    new Set(
+      product.attrs
+        .flatMap((attr) =>
+          attr.values.filter((v) => selectedAttrs[attr.id] === v.value)
+        )
+        .flatMap((v) => [v.image, ...(v.images ?? [])])
+        .filter((url): url is string => !!url)
+    )
+  );
+  const images =
+    selectedAttrImages.length > 0 ? selectedAttrImages : product.images ?? [];
+
+  const handleGalleryScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const idx = Math.round(el.scrollLeft / el.clientWidth);
+    setActiveThumb((prev) => (prev === idx ? prev : idx));
+  };
+
+  const goToImage = (i: number) => {
+    const clamped = Math.max(0, Math.min(images.length - 1, i));
+    galleryRef.current?.scrollTo({
+      left: galleryRef.current.clientWidth * clamped,
+      behavior: "smooth",
+    });
+    setActiveThumb(clamped);
+  };
   const price = currentVariant?.price ?? product.price;
   const originalPrice = currentVariant?.originalPrice ?? product.originalPrice;
   const stock = currentVariant ? currentVariant.stock : product.stock ?? 0;
@@ -139,31 +190,92 @@ export default function ProductPage() {
 
       <div className="grid lg:grid-cols-[1.1fr_1fr_320px] gap-8 mb-16">
         <div className="space-y-3">
-          <div className="relative rounded-2xl overflow-hidden">
-            <ProductImage
-              category={product.category}
-              className="w-full aspect-square"
-            />
+          <div className="relative rounded-2xl overflow-hidden group">
+            {images.length > 0 ? (
+              <div
+                ref={galleryRef}
+                onScroll={handleGalleryScroll}
+                className="flex overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {images.map((src, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={src}
+                    alt={product.name}
+                    className="w-full shrink-0 snap-center aspect-square object-cover bg-muted"
+                  />
+                ))}
+              </div>
+            ) : (
+              <ProductImage
+                category={product.category}
+                className="w-full aspect-square"
+              />
+            )}
             {discount > 0 && (
               <span className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm font-bold px-2.5 py-1 rounded-md">
                 -{discount}%
               </span>
             )}
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => goToImage(activeThumb - 1)}
+                  disabled={activeThumb <= 0}
+                  aria-label="Previous image"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full bg-background/80 text-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToImage(activeThumb + 1)}
+                  disabled={activeThumb >= images.length - 1}
+                  aria-label="Next image"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full bg-background/80 text-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                  {images.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => goToImage(i)}
+                      aria-label={`Go to image ${i + 1}`}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all",
+                        i === activeThumb ? "w-4 bg-white" : "w-1.5 bg-white/60"
+                      )}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-          <div className="grid grid-cols-4 gap-3">
-            {[0, 1, 2, 3].map((i) => (
-              <button
-                key={i}
-                onClick={() => setActiveThumb(i)}
-                className={cn(
-                  "rounded-xl overflow-hidden border-2 transition-colors",
-                  activeThumb === i ? "border-primary" : "border-transparent"
-                )}
-              >
-                <ProductImage category={product.category} className="w-full aspect-square" />
-              </button>
-            ))}
-          </div>
+          {images.length > 1 && (
+            <div className="flex flex-wrap gap-2">
+              {images.map((src, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveThumb(i)}
+                  className={cn(
+                    "h-16 w-16 shrink-0 rounded-lg overflow-hidden border-2 transition-colors",
+                    activeThumb === i ? "border-primary" : "border-transparent"
+                  )}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={src}
+                    alt=""
+                    className="h-full w-full object-cover bg-muted"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-5">
@@ -212,13 +324,26 @@ export default function ProductPage() {
                         title={val.value}
                         aria-label={val.value}
                         className={cn(
-                          "h-8 w-8 rounded-full border-2 transition-shadow",
+                          "h-14 w-14 rounded-lg overflow-hidden border-2 transition-shadow",
                           isSelected
                             ? "border-primary shadow-[0_0_0_2px_var(--background)]"
                             : "border-border"
                         )}
-                        style={{ backgroundColor: val.color ?? "var(--muted)" }}
-                      />
+                        style={
+                          val.image
+                            ? undefined
+                            : { backgroundColor: val.color ?? "var(--muted)" }
+                        }
+                      >
+                        {val.image && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={val.image}
+                            alt={val.value}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </button>
                     );
                   }
 

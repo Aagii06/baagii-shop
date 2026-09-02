@@ -5,6 +5,7 @@ import {
   type ApiCartDetail,
 } from "@/lib/api/cart";
 import { getProduct } from "@/lib/api/products";
+import { fileThumbnailUrl } from "@/lib/api/files";
 import { ApiError } from "@/lib/api/errors";
 import type { AppThunk } from "./store";
 import { setCart, type CartItem } from "./cartSlice";
@@ -24,7 +25,7 @@ function mapCartDetail(cd: ApiCartDetail): CartItem {
     branchId: cd.branchId,
     name: cd.variantName || cd.productName,
     price: Number(cd.price),
-    image: "",
+    image: fileThumbnailUrl(cd.image) ?? "",
     quantity: Number(cd.qty),
   };
 }

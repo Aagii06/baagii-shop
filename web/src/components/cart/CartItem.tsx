@@ -45,7 +45,16 @@ export default function CartItem({ item }: CartItemProps) {
 
   return (
     <div className="flex items-start gap-4 py-4 border-b border-border last:border-b-0">
-      <PlaceholderImage className="w-20 h-20 rounded-xl shrink-0" />
+      {item.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.image}
+          alt={item.name}
+          className="w-20 h-20 rounded-xl shrink-0 object-cover bg-muted"
+        />
+      ) : (
+        <PlaceholderImage className="w-20 h-20 rounded-xl shrink-0" />
+      )}
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3">

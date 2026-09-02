@@ -1,5 +1,6 @@
 import type { Product, ProductAttr, ProductDetail, ProductVariant } from "@/types/product";
 import { apiFetch } from "./client";
+import { fileThumbnailUrl, fileUrl } from "./files";
 
 export interface GetProductsParams {
   categoryId?: number;
@@ -97,12 +98,18 @@ function mapApiProduct(p: ApiProduct): Product {
   const price = Number(p.price);
   const mainPrice = Number(p.mainPrice);
 
+  const imageId = p.images?.[0] ?? p.category?.image ?? null;
+
   return {
     id: p.id,
     name: p.productName || p.name || "",
     price,
     originalPrice: mainPrice > price ? mainPrice : undefined,
-    image: "",
+    image: fileUrl(imageId) ?? "",
+    thumbnail: fileThumbnailUrl(imageId) ?? undefined,
+    images: (p.images ?? [])
+      .map((id) => fileUrl(id))
+      .filter((url): url is string => url !== null),
     description: p.note ?? undefined,
     categoryId: p.categoryId ?? p.category?.id,
     brand: p.company?.name,
@@ -142,6 +149,7 @@ function mapApiProductDetail(p: ApiProductDetail): ProductDetail {
       id: v.id,
       code: v.variantCode,
       name: v.variantName || base.name,
+      image: fileUrl(v.image ?? v.images?.[0]) ?? undefined,
       price,
       originalPrice: mainPrice > price ? mainPrice : undefined,
       stock: v.remain !== undefined ? Number(v.remain) : 0,
@@ -170,7 +178,10 @@ function mapApiProductDetail(p: ApiProductDetail): ProductDetail {
         id: v.attrValueId,
         value: v.value,
         color: v.color,
-        image: v.image,
+        image: fileUrl(v.image ?? v.images?.[0]),
+        images: (v.images ?? [])
+          .map((id) => fileUrl(id))
+          .filter((url): url is string => url !== null),
       })),
     }));
 

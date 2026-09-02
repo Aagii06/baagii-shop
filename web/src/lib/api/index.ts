@@ -1,5 +1,6 @@
 export { apiFetch } from "./client";
 export { API_BASE_URL } from "./config";
+export { FILE_BASE_URL, fileUrl, fileThumbnailUrl } from "./files";
 export { ApiError } from "./errors";
 export { getAuthToken, setAuthToken, clearAuthToken } from "./token";
 export { ensureGuestToken, getUserData } from "./auth";

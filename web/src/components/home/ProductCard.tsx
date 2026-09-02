@@ -15,6 +15,7 @@ import { useState } from "react";
 interface Product {
   id: number;
   image: string;
+  thumbnail?: string;
   category?: string;
   name: string;
   price: number;
@@ -65,10 +66,19 @@ export default function ProductCard({ product }: { product: Product }) {
     <Card className="group overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 py-0 gap-0">
       <Link href={`/product/${product.id}`} className="block relative">
         <div className="relative aspect-square overflow-hidden">
-          <ProductImage
-            category={product.category}
-            className="w-full h-full transition-transform duration-300 group-hover:scale-105"
-          />
+          {product.thumbnail || product.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={product.thumbnail || product.image}
+              alt={product.name}
+              className="w-full h-full object-cover bg-muted transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <ProductImage
+              category={product.category}
+              className="w-full h-full transition-transform duration-300 group-hover:scale-105"
+            />
+          )}
           {discount > 0 && (
             <span className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded-md">
               -{discount}%
