@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { useAppSelector } from "@/store/hooks";
@@ -22,6 +23,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { categories } = useCategories();
   const cart = useAppSelector((state) => state.cart);
   const cartCount =
@@ -182,16 +184,19 @@ export default function Header() {
                 {t("header.nav.saved")}
               </Link>
             </Button>
-            <Button
-              variant="ghost"
-              asChild
-              className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
-            >
-              <Link href="/orders">
-                <User className="h-5 w-5" />
-                {t("header.nav.profile")}
-              </Link>
-            </Button>
+            {/* Only a real logged-in user has a profile; a guest session has none. */}
+            {user && (
+              <Button
+                variant="ghost"
+                asChild
+                className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+              >
+                <Link href="/orders">
+                  <User className="h-5 w-5" />
+                  {t("header.nav.profile")}
+                </Link>
+              </Button>
+            )}
             <Button
               variant="ghost"
               asChild
@@ -295,12 +300,14 @@ export default function Header() {
               </Link>
             ))}
             <div className="h-px bg-border my-2" />
-            <Link
-              href="/orders"
-              className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-            >
-              <User className="h-4 w-4" /> {t("header.nav.myProfile")}
-            </Link>
+            {user && (
+              <Link
+                href="/orders"
+                className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              >
+                <User className="h-4 w-4" /> {t("header.nav.myProfile")}
+              </Link>
+            )}
             <Link
               href="/contact"
               className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"

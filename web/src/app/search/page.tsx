@@ -72,26 +72,29 @@ function SearchContent() {
   const [loading, setLoading] = useState(true);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
-  const activeCategoryIds = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          filters.categories
-            .map((slug) => findCategory(categories, slug)?.id)
-            .filter((id): id is number => typeof id === "number")
-        )
-      ),
-    [filters.categories, categories]
-  );
+  // A comma-joined, sorted list of the category ids currently in play. A
+  // primitive key keeps the fetch effect from re-firing on array identity
+  // changes (which would loop: the effect itself calls setFilters).
+  const activeCategoryKey = useMemo(() => {
+    const ids = filters.categories
+      .map((slug) => findCategory(categories, slug)?.id)
+      .filter((id): id is number => typeof id === "number");
+    return Array.from(new Set(ids))
+      .sort((a, b) => a - b)
+      .join(",");
+  }, [filters.categories, categories]);
+
+  const resolvedInitialKey = resolveCategorySlugs(categories, initialCategory)
+    .join(",");
 
   useEffect(() => {
     setFilters((prev) => ({
       ...prev,
-      categories: resolveCategorySlugs(categories, initialCategory),
+      categories: resolvedInitialKey ? resolvedInitialKey.split(",") : [],
     }));
     setSaleOnly(initialSale);
     setPage(1);
-  }, [initialCategory, initialSale, query, categories]);
+  }, [resolvedInitialKey, initialSale, query]);
 
   // Category and text search are filtered server-side by the product API;
   // everything else (brand, price, delivery, sort) is applied client-side
@@ -101,11 +104,15 @@ function SearchContent() {
     let cancelled = false;
     setLoading(true);
 
+    const ids = activeCategoryKey
+      ? activeCategoryKey.split(",").map(Number)
+      : [];
+
     const request =
-      activeCategoryIds.length === 0
+      ids.length === 0
         ? getProducts({ search: query || undefined })
         : Promise.all(
-            activeCategoryIds.map((id) =>
+            ids.map((id) =>
               getProducts({ categoryId: id, search: query || undefined })
             )
           ).then((lists) => {
@@ -136,7 +143,7 @@ function SearchContent() {
     return () => {
       cancelled = true;
     };
-  }, [activeCategoryIds, query]);
+  }, [activeCategoryKey, query]);
 
   // Per-category counts need a dedicated call each since the API only
   // filters by a single category at a time — parents and subcategories alike.
