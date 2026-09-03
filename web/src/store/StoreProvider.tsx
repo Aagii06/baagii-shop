@@ -1,6 +1,7 @@
 "use client";
 
 import CartErrorToast from "@/components/cart/CartErrorToast";
+import AuthBootstrap from "./AuthBootstrap";
 import CartSync from "./CartSync";
 import GuestSession from "./GuestSession";
 import OrderPersistence from "./OrderPersistence";
@@ -17,6 +18,7 @@ export default function StoreProvider({
   return (
     <>
       <GuestSession />
+      <AuthBootstrap />
       <CartSync />
       <OrderPersistence />
       {children}

@@ -11,11 +11,14 @@ import { useState } from "react";
 interface ShippingFormProps {
   onSubmit: (shippingInfo: ShippingInfo) => void;
   isSubmitting: boolean;
+  /** Prefilled from the phone the shopper verified at checkout. */
+  defaultPhone?: string;
 }
 
 export default function ShippingForm({
   onSubmit,
   isSubmitting,
+  defaultPhone = "",
 }: ShippingFormProps) {
   const { t } = useLanguage();
 
@@ -53,7 +56,7 @@ export default function ShippingForm({
   const [addressIndex, setAddressIndex] = useState(0);
   const [customAddress, setCustomAddress] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(defaultPhone);
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("city");

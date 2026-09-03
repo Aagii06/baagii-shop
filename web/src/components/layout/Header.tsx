@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth/AuthProvider";
+import { useAuthStore } from "@/store/authStore";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { useCartStore } from "@/store/cartStore";
@@ -23,7 +23,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const isAuthed = useAuthStore((s) => s.user != null || s.phone != null);
   const { categories } = useCategories();
   const cart = useCartStore((s) => s.items);
   const cartCount =
@@ -176,7 +176,7 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-1 shrink-0">
             {/* Saved items and the profile belong to a real account; a guest
                 session has neither, so hide both until the user signs in. */}
-            {user && (
+            {isAuthed && (
               <>
                 <Button
                   variant="ghost"
@@ -303,7 +303,7 @@ export default function Header() {
               </Link>
             ))}
             <div className="h-px bg-border my-2" />
-            {user && (
+            {isAuthed && (
               <Link
                 href="/orders"
                 className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"

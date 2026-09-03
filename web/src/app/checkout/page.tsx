@@ -1,14 +1,17 @@
 "use client";
 
+import PhoneAuthGate from "@/components/checkout/PhoneAuthGate";
 import ShippingForm from "@/components/checkout/ShippingForm";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { calculatePricing } from "@/lib/pricing";
 import { formatMNT } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { useCouponStore } from "@/store/couponStore";
 import { useOrderStore } from "@/store/orderStore";
 import type { ShippingInfo } from "@/types/order";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -22,6 +25,9 @@ export default function CheckoutPage() {
   const couponValue = useCouponStore((s) => s.amount);
   const clearCoupon = useCouponStore((s) => s.clearCoupon);
   const createOrder = useOrderStore((s) => s.createOrder);
+  const authLoading = useAuthStore((s) => s.loading);
+  const isAuthed = useAuthStore((s) => s.user != null || s.phone != null);
+  const verifiedPhone = useAuthStore((s) => s.phone);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
@@ -79,6 +85,24 @@ export default function CheckoutPage() {
     );
   }
 
+  if (authLoading) {
+    return (
+      <div className="container mx-auto px-4 py-24 flex justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // A guest token is enough to build a cart, but confirming the order needs a
+  // phone-verified session — the cart stays attached once the phone is added.
+  if (!isAuthed) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <PhoneAuthGate />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
@@ -86,6 +110,7 @@ export default function CheckoutPage() {
           <ShippingForm
             onSubmit={handlePlaceOrder}
             isSubmitting={isSubmitting}
+            defaultPhone={verifiedPhone ?? ""}
           />
         </div>
 

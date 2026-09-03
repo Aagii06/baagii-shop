@@ -61,6 +61,25 @@ function loginGuest() {
   }).then((res) => res.data);
 }
 
+// Phone verification for checkout. eshop-service has no OTP endpoint yet,
+// so this is mocked: `request` is a no-op and the code "2222" verifies any
+// number. Because we keep the existing guest token, the cart built under it
+// stays attached to the now phone-identified session. Swap both calls for
+// real `/auth/*` requests once the backend lands.
+export const DEMO_OTP_CODE = "2222";
+
+export const phoneOtp = {
+  request: async (_phone: string): Promise<void> => {
+    // TODO: POST /auth/sendOtp — send the one-time code by SMS.
+  },
+  confirm: async (_phone: string, code: string): Promise<boolean> => {
+    // TODO: POST /auth/verifyOtp — exchange the code for a user session and
+    // merge the guest cart server-side.
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    return code.trim() === DEMO_OTP_CODE;
+  },
+};
+
 let pendingLogin: Promise<string | null> | null = null;
 
 // Guarantees an auth token is available before a protected request goes
