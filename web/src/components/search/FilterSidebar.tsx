@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { brands, type Category } from "@/lib/categories";
+import { brands } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import PriceRangeSlider from "./PriceRangeSlider";
 
@@ -84,22 +84,6 @@ export function FilterPanelContent({
     onChange({ ...filters, categories: next });
   };
 
-  // Ticking a parent selects it together with every subcategory; unticking
-  // clears the whole group.
-  const toggleCategoryGroup = (category: Category) => {
-    const groupCodes = [
-      category.code,
-      ...category.children.map((child) => child.code),
-    ];
-    const allSelected = groupCodes.every((code) =>
-      filters.categories.includes(code)
-    );
-    const next = allSelected
-      ? filters.categories.filter((code) => !groupCodes.includes(code))
-      : Array.from(new Set([...filters.categories, ...groupCodes]));
-    onChange({ ...filters, categories: next });
-  };
-
   const toggleOpen = (code: string) =>
     setOpenCategories((prev) => ({ ...prev, [code]: !prev[code] }));
 
@@ -118,56 +102,55 @@ export function FilterPanelContent({
         </h3>
         {categories.map((category) => {
           const hasChildren = category.children.length > 0;
-          const isOpen =
-            openCategories[category.code] ??
-            category.children.some((child) =>
-              filters.categories.includes(child.code)
+
+          // A leaf category is a plain filter checkbox.
+          if (!hasChildren) {
+            return (
+              <Checkbox
+                key={category.code}
+                checked={filters.categories.includes(category.code)}
+                onChange={() => toggleCategory(category.code)}
+                label={category.name}
+                count={counts.category[category.code] ?? 0}
+              />
             );
-          // A parent shows the combined total of its subcategories; a leaf
-          // category shows its own count.
-          const categoryCount = hasChildren
-            ? category.children.reduce(
-                (sum, child) => sum + (counts.category[child.code] ?? 0),
-                0
-              )
-            : counts.category[category.code] ?? 0;
+          }
+
+          // A parent is only a group: it never filters on its own (the API
+          // has no products under a parent id). It shows its subcategories,
+          // and its count is their combined total.
+          const anyChildSelected = category.children.some((child) =>
+            filters.categories.includes(child.code)
+          );
+          const isOpen = openCategories[category.code] ?? anyChildSelected;
+          const groupCount = category.children.reduce(
+            (sum, child) => sum + (counts.category[child.code] ?? 0),
+            0
+          );
 
           return (
             <div key={category.code}>
-              <div className="flex items-center gap-1">
-                <div className="flex-1 min-w-0">
-                  <Checkbox
-                    checked={filters.categories.includes(category.code)}
-                    onChange={() =>
-                      hasChildren
-                        ? toggleCategoryGroup(category)
-                        : toggleCategory(category.code)
-                    }
-                    label={category.name}
-                    count={categoryCount}
-                  />
-                </div>
-                {hasChildren && (
-                  <button
-                    type="button"
-                    onClick={() => toggleOpen(category.code)}
-                    aria-expanded={isOpen}
-                    aria-label={t("search.filters.subcategoriesToggle", {
-                      name: category.name,
-                    })}
-                    className="shrink-0 p-1 text-muted-foreground hover:text-foreground"
-                  >
-                    <ChevronDown
-                      className={cn(
-                        "h-4 w-4 transition-transform",
-                        isOpen && "rotate-180"
-                      )}
-                    />
-                  </button>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => toggleOpen(category.code)}
+                aria-expanded={isOpen}
+                className="flex w-full items-center gap-2.5 py-1.5 text-left"
+              >
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                    isOpen && "rotate-180"
+                  )}
+                />
+                <span className="flex-1 text-sm font-medium text-foreground">
+                  {category.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {groupCount}
+                </span>
+              </button>
 
-              {hasChildren && isOpen && (
+              {isOpen && (
                 <div className="ml-4 border-l border-border pl-2">
                   {category.children.map((child) => (
                     <Checkbox
