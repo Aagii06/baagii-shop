@@ -91,9 +91,7 @@ const mn: Dict = {
   "home.allProducts.title": "Бүх бараа",
   "home.allProducts.viewAll": "Бүгдийг үзэх",
 
-  "home.categorySidebar.title": "Ангилал",
-  "home.categorySidebar.toggle": "{name} дэд ангиллыг задлах",
-  "home.categorySidebar.viewAll": "{name} бүгд",
+  "search.filters.subcategoriesToggle": "{name} дэд ангиллыг задлах",
 
   "product.addToCartAria": "Сагсанд нэмэх",
   "product.sold": "{count} зарагдсан",
@@ -406,9 +404,7 @@ const en: Dict = {
   "home.allProducts.title": "All products",
   "home.allProducts.viewAll": "View all",
 
-  "home.categorySidebar.title": "Categories",
-  "home.categorySidebar.toggle": "Expand {name} subcategories",
-  "home.categorySidebar.viewAll": "All {name}",
+  "search.filters.subcategoriesToggle": "Expand {name} subcategories",
 
   "product.addToCartAria": "Add to cart",
   "product.sold": "{count} sold",
@@ -720,9 +716,7 @@ const ru: Dict = {
   "home.allProducts.title": "Все товары",
   "home.allProducts.viewAll": "Смотреть все",
 
-  "home.categorySidebar.title": "Категории",
-  "home.categorySidebar.toggle": "Развернуть подкатегории «{name}»",
-  "home.categorySidebar.viewAll": "Все «{name}»",
+  "search.filters.subcategoriesToggle": "Развернуть подкатегории «{name}»",
 
   "product.addToCartAria": "Добавить в корзину",
   "product.sold": "продано: {count}",

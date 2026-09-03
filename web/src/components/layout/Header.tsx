@@ -34,19 +34,24 @@ export default function Header() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const categoryTabs = [
-    { label: t("header.tabs.all"), href: "/search" },
-    { label: t("header.tabs.sale"), href: "/search?sale=1" },
-    ...categories.slice(0, 4).map((category) => ({
-      label: category.name,
-      href: `/search?category=${category.code}`,
-    })),
-    { label: t("header.tabs.newArrivals"), href: "/search?sort=new" },
-  ];
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Categories arrive from a client-side fetch, so they must not be part of
+  // the server-rendered / first-hydration markup — gate them on mount to
+  // avoid a hydration mismatch on the nav tabs.
+  const categoryTabs = [
+    { label: t("header.tabs.all"), href: "/search" },
+    { label: t("header.tabs.sale"), href: "/search?sale=1" },
+    ...(isMounted
+      ? categories.slice(0, 4).map((category) => ({
+          label: category.name,
+          href: `/search?category=${category.code}`,
+        }))
+      : []),
+    { label: t("header.tabs.newArrivals"), href: "/search?sort=new" },
+  ];
 
   useEffect(() => {
     setIsMobileOpen(false);

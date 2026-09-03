@@ -9,7 +9,7 @@ import Pagination from "@/components/search/Pagination";
 import SortTabs, { type SortOption } from "@/components/search/SortTabs";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { findCategory } from "@/lib/categories";
+import { findCategory, flattenCategories } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
 import { X } from "lucide-react";
@@ -93,11 +93,11 @@ function SearchContent() {
   }, [activeCategoryId, query]);
 
   // Per-category counts need a dedicated call each since the API only
-  // filters by a single category at a time.
+  // filters by a single category at a time — parents and subcategories alike.
   useEffect(() => {
     let cancelled = false;
     Promise.all(
-      categories.map((c) =>
+      flattenCategories(categories).map((c) =>
         getProducts({ categoryId: c.id, search: query || undefined })
           .then((list): [string, number] => [c.code, list.length])
           .catch((): [string, number] => [c.code, 0])
