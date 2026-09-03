@@ -91,7 +91,6 @@ const mn: Dict = {
   "home.allProducts.title": "Бүх бараа",
   "home.allProducts.viewAll": "Бүгдийг үзэх",
 
-  "search.filters.subcategoriesToggle": "{name} дэд ангиллыг задлах",
 
   "product.addToCartAria": "Сагсанд нэмэх",
   "product.sold": "{count} зарагдсан",
@@ -404,7 +403,6 @@ const en: Dict = {
   "home.allProducts.title": "All products",
   "home.allProducts.viewAll": "View all",
 
-  "search.filters.subcategoriesToggle": "Expand {name} subcategories",
 
   "product.addToCartAria": "Add to cart",
   "product.sold": "{count} sold",
