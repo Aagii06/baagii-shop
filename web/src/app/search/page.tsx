@@ -9,7 +9,11 @@ import Pagination from "@/components/search/Pagination";
 import SortTabs, { type SortOption } from "@/components/search/SortTabs";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { findCategory, flattenCategories } from "@/lib/categories";
+import {
+  findCategory,
+  flattenCategories,
+  type Category,
+} from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
 import { X } from "lucide-react";
@@ -19,6 +23,20 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 
 const PAGE_SIZE = 12;
 const DEFAULT_PRICE_BOUNDS: [number, number] = [0, 10_000_000];
+
+// A top-level category with subcategories is not a real filter target (the
+// product API has nothing under a parent id) — expand it to its children.
+function resolveCategorySlugs(
+  list: Category[],
+  slug: string | null
+): string[] {
+  if (!slug) return [];
+  const cat = findCategory(list, slug);
+  if (cat && cat.children.length > 0) {
+    return cat.children.map((child) => child.code);
+  }
+  return [slug];
+}
 
 function computePriceBounds(products: Product[]): [number, number] {
   if (products.length === 0) return DEFAULT_PRICE_BOUNDS;
@@ -54,24 +72,52 @@ function SearchContent() {
   const [loading, setLoading] = useState(true);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
-  const activeCategorySlug = filters.categories[0];
-  const activeCategoryId = findCategory(categories, activeCategorySlug)?.id;
+  const activeCategoryIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          filters.categories
+            .map((slug) => findCategory(categories, slug)?.id)
+            .filter((id): id is number => typeof id === "number")
+        )
+      ),
+    [filters.categories, categories]
+  );
 
   useEffect(() => {
     setFilters((prev) => ({
       ...prev,
-      categories: initialCategory ? [initialCategory] : [],
+      categories: resolveCategorySlugs(categories, initialCategory),
     }));
     setSaleOnly(initialSale);
     setPage(1);
-  }, [initialCategory, initialSale, query]);
+  }, [initialCategory, initialSale, query, categories]);
 
   // Category and text search are filtered server-side by the product API;
-  // everything else (brand, price, delivery, sort) is applied client-side below.
+  // everything else (brand, price, delivery, sort) is applied client-side
+  // below. The API filters by one category at a time, so multiple selected
+  // categories mean one request each, merged and de-duplicated.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getProducts({ categoryId: activeCategoryId, search: query || undefined })
+
+    const request =
+      activeCategoryIds.length === 0
+        ? getProducts({ search: query || undefined })
+        : Promise.all(
+            activeCategoryIds.map((id) =>
+              getProducts({ categoryId: id, search: query || undefined })
+            )
+          ).then((lists) => {
+            const seen = new Set<number>();
+            return lists.flat().filter((p) => {
+              if (seen.has(p.id)) return false;
+              seen.add(p.id);
+              return true;
+            });
+          });
+
+    request
       .then((result) => {
         if (cancelled) return;
         setProducts(result);
@@ -90,7 +136,7 @@ function SearchContent() {
     return () => {
       cancelled = true;
     };
-  }, [activeCategoryId, query]);
+  }, [activeCategoryIds, query]);
 
   // Per-category counts need a dedicated call each since the API only
   // filters by a single category at a time — parents and subcategories alike.
@@ -161,7 +207,9 @@ function SearchContent() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const activeCategory = findCategory(categories, filters.categories[0]);
+  const activeCategory =
+    findCategory(categories, initialCategory ?? undefined) ??
+    findCategory(categories, filters.categories[0]);
   const priceChanged =
     filters.priceRange[0] !== priceBounds[0] ||
     filters.priceRange[1] !== priceBounds[1];

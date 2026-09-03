@@ -91,7 +91,6 @@ const mn: Dict = {
   "home.allProducts.title": "Бүх бараа",
   "home.allProducts.viewAll": "Бүгдийг үзэх",
 
-
   "product.addToCartAria": "Сагсанд нэмэх",
   "product.sold": "{count} зарагдсан",
   "product.notFoundGrid.title": "Бараа олдсонгүй",
@@ -403,7 +402,6 @@ const en: Dict = {
   "home.allProducts.title": "All products",
   "home.allProducts.viewAll": "View all",
 
-
   "product.addToCartAria": "Add to cart",
   "product.sold": "{count} sold",
   "product.notFoundGrid.title": "No products found",
@@ -713,8 +711,6 @@ const ru: Dict = {
   "home.promo.freeShipDesc": "По Улан-Батору",
   "home.allProducts.title": "Все товары",
   "home.allProducts.viewAll": "Смотреть все",
-
-  "search.filters.subcategoriesToggle": "Развернуть подкатегории «{name}»",
 
   "product.addToCartAria": "Добавить в корзину",
   "product.sold": "продано: {count}",
