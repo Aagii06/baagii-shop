@@ -24,6 +24,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 export default function Header() {
   const { t } = useLanguage();
   const isAuthed = useAuthStore((s) => s.user != null || s.phone != null);
+  const profileName = useAuthStore((s) => s.user?.name ?? s.name);
   const { categories } = useCategories();
   const cart = useCartStore((s) => s.items);
   const cartCount =
@@ -195,7 +196,9 @@ export default function Header() {
                 >
                   <Link href="/orders">
                     <User className="h-5 w-5" />
-                    {t("header.nav.profile")}
+                    <span className="max-w-24 truncate">
+                      {profileName ?? t("header.nav.profile")}
+                    </span>
                   </Link>
                 </Button>
               </>
@@ -308,7 +311,8 @@ export default function Header() {
                 href="/orders"
                 className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
-                <User className="h-4 w-4" /> {t("header.nav.myProfile")}
+                <User className="h-4 w-4" />{" "}
+                {profileName ?? t("header.nav.myProfile")}
               </Link>
             )}
             <Link
