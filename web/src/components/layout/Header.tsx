@@ -174,28 +174,31 @@ export default function Header() {
           </button>
 
           <div className="hidden md:flex items-center gap-1 shrink-0">
-            <Button
-              variant="ghost"
-              asChild
-              className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
-            >
-              <Link href="/orders">
-                <Heart className="h-5 w-5" />
-                {t("header.nav.saved")}
-              </Link>
-            </Button>
-            {/* Only a real logged-in user has a profile; a guest session has none. */}
+            {/* Saved items and the profile belong to a real account; a guest
+                session has neither, so hide both until the user signs in. */}
             {user && (
-              <Button
-                variant="ghost"
-                asChild
-                className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
-              >
-                <Link href="/orders">
-                  <User className="h-5 w-5" />
-                  {t("header.nav.profile")}
-                </Link>
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+                >
+                  <Link href="/orders">
+                    <Heart className="h-5 w-5" />
+                    {t("header.nav.saved")}
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+                >
+                  <Link href="/orders">
+                    <User className="h-5 w-5" />
+                    {t("header.nav.profile")}
+                  </Link>
+                </Button>
+              </>
             )}
             <Button
               variant="ghost"
