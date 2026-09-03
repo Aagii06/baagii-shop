@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import PlaceholderImage from "@/components/ui/placeholder-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatDateTime, formatMNT } from "@/lib/utils";
-import { useAppSelector } from "@/store/hooks";
+import { useOrderStore } from "@/store/orderStore";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -15,8 +15,8 @@ export default function OrderDetailPage() {
   const { t, locale } = useLanguage();
   const { orderId } = useParams();
 
-  const order = useAppSelector((state) =>
-    state.orders.find((order) => order.id === orderId)
+  const order = useOrderStore((s) =>
+    s.orders.find((order) => order.id === orderId)
   );
 
   if (!order) {

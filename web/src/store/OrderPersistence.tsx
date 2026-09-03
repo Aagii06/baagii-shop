@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { setOrders } from "./orderSlice";
-import { useAppDispatch, useAppSelector } from "./hooks";
+import { useOrderStore } from "./orderStore";
 
+// Orders are demo-only and never hit a backend, so they live in localStorage.
+// The read happens after mount (not in the store initializer) to keep the
+// server-rendered and first client render identical.
 export default function OrderPersistence() {
-  const dispatch = useAppDispatch();
-  const orders = useAppSelector((state) => state.orders);
+  const orders = useOrderStore((s) => s.orders);
+  const setOrders = useOrderStore((s) => s.setOrders);
   const isFirstWrite = useRef(true);
 
   useEffect(() => {
-    const savedOrders = localStorage.getItem("orders");
-    if (savedOrders) {
-      dispatch(setOrders(JSON.parse(savedOrders)));
+    const saved = localStorage.getItem("orders");
+    if (saved) {
+      setOrders(JSON.parse(saved));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

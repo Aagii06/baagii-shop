@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { refreshCart } from "./cartThunks";
-import { useAppDispatch } from "./hooks";
+import { useCartStore } from "./cartStore";
 
 const MIN_REFRESH_GAP_MS = 10_000;
 
@@ -10,7 +9,7 @@ const MIN_REFRESH_GAP_MS = 10_000;
 // mount and whenever the tab regains focus, so a cart the backend has
 // expired (30 min TTL) disappears from the UI without a manual reload.
 export default function CartSync() {
-  const dispatch = useAppDispatch();
+  const refreshCart = useCartStore((s) => s.refreshCart);
   const lastRefresh = useRef(0);
 
   useEffect(() => {
@@ -18,7 +17,7 @@ export default function CartSync() {
       const now = Date.now();
       if (now - lastRefresh.current < MIN_REFRESH_GAP_MS) return;
       lastRefresh.current = now;
-      dispatch(refreshCart());
+      refreshCart();
     };
 
     refresh();
@@ -32,7 +31,7 @@ export default function CartSync() {
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [dispatch]);
+  }, [refreshCart]);
 
   return null;
 }

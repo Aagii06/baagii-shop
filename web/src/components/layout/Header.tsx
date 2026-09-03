@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { useAppSelector } from "@/store/hooks";
+import { useCartStore } from "@/store/cartStore";
 import logo from "@/assets/logo.png";
 import {
   Heart,
@@ -25,7 +25,7 @@ export default function Header() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { categories } = useCategories();
-  const cart = useAppSelector((state) => state.cart);
+  const cart = useCartStore((s) => s.items);
   const cartCount =
     cart?.reduce((total, item) => total + item.quantity, 0) || 0;
   const [isMobileOpen, setIsMobileOpen] = useState(false);

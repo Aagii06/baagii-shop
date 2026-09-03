@@ -4,8 +4,7 @@ import PaymentForm from "@/components/checkout/PaymentForm";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { confirmOrder } from "@/store/orderSlice";
+import { useOrderStore } from "@/store/orderStore";
 import type { PaymentMethod } from "@/types/order";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -15,11 +14,11 @@ export default function PayOrderPage() {
   const { t } = useLanguage();
   const { orderId } = useParams();
   const router = useRouter();
-  const dispatch = useAppDispatch();
+  const confirmOrder = useOrderStore((s) => s.confirmOrder);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const order = useAppSelector((state) =>
-    state.orders.find((order) => order.id === orderId)
+  const order = useOrderStore((s) =>
+    s.orders.find((order) => order.id === orderId)
   );
 
   const handlePay = async (method: PaymentMethod) => {
@@ -28,7 +27,7 @@ export default function PayOrderPage() {
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    dispatch(confirmOrder({ id: order.id, paymentMethod: method }));
+    confirmOrder({ id: order.id, paymentMethod: method });
     router.push(`/orders/${order.id}`);
   };
 

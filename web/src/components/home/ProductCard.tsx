@@ -4,8 +4,7 @@ import ProductImage from "@/components/ui/product-image";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
-import { quickAddToCart } from "@/store/cartThunks";
-import { useAppDispatch } from "@/store/hooks";
+import { useCartStore } from "@/store/cartStore";
 import { cn } from "@/lib/utils";
 import { Check, Plus, Star } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +29,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 
-  const dispatch = useAppDispatch();
+  const quickAdd = useCartStore((s) => s.quickAdd);
   const router = useRouter();
 
   const discount =
@@ -47,7 +46,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
     setIsAdding(true);
 
-    const { ok, redirectTo } = await dispatch(quickAddToCart(product.id));
+    const { ok, redirectTo } = await quickAdd(product.id);
 
     setIsAdding(false);
 

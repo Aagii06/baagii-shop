@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { calculatePricing } from "@/lib/pricing";
 import { formatMNT } from "@/lib/utils";
-import { clearServerCart } from "@/store/cartThunks";
-import { clearCoupon } from "@/store/couponSlice";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { createOrder } from "@/store/orderSlice";
+import { useCartStore } from "@/store/cartStore";
+import { useCouponStore } from "@/store/couponStore";
+import { useOrderStore } from "@/store/orderStore";
 import type { ShippingInfo } from "@/types/order";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,17 +15,20 @@ import { useState } from "react";
 
 export default function CheckoutPage() {
   const { t } = useLanguage();
-  const cart = useAppSelector((state) => state.cart);
-  const cartHydrated = useAppSelector((state) => state.cartUi.hydrated);
-  const coupon = useAppSelector((state) => state.coupon);
-  const dispatch = useAppDispatch();
+  const cart = useCartStore((s) => s.items);
+  const cartHydrated = useCartStore((s) => s.hydrated);
+  const clearServerCart = useCartStore((s) => s.clearServerCart);
+  const couponCode = useCouponStore((s) => s.code);
+  const couponValue = useCouponStore((s) => s.amount);
+  const clearCoupon = useCouponStore((s) => s.clearCoupon);
+  const createOrder = useOrderStore((s) => s.createOrder);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
 
   const { subtotal, shipping, coupon: couponAmount, total } = calculatePricing(
     cart,
-    { shippingFee: deliveryFee || undefined, couponAmount: coupon.amount }
+    { shippingFee: deliveryFee || undefined, couponAmount: couponValue }
   );
 
   const handlePlaceOrder = (shippingInfo: ShippingInfo) => {
@@ -35,26 +37,24 @@ export default function CheckoutPage() {
 
     const pricing = calculatePricing(cart, {
       shippingFee: shippingInfo.deliveryFee,
-      couponAmount: coupon.amount,
+      couponAmount: couponValue,
     });
 
     const orderId = `UVS-${Date.now().toString(36).toUpperCase()}`;
 
-    dispatch(
-      createOrder({
-        id: orderId,
-        items: cart,
-        shippingInfo,
-        subtotal: pricing.subtotal,
-        shipping: pricing.shipping,
-        coupon: pricing.coupon,
-        total: pricing.total,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-      })
-    );
-    dispatch(clearServerCart());
-    dispatch(clearCoupon());
+    createOrder({
+      id: orderId,
+      items: cart,
+      shippingInfo,
+      subtotal: pricing.subtotal,
+      shipping: pricing.shipping,
+      coupon: pricing.coupon,
+      total: pricing.total,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    });
+    clearServerCart();
+    clearCoupon();
 
     router.push(`/checkout/${orderId}/pay`);
   };
@@ -127,7 +127,7 @@ export default function CheckoutPage() {
               {couponAmount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {t("cart.summary.coupon", { code: coupon.code ?? "" })}
+                    {t("cart.summary.coupon", { code: couponCode ?? "" })}
                   </span>
                   <span className="font-medium text-emerald-600">
                     -{formatMNT(couponAmount)}

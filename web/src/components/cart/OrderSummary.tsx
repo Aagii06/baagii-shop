@@ -8,23 +8,25 @@ import {
   VALID_COUPONS,
 } from "@/lib/pricing";
 import { formatMNT } from "@/lib/utils";
-import { clearCoupon, setCoupon } from "@/store/couponSlice";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useCartStore } from "@/store/cartStore";
+import { useCouponStore } from "@/store/couponStore";
 import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function OrderSummary() {
   const { t } = useLanguage();
-  const cart = useAppSelector((state) => state.cart);
-  const coupon = useAppSelector((state) => state.coupon);
-  const dispatch = useAppDispatch();
+  const cart = useCartStore((s) => s.items);
+  const couponCode = useCouponStore((s) => s.code);
+  const couponValue = useCouponStore((s) => s.amount);
+  const setCoupon = useCouponStore((s) => s.setCoupon);
+  const clearCoupon = useCouponStore((s) => s.clearCoupon);
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState(false);
 
   const { subtotal, shipping, coupon: couponAmount, total } = calculatePricing(
     cart,
-    { couponAmount: coupon.amount }
+    { couponAmount: couponValue }
   );
 
   const handleApplyCoupon = () => {
@@ -32,7 +34,7 @@ export default function OrderSummary() {
     if (!code) return;
     const amount = VALID_COUPONS[code];
     if (amount) {
-      dispatch(setCoupon({ code, amount }));
+      setCoupon({ code, amount });
       setCouponError(false);
     } else {
       setCouponError(true);
@@ -40,7 +42,7 @@ export default function OrderSummary() {
   };
 
   const handleRemoveCoupon = () => {
-    dispatch(clearCoupon());
+    clearCoupon();
     setCouponInput("");
     setCouponError(false);
   };
@@ -60,7 +62,7 @@ export default function OrderSummary() {
             onChange={(e) => setCouponInput(e.target.value)}
             className="flex-1 min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
           />
-          {coupon.code ? (
+          {couponCode ? (
             <Button variant="outline" size="sm" onClick={handleRemoveCoupon}>
               {t("cart.summary.removeCoupon")}
             </Button>
@@ -75,9 +77,9 @@ export default function OrderSummary() {
             {t("cart.summary.couponInvalid")}
           </p>
         )}
-        {coupon.code && (
+        {couponCode && (
           <p className="text-xs font-medium text-emerald-600">
-            {t("cart.summary.couponApplied", { code: coupon.code })}
+            {t("cart.summary.couponApplied", { code: couponCode })}
           </p>
         )}
       </div>
@@ -102,7 +104,7 @@ export default function OrderSummary() {
         {couponAmount > 0 && (
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">
-              {t("cart.summary.coupon", { code: coupon.code ?? "" })}
+              {t("cart.summary.coupon", { code: couponCode ?? "" })}
             </span>
             <span className="font-medium text-emerald-600">
               -{formatMNT(couponAmount)}

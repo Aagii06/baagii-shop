@@ -5,17 +5,17 @@ import EmptyCart from "@/components/cart/EmptyCart";
 import OrderSummary from "@/components/cart/OrderSummary";
 import Recommendations from "@/components/cart/Recommendations";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { clearServerCart } from "@/store/cartThunks";
-import { clearCoupon } from "@/store/couponSlice";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useCartStore } from "@/store/cartStore";
+import { useCouponStore } from "@/store/couponStore";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function Cart() {
   const { t } = useLanguage();
-  const cart = useAppSelector((state) => state.cart);
-  const hydrated = useAppSelector((state) => state.cartUi.hydrated);
-  const dispatch = useAppDispatch();
+  const cart = useCartStore((s) => s.items);
+  const hydrated = useCartStore((s) => s.hydrated);
+  const clearServerCart = useCartStore((s) => s.clearServerCart);
+  const clearCoupon = useCouponStore((s) => s.clearCoupon);
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   if (!hydrated && cart.length === 0) {
@@ -55,8 +55,8 @@ export default function Cart() {
             </Link>
             <button
               onClick={() => {
-                dispatch(clearServerCart());
-                dispatch(clearCoupon());
+                clearServerCart();
+                clearCoupon();
               }}
               className="text-sm text-muted-foreground hover:text-destructive transition-colors"
             >

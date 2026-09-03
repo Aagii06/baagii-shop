@@ -9,8 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getProduct } from "@/lib/api/products";
 import { cn, formatMNT } from "@/lib/utils";
-import { addLineToCart } from "@/store/cartThunks";
-import { useAppDispatch } from "@/store/hooks";
+import { useCartStore } from "@/store/cartStore";
 import type { Product, ProductDetail, ProductVariant } from "@/types/product";
 import {
   Check,
@@ -45,7 +44,7 @@ const specKeys: { key: keyof Product; labelKey: string }[] = [
 
 export default function ProductPage() {
   const { t } = useLanguage();
-  const dispatch = useAppDispatch();
+  const addLine = useCartStore((s) => s.addLine);
   const { productId } = useParams();
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
@@ -167,13 +166,11 @@ export default function ProductPage() {
     }
 
     setIsAdding(true);
-    await dispatch(
-      addLineToCart({
-        postProductId: currentVariant.id,
-        branchId: currentVariant.branchId,
-        qty: quantity,
-      })
-    );
+    await addLine({
+      postProductId: currentVariant.id,
+      branchId: currentVariant.branchId,
+      qty: quantity,
+    });
     setIsAdding(false);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);

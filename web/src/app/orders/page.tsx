@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import PlaceholderImage from "@/components/ui/placeholder-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatDate, formatMNT } from "@/lib/utils";
-import { useAppSelector } from "@/store/hooks";
+import { useOrderStore } from "@/store/orderStore";
 import { Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -16,7 +16,7 @@ type Tab = "active" | "delivered" | "cancelled";
 
 export default function OrdersPage() {
   const { t, locale } = useLanguage();
-  const orders = useAppSelector((state) => state.orders);
+  const orders = useOrderStore((s) => s.orders);
   const [tab, setTab] = useState<Tab>("active");
 
   const tabs: { id: Tab; label: string }[] = [

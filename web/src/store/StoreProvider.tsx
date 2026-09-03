@@ -1,24 +1,26 @@
 "use client";
 
-import { Provider } from "react-redux";
 import CartErrorToast from "@/components/cart/CartErrorToast";
 import CartSync from "./CartSync";
 import GuestSession from "./GuestSession";
 import OrderPersistence from "./OrderPersistence";
-import { store } from "./store";
 
+// The Zustand stores are module singletons, so there is no context provider
+// to mount — this just wires up the app-wide side effects that keep them in
+// sync (guest login, server cart refresh, order persistence) plus the shared
+// cart error toast.
 export default function StoreProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <Provider store={store}>
+    <>
       <GuestSession />
       <CartSync />
       <OrderPersistence />
       {children}
       <CartErrorToast />
-    </Provider>
+    </>
   );
 }

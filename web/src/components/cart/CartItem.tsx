@@ -3,8 +3,7 @@
 import PlaceholderImage from "@/components/ui/placeholder-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
-import { removeLine, setLineQty } from "@/store/cartThunks";
-import { useAppDispatch } from "@/store/hooks";
+import { useCartStore } from "@/store/cartStore";
 import { Minus, Plus, X } from "lucide-react";
 
 interface CartItemProps {
@@ -23,7 +22,8 @@ interface CartItemProps {
 
 export default function CartItem({ item }: CartItemProps) {
   const { t } = useLanguage();
-  const dispatch = useAppDispatch();
+  const setLineQty = useCartStore((s) => s.setLineQty);
+  const removeLine = useCartStore((s) => s.removeLine);
 
   // Quantity / remove act on a specific server line; disabled until the
   // cart has synced and we know the line's ids.
@@ -40,7 +40,7 @@ export default function CartItem({ item }: CartItemProps) {
 
   const changeQty = (qty: number) => {
     if (!syncable) return;
-    dispatch(setLineQty({ ...line, qty }));
+    setLineQty({ ...line, qty });
   };
 
   return (
@@ -68,7 +68,7 @@ export default function CartItem({ item }: CartItemProps) {
           </div>
 
           <button
-            onClick={() => dispatch(removeLine(line))}
+            onClick={() => removeLine(line)}
             disabled={!syncable}
             aria-label={t("cart.removeAria")}
             className="text-muted-foreground hover:text-destructive shrink-0 p-1 disabled:opacity-40"
