@@ -123,6 +123,14 @@ export function FilterPanelContent({
             category.children.some((child) =>
               filters.categories.includes(child.code)
             );
+          // A parent shows the combined total of its subcategories; a leaf
+          // category shows its own count.
+          const categoryCount = hasChildren
+            ? category.children.reduce(
+                (sum, child) => sum + (counts.category[child.code] ?? 0),
+                0
+              )
+            : counts.category[category.code] ?? 0;
 
           return (
             <div key={category.code}>
@@ -136,7 +144,7 @@ export function FilterPanelContent({
                         : toggleCategory(category.code)
                     }
                     label={category.name}
-                    count={counts.category[category.code] ?? 0}
+                    count={categoryCount}
                   />
                 </div>
                 {hasChildren && (
