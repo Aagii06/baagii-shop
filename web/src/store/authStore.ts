@@ -20,9 +20,6 @@ interface AuthStore {
   /** True until the initial `getUserData` + stored-phone load settles. */
   loading: boolean;
 
-  /** A real account or a verified phone — enough to check out. */
-  isAuthed: () => boolean;
-
   /** Loads the stored phone and the backend user; call once on mount. */
   bootstrap: () => Promise<void>;
   /** Kicks off sending the one-time code (no-op until the backend has it). */
@@ -32,12 +29,10 @@ interface AuthStore {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   phone: null,
   loading: true,
-
-  isAuthed: () => get().user != null || get().phone != null,
 
   bootstrap: async () => {
     set({ phone: readStoredPhone() });
@@ -54,7 +49,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   requestOtp: async (phone) => {
-    await phoneOtp.request(phone);
+    await phoneOtp.send(phone);
   },
 
   verifyOtp: async (phone, code) => {
