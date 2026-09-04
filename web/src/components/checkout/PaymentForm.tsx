@@ -1,6 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { cn, formatMNT } from "@/lib/utils";
+import type { PaymentMethod, ShippingInfo } from "@/types/order";
+import { Landmark, Lock, Smartphone } from "lucide-react";
+import { useState } from "react";
+
+/* --- Картаар төлөх түр хаалттай (дараа сэргээх) ---------------------------
 import { Input } from "@/components/ui/input";
 import {
   formatCardNumber,
@@ -10,11 +17,8 @@ import {
   isValidCvv,
   isValidExpiry,
 } from "@/lib/card";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { cn, formatMNT } from "@/lib/utils";
-import type { PaymentMethod, ShippingInfo } from "@/types/order";
-import { CreditCard, Landmark, Lock, Smartphone, Wallet } from "lucide-react";
-import { useState } from "react";
+import { CreditCard } from "lucide-react";
+------------------------------------------------------------------------- */
 
 interface PaymentFormProps {
   total: number;
@@ -22,6 +26,14 @@ interface PaymentFormProps {
   onSubmit: (method: PaymentMethod) => void;
   isSubmitting: boolean;
 }
+
+// Demo account the shopper transfers to — sample values, not a real account.
+const BANK_DETAILS = {
+  accountName: "GOLDEN UVS ХХК",
+  bankName: "Худалдаа хөгжлийн банк",
+  accountNumber: "499 123 4567",
+  iban: "MN23 0004 9912 3456 7890",
+};
 
 export default function PaymentForm({
   total,
@@ -34,15 +46,18 @@ export default function PaymentForm({
   const methods: {
     id: PaymentMethod;
     labelKey: string;
-    icon: typeof CreditCard;
+    icon: typeof Landmark;
   }[] = [
-    { id: "card", labelKey: "checkout.payment.card", icon: CreditCard },
+    { id: "bank", labelKey: "checkout.payment.bank", icon: Landmark },
     { id: "qpay", labelKey: "checkout.payment.qpay", icon: Smartphone },
-    { id: "socialpay", labelKey: "checkout.payment.socialpay", icon: Wallet },
-    { id: "cash", labelKey: "checkout.payment.cash", icon: Landmark },
+    // Картаар болон бэлнээр төлөх түр хаалттай — дараа сэргээнэ:
+    // { id: "card", labelKey: "checkout.payment.card", icon: CreditCard },
+    // { id: "cash", labelKey: "checkout.payment.cash", icon: Landmark },
   ];
 
-  const [method, setMethod] = useState<PaymentMethod>("card");
+  const [method, setMethod] = useState<PaymentMethod>("bank");
+
+  /* --- Картаар төлөх түр хаалттай ---------------------------------------
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
@@ -60,13 +75,10 @@ export default function PaymentForm({
   };
   const cardIsValid =
     !cardErrors.cardNumber && !cardErrors.expiry && !cardErrors.cvv;
+  --------------------------------------------------------------------- */
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (method === "card" && !cardIsValid) {
-      setTouched({ cardNumber: true, expiry: true, cvv: true });
-      return;
-    }
     onSubmit(method);
   };
 
@@ -81,7 +93,7 @@ export default function PaymentForm({
         <h2 className="text-lg font-semibold text-foreground mb-4">
           {t("checkout.payment.methodsTitle")}
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div className="grid grid-cols-2 gap-3 mb-5">
           {methods.map((m) => (
             <button
               key={m.id}
@@ -102,6 +114,55 @@ export default function PaymentForm({
           ))}
         </div>
 
+        {method === "bank" && (
+          <div className="space-y-3">
+            <div className="rounded-xl border border-border divide-y divide-border">
+              {[
+                {
+                  label: t("checkout.payment.bank.accountName"),
+                  value: BANK_DETAILS.accountName,
+                },
+                {
+                  label: t("checkout.payment.bank.bankName"),
+                  value: BANK_DETAILS.bankName,
+                },
+                {
+                  label: t("checkout.payment.bank.accountNumber"),
+                  value: BANK_DETAILS.accountNumber,
+                },
+                {
+                  label: t("checkout.payment.bank.iban"),
+                  value: BANK_DETAILS.iban,
+                },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-center justify-between gap-3 px-4 py-2.5"
+                >
+                  <span className="text-sm text-muted-foreground">
+                    {row.label}
+                  </span>
+                  <span className="text-sm font-semibold text-foreground tabular-nums">
+                    {row.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {t("checkout.payment.bank.note")}
+            </p>
+          </div>
+        )}
+
+        {method === "qpay" && (
+          <p className="text-sm text-muted-foreground">
+            {t("checkout.payment.redirectNote", {
+              method: t(methods.find((m) => m.id === method)?.labelKey ?? ""),
+            })}
+          </p>
+        )}
+
+        {/* --- Картаар төлөх маягт түр хаалттай --------------------------
         {method === "card" && (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -115,9 +176,7 @@ export default function PaymentForm({
                 placeholder="0000 0000 0000 0000"
                 value={cardNumber}
                 onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                onBlur={() =>
-                  setTouched((s) => ({ ...s, cardNumber: true }))
-                }
+                onBlur={() => setTouched((s) => ({ ...s, cardNumber: true }))}
                 aria-invalid={touched.cardNumber && cardErrors.cardNumber}
                 className={cn(
                   touched.cardNumber &&
@@ -194,14 +253,7 @@ export default function PaymentForm({
             </label>
           </div>
         )}
-
-        {method !== "card" && (
-          <p className="text-sm text-muted-foreground">
-            {t("checkout.payment.redirectNote", {
-              method: t(methods.find((m) => m.id === method)?.labelKey ?? ""),
-            })}
-          </p>
-        )}
+        --------------------------------------------------------------- */}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">

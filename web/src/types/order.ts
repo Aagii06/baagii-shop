@@ -21,7 +21,9 @@ export interface ShippingInfo {
 
 export type OrderStatus = "pending" | "confirmed";
 
-export type PaymentMethod = "card" | "qpay" | "socialpay" | "cash";
+// "card" and "cash" are temporarily disabled in the checkout UI but kept
+// in the type so existing orders still parse and re-enabling is a one-liner.
+export type PaymentMethod = "card" | "qpay" | "bank" | "cash";
 
 export interface Order {
   id: string;
