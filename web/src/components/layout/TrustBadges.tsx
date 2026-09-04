@@ -33,6 +33,8 @@ export default function TrustBadges() {
     },
   ];
 
+  // return null;
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
       {trustItems.map(({ icon: Icon, title, desc, tint }) => (

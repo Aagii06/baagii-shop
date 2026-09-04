@@ -328,7 +328,7 @@ export const mn: Dict = {
   "profile.email.empty": "Тохируулаагүй",
   "profile.save": "Хадгалах",
   "profile.saved": "Хадгалагдлаа",
-  "profile.logout": "Бүртгэлээс гарах",
+  "profile.logout": "Гарах",
   "profile.signIn.title": "Та нэвтрээгүй байна",
   "profile.signIn.desc": "Профайл тохиргоогоо үзэхийн тулд эхлээд нэвтэрнэ үү.",
   "profile.signIn.cta": "Нэвтрэх",
