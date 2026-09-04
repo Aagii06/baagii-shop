@@ -6,8 +6,9 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getProduct } from "@/lib/api/products";
 import { cn, formatMNT } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
+import { useSavedStore } from "@/store/savedStore";
 import type { Product, ProductDetail, ProductVariant } from "@/types/product";
-import { ArrowRight, Check, Loader2, Minus, Plus, ShoppingCart, Star, X } from "lucide-react";
+import { ArrowRight, Check, Heart, Loader2, Minus, Plus, ShoppingCart, Star, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -42,6 +43,8 @@ export default function QuickViewModal({
 }: QuickViewModalProps) {
   const { t } = useLanguage();
   const addLine = useCartStore((s) => s.addLine);
+  const toggleSaved = useSavedStore((s) => s.toggle);
+  const isSaved = useSavedStore((s) => s.items.some((p) => p.id === productId));
 
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,6 +145,20 @@ export default function QuickViewModal({
     }
     const fallback = product.variants.find((v) => v.attrs[attrId] === value);
     setSelectedAttrs(fallback ? fallback.attrs : next);
+  };
+
+  const handleToggleSaved = () => {
+    toggleSaved({
+      id: productId,
+      name,
+      price: product?.price ?? preview?.price ?? price,
+      originalPrice: product?.originalPrice ?? preview?.originalPrice,
+      image: product?.image ?? preview?.image ?? "",
+      thumbnail: product?.thumbnail ?? preview?.thumbnail,
+      category: product?.category ?? preview?.category,
+      rating: product?.rating ?? preview?.rating,
+      soldCount: product?.soldCount ?? preview?.soldCount,
+    });
   };
 
   const handleAddToCart = async () => {
@@ -252,9 +269,27 @@ export default function QuickViewModal({
                 </div>
               ) : null}
 
-              <h2 className="text-lg font-bold leading-snug text-foreground">
-                {name}
-              </h2>
+              <div className="flex items-start gap-2">
+                <h2 className="flex-1 text-lg font-bold leading-snug text-foreground">
+                  {name}
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleToggleSaved}
+                  aria-label={t(isSaved ? "saved.removeAria" : "saved.saveAria")}
+                  aria-pressed={isSaved}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border transition-colors hover:bg-muted"
+                >
+                  <Heart
+                    className={cn(
+                      "h-4 w-4 transition-colors",
+                      isSaved
+                        ? "fill-destructive text-destructive"
+                        : "text-muted-foreground"
+                    )}
+                  />
+                </button>
+              </div>
 
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-bold text-foreground">

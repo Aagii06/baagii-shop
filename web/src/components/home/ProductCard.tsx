@@ -6,8 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
+import { useSavedStore } from "@/store/savedStore";
 import { cn } from "@/lib/utils";
-import { Check, Plus, Star } from "lucide-react";
+import { Check, Heart, Plus, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -31,7 +32,15 @@ export default function ProductCard({ product }: { product: Product }) {
   const [quickViewOpen, setQuickViewOpen] = useState(false);
 
   const quickAdd = useCartStore((s) => s.quickAdd);
+  const toggleSaved = useSavedStore((s) => s.toggle);
+  const isSaved = useSavedStore((s) => s.items.some((p) => p.id === product.id));
   const router = useRouter();
+
+  const handleToggleSaved = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleSaved(product);
+  };
 
   const discount =
     product.originalPrice && product.originalPrice > product.price
@@ -64,7 +73,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <>
-      <Card className="group overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 py-0 gap-0">
+      <Card className="group relative overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 py-0 gap-0">
         <button
           type="button"
           onClick={() => setQuickViewOpen(true)}
@@ -91,6 +100,23 @@ export default function ProductCard({ product }: { product: Product }) {
               </span>
             )}
           </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleToggleSaved}
+          aria-label={t(isSaved ? "saved.removeAria" : "saved.saveAria")}
+          aria-pressed={isSaved}
+          className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-background/90 shadow-sm transition-colors hover:bg-background"
+        >
+          <Heart
+            className={cn(
+              "h-4 w-4 transition-colors",
+              isSaved
+                ? "fill-destructive text-destructive"
+                : "text-muted-foreground"
+            )}
+          />
         </button>
 
         <CardContent className="p-4 space-y-2">

@@ -184,7 +184,7 @@ export default function Header() {
                   asChild
                   className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
                 >
-                  <Link href="/orders">
+                  <Link href="/saved">
                     <Heart className="h-5 w-5" />
                     {t("header.nav.saved")}
                   </Link>

@@ -2,12 +2,15 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/store/cartStore";
+import { useSavedStore } from "@/store/savedStore";
 import {
   ClipboardList,
   CreditCard,
   Heart,
   MapPin,
   Settings,
+  ShoppingCart,
   Ticket,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -20,11 +23,16 @@ type SidebarItem = {
   icon: LucideIcon;
   active: boolean;
   match?: (path: string) => boolean;
+  badge?: number;
 };
 
 export default function OrdersSidebar() {
   const { t } = useLanguage();
   const pathname = usePathname();
+  const cartCount = useCartStore((s) =>
+    s.items.reduce((total, item) => total + item.quantity, 0)
+  );
+  const savedCount = useSavedStore((s) => s.items.length);
 
   const items: SidebarItem[] = [
     {
@@ -32,19 +40,30 @@ export default function OrdersSidebar() {
       label: t("orders.sidebar.myOrders"),
       icon: ClipboardList,
       active: true,
-      match: (path: string) => path.startsWith("/orders"),
+      match: (path) => path.startsWith("/orders"),
     },
     {
-      href: "#",
+      href: "/cart",
+      label: t("orders.sidebar.cart"),
+      icon: ShoppingCart,
+      active: true,
+      match: (path) => path.startsWith("/cart"),
+      badge: cartCount,
+    },
+    {
+      href: "/saved",
       label: t("orders.sidebar.saved"),
       icon: Heart,
-      active: false,
+      active: true,
+      match: (path) => path.startsWith("/saved"),
+      badge: savedCount,
     },
     {
-      href: "#",
+      href: "/addresses",
       label: t("orders.sidebar.addresses"),
       icon: MapPin,
-      active: false,
+      active: true,
+      match: (path) => path.startsWith("/addresses"),
     },
     {
       href: "#",
@@ -63,7 +82,7 @@ export default function OrdersSidebar() {
       label: t("orders.sidebar.settings"),
       icon: Settings,
       active: true,
-      match: (path: string) => path.startsWith("/profile"),
+      match: (path) => path.startsWith("/profile"),
     },
   ];
 
@@ -83,8 +102,13 @@ export default function OrdersSidebar() {
                   : "text-muted-foreground/60 cursor-default"
               )}
             >
-              <item.icon className="h-4 w-4" />
-              {item.label}
+              <item.icon className="h-4 w-4 shrink-0" />
+              <span className="flex-1">{item.label}</span>
+              {item.badge ? (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              ) : null}
             </span>
           );
 
