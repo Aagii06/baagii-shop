@@ -10,19 +10,29 @@ import {
   Settings,
   Ticket,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+type SidebarItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  match?: (path: string) => boolean;
+};
 
 export default function OrdersSidebar() {
   const { t } = useLanguage();
   const pathname = usePathname();
 
-  const items = [
+  const items: SidebarItem[] = [
     {
       href: "/orders",
       label: t("orders.sidebar.myOrders"),
       icon: ClipboardList,
       active: true,
+      match: (path: string) => path.startsWith("/orders"),
     },
     {
       href: "#",
@@ -49,10 +59,11 @@ export default function OrdersSidebar() {
       active: false,
     },
     {
-      href: "#",
+      href: "/profile",
       label: t("orders.sidebar.settings"),
       icon: Settings,
-      active: false,
+      active: true,
+      match: (path: string) => path.startsWith("/profile"),
     },
   ];
 
@@ -60,7 +71,7 @@ export default function OrdersSidebar() {
     <aside className="hidden lg:block w-64 shrink-0">
       <nav className="rounded-2xl border border-border bg-card p-2 space-y-1">
         {items.map((item) => {
-          const isActive = item.active && pathname.startsWith("/orders");
+          const isActive = item.active && (item.match?.(pathname) ?? false);
           const Content = (
             <span
               className={cn(

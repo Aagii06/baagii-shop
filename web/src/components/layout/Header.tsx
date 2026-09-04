@@ -194,7 +194,7 @@ export default function Header() {
                   asChild
                   className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
                 >
-                  <Link href="/orders">
+                  <Link href="/profile">
                     <User className="h-5 w-5" />
                     <span className="max-w-24 truncate">
                       {profileName ?? t("header.nav.profile")}
@@ -308,7 +308,7 @@ export default function Header() {
             <div className="h-px bg-border my-2" />
             {isAuthed && (
               <Link
-                href="/orders"
+                href="/profile"
                 className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
                 <User className="h-4 w-4" />{" "}
