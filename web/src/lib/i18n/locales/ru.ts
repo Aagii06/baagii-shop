@@ -149,6 +149,7 @@ export const ru: Dict = {
   "cart.error.noVariant": "Этот товар нельзя добавить в корзину",
   "cart.error.generic": "Не удалось обновить корзину. Повторите попытку",
   "cart.summary.title": "Сумма заказа",
+  "cart.summary.phone": "Подтверждённый номер",
   "cart.summary.couponPlaceholder": "Промокод",
   "cart.summary.applyCoupon": "Применить",
   "cart.summary.removeCoupon": "Убрать",

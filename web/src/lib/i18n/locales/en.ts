@@ -149,6 +149,7 @@ export const en: Dict = {
   "cart.error.noVariant": "This product can't be added to the cart",
   "cart.error.generic": "Couldn't update the cart. Please try again",
   "cart.summary.title": "Order summary",
+  "cart.summary.phone": "Verified number",
   "cart.summary.couponPlaceholder": "Coupon code",
   "cart.summary.applyCoupon": "Apply",
   "cart.summary.removeCoupon": "Remove",

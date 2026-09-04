@@ -149,6 +149,7 @@ export const mn: Dict = {
   "cart.error.noVariant": "Энэ барааг сагслах боломжгүй байна",
   "cart.error.generic": "Сагс шинэчлэхэд алдаа гарлаа. Дахин оролдоно уу",
   "cart.summary.title": "Захиалгын дүн",
+  "cart.summary.phone": "Бүртгэлтэй дугаар",
   "cart.summary.couponPlaceholder": "Купон код",
   "cart.summary.applyCoupon": "Нэмэх",
   "cart.summary.removeCoupon": "Хасах",

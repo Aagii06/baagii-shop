@@ -8,15 +8,17 @@ import {
   VALID_COUPONS,
 } from "@/lib/pricing";
 import { formatMNT } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { useCouponStore } from "@/store/couponStore";
-import { ShieldCheck } from "lucide-react";
+import { Phone, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function OrderSummary() {
   const { t } = useLanguage();
   const cart = useCartStore((s) => s.items);
+  const phone = useAuthStore((s) => s.phone);
   const couponCode = useCouponStore((s) => s.code);
   const couponValue = useCouponStore((s) => s.amount);
   const setCoupon = useCouponStore((s) => s.setCoupon);
@@ -52,6 +54,18 @@ export default function OrderSummary() {
       <h2 className="text-lg font-semibold text-foreground">
         {t("cart.summary.title")}
       </h2>
+
+      {phone && (
+        <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-sm">
+          <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+          <span className="text-muted-foreground">
+            {t("cart.summary.phone")}
+          </span>
+          <span className="ml-auto font-medium text-foreground tabular-nums">
+            {phone}
+          </span>
+        </div>
+      )}
 
       <div className="space-y-2">
         <div className="flex gap-2">
