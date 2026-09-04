@@ -133,6 +133,7 @@ export const mn: Dict = {
   "product.notFound.desc": "Таны хайж буй бараа олдсонгүй.",
   "product.notFound.back": "Дэлгүүр рүү буцах",
   "product.quickView.details": "Дэлгэрэнгүй",
+  "product.quickView.open": "Хурдан үзэх",
   "product.quickView.close": "Хаах",
   "product.quickView.selectOption": "Сонголтоо хийнэ үү",
   "product.quickView.loadError": "Барааны мэдээлэл ачаалж чадсангүй",

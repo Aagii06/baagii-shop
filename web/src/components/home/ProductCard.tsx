@@ -5,11 +5,9 @@ import QuickViewModal from "@/components/product/QuickViewModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
-import { useCartStore } from "@/store/cartStore";
 import { useSavedStore } from "@/store/savedStore";
 import { cn } from "@/lib/utils";
-import { Check, Heart, Plus, Star } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Heart, MoreHorizontal, Star } from "lucide-react";
 import { useState } from "react";
 
 interface Product {
@@ -27,14 +25,10 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
   const { t } = useLanguage();
-  const [isAdding, setIsAdding] = useState(false);
-  const [justAdded, setJustAdded] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
 
-  const quickAdd = useCartStore((s) => s.quickAdd);
   const toggleSaved = useSavedStore((s) => s.toggle);
   const isSaved = useSavedStore((s) => s.items.some((p) => p.id === product.id));
-  const router = useRouter();
 
   const handleToggleSaved = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -49,27 +43,6 @@ export default function ProductCard({ product }: { product: Product }) {
             100
         )
       : 0;
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    setIsAdding(true);
-
-    const { ok, redirectTo } = await quickAdd(product.id);
-
-    setIsAdding(false);
-
-    if (redirectTo) {
-      router.push(redirectTo);
-      return;
-    }
-
-    if (!ok) return;
-
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1500);
-  };
 
   return (
     <>
@@ -147,21 +120,12 @@ export default function ProductCard({ product }: { product: Product }) {
               {formatMNT(product.price)}
             </span>
             <button
-              onClick={handleAddToCart}
-              disabled={isAdding}
-              aria-label={t("product.addToCartAria")}
-              className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition-all",
-                justAdded ? "bg-emerald-600" : "brand-gradient hover:opacity-90"
-              )}
+              type="button"
+              onClick={() => setQuickViewOpen(true)}
+              aria-label={t("product.quickView.open")}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent"
             >
-              {isAdding ? (
-                <span className="h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              ) : justAdded ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                <Plus className="h-4 w-4" />
-              )}
+              <MoreHorizontal className="h-4 w-4" />
             </button>
           </div>
         </CardContent>
