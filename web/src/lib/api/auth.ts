@@ -1,5 +1,19 @@
 import { apiFetch } from "./client";
-import { clearAuthToken, getAuthToken, setAuthToken } from "./token";
+import {
+  clearAuthToken,
+  getAuthToken,
+  getGuestId,
+  setAuthToken,
+  setGuestId,
+} from "./token";
+
+/**
+ * Fired on `window` when `loginGuest` mints a session for a *different*
+ * guest than the one this browser last held (token expired or was rejected
+ * and re-minted). The server cart is keyed by the old token, so listeners
+ * must drop the local cart. Not fired on the very first guest login.
+ */
+export const GUEST_SESSION_CHANGED_EVENT = "guest-session-changed";
 
 // Client-side TTL for guest sessions; the backend token itself doesn't
 // carry an expiry, so we age it out locally and re-login after this long.
@@ -99,8 +113,15 @@ export function ensureGuestToken(
 
   if (!pendingLogin) {
     pendingLogin = loginGuest()
-      .then(({ token }) => {
+      .then(({ token, guestId }) => {
+        const previousGuestId = getGuestId();
         setAuthToken(token, GUEST_TOKEN_TTL_MS);
+        setGuestId(guestId);
+        // A different guest than before means the previous session (and its
+        // server-side cart) is gone — tell the app to clear the local cart.
+        if (previousGuestId && previousGuestId !== guestId) {
+          window.dispatchEvent(new CustomEvent(GUEST_SESSION_CHANGED_EVENT));
+        }
         return token;
       })
       .catch(() => null)

@@ -45,6 +45,13 @@ interface CartStore {
 
   setError: (error: string | null) => void;
 
+  /**
+   * Wipes the local cart back to its empty state. Used when the guest
+   * session is replaced — the server cart was keyed by the old token and no
+   * longer belongs to this browser.
+   */
+  resetCart: () => void;
+
   /** Pulls the active cart from the server and makes it the source of truth. */
   refreshCart: () => Promise<void>;
   /**
@@ -99,6 +106,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
   error: null,
 
   setError: (error) => set({ error }),
+
+  resetCart: () =>
+    set({ items: [], cartId: null, syncing: false, hydrated: false, error: null }),
 
   refreshCart: async () => {
     set({ syncing: true });

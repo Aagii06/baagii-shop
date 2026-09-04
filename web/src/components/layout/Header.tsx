@@ -203,6 +203,18 @@ export default function Header() {
                 </Button>
               </>
             )}
+            {!isAuthed && (
+              <Button
+                variant="ghost"
+                asChild
+                className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+              >
+                <Link href="/signin">
+                  <User className="h-5 w-5" />
+                  {t("header.nav.signIn")}
+                </Link>
+              </Button>
+            )}
             <Button
               variant="ghost"
               asChild
@@ -306,13 +318,20 @@ export default function Header() {
               </Link>
             ))}
             <div className="h-px bg-border my-2" />
-            {isAuthed && (
+            {isAuthed ? (
               <Link
                 href="/profile"
                 className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
               >
                 <User className="h-4 w-4" />{" "}
                 {profileName ?? t("header.nav.myProfile")}
+              </Link>
+            ) : (
+              <Link
+                href="/signin"
+                className="flex items-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              >
+                <User className="h-4 w-4" /> {t("header.nav.signIn")}
               </Link>
             )}
             <Link

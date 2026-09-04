@@ -39,7 +39,7 @@ export default function ProfilePage() {
         </h1>
         <p className="text-muted-foreground mb-6">{t("profile.signIn.desc")}</p>
         <Button asChild>
-          <Link href="/">{t("profile.signIn.cta")}</Link>
+          <Link href="/signin">{t("profile.signIn.cta")}</Link>
         </Button>
       </div>
     );
