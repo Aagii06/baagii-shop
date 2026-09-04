@@ -1,35 +1,48 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useAuthStore } from "./authStore";
 import { useSavedStore } from "./savedStore";
 
-const STORAGE_KEY = "saved_products";
+// Saved items are demo-only (no backend yet), so they live in the browser.
+// Each identity gets its own bucket, keyed by the verified phone (falling
+// back to the backend user id, then a shared guest bucket), so signing in
+// with a phone brings back that phone's saved items.
+function bucketKey(phone: string | null, userId?: number) {
+  const id = phone ?? (userId != null ? `user-${userId}` : "guest");
+  return `saved_products:${id}`;
+}
 
-// Saved items are demo-only (no backend yet), so they live in localStorage.
-// The read happens after mount to keep the server and first client render
-// identical, matching OrderPersistence.
 export default function SavedPersistence() {
   const items = useSavedStore((s) => s.items);
   const setItems = useSavedStore((s) => s.setItems);
-  const isFirstWrite = useRef(true);
+  const phone = useAuthStore((s) => s.phone);
+  const userId = useAuthStore((s) => s.user?.id);
+  const authLoading = useAuthStore((s) => s.loading);
 
+  // The bucket the store is currently backed by; null until the identity
+  // settles so early writes don't land in the wrong bucket.
+  const activeKey = useRef<string | null>(null);
+
+  // Swap in the right bucket whenever the identity settles or changes.
   useEffect(() => {
+    if (authLoading) return;
+    const key = bucketKey(phone, userId);
+    if (activeKey.current === key) return;
+    activeKey.current = key;
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setItems(JSON.parse(saved));
+      const stored = localStorage.getItem(key);
+      setItems(stored ? JSON.parse(stored) : []);
     } catch {
-      // ignore malformed storage
+      setItems([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [phone, userId, authLoading, setItems]);
 
+  // Persist changes to the active bucket.
   useEffect(() => {
-    if (isFirstWrite.current) {
-      isFirstWrite.current = false;
-      return;
-    }
+    if (!activeKey.current) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem(activeKey.current, JSON.stringify(items));
     } catch {
       // non-fatal
     }

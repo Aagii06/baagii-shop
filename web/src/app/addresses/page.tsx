@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAddressStore, type AddressInput } from "@/store/addressStore";
+import { useAuthStore } from "@/store/authStore";
 import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,6 +24,7 @@ export default function AddressesPage() {
   const remove = useAddressStore((s) => s.remove);
   const setDefault = useAddressStore((s) => s.setDefault);
 
+  const authLoading = useAuthStore((s) => s.loading);
   const [mounted, setMounted] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -31,6 +33,8 @@ export default function AddressesPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const ready = mounted && !authLoading;
 
   const startAdd = () => {
     setEditingId(null);
@@ -138,7 +142,7 @@ export default function AddressesPage() {
             </form>
           )}
 
-          {mounted && addresses.length === 0 && !showForm ? (
+          {ready && addresses.length === 0 && !showForm ? (
             <div className="rounded-2xl border border-border bg-card p-12 text-center">
               <MapPin className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
               <p className="font-semibold text-foreground mb-1">
