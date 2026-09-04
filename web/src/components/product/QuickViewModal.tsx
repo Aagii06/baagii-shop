@@ -189,14 +189,32 @@ export default function QuickViewModal({
       />
 
       <div className="relative z-10 w-full sm:max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-card shadow-xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t("product.quickView.close")}
-          className="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground shadow-sm hover:bg-muted transition-colors"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleToggleSaved}
+            aria-label={t(isSaved ? "saved.removeAria" : "saved.saveAria")}
+            aria-pressed={isSaved}
+            className="grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground shadow-sm hover:bg-muted transition-colors"
+          >
+            <Heart
+              className={cn(
+                "h-4 w-4 transition-colors",
+                isSaved
+                  ? "fill-destructive text-destructive"
+                  : "text-muted-foreground"
+              )}
+            />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("product.quickView.close")}
+            className="grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground shadow-sm hover:bg-muted transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
         {failed ? (
           <div className="p-10 text-center">
@@ -256,7 +274,7 @@ export default function QuickViewModal({
               )}
             </div>
 
-            <div className="flex flex-col gap-4 p-4 pt-12 sm:p-5">
+            <div className="flex flex-col gap-4 p-4 sm:p-5 sm:pt-16">
               {product?.rating ? (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -269,27 +287,9 @@ export default function QuickViewModal({
                 </div>
               ) : null}
 
-              <div className="flex items-start gap-2">
-                <h2 className="flex-1 text-lg font-bold leading-snug text-foreground">
-                  {name}
-                </h2>
-                <button
-                  type="button"
-                  onClick={handleToggleSaved}
-                  aria-label={t(isSaved ? "saved.removeAria" : "saved.saveAria")}
-                  aria-pressed={isSaved}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border transition-colors hover:bg-muted"
-                >
-                  <Heart
-                    className={cn(
-                      "h-4 w-4 transition-colors",
-                      isSaved
-                        ? "fill-destructive text-destructive"
-                        : "text-muted-foreground"
-                    )}
-                  />
-                </button>
-              </div>
+              <h2 className="text-lg font-bold leading-snug text-foreground">
+                {name}
+              </h2>
 
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-bold text-foreground">
