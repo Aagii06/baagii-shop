@@ -28,10 +28,7 @@ export default function HeroBanner() {
       </div>
 
       <div className="hidden lg:flex flex-col gap-4">
-        <Link
-          href="/search?category=huvtsas"
-          className="flex-1 rounded-2xl bg-violet-50 border border-violet-100 p-5 flex flex-col justify-center hover:bg-violet-100/70 transition-colors"
-        >
+        <div className="flex-1 rounded-2xl bg-violet-50 border border-violet-100 p-5 flex flex-col justify-center">
           <p className="text-[11px] font-semibold tracking-widest uppercase text-violet-600 mb-1">
             {t("home.promo.newBadge")}
           </p>
@@ -41,7 +38,7 @@ export default function HeroBanner() {
           <p className="text-sm text-muted-foreground mt-1">
             {t("home.promo.newDesc")}
           </p>
-        </Link>
+        </div>
         <Link
           href="/search"
           className="flex-1 rounded-2xl bg-emerald-50 border border-emerald-100 p-5 flex flex-col justify-center hover:bg-emerald-100/70 transition-colors"
