@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { useCartStore } from "@/store/cartStore";
+import { useSavedStore } from "@/store/savedStore";
 import logo from "@/assets/logo.png";
 import {
   Heart,
@@ -29,6 +30,7 @@ export default function Header() {
   const cart = useCartStore((s) => s.items);
   const cartCount =
     cart?.reduce((total, item) => total + item.quantity, 0) || 0;
+  const savedCount = useSavedStore((s) => s.items.length);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -62,6 +64,7 @@ export default function Header() {
   }, [pathname]);
 
   const showCartCount = isMounted && cartCount > 0;
+  const showSavedCount = isMounted && savedCount > 0;
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileOpen((prev) => !prev);
@@ -182,10 +185,17 @@ export default function Header() {
                 <Button
                   variant="ghost"
                   asChild
-                  className="flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+                  className="relative flex-col h-auto gap-0.5 px-3 py-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
                 >
                   <Link href="/saved">
-                    <Heart className="h-5 w-5" />
+                    <span className="relative">
+                      <Heart className="h-5 w-5" />
+                      {showSavedCount && (
+                        <span className="absolute -top-1.5 -right-2 bg-primary text-primary-foreground text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1">
+                          {savedCount > 99 ? "99+" : savedCount}
+                        </span>
+                      )}
+                    </span>
                     {t("header.nav.saved")}
                   </Link>
                 </Button>
