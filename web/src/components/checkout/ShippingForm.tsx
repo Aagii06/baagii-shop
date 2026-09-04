@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CITY_SHIPPING_FEE, REGION_SHIPPING_FEE } from "@/lib/pricing";
 import { cn, formatMNT } from "@/lib/utils";
+import { useAddressStore } from "@/store/addressStore";
 import type { DeliveryMethod, ShippingInfo } from "@/types/order";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ShippingFormProps {
   onSubmit: (shippingInfo: ShippingInfo) => void;
@@ -22,16 +23,8 @@ export default function ShippingForm({
 }: ShippingFormProps) {
   const { t } = useLanguage();
 
-  const savedAddresses = [
-    {
-      labelKey: "checkout.address.home",
-      addressKey: "checkout.address.homeAddr",
-    },
-    {
-      labelKey: "checkout.address.work",
-      addressKey: "checkout.address.workAddr",
-    },
-  ];
+  const savedAddresses = useAddressStore((s) => s.addresses);
+  const hasSaved = savedAddresses.length > 0;
 
   const deliveryOptions: {
     id: DeliveryMethod;
@@ -53,7 +46,7 @@ export default function ShippingForm({
     },
   ];
 
-  const [addressIndex, setAddressIndex] = useState(0);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [customAddress, setCustomAddress] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState(defaultPhone);
@@ -61,19 +54,38 @@ export default function ShippingForm({
   const [note, setNote] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("city");
 
+  // Keep a valid saved address selected once the store settles; default to
+  // the shopper's default address.
+  useEffect(() => {
+    if (savedAddresses.length === 0) {
+      setSelectedId(null);
+      return;
+    }
+    setSelectedId((cur) =>
+      cur && savedAddresses.some((a) => a.id === cur)
+        ? cur
+        : (savedAddresses.find((a) => a.isDefault) ?? savedAddresses[0]).id
+    );
+  }, [savedAddresses]);
+
+  // With no saved address the plain textarea field is the only way to enter
+  // one, so treat it as always "custom".
+  const usingCustom = !hasSaved || customAddress !== null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const selected = savedAddresses[addressIndex];
+    const selected = savedAddresses.find((a) => a.id === selectedId);
     const deliveryFee =
       deliveryOptions.find((d) => d.id === deliveryMethod)?.fee ??
       CITY_SHIPPING_FEE;
 
     onSubmit({
       addressLabel:
-        customAddress !== null
+        usingCustom || !selected
           ? t("checkout.address.newLabel")
-          : t(selected.labelKey),
-      address: customAddress ?? t(selected.addressKey),
+          : selected.label,
+      address:
+        usingCustom || !selected ? customAddress ?? "" : selected.address,
       fullName,
       phone,
       email: email || undefined,
@@ -94,44 +106,46 @@ export default function ShippingForm({
           <h2 className="text-lg font-semibold text-foreground">
             {t("checkout.address.title")}
           </h2>
-          <button
-            type="button"
-            onClick={() => setCustomAddress((v) => (v === null ? "" : null))}
-            className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {customAddress === null
-              ? t("checkout.address.addNew")
-              : t("checkout.address.savedAddresses")}
-          </button>
+          {hasSaved && (
+            <button
+              type="button"
+              onClick={() => setCustomAddress((v) => (v === null ? "" : null))}
+              className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {customAddress === null
+                ? t("checkout.address.addNew")
+                : t("checkout.address.savedAddresses")}
+            </button>
+          )}
         </div>
 
-        {customAddress === null ? (
+        {hasSaved && customAddress === null ? (
           <div className="grid sm:grid-cols-2 gap-3">
-            {savedAddresses.map((addr, i) => (
+            {savedAddresses.map((addr) => (
               <button
                 type="button"
-                key={addr.labelKey}
-                onClick={() => setAddressIndex(i)}
+                key={addr.id}
+                onClick={() => setSelectedId(addr.id)}
                 className={cn(
                   "text-left rounded-xl border-2 p-4 transition-colors",
-                  addressIndex === i
+                  selectedId === addr.id
                     ? "border-primary bg-accent/40"
                     : "border-border hover:border-primary/40"
                 )}
               >
                 <p className="font-semibold text-foreground mb-1">
-                  {t(addr.labelKey)}
+                  {addr.label}
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {t(addr.addressKey)}
+                  {addr.address}
                 </p>
               </button>
             ))}
           </div>
         ) : (
           <textarea
-            value={customAddress}
+            value={customAddress ?? ""}
             onChange={(e) => setCustomAddress(e.target.value)}
             required
             rows={3}

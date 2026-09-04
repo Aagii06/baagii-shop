@@ -211,6 +211,9 @@ export const ru: Dict = {
   "checkout.payment.cardNumber": "Номер карты",
   "checkout.payment.expiry": "Срок действия",
   "checkout.payment.cvv": "CVV",
+  "checkout.payment.error.cardNumber": "Введите корректный номер карты",
+  "checkout.payment.error.expiry": "Введите корректный срок действия (ММ/ГГ)",
+  "checkout.payment.error.cvv": "Введите корректный CVV (3–4 цифры)",
   "checkout.payment.saveCard": "Сохранить карту для следующих покупок",
   "checkout.payment.redirectNote":
     "На следующем шаге вы перейдёте в приложение {method}.",

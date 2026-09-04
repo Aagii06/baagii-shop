@@ -210,6 +210,10 @@ export const mn: Dict = {
   "checkout.payment.cardNumber": "Картын дугаар",
   "checkout.payment.expiry": "Хүчинтэй хугацаа",
   "checkout.payment.cvv": "CVV",
+  "checkout.payment.error.cardNumber": "Картын дугаараа зөв оруулна уу",
+  "checkout.payment.error.expiry":
+    "Хүчинтэй хугацааг MM/YY хэлбэрээр зөв оруулна уу",
+  "checkout.payment.error.cvv": "CVV-г 3-4 оронтой оруулна уу",
   "checkout.payment.saveCard": "Картыг дараагийн худалдан авалтад хадгалах",
   "checkout.payment.redirectNote":
     "Дараагийн алхамд {method} аппликейшн рүү шилжинэ.",

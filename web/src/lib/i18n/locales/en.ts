@@ -210,6 +210,9 @@ export const en: Dict = {
   "checkout.payment.cardNumber": "Card number",
   "checkout.payment.expiry": "Expiry date",
   "checkout.payment.cvv": "CVV",
+  "checkout.payment.error.cardNumber": "Enter a valid card number",
+  "checkout.payment.error.expiry": "Enter a valid expiry date (MM/YY)",
+  "checkout.payment.error.cvv": "Enter a valid 3–4 digit CVV",
   "checkout.payment.saveCard": "Save card for future purchases",
   "checkout.payment.redirectNote":
     "You'll be redirected to the {method} app on the next step.",

@@ -2,6 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  formatCardNumber,
+  formatCvv,
+  formatExpiry,
+  isValidCardNumber,
+  isValidCvv,
+  isValidExpiry,
+} from "@/lib/card";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn, formatMNT } from "@/lib/utils";
 import type { PaymentMethod, ShippingInfo } from "@/types/order";
@@ -39,9 +47,26 @@ export default function PaymentForm({
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
   const [saveCard, setSaveCard] = useState(true);
+  const [touched, setTouched] = useState({
+    cardNumber: false,
+    expiry: false,
+    cvv: false,
+  });
+
+  const cardErrors = {
+    cardNumber: !isValidCardNumber(cardNumber),
+    expiry: !isValidExpiry(expiry),
+    cvv: !isValidCvv(cvv),
+  };
+  const cardIsValid =
+    !cardErrors.cardNumber && !cardErrors.expiry && !cardErrors.cvv;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (method === "card" && !cardIsValid) {
+      setTouched({ cardNumber: true, expiry: true, cvv: true });
+      return;
+    }
     onSubmit(method);
   };
 
@@ -85,10 +110,26 @@ export default function PaymentForm({
               </label>
               <Input
                 required
+                inputMode="numeric"
+                autoComplete="cc-number"
                 placeholder="0000 0000 0000 0000"
                 value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value)}
+                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                onBlur={() =>
+                  setTouched((s) => ({ ...s, cardNumber: true }))
+                }
+                aria-invalid={touched.cardNumber && cardErrors.cardNumber}
+                className={cn(
+                  touched.cardNumber &&
+                    cardErrors.cardNumber &&
+                    "border-destructive focus-visible:ring-destructive"
+                )}
               />
+              {touched.cardNumber && cardErrors.cardNumber && (
+                <p className="text-xs text-destructive">
+                  {t("checkout.payment.error.cardNumber")}
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -97,10 +138,24 @@ export default function PaymentForm({
                 </label>
                 <Input
                   required
+                  inputMode="numeric"
+                  autoComplete="cc-exp"
                   placeholder="MM / YY"
                   value={expiry}
-                  onChange={(e) => setExpiry(e.target.value)}
+                  onChange={(e) => setExpiry(formatExpiry(e.target.value))}
+                  onBlur={() => setTouched((s) => ({ ...s, expiry: true }))}
+                  aria-invalid={touched.expiry && cardErrors.expiry}
+                  className={cn(
+                    touched.expiry &&
+                      cardErrors.expiry &&
+                      "border-destructive focus-visible:ring-destructive"
+                  )}
                 />
+                {touched.expiry && cardErrors.expiry && (
+                  <p className="text-xs text-destructive">
+                    {t("checkout.payment.error.expiry")}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">
@@ -108,10 +163,24 @@ export default function PaymentForm({
                 </label>
                 <Input
                   required
+                  inputMode="numeric"
+                  autoComplete="cc-csc"
                   placeholder="•••"
                   value={cvv}
-                  onChange={(e) => setCvv(e.target.value)}
+                  onChange={(e) => setCvv(formatCvv(e.target.value))}
+                  onBlur={() => setTouched((s) => ({ ...s, cvv: true }))}
+                  aria-invalid={touched.cvv && cardErrors.cvv}
+                  className={cn(
+                    touched.cvv &&
+                      cardErrors.cvv &&
+                      "border-destructive focus-visible:ring-destructive"
+                  )}
                 />
+                {touched.cvv && cardErrors.cvv && (
+                  <p className="text-xs text-destructive">
+                    {t("checkout.payment.error.cvv")}
+                  </p>
+                )}
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm text-foreground">
