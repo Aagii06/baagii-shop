@@ -2,11 +2,11 @@
 
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { CITY_SHIPPING_FEE, REGION_SHIPPING_FEE } from "@/lib/pricing";
+import { SHIPPING_FEE } from "@/lib/pricing";
 import { cn, formatMNT } from "@/lib/utils";
 import { useAddressStore } from "@/store/addressStore";
-import type { DeliveryMethod, ShippingInfo } from "@/types/order";
-import { Plus } from "lucide-react";
+import type { ShippingInfo } from "@/types/order";
+import { Plus, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface ShippingFormProps {
@@ -26,33 +26,12 @@ export default function ShippingForm({
   const savedAddresses = useAddressStore((s) => s.addresses);
   const hasSaved = savedAddresses.length > 0;
 
-  const deliveryOptions: {
-    id: DeliveryMethod;
-    titleKey: string;
-    descKey: string;
-    fee: number;
-  }[] = [
-    {
-      id: "city",
-      titleKey: "checkout.delivery.city",
-      descKey: "checkout.delivery.cityDesc",
-      fee: CITY_SHIPPING_FEE,
-    },
-    {
-      id: "region",
-      titleKey: "checkout.delivery.region",
-      descKey: "checkout.delivery.regionDesc",
-      fee: REGION_SHIPPING_FEE,
-    },
-  ];
-
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [customAddress, setCustomAddress] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState(defaultPhone);
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("city");
 
   // Keep a valid saved address selected once the store settles; default to
   // the shopper's default address.
@@ -75,9 +54,6 @@ export default function ShippingForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selected = savedAddresses.find((a) => a.id === selectedId);
-    const deliveryFee =
-      deliveryOptions.find((d) => d.id === deliveryMethod)?.fee ??
-      CITY_SHIPPING_FEE;
 
     onSubmit({
       addressLabel:
@@ -90,8 +66,8 @@ export default function ShippingForm({
       phone,
       email: email || undefined,
       note: note || undefined,
-      deliveryMethod,
-      deliveryFee,
+      deliveryMethod: "standard",
+      deliveryFee: SHIPPING_FEE,
     });
   };
 
@@ -211,39 +187,21 @@ export default function ShippingForm({
         <h2 className="text-lg font-semibold text-foreground mb-4">
           {t("checkout.delivery.title")}
         </h2>
-        <div className="space-y-3">
-          {deliveryOptions.map((option) => (
-            <label
-              key={option.id}
-              className={cn(
-                "flex items-center justify-between gap-4 rounded-xl border-2 p-4 cursor-pointer transition-colors",
-                deliveryMethod === option.id
-                  ? "border-primary bg-accent/40"
-                  : "border-border hover:border-primary/40"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name="delivery"
-                  checked={deliveryMethod === option.id}
-                  onChange={() => setDeliveryMethod(option.id)}
-                  className="h-4 w-4 accent-primary"
-                />
-                <div>
-                  <p className="font-medium text-foreground">
-                    {t(option.titleKey)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t(option.descKey)}
-                  </p>
-                </div>
-              </div>
-              <span className="font-semibold text-foreground shrink-0">
-                {formatMNT(option.fee)}
-              </span>
-            </label>
-          ))}
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-4">
+          <div className="flex items-center gap-3">
+            <Truck className="h-5 w-5 text-muted-foreground shrink-0" />
+            <div>
+              <p className="font-medium text-foreground">
+                {t("checkout.delivery.standard")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t("checkout.delivery.standardDesc")}
+              </p>
+            </div>
+          </div>
+          <span className="font-semibold text-foreground shrink-0">
+            {formatMNT(SHIPPING_FEE)}
+          </span>
         </div>
       </div>
 

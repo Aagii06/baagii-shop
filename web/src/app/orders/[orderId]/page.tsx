@@ -32,10 +32,7 @@ export default function OrderDetailPage() {
     );
   }
 
-  const deliveryLabel =
-    order.shippingInfo.deliveryMethod === "city"
-      ? t("orders.delivery.city")
-      : t("orders.delivery.region");
+  const deliveryLabel = t("orders.delivery.standard");
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-3xl">

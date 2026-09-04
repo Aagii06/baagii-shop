@@ -82,10 +82,7 @@ export default function PaymentForm({
     onSubmit(method);
   };
 
-  const deliveryLabel =
-    shippingInfo.deliveryMethod === "city"
-      ? t("orders.delivery.city")
-      : t("orders.delivery.region");
+  const deliveryLabel = t("orders.delivery.standard");
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

@@ -6,7 +6,8 @@ export interface OrderItem {
   quantity: number;
 }
 
-export type DeliveryMethod = "city" | "region";
+// Single flat delivery option — the old "city" / "region" split is gone.
+export type DeliveryMethod = "standard";
 
 export interface ShippingInfo {
   addressLabel: string;

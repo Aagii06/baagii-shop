@@ -4,8 +4,8 @@ interface PricedItem {
 }
 
 export const FREE_SHIPPING_THRESHOLD = 50000;
-export const CITY_SHIPPING_FEE = 5000;
-export const REGION_SHIPPING_FEE = 12000;
+/** Flat nationwide delivery fee — no separate city/region rate. */
+export const SHIPPING_FEE = 6000;
 
 export interface Coupon {
   code: string;
@@ -26,7 +26,7 @@ export function calculatePricing(
   );
   const shippingFee =
     options?.shippingFee ??
-    (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : CITY_SHIPPING_FEE);
+    (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE);
   const couponAmount = options?.couponAmount ?? 0;
   const total = Math.max(0, subtotal + shippingFee - couponAmount);
 
