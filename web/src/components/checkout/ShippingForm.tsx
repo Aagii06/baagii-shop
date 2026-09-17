@@ -1,5 +1,9 @@
 "use client";
 
+import NewAddressFields, {
+  EMPTY_NEW_ADDRESS,
+  type NewAddress,
+} from "@/components/checkout/NewAddressFields";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { SHIPPING_FEE } from "@/lib/pricing";
@@ -28,6 +32,7 @@ export default function ShippingForm({
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [customAddress, setCustomAddress] = useState<string | null>(null);
+  const [newAddress, setNewAddress] = useState<NewAddress>(EMPTY_NEW_ADDRESS);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState(defaultPhone);
   const [email, setEmail] = useState("");
@@ -54,20 +59,37 @@ export default function ShippingForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selected = savedAddresses.find((a) => a.id === selectedId);
-
-    onSubmit({
-      addressLabel:
-        usingCustom || !selected
-          ? t("checkout.address.newLabel")
-          : selected.label,
-      address:
-        usingCustom || !selected ? customAddress ?? "" : selected.address,
+    const recipient = {
       fullName,
       phone,
       email: email || undefined,
       note: note || undefined,
-      deliveryMethod: "standard",
+      deliveryMethod: "standard" as const,
       deliveryFee: SHIPPING_FEE,
+    };
+
+    if (!usingCustom && selected) {
+      onSubmit({
+        ...recipient,
+        addressLabel: selected.label,
+        address: selected.address,
+      });
+      return;
+    }
+
+    const { addressType, city, district, subDistrict } = newAddress;
+    onSubmit({
+      ...recipient,
+      addressLabel: addressType?.name ?? t("checkout.address.newLabel"),
+      // "Улаанбаатар, Баянзүрх, 1-р хороо, 5-р байр 12 тоот"
+      address: [city?.name, district?.name, subDistrict?.name, customAddress]
+        .map((part) => part?.trim())
+        .filter(Boolean)
+        .join(", "),
+      addressTypeId: addressType?.id,
+      cityId: city?.id,
+      districtId: district?.id,
+      subDistrictId: subDistrict?.id,
     });
   };
 
@@ -120,14 +142,26 @@ export default function ShippingForm({
             ))}
           </div>
         ) : (
-          <textarea
-            value={customAddress ?? ""}
-            onChange={(e) => setCustomAddress(e.target.value)}
-            required
-            rows={3}
-            placeholder={t("checkout.address.placeholder")}
-            className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
-          />
+          <div className="space-y-4">
+            <NewAddressFields value={newAddress} onChange={setNewAddress} />
+            <div className="space-y-1.5">
+              <label
+                htmlFor="address-detail"
+                className="text-sm font-medium text-foreground"
+              >
+                {t("checkout.address.detail")}
+              </label>
+              <textarea
+                id="address-detail"
+                value={customAddress ?? ""}
+                onChange={(e) => setCustomAddress(e.target.value)}
+                required
+                rows={3}
+                placeholder={t("checkout.address.placeholder")}
+                className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+              />
+            </div>
+          </div>
         )}
       </div>
 

@@ -12,6 +12,12 @@ export type DeliveryMethod = "standard";
 export interface ShippingInfo {
   addressLabel: string;
   address: string;
+  // Picked from the /customerAddress lookups when entering a new address;
+  // absent for saved (browser-only) addresses and older orders.
+  addressTypeId?: number;
+  cityId?: number;
+  districtId?: number;
+  subDistrictId?: number;
   fullName: string;
   phone: string;
   email?: string;
