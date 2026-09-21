@@ -21,7 +21,8 @@ export interface Post {
   startDate: string | null;
   endDate: string | null;
   isStock: boolean;
-  isActive: boolean;
+  /** Missing from `GET /post` rows today — read it through `isPublished`. */
+  isActive?: boolean;
   isHot: boolean;
   mainPrice: string;
   price: string;
@@ -90,6 +91,14 @@ export interface PostAttr {
 export interface PostDetail extends Post {
   postProducts?: PostProduct[];
   postAttrs?: PostAttr[];
+}
+
+/**
+ * Only an explicit `isActive: false` is a draft. The list endpoint leaves the
+ * field out, and the shop (web/src/lib/api/products.ts) shows those posts.
+ */
+export function isPublished(post: Post) {
+  return post.isActive !== false;
 }
 
 // The endpoint returns every post (inactive ones included) in one page.

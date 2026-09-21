@@ -7,7 +7,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCategoryTree, type Category } from "@/lib/api/categories";
-import { getPosts, LOW_STOCK_THRESHOLD, type Post } from "@/lib/api/posts";
+import { getPosts, isPublished, LOW_STOCK_THRESHOLD, type Post } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
 import { cn, formatMNT, formatQty, toNumber } from "@/lib/utils";
 import { Plus } from "lucide-react";
@@ -36,7 +36,7 @@ function indexCategories(tree: Category[]) {
 }
 
 function stockLine(post: Post) {
-  if (!post.isActive) return { text: "Ноорог", tone: "text-muted-foreground/70" };
+  if (!isPublished(post)) return { text: "Ноорог", tone: "text-muted-foreground/70" };
   const remain = toNumber(post.remain);
   return {
     text: `${formatQty(remain)} нөөц`,

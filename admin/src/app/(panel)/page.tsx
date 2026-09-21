@@ -14,7 +14,7 @@ import {
   type SalesRange,
   type SalesSummary,
 } from "@/lib/api/orders";
-import { getPosts, LOW_STOCK_THRESHOLD } from "@/lib/api/posts";
+import { getPosts, isPublished, LOW_STOCK_THRESHOLD } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
 import {
   cn,
@@ -195,7 +195,7 @@ function LowStockCard() {
   const { data, error, reload } = useApi(getPosts);
 
   const lowStock = (data ?? [])
-    .filter((post) => post.isActive && toNumber(post.remain) <= LOW_STOCK_THRESHOLD)
+    .filter((post) => isPublished(post) && toNumber(post.remain) <= LOW_STOCK_THRESHOLD)
     .sort((a, b) => toNumber(a.remain) - toNumber(b.remain))
     .slice(0, 5);
 
