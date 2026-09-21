@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   GOLDEN UVS brand tokens. The values are the shop's oklch tokens
+   (../web/src/app/globals.css) converted to hex, so the admin reads as the
+   same brand: purple primary, purple → blue gradient, cool greys.
+   Light theme only.
+   ------------------------------------------------------------------------- */
+:root {
+  --background: #f9fafc;
+  --foreground: #151620;
+  --card: #ffffff;
+  --card-foreground: #151620;
+  --popover: #ffffff;
+  --popover-foreground: #151620;
+
+  --primary: #7c1fa4;
+  --primary-hover: #6c1291;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f5e8fc;
+  --primary-ink: #731899;
+
+  /* The shop's signature gradient (`.brand-gradient`). */
+  --gradient-from: #7c1fa4;
+  --gradient-to: #2263ea;
+
+  --secondary: #e5eaff;
+  --secondary-foreground: #4158bd;
+
+  --dark: #151620;
+  --dark-foreground: #ffffff;
+
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #f5e8fc;
+  --accent-foreground: #731899;
+
+  --success: #059669;
+  --success-soft: #d1fae5;
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #e2e4e8;
+  --input: #d9dce2;
+  --ring: #7c1fa4;
+
+  --tint-purple: #f5e8fc;
+  --tint-purple-ink: #731899;
+  --tint-lavender: #ece6f8;
+  --tint-lavender-ink: #5b3fae;
+  --tint-mint: #d1fae5;
+  --tint-mint-ink: #047857;
+  --tint-peach: #fdebd6;
+  --tint-peach-ink: #c26a1b;
+  --tint-blue: #e5eaff;
+  --tint-blue-ink: #2f52c4;
+  --tint-sage: #e5f0e4;
+  --tint-sage-ink: #3f7d4a;
+
+  --radius: 1rem;
+  --shadow-soft: 0 10px 30px -12px rgb(21 22 32 / 0.12);
+  --shadow-card: 0 1px 2px rgb(21 22 32 / 0.04), 0 8px 24px -16px rgb(21 22 32 / 0.14);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-ink: var(--primary-ink);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-dark: var(--dark);
+  --color-dark-foreground: var(--dark-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-tint-purple: var(--tint-purple);
+  --color-tint-purple-ink: var(--tint-purple-ink);
+  --color-tint-lavender: var(--tint-lavender);
+  --color-tint-lavender-ink: var(--tint-lavender-ink);
+  --color-tint-mint: var(--tint-mint);
+  --color-tint-mint-ink: var(--tint-mint-ink);
+  --color-tint-peach: var(--tint-peach);
+  --color-tint-peach-ink: var(--tint-peach-ink);
+  --color-tint-blue: var(--tint-blue);
+  --color-tint-blue-ink: var(--tint-blue-ink);
+  --color-tint-sage: var(--tint-sage);
+  --color-tint-sage-ink: var(--tint-sage-ink);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --shadow-soft: var(--shadow-soft);
+  --shadow-card: var(--shadow-card);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  /* Outside the phone-width app column (see root layout). */
+  body {
+    @apply bg-muted text-foreground;
+  }
+  /* App-like touch feel: no grey tap flash, no double-tap zoom delay. */
+  a,
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.01em;
+  }
+  /* The brand mark's wordmark; Inter like the shop's header. */
+  .font-display {
+    font-family: var(--font-display);
+  }
+  ::selection {
+    background: var(--primary-soft);
+    color: var(--primary-ink);
+  }
+}
+
+@layer utilities {
+  /* Same as the shop: the purple → blue fill on its main calls to action. */
+  .brand-gradient {
+    background-image: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+  }
+
+  .img-placeholder {
+    background-color: var(--muted);
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgb(255 255 255 / 0.6) 0 10px,
+      transparent 10px 20px
+    );
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.18em];
+  }
+}
+
+/* Horizontal chip rows scroll without a visible bar. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
