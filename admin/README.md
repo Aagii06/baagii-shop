@@ -1,14 +1,15 @@
-# Ажруг Admin
+# GOLDEN UVS Admin
 
-Ажруг дэлгүүрийн удирдлагын хэсэг. Дэлгүүртэй (`../web`) ижил eshop-service
-backend болон дизайн токенуудыг ашигладаг Next.js 16 апп.
+GOLDEN UVS дэлгүүрийн удирдлагын хэсэг. Дэлгүүртэй (`../web`) ижил eshop-service
+backend-ийг ашигладаг Next.js 16 апп. Ажруг admin-ы бүтэц дээр суурилсан,
+харин өнгө, лого, фонт нь дэлгүүрийн брэндийнх (`src/app/globals.css`).
 
 ## Эхлүүлэх
 
 ```bash
 cp .env.example .env   # API хаягаа шалгана
 npm install
-npm run dev            # http://localhost:3790
+npm run dev            # http://localhost:3771
 ```
 
 Нэвтрэх нь одоогоор **туршилтын горимд** ажиллана: дурын 8 оронтой утасны дугаар,

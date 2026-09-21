@@ -1,11 +1,11 @@
 {
-  "name": "ajrug-admin",
+  "name": "uvs-admin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3790",
+    "dev": "next dev -p 3771",
     "build": "next build",
-    "start": "next start -p 3790",
+    "start": "next start -p 3771",
     "lint": "eslint ."
   },
   "dependencies": {

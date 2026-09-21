@@ -1,18 +1,11 @@
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import type { Metadata, Viewport } from "next";
-import { Comfortaa, JetBrains_Mono, Nunito } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-// Same faces as the shop; both ship Cyrillic.
-const comfortaa = Comfortaa({
-  variable: "--font-comfortaa",
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const nunito = Nunito({
-  variable: "--font-nunito",
+// Same face as the shop, plus the Cyrillic subset for Mongolian text.
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin", "cyrillic"],
   display: "swap",
 });
@@ -26,8 +19,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Ажруг Admin",
-    template: "%s · Ажруг Admin",
+    default: "GOLDEN UVS Admin",
+    template: "%s · GOLDEN UVS Admin",
   },
   robots: { index: false, follow: false },
   icons: {
@@ -42,7 +35,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f06a97",
+  themeColor: "#7B2E8E",
   // Lets the fixed bottom bars pad for the iPhone home indicator.
   viewportFit: "cover",
 };
@@ -53,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="mn" className={`${comfortaa.variable} ${nunito.variable} ${jetbrainsMono.variable}`}>
+    <html lang="mn" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased">
         {/* The admin is mobile-only: wider screens get the same phone-width
             column, centred. Keep max-w-md in sync with the fixed bars in

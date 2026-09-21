@@ -10,9 +10,9 @@ export default function BrandMark({ className }: { className?: string }) {
       </span>
       <span className="leading-tight">
         <span className="block font-display text-lg font-bold tracking-tight">
-          Ажруг
+          GOLDEN UVS
         </span>
-        <span className="eyebrow block text-muted-foreground">Admin</span>
+        <span className="eyebrow block text-primary-ink">Admin</span>
       </span>
     </span>
   );

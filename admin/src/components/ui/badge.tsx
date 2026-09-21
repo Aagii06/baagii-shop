@@ -9,8 +9,8 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground",
-        pink: "bg-primary-soft text-primary-ink",
-        lavender: "bg-secondary text-secondary-foreground",
+        brand: "bg-primary-soft text-primary-ink",
+        blue: "bg-secondary text-secondary-foreground",
         mint: "bg-success-soft text-success",
         peach: "bg-warning-soft text-warning",
         dark: "bg-dark text-dark-foreground",
@@ -18,7 +18,7 @@ const badgeVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "pink",
+      variant: "brand",
     },
   }
 )

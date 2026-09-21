@@ -9,7 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary-hover",
+        // The shop's call-to-action look: purple → blue gradient.
+        default: "brand-gradient text-primary-foreground hover:opacity-90",
         dark: "bg-dark text-dark-foreground hover:bg-dark/90",
         soft: "bg-primary-soft text-primary-ink hover:bg-primary/15",
         outline: "border border-border bg-white text-foreground hover:bg-muted",

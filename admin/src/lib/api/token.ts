@@ -2,8 +2,8 @@ import type { LoginUser } from "./auth";
 
 // Namespaced so an admin session never collides with the shop's guest
 // token if both apps are ever served from the same origin.
-const TOKEN_KEY = "ajrug_admin_token";
-const USER_KEY = "ajrug_admin_user";
+const TOKEN_KEY = "uvs_admin_token";
+const USER_KEY = "uvs_admin_user";
 
 function read(key: string): string | null {
   if (typeof window === "undefined") return null;

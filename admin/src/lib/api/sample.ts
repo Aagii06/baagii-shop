@@ -24,7 +24,7 @@ export const SAMPLE_ORDERS: Order[] = [
       { id: 1, name: "Оверсайз котон цамц", image: null, qty: 2, price: 68_000 },
       { id: 2, name: "Ноосон малгай", image: null, qty: 1, price: 42_000 },
     ],
-    deliveryFee: 5_000,
+    deliveryFee: 6_000,
     timeline: { pending: at(14, 20) },
   },
   {
@@ -37,7 +37,7 @@ export const SAMPLE_ORDERS: Order[] = [
       address: "ХУД, 11-р хороо, Зайсан, 21 байр, 8 тоот",
     },
     items: [{ id: 3, name: "Классик чарм гутал", image: null, qty: 1, price: 249_000 }],
-    deliveryFee: 5_000,
+    deliveryFee: 6_000,
     timeline: { pending: at(13, 2) },
   },
   {
@@ -50,7 +50,7 @@ export const SAMPLE_ORDERS: Order[] = [
       address: "БЗД, 26-р хороо, Нарны хороолол, 12 байр, 45 тоот",
     },
     items: [{ id: 4, name: "Нимгэн кашмир свитер", image: null, qty: 1, price: 159_000 }],
-    deliveryFee: 5_000,
+    deliveryFee: 6_000,
     timeline: { pending: at(11, 45), confirmed: at(12, 10) },
   },
   {
@@ -66,7 +66,7 @@ export const SAMPLE_ORDERS: Order[] = [
       { id: 5, name: "Эрэгтэй жинсэн хүрэм", image: null, qty: 1, price: 215_000 },
       { id: 6, name: "Арьс тэжээлт тос", image: null, qty: 1, price: 49_000 },
     ],
-    deliveryFee: 5_000,
+    deliveryFee: 6_000,
     timeline: { pending: at(10, 10), confirmed: at(10, 32), delivered: at(12, 40) },
   },
   {
@@ -79,7 +79,7 @@ export const SAMPLE_ORDERS: Order[] = [
       address: "СХД, 20-р хороо, Баруун 4 зам, 3 байр, 61 тоот",
     },
     items: [{ id: 6, name: "Арьс тэжээлт тос", image: null, qty: 2, price: 49_000, returnedQty: 1 }],
-    deliveryFee: 5_000,
+    deliveryFee: 6_000,
     timeline: {
       pending: at(16, 30, 1),
       confirmed: at(16, 55, 1),
@@ -96,7 +96,7 @@ export const SAMPLE_ORDERS: Order[] = [
       address: "БГД, 3-р хороо, 16 байр, 102 тоот",
     },
     items: [{ id: 2, name: "Ноосон малгай", image: null, qty: 1, price: 42_000 }],
-    deliveryFee: 5_000,
+    deliveryFee: 6_000,
     timeline: { pending: at(12, 5, 1), returned: at(12, 40, 1) },
   },
 ];

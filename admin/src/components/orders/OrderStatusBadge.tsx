@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 const TONE: Record<OrderStatus, string> = {
   pending: "bg-primary-soft text-primary-ink",
-  confirmed: "bg-tint-lavender text-tint-lavender-ink",
+  confirmed: "bg-tint-blue text-tint-blue-ink",
   delivered: "bg-tint-mint text-tint-mint-ink",
   returned: "bg-muted text-muted-foreground",
 };
