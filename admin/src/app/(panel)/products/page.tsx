@@ -17,7 +17,7 @@ import { useMemo, useState } from "react";
 const PAGE_SIZE = 30;
 
 async function loadProducts() {
-  const [posts, tree] = await Promise.all([getPosts(), getCategoryTree({ attrs: false })]);
+  const [posts, tree] = await Promise.all([getPosts(), getCategoryTree()]);
   return { posts, tree };
 }
 

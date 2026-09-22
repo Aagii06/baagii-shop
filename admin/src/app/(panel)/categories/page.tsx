@@ -69,7 +69,7 @@ function CategoryRow({
           <Pencil />
         </Link>
       </Button>
-      {canNestUnder(category, null) ? (
+      {canNestUnder(category) ? (
         <Button asChild variant="soft" size="icon-sm" className="shrink-0">
           <Link
             href={`/categories/new?parentId=${category.id}`}
@@ -133,7 +133,7 @@ export default function CategoriesPage() {
             <CategoryRow
               key={category.id}
               category={category}
-              attrs={categoryAttrs(rows, category.id).flatMap((id) => data.attrName.get(id) ?? [])}
+              attrs={categoryAttrs(rows, category.id).map((id) => data.attrName.get(id) ?? `#${id}`)}
               onChanged={reload}
             />
           ))}

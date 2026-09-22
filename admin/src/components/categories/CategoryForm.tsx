@@ -6,15 +6,7 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Attr } from "@/lib/api/attrs";
-import {
-  canNestUnder,
-  categoryAttrs,
-  createCategory,
-  flattenCategories,
-  MAX_CATEGORY_DEPTH,
-  updateCategory,
-  type Category,
-} from "@/lib/api/categories";
+import { createCategory, updateCategory, type Category } from "@/lib/api/categories";
 import { MAX_ATTRS } from "@/lib/attributes";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
@@ -30,21 +22,20 @@ function valuesPreview(attr: Attr) {
 /**
  * Create or edit a category, and choose from the attribute catalogue what
  * its products vary by — the product form then asks for exactly those.
+ * Where a category sits is set when it's created and never shown here.
  */
 export default function CategoryForm({
   category,
-  parentId: initialParentId = null,
-  categories,
+  parentId: newParentId = null,
   catalogue,
 }: {
   /** `null` for a new category. */
   category: Category | null;
   /**
-   * Adds the new category under this one, from a row's "add subcategory"
-   * button; the parent then can't be changed here.
+   * Where a new category goes: under this one, from a row's "add
+   * subcategory" button; otherwise at the root.
    */
   parentId?: number | null;
-  categories: (Category & { depth: number })[];
   catalogue: Attr[];
 }) {
   const router = useRouter();
@@ -54,25 +45,13 @@ export default function CategoryForm({
 
   const [name, setName] = useState(category?.name ?? "");
   const [nameTouched, setNameTouched] = useState(false);
-  const parentLocked = !category && initialParentId != null;
-  const [parentId, setParentId] = useState(() => {
-    const id = category ? category.parentId : initialParentId;
-    return id != null ? String(id) : "";
-  });
+  const parentId = category ? category.parentId : newParentId;
   // Only the last level picks what products vary by; a category with
   // subcategories leaves it to them.
   const isLeaf = !category || category.children.length === 0;
   // Ids gone from the catalogue are dropped: they have no card to turn them off.
   const [attrs, setAttrs] = useState<number[]>(() =>
-    category ? categoryAttrs(categories, category.id).filter((id) => catalogue.some((a) => a.id === id)) : []
-  );
-
-  // A category can't sit under itself or its own subcategories, nor so deep
-  // that it or they go past MAX_CATEGORY_DEPTH. Its current parent stays
-  // listed even so, in case the tree was already deeper.
-  const excluded = new Set(category ? flattenCategories([category]).map((c) => c.id) : []);
-  const parents = categories.filter(
-    (c) => !excluded.has(c.id) && (canNestUnder(c, category) || c.id === category?.parentId)
+    category && isLeaf ? category.attrs.filter((id) => catalogue.some((a) => a.id === id)) : []
   );
   const full = attrs.length >= MAX_ATTRS;
   const nameOf = (id: number) => catalogue.find((a) => a.id === id)?.name ?? `#${id}`;
@@ -94,7 +73,7 @@ export default function CategoryForm({
     }
     const input = {
       name: name.trim(),
-      parentId: parentId ? Number(parentId) : null,
+      parentId,
       attrs: isLeaf ? attrs : [],
     };
     const saved = await run(
@@ -108,7 +87,7 @@ export default function CategoryForm({
     <form onSubmit={onSubmit} noValidate>
       <DetailHeader
         backHref="/categories"
-        title={category ? "Категори засах" : parentLocked ? "Дэд категори нэмэх" : "Категори нэмэх"}
+        title={category ? "Категори засах" : parentId != null ? "Дэд категори нэмэх" : "Категори нэмэх"}
         aside={
           <Button type="submit" className="h-10 px-5">
             Хадгалах
@@ -128,30 +107,6 @@ export default function CategoryForm({
             aria-describedby={nameError ? nameErrorId : undefined}
             required
           />
-        </Field>
-
-        <Field
-          label="Эцэг категори"
-          hint={
-            parentLocked
-              ? "Дэд категори нэмж байгаа тул эцэг категорийг солих боломжгүй."
-              : `Категори хамгийн ихдээ ${MAX_CATEGORY_DEPTH} түвшин байна.`
-          }
-        >
-          <select
-            value={parentId}
-            onChange={(e) => setParentId(e.target.value)}
-            disabled={parentLocked}
-            className="h-12 w-full rounded-full border border-input bg-white px-5 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:bg-muted disabled:text-foreground"
-          >
-            <option value="">Үндсэн категори</option>
-            {parents.map((c) => (
-              <option key={c.id} value={c.id}>
-                {"— ".repeat(c.depth)}
-                {c.name}
-              </option>
-            ))}
-          </select>
         </Field>
 
         <section className="space-y-3 rounded-2xl border border-border bg-white p-4">

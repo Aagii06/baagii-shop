@@ -1,4 +1,4 @@
-import { apiFetch, fetchAllRows, type ApiItemResponse } from "./client";
+import { apiFetch, type ApiItemResponse } from "./client";
 
 // `CategoryTreeNode` in the eshop-admin OpenAPI doc.
 export interface Category {
@@ -19,37 +19,29 @@ export interface Category {
    * What its products vary by — `Attr` ids from the catalogue (`getAttrs`),
    * in the order they're entered. Only the last level — a category with no
    * subcategories — has them; `[]` sells each product in one version.
-   * `attrIds` on the backend; the tree leaves it out, so `getCategoryTree`
-   * reads it from `GET /category`.
+   * `attrIds` on the backend.
    */
   attrs: number[];
   children: Category[];
 }
 
 type CategoryNode = Omit<Category, "attrs" | "children"> & {
+  attrIds?: number[] | null;
   /** May be left out on leaves. */
   children?: CategoryNode[] | null;
 };
 
-function toCategories(list: CategoryNode[], attrsById: Map<number, number[]>): Category[] {
-  return list.map((node) => ({
+function toCategories(list: CategoryNode[]): Category[] {
+  return list.map(({ attrIds, children, ...node }) => ({
     ...node,
-    attrs: attrsById.get(node.id) ?? [],
-    children: toCategories(node.children ?? [], attrsById),
+    attrs: attrIds ?? [],
+    children: toCategories(children ?? []),
   }));
 }
 
-/**
- * The category tree with each category's `attrs`, which come from the flat
- * list — pages that don't need them pass `attrs: false` to skip it.
- */
-export async function getCategoryTree({ attrs = true } = {}) {
-  const [res, records] = await Promise.all([
-    apiFetch<ApiItemResponse<CategoryNode[] | null>>("/category/tree"),
-    attrs ? fetchAllRows<CategoryRecord>("/category") : [],
-  ]);
-  const attrsById = new Map(records.map((record) => [record.id, record.attrIds ?? []]));
-  return toCategories(res.data ?? [], attrsById);
+export async function getCategoryTree() {
+  const res = await apiFetch<ApiItemResponse<CategoryNode[] | null>>("/category/tree");
+  return toCategories(res.data ?? []);
 }
 
 // Flattens the tree to a single list (parents followed by their children),
@@ -67,17 +59,9 @@ export function flattenCategories(
 /** Categories nest at most this many levels: root → sub → sub-sub. */
 export const MAX_CATEGORY_DEPTH = 3;
 
-/** Levels in a category's subtree, itself included — a leaf is 1. */
-function subtreeHeight(category: Category): number {
-  return 1 + Math.max(0, ...category.children.map(subtreeHeight));
-}
-
-/**
- * Whether `category` (with its subcategories), or a new one when `null`,
- * fits under `parent` without going past `MAX_CATEGORY_DEPTH`.
- */
-export function canNestUnder(parent: { depth: number }, category: Category | null): boolean {
-  return parent.depth + 1 + (category ? subtreeHeight(category) : 1) <= MAX_CATEGORY_DEPTH;
+/** Whether a subcategory under `parent` stays within `MAX_CATEGORY_DEPTH`. */
+export function canNestUnder(parent: { depth: number }): boolean {
+  return parent.depth + 2 <= MAX_CATEGORY_DEPTH;
 }
 
 export function countCategories(list: Category[]): number {
@@ -90,7 +74,7 @@ export function categoryAttrs(categories: Category[], id: number | null): number
   return category && category.children.length === 0 ? category.attrs : [];
 }
 
-/** `Category` in the eshop-admin OpenAPI doc — a `GET /category` row, and what its writes send back. */
+/** `Category` in the eshop-admin OpenAPI doc — what its writes send back. */
 export interface CategoryRecord extends Omit<Category, "attrs" | "children"> {
   companyId: number;
   attrIds: number[];

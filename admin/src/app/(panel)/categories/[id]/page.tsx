@@ -22,7 +22,7 @@ export default function EditCategoryPage() {
 
   if (data && category) {
     return (
-      <CategoryForm key={category.id} category={category} categories={data.categories} catalogue={data.catalogue} />
+      <CategoryForm key={category.id} category={category} catalogue={data.catalogue} />
     );
   }
 

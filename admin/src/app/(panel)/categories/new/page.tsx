@@ -9,7 +9,7 @@ import { useApi } from "@/lib/useApi";
 import { use } from "react";
 
 async function loadForm() {
-  const [tree, catalogue] = await Promise.all([getCategoryTree({ attrs: false }), getAttrs()]);
+  const [tree, catalogue] = await Promise.all([getCategoryTree(), getAttrs()]);
   return { categories: flattenCategories(tree), catalogue };
 }
 
@@ -27,8 +27,7 @@ export default function NewCategoryPage({
     return (
       <CategoryForm
         category={null}
-        parentId={parent && canNestUnder(parent, null) ? parent.id : null}
-        categories={data.categories}
+        parentId={parent && canNestUnder(parent) ? parent.id : null}
         catalogue={data.catalogue}
       />
     );

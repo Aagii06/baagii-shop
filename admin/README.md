@@ -32,8 +32,8 @@ token-той бол дахин нэвтрүүлнэ.
 | `…/variants`       | Категорийн сонголтууд (өнгө, хэмжээ, …) болон хослол бүрийн тоо, үнэ (`/products/new/variants`, `/products/[id]/variants`) — барааны формтой хамт хадгалагдана | `GET /post/{id}` (`postAttrs`, `postProducts`) |
 | `/orders`          | Захиалга — төлөвөөр шүүх, батлах/буцаах                     | **жишээ өгөгдөл** |
 | `/orders/[id]`     | Захиалгын дэлгэрэнгүй, төлөвийн явц                         | **жишээ өгөгдөл** |
-| `/categories`      | Категорийн жагсаалт (3 хүртэл түвшин) — сонголтууд, засах, дэд категори нэмэх, устгах | `GET /category/tree`, `GET /category` (`attrIds`), `GET /attr`; устгах: `DELETE /category/{id}` |
-| `/categories/new`, `/categories/[id]` | Категори нэмэх/засах: нэр, эцэг категори, барааны сонголт (`?parentId=` — дэд категори, эцэг нь түгжээтэй) | `GET /category/tree`, `GET /category` (`attrIds`), `GET /attr`; хадгалах: `POST /category`, `PUT /category/{id}` (сонголт `attrIds`-аар) |
+| `/categories`      | Категорийн жагсаалт (3 хүртэл түвшин) — сонголтууд, засах, дэд категори нэмэх, устгах | `GET /category/tree` (`attrIds`-тай), `GET /attr`; устгах: `DELETE /category/{id}` |
+| `/categories/new`, `/categories/[id]` | Категори нэмэх/засах: нэр, барааны сонголт. "Нэмэх" нь үндсэн категори, мөрийн `+` (`?parentId=`) нь дэд категори үүсгэнэ; эцэг категори формд харагдахгүй, солигдохгүй | `GET /category/tree` (`attrIds`-тай), `GET /attr`; хадгалах: `POST /category`, `PUT /category/{id}` (сонголт `attrIds`-аар) |
 | `/delivery-notes`  | Хүргэлтийн тэмдэглэлүүд                                     | `GET /doNote` |
 
 ## Барааны сонголт (өнгө, хэмжээ, …)
@@ -49,9 +49,7 @@ token-той бол дахин нэвтрүүлнэ.
   ирнэ: Өнгө, Хувцасны хэмжээ тоо/үсэг, Гутлын хэмжээ тоо/нас, Багтаамж гэх
   мэт. Категори нь сонголтуудаа `attrIds`-аар хадгална (`POST /category`,
   `PUT /category/{id}`, backend өөрөө CategoryAttr руу sync хийнэ), дээд тал
-  нь 3. `/category/tree` `attrIds` буцаадаггүй тул `getCategoryTree()` нь
-  `GET /category`-ийн жагсаалтаас id-аар нийлүүлнэ; барааны жагсаалт,
-  категори нэмэх хуудас `{ attrs: false }`-оор үүнийг алгасна.
+  нь 3. `/category/tree`-ийн node бүр `attrIds`-аа буцаана.
 - `viewType: "image"` сонголт (өнгө) өнгөний дугуй, утга бүрийн зурагтай;
   backend-д ийм талбар байхгүй тул нэр нь "өнгө" агуулсан эсвэл утга нь
   `color`-той attr-ийг ингэж харуулна;
