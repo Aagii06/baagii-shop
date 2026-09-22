@@ -1,4 +1,4 @@
-import { sizeKey, sizeRank } from "./sizes";
+import { sizeRank } from "./sizes";
 
 // What a product can be sold in several versions of — the options a shopper
 // picks on the product page. A category lists the ones its products use
@@ -60,7 +60,11 @@ export function attrDef(key: string): AttrDef {
   return ATTRS.find((a) => a.key === key) ?? { key, label: key, kind: "option", presets: [], example: "" };
 }
 
-export const attrLabels = (keys: string[]) => keys.map((key) => attrDef(key).label);
+/** "Өнгө, хэмжээ" — or "Сонголтгүй". */
+export function attrsSummary(keys: string[]) {
+  if (keys.length === 0) return "Сонголтгүй";
+  return keys.map((key, i) => (i === 0 ? attrDef(key).label : attrDef(key).label.toLowerCase())).join(", ");
+}
 
 // A product's saved attribute (`PostAttr.attrName`: "Размер", "Гутлын хэмжээ
 // тоо") is matched to a built-in by name. `\b` is ASCII-only, hence the
@@ -102,8 +106,8 @@ export const COLORS: Swatch[] = [
   { name: "Нил ягаан", hex: "#7c3aed" },
 ];
 
-/** Compares values loosely, so "xl " from the API matches "XL". */
-export const valueKey = sizeKey;
+/** Compares values loosely, so "xl " matches "XL" and "512ГБ" matches "512 ГБ". */
+export const valueKey = (value: string) => value.replace(/\s+/g, "").toUpperCase();
 
 /** Where a value sorts among its attribute's offered values; others go last. */
 export function valueRank(def: AttrDef, value: string) {

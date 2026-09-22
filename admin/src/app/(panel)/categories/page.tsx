@@ -1,22 +1,24 @@
 "use client";
 
+import SampleNotice from "@/components/common/SampleNotice";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  createCategory,
+  categoryAttrs,
   deleteCategory,
   flattenCategories,
   getCategoryTree,
-  updateCategory,
   type Category,
 } from "@/lib/api/categories";
 import { getPosts } from "@/lib/api/posts";
+import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
 import { cn, formatQty } from "@/lib/utils";
-import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { useMemo } from "react";
 
 async function loadCategories() {
   const [tree, posts] = await Promise.all([getCategoryTree(), getPosts()]);
@@ -39,63 +41,24 @@ function subtreeCount(category: Category, productCount: Map<number, number>): nu
 
 function CategoryRow({
   category,
+  attrs,
   count,
   onChanged,
 }: {
   category: Category & { depth: number };
+  /** What its products vary by — its own or inherited. */
+  attrs: string[];
   count: number;
   onChanged: () => void;
 }) {
   const { run } = useToast();
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(category.name);
   // Subcategories sit indented under their parent.
   const indent = { paddingLeft: `${category.depth * 20}px` };
-
-  async function onRename(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const name = draft.trim();
-    if (!name) return;
-    if (await run(() => updateCategory(category.id, name), "Хадгаллаа")) {
-      setEditing(false);
-      onChanged();
-    }
-  }
+  const inherited = category.attrs === null && category.parentId != null;
 
   async function onDelete() {
     if (!window.confirm(`“${category.name}” категорийг устгах уу?`)) return;
     if (await run(() => deleteCategory(category.id), "Категорийг устгалаа")) onChanged();
-  }
-
-  if (editing) {
-    return (
-      <li className="py-3" style={indent}>
-        <form onSubmit={onRename} className="flex items-center gap-2">
-          <Input
-            autoFocus
-            aria-label="Категорийн нэр"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            className="h-10"
-          />
-          <Button type="submit" size="sm" className="h-10" disabled={!draft.trim()}>
-            Хадгалах
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-10"
-            onClick={() => {
-              setEditing(false);
-              setDraft(category.name);
-            }}
-          >
-            Болих
-          </Button>
-        </form>
-      </li>
-    );
   }
 
   return (
@@ -109,12 +72,16 @@ function CategoryRow({
         >
           {category.name}
         </span>
-        <span className="mt-0.5 block font-mono text-xs text-muted-foreground">
-          {formatQty(count)} бараа
+        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+          <span className="font-mono">{formatQty(count)} бараа</span>
+          {" · "}
+          <span className={cn(attrs.length > 0 && !inherited && "font-semibold text-primary-ink")}>
+            {attrsSummary(attrs)}
+          </span>
         </span>
       </span>
-      <Button variant="outline" size="sm" className="font-medium" onClick={() => setEditing(true)}>
-        Засах
+      <Button asChild variant="outline" size="sm" className="font-medium">
+        <Link href={`/categories/${category.id}`}>Засах</Link>
       </Button>
       <Button variant="danger" size="sm" className="font-medium" onClick={onDelete}>
         Устгах
@@ -125,35 +92,26 @@ function CategoryRow({
 
 export default function CategoriesPage() {
   const { data, error, reload } = useApi(loadCategories);
-  const { run } = useToast();
-  const [name, setName] = useState("");
 
   const rows = useMemo(() => (data ? flattenCategories(data.tree) : []), [data]);
 
-  async function onCreate(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    if (await run(() => createCategory(trimmed), "Категори нэмлээ")) {
-      setName("");
-      reload();
-    }
-  }
-
   return (
     <>
-      <DetailHeader backHref="/profile" title="Категори" />
-      <form onSubmit={onCreate} className="-mx-4 -mt-4 flex gap-2 border-b border-border px-4 py-4">
-        <Input
-          placeholder="Шинэ категорийн нэр"
-          aria-label="Шинэ категорийн нэр"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <Button type="submit" className="h-12 shrink-0 px-6" disabled={!name.trim()}>
-          Нэмэх
-        </Button>
-      </form>
+      <DetailHeader
+        backHref="/profile"
+        title="Категори"
+        aside={
+          <Button asChild className="h-10 px-4">
+            <Link href="/categories/new">
+              <Plus />
+              Нэмэх
+            </Link>
+          </Button>
+        }
+      />
+      <SampleNotice className="mb-2">
+        Backend категорийн сонголтыг (өнгө, хэмжээ…) хараахан илгээдэггүй тул жишээ тохиргоо харуулж байна.
+      </SampleNotice>
 
       {error && !data ? (
         <div className="pt-4">
@@ -163,7 +121,7 @@ export default function CategoriesPage() {
         <LoadingState />
       ) : rows.length === 0 ? (
         <div className="pt-4">
-          <EmptyState title="Категори алга" description="Дээрх талбараас шинэ категори нэмнэ үү." />
+          <EmptyState title="Категори алга" description="“Нэмэх” товчоор шинэ категори нэмнэ үү." />
         </div>
       ) : (
         <ul className="divide-y divide-border border-b border-border">
@@ -171,6 +129,7 @@ export default function CategoriesPage() {
             <CategoryRow
               key={category.id}
               category={category}
+              attrs={categoryAttrs(rows, category.id)}
               count={subtreeCount(category, data.productCount)}
               onChanged={reload}
             />

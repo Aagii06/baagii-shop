@@ -14,19 +14,11 @@ import {
   updateCategory,
   type Category,
 } from "@/lib/api/categories";
-import { ATTRS, attrDef, attrKeyForName, attrLabels, MAX_ATTRS } from "@/lib/attributes";
+import { ATTRS, attrDef, attrKeyForName, attrsSummary, MAX_ATTRS } from "@/lib/attributes";
 import { cn } from "@/lib/utils";
 import { Check, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
-
-/** "Өнгө, хэмжээ" — or "Сонголтгүй". */
-export function attrsSummary(keys: string[]) {
-  if (keys.length === 0) return "Сонголтгүй";
-  return attrLabels(keys)
-    .map((label, i) => (i === 0 ? label : label.toLowerCase()))
-    .join(", ");
-}
 
 /**
  * Create or edit a category, and choose what its products vary by — the

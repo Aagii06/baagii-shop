@@ -3,7 +3,7 @@
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { attrDef, valueKey } from "@/lib/attributes";
+import { attrDef, attrsSummary, valueKey } from "@/lib/attributes";
 import { cn, formatQty, toNumber } from "@/lib/utils";
 import { Trash2, Undo2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -15,13 +15,6 @@ const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
 // Variant | count | price | sale price | remove
 const ROW_GRID = "grid grid-cols-[4rem_3.75rem_minmax(0,1fr)_minmax(0,1fr)_2.25rem] items-center gap-1.5";
-
-/** "Өнгө, хэмжээ" */
-function joinLabels(attrs: ProductAttr[]) {
-  return attrs
-    .map((attr, i) => (i === 0 ? attrDef(attr.key).label : attrDef(attr.key).label.toLowerCase()))
-    .join(", ");
-}
 
 function StepTitle({ step, children }: { step: number; children: React.ReactNode }) {
   return (
@@ -145,6 +138,7 @@ export default function ProductVariantsForm() {
   const { form, basePath, attrs, inCategory, setAttrValues } = useProductEditor();
   const ready = hasProductBasics(form) && attrs.length > 0;
   const picked = attrs.filter((attr) => attr.values.length > 0);
+  const title = attrsSummary(attrs.map((attr) => attr.key));
 
   // Reached by URL before the name and price were entered, or for a
   // category without attributes (its stock is on the form itself).
@@ -163,7 +157,7 @@ export default function ProductVariantsForm() {
     <form onSubmit={onSubmit}>
       <DetailHeader
         backHref={basePath}
-        title={joinLabels(attrs)}
+        title={title}
         subtitle={form.name.trim()}
         aside={
           <Button type="submit" className="h-10 px-5">
@@ -193,7 +187,7 @@ export default function ProductVariantsForm() {
           <StepTitle step={attrs.length + 1}>Тоо, үнэ</StepTitle>
           {picked.length === 0 ? (
             <p className="rounded-2xl bg-muted px-4 py-3 text-center text-sm text-muted-foreground">
-              Дээрээс {joinLabels(attrs).toLowerCase()} сонгоно уу.
+              Дээрээс {title.toLowerCase()} сонгоно уу.
             </p>
           ) : (
             <VariantTable attrs={picked} />

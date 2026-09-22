@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { addPostImage, deletePost, savePost } from "@/lib/api/posts";
-import { attrDef } from "@/lib/attributes";
+import { attrDef, attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
 import { ChevronRight, Lock, Palette, Ruler, Tag } from "lucide-react";
 import Link from "next/link";
@@ -29,16 +29,9 @@ const digitsOnly = (value: string) => value.replace(/\D/g, "");
 const ATTR_ICONS = { color: Palette, size: Ruler, option: Tag };
 
 /** "Өнгө, хэмжээ, тоо оруулах" */
-function variantsTitle(attrs: ProductAttr[]) {
-  const labels = attrs.map((attr, i) => {
-    const label = attrDef(attr.key).label;
-    return i === 0 ? label : label.toLowerCase();
-  });
-  return `${labels.join(", ")}, тоо оруулах`;
-}
+const variantsTitle = (attrs: ProductAttr[]) => `${attrsSummary(attrs.map((attr) => attr.key))}, тоо оруулах`;
 
-function variantsTotal(attrs: ProductAttr[], variants: VariantRow[]) {
-  if (attrs.every((attr) => attr.values.length === 0)) return "Оруулаагүй";
+function variantsTotal(variants: VariantRow[]) {
   const sold = variants.filter((row) => !row.off);
   const total = sold.reduce((sum, row) => sum + toNumber(row.qty), 0);
   return `${sold.length} хувилбар · нийт ${formatQty(total)} ширхэг`;
@@ -56,6 +49,8 @@ export default function ProductForm() {
   const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant } =
     useProductEditor();
   const Icon = ATTR_ICONS[attrs.length > 0 ? attrDef(attrs[0].key).kind : "option"];
+  // Until values are picked, the product has one variant, stocked on this form.
+  const picked = attrs.some((attr) => attr.values.length > 0);
 
   // A field's error shows once it has been left, or on a save attempt.
   const [touched, setTouched] = useState({ name: false, price: false });
@@ -184,9 +179,16 @@ export default function ProductForm() {
           </select>
         </Field>
 
-        {attrs.length === 0 ? (
-          // No attributes: the product is sold in one version, stocked here.
-          <Field label="Тоо ширхэг">
+        {!picked && (
+          // Nothing picked: the product is sold in one version, stocked here.
+          <Field
+            label="Тоо ширхэг"
+            hint={
+              attrs.length > 0
+                ? `${attrsSummary(attrs.map((attr) => attr.key))} сонговол тоог тус бүрээр нь оруулна.`
+                : undefined
+            }
+          >
             <Input
               className="font-mono"
               inputMode="numeric"
@@ -196,54 +198,57 @@ export default function ProductForm() {
               onChange={(e) => updateVariant(variants[0], { qty: digitsOnly(e.target.value) })}
             />
           </Field>
-        ) : hasProductBasics(form) ? (
-          <Link
-            href={`${basePath}/variants`}
-            className="flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
-          >
-            <span className="grid size-10 shrink-0 place-items-center self-start rounded-full bg-primary-soft text-primary-ink">
-              <Icon className="size-5" />
-            </span>
-            <span className="min-w-0 grow">
-              <span className="block text-[15px] font-bold">{variantsTitle(attrs)}</span>
-              {attrs.map((attr) => (
-                <span key={attr.key} className="mt-0.5 block truncate text-sm text-muted-foreground">
-                  {attrDef(attr.key).label}:{" "}
-                  {attr.values.length > 0 ? (
-                    <span className="text-foreground">{attr.values.map((v) => v.value).join(", ")}</span>
-                  ) : (
-                    "сонгоогүй"
-                  )}
-                </span>
-              ))}
-              <span className="mt-1 block truncate font-mono text-xs text-muted-foreground">
-                {variantsTotal(attrs, variants)}
-              </span>
-            </span>
-            <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
-          </Link>
-        ) : (
-          // Variants copy the product's price, so it has to be entered first.
-          // Tapping shows what's missing.
-          <button
-            type="button"
-            onClick={validate}
-            className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-3.5 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
-          >
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
-              <Icon className="size-5" />
-            </span>
-            <span className="min-w-0 grow">
-              <span className="block text-[15px] font-bold text-muted-foreground">
-                {variantsTitle(attrs)}
-              </span>
-              <span className="mt-0.5 block text-sm text-muted-foreground">
-                Эхлээд барааны нэр, үнээ оруулна уу
-              </span>
-            </span>
-            <Lock className="size-4 shrink-0 text-muted-foreground" />
-          </button>
         )}
+
+        {attrs.length > 0 &&
+          (hasProductBasics(form) ? (
+            <Link
+              href={`${basePath}/variants`}
+              className="flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            >
+              <span className="grid size-10 shrink-0 place-items-center self-start rounded-full bg-primary-soft text-primary-ink">
+                <Icon className="size-5" />
+              </span>
+              <span className="min-w-0 grow">
+                <span className="block text-[15px] font-bold">{variantsTitle(attrs)}</span>
+                {attrs.map((attr) => (
+                  <span key={attr.key} className="mt-0.5 block truncate text-sm text-muted-foreground">
+                    {attrDef(attr.key).label}:{" "}
+                    {attr.values.length > 0 ? (
+                      <span className="text-foreground">{attr.values.map((v) => v.value).join(", ")}</span>
+                    ) : (
+                      "сонгоогүй"
+                    )}
+                  </span>
+                ))}
+                <span className="mt-1 block truncate font-mono text-xs text-muted-foreground">
+                  {picked ? variantsTotal(variants) : "Оруулаагүй"}
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+            </Link>
+          ) : (
+            // Variants copy the product's price, so it has to be entered first.
+            // Tapping shows what's missing.
+            <button
+              type="button"
+              onClick={validate}
+              className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-3.5 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
+                <Icon className="size-5" />
+              </span>
+              <span className="min-w-0 grow">
+                <span className="block text-[15px] font-bold text-muted-foreground">
+                  {variantsTitle(attrs)}
+                </span>
+                <span className="mt-0.5 block text-sm text-muted-foreground">
+                  Эхлээд барааны нэр, үнээ оруулна уу
+                </span>
+              </span>
+              <Lock className="size-4 shrink-0 text-muted-foreground" />
+            </button>
+          ))}
 
         <Field label="Тайлбар">
           <Textarea rows={4} value={form.note} onChange={(e) => set("note", e.target.value)} />
