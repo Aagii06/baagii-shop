@@ -1,6 +1,5 @@
 "use client";
 
-import SampleNotice from "@/components/common/SampleNotice";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -117,9 +116,6 @@ export default function CategoriesPage() {
           </Button>
         }
       />
-      <SampleNotice className="mb-2">
-        Категори бүрийн сонголтыг (өнгө, хэмжээ…) хадгалах API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
-      </SampleNotice>
 
       {error && !data ? (
         <div className="pt-4">

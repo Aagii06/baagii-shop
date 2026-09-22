@@ -9,7 +9,7 @@ import { useApi } from "@/lib/useApi";
 import { use } from "react";
 
 async function loadForm() {
-  const [tree, catalogue] = await Promise.all([getCategoryTree(), getAttrs()]);
+  const [tree, catalogue] = await Promise.all([getCategoryTree({ attrs: false }), getAttrs()]);
   return { categories: flattenCategories(tree), catalogue };
 }
 

@@ -1,8 +1,6 @@
-import { getCategoryAttrs } from "./attrs";
-import { apiFetch, type ApiItemResponse } from "./client";
-import { endpointMissing } from "./errors";
+import { apiFetch, fetchAllRows, type ApiItemResponse } from "./client";
 
-// `CategoryTreeNode` in the eshop-service OpenAPI doc.
+// `CategoryTreeNode` in the eshop-admin OpenAPI doc.
 export interface Category {
   id: number;
   parentId: number | null;
@@ -15,38 +13,43 @@ export interface Category {
     bgColor?: string;
     icon?: string;
   } | null;
+  /** Undocumented; sent back unchanged when the category is saved. */
+  childs?: number[] | null;
   /**
    * What its products vary by — `Attr` ids from the catalogue (`getAttrs`),
    * in the order they're entered. Only the last level — a category with no
-   * subcategories — has them; `[]` sells each product in one version. Not
-   * sent by the backend yet, so `getCategoryTree` fills it from
-   * `getCategoryAttrs`.
+   * subcategories — has them; `[]` sells each product in one version.
+   * `attrIds` on the backend; the tree leaves it out, so `getCategoryTree`
+   * reads it from `GET /category`.
    */
   attrs: number[];
   children: Category[];
 }
 
 type CategoryNode = Omit<Category, "attrs" | "children"> & {
-  attrs?: number[] | null;
   /** May be left out on leaves. */
   children?: CategoryNode[] | null;
 };
 
-/** `attrs` as sent, else as `getCategoryAttrs` has it for that id. */
-function withAttrs(list: CategoryNode[], attrsById: Record<number, number[]>): Category[] {
+function toCategories(list: CategoryNode[], attrsById: Map<number, number[]>): Category[] {
   return list.map((node) => ({
     ...node,
-    attrs: node.attrs ?? attrsById[node.id] ?? [],
-    children: withAttrs(node.children ?? [], attrsById),
+    attrs: attrsById.get(node.id) ?? [],
+    children: toCategories(node.children ?? [], attrsById),
   }));
 }
 
-export async function getCategoryTree() {
-  const [res, attrsById] = await Promise.all([
+/**
+ * The category tree with each category's `attrs`, which come from the flat
+ * list — pages that don't need them pass `attrs: false` to skip it.
+ */
+export async function getCategoryTree({ attrs = true } = {}) {
+  const [res, records] = await Promise.all([
     apiFetch<ApiItemResponse<CategoryNode[] | null>>("/category/tree"),
-    getCategoryAttrs(),
+    attrs ? fetchAllRows<CategoryRecord>("/category") : [],
   ]);
-  return withAttrs(res.data ?? [], attrsById);
+  const attrsById = new Map(records.map((record) => [record.id, record.attrIds ?? []]));
+  return toCategories(res.data ?? [], attrsById);
 }
 
 // Flattens the tree to a single list (parents followed by their children),
@@ -87,6 +90,18 @@ export function categoryAttrs(categories: Category[], id: number | null): number
   return category && category.children.length === 0 ? category.attrs : [];
 }
 
+/** `Category` in the eshop-admin OpenAPI doc — a `GET /category` row, and what its writes send back. */
+export interface CategoryRecord extends Omit<Category, "attrs" | "children"> {
+  companyId: number;
+  attrIds: number[];
+  createdById: number;
+  updatedById: number | null;
+  deletedById: number | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
 /** Fields edited on the category form. */
 export interface CategoryInput {
   name: string;
@@ -95,13 +110,31 @@ export interface CategoryInput {
   attrs: number[];
 }
 
-// No write endpoints on eshop-service yet (see README) — implement these
-// bodies once they land; the category pages already call them.
-export const createCategory: (input: CategoryInput) => Promise<void> = () =>
-  endpointMissing("Категори нэмэх");
+// `CategoryBody` in the eshop-admin OpenAPI doc; `companyId` comes from the
+// login. The backend links `attrIds` to the category itself.
+export async function createCategory(input: CategoryInput) {
+  await apiFetch<ApiItemResponse<CategoryRecord | null>>("/category", {
+    method: "POST",
+    body: { name: input.name, parentId: input.parentId, attrIds: input.attrs },
+  });
+}
 
-export const updateCategory: (id: number, input: CategoryInput) => Promise<void> = () =>
-  endpointMissing("Категори засах");
+/** Saves the form's fields; the rest of `category` goes back as it was. */
+export async function updateCategory(category: Category, input: CategoryInput) {
+  await apiFetch<ApiItemResponse<CategoryRecord | null>>(`/category/${category.id}`, {
+    method: "PUT",
+    body: {
+      name: input.name,
+      parentId: input.parentId,
+      code: category.code,
+      image: category.image,
+      childs: category.childs,
+      style: category.style,
+      attrIds: input.attrs,
+    },
+  });
+}
 
-export const deleteCategory: (id: number) => Promise<void> = () =>
-  endpointMissing("Категори устгах");
+export async function deleteCategory(id: number) {
+  await apiFetch<ApiItemResponse<CategoryRecord | null>>(`/category/${id}`, { method: "DELETE" });
+}

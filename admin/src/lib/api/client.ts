@@ -30,6 +30,20 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   auth?: boolean;
 };
 
+const PAGE_SIZE = 100;
+const ID_SORT = encodeURIComponent(JSON.stringify([{ selector: "id", desc: false }]));
+
+/** Every row of a paged list endpoint (`take`/`skip`), in id order. */
+export async function fetchAllRows<T>(path: string): Promise<T[]> {
+  const rows: T[] = [];
+  for (;;) {
+    const res = await apiFetch<ApiListResponse<T>>(`${path}?take=${PAGE_SIZE}&skip=${rows.length}&sort=${ID_SORT}`);
+    const page = res.data?.rows ?? [];
+    rows.push(...page);
+    if (page.length === 0 || rows.length >= (res.data?.count ?? 0)) return rows;
+  }
+}
+
 // For failures that come without a JSON `message` — e.g. the gateway's
 // HTML "Not Found" page for a route the backend doesn't have.
 function statusMessage(status: number) {

@@ -1,4 +1,4 @@
-import { apiFetch, type ApiListResponse } from "./client";
+import { fetchAllRows } from "./client";
 
 // The attribute catalogue: what products can vary by ("Өнгө", "Хувцасны
 // хэмжээ (үсэг)", "Багтаамж"…) and the values offered for each. A category
@@ -54,39 +54,6 @@ function toAttr(row: AttrRow, orderNumber: number): Attr {
   };
 }
 
-const ATTR_PAGE = 100;
-const ATTR_SORT = encodeURIComponent(JSON.stringify([{ selector: "id", desc: false }]));
-
-// `GET /attr` is paged (`take`/`skip`); reads on until all `count` rows are in.
 export async function getAttrs(): Promise<Attr[]> {
-  const rows: AttrRow[] = [];
-  for (;;) {
-    const res = await apiFetch<ApiListResponse<AttrRow>>(
-      `/attr?take=${ATTR_PAGE}&skip=${rows.length}&sort=${ATTR_SORT}`
-    );
-    const page = res.data?.rows ?? [];
-    rows.push(...page);
-    if (page.length === 0 || rows.length >= (res.data?.count ?? 0)) break;
-  }
-  return rows.map(toAttr);
-}
-
-// Which attributes each category's products vary by (`Category.attrs`), by
-// category id — sample data for the live category tree until the backend
-// sends `attrs` with it (`getCategoryTree` prefers what it sends). Only
-// categories without subcategories use theirs; ids left out have none.
-// Attribute ids missing from `GET /attr` are skipped.
-export async function getCategoryAttrs(): Promise<Record<number, number[]>> {
-  return {
-    1: [6, 5], // Цахилгаан бараа: Өнгө, Багтаамж
-    3: [1, 5], // Компьютер: Өнгө, Багтаамж
-    4: [], // Телевизор
-    5: [1, 102], // Хувцас: Өнгө, Хувцасны хэмжээ үсэг
-    6: [1, 102, 4], // Эрэгтэй хувцас: … + Гутлын хэмжээ тоо
-    8: [1, 101], // Хүүхдийн хувцас: Өнгө, Хувцасны хэмжээ тоо
-    9: [], // Хүнс
-    10: [], // Ундаа
-    12: [1], // Гэр ахуй: Өнгө
-    13: [], // Гоо сайхан
-  };
+  return (await fetchAllRows<AttrRow>("/attr")).map(toAttr);
 }

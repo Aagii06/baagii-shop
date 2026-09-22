@@ -1,7 +1,6 @@
 "use client";
 
 import Field from "@/components/common/Field";
-import SampleNotice from "@/components/common/SampleNotice";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
@@ -99,7 +98,7 @@ export default function CategoryForm({
       attrs: isLeaf ? attrs : [],
     };
     const saved = await run(
-      () => (category ? updateCategory(category.id, input) : createCategory(input)),
+      () => (category ? updateCategory(category, input) : createCategory(input)),
       category ? "Хадгаллаа" : "Категори нэмлээ"
     );
     if (saved) router.replace("/categories");
@@ -234,12 +233,6 @@ export default function CategoryForm({
             </>
           )}
         </section>
-
-        {isLeaf && (
-          <SampleNotice>
-            Категори бүрийн сонголтыг хадгалах API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
-          </SampleNotice>
-        )}
       </div>
     </form>
   );
