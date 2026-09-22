@@ -1,4 +1,4 @@
-import { fetchAllRows } from "./client";
+import { apiFetch, fetchAllRows, type ApiItemResponse } from "./client";
 
 // The attribute catalogue: what products can vary by ("Өнгө", "Хувцасны
 // хэмжээ (үсэг)", "Багтаамж"…) and the values offered for each. A category
@@ -24,24 +24,33 @@ export interface Attr {
   values: AttrOption[];
 }
 
-/** An `AttrValue` in the eshop-admin OpenAPI doc (`/doc`). */
-interface AttrValueRow {
+/** An `AttrValue` in the eshop-admin OpenAPI doc. */
+export interface AttrValueRecord {
   id: number | null;
+  code: string | null;
   name: string;
+  nameEng: string | null;
+  description: string | null;
   orderNumber: number | null;
+  image: string | null;
   color: string | null;
 }
 
-/** An `Attr` in the eshop-admin OpenAPI doc (`/doc`), with its values. */
-interface AttrRow {
+/** An `Attr` in the eshop-admin OpenAPI doc, with its values. */
+export interface AttrRecord {
   id: number;
+  code: string;
   name: string;
-  attrValues: AttrValueRow[] | null;
+  shortName: string | null;
+  attrValueTypeId: "text" | "number" | "date" | "boolean" | "select" | null;
+  description: string | null;
+  image: string | null;
+  attrValues: AttrValueRecord[] | null;
 }
 
-function toAttr(row: AttrRow, orderNumber: number): Attr {
+function toAttr(row: AttrRecord, orderNumber: number): Attr {
   const values = (row.attrValues ?? [])
-    .filter((v): v is AttrValueRow & { id: number } => v.id != null)
+    .filter((v): v is AttrValueRecord & { id: number } => v.id != null)
     .map((v, i) => ({ id: v.id, value: v.name, color: v.color ?? null, orderNumber: v.orderNumber ?? i }));
   return {
     id: row.id,
@@ -54,6 +63,70 @@ function toAttr(row: AttrRow, orderNumber: number): Attr {
   };
 }
 
+/** Its values in the order they're offered. */
+export function sortedValues(attr: AttrRecord) {
+  return [...(attr.attrValues ?? [])].sort((a, b) => (a.orderNumber ?? 0) - (b.orderNumber ?? 0));
+}
+
+export async function getAttrRecords() {
+  return fetchAllRows<AttrRecord>("/attr");
+}
+
+/** The catalogue as the category and product forms use it. */
 export async function getAttrs(): Promise<Attr[]> {
-  return (await fetchAllRows<AttrRow>("/attr")).map(toAttr);
+  return (await getAttrRecords()).map(toAttr);
+}
+
+export async function getAttr(id: number) {
+  const res = await apiFetch<ApiItemResponse<AttrRecord | null>>(`/attr/${id}`);
+  return res.data;
+}
+
+/** Fields edited on the attribute form; values are saved in list order. */
+export interface AttrInput {
+  name: string;
+  code: string;
+  values: { id: number | null; name: string; color: string | null }[];
+}
+
+/**
+ * `attrValues` for the body: one with an `id` is updated, one without is
+ * created. Fields the form doesn't edit go back as they were.
+ */
+function valuesBody(input: AttrInput, saved: AttrValueRecord[]) {
+  return input.values.map((v, i) => ({
+    ...saved.find((old) => old.id != null && old.id === v.id),
+    id: v.id,
+    name: v.name,
+    color: v.color,
+    orderNumber: i,
+  }));
+}
+
+// `companyId` comes from the login.
+export async function createAttr(input: AttrInput) {
+  await apiFetch<ApiItemResponse<AttrRecord | null>>("/attr", {
+    method: "POST",
+    body: { code: input.code, name: input.name, attrValueTypeId: "select", attrValues: valuesBody(input, []) },
+  });
+}
+
+/** Saves the form's fields; the rest of `attr` goes back as it was. */
+export async function updateAttr(attr: AttrRecord, input: AttrInput) {
+  await apiFetch<ApiItemResponse<AttrRecord | null>>(`/attr/${attr.id}`, {
+    method: "PUT",
+    body: {
+      code: input.code,
+      name: input.name,
+      shortName: attr.shortName,
+      attrValueTypeId: attr.attrValueTypeId,
+      description: attr.description,
+      image: attr.image,
+      attrValues: valuesBody(input, attr.attrValues ?? []),
+    },
+  });
+}
+
+export async function deleteAttr(id: number) {
+  await apiFetch<ApiItemResponse<AttrRecord | null>>(`/attr/${id}`, { method: "DELETE" });
 }

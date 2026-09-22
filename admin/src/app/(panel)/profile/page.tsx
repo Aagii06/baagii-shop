@@ -4,7 +4,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, LayoutGrid, LogOut, NotebookPen, type LucideIcon } from "lucide-react";
+import { ChevronRight, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; label: string; description: string; icon: LucideIcon }[] = [
@@ -13,6 +13,12 @@ const MENU: { href: string; label: string; description: string; icon: LucideIcon
     label: "Категори",
     description: "Категори нэмэх, засах",
     icon: LayoutGrid,
+  },
+  {
+    href: "/attrs",
+    label: "Үзүүлэлт",
+    description: "Өнгө, хэмжээ зэрэг үзүүлэлт, утгууд",
+    icon: SlidersHorizontal,
   },
   {
     href: "/delivery-notes",

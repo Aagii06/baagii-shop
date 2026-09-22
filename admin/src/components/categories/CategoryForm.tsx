@@ -10,6 +10,7 @@ import { createCategory, updateCategory, type Category } from "@/lib/api/categor
 import { MAX_ATTRS } from "@/lib/attributes";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 
@@ -165,8 +166,11 @@ export default function CategoryForm({
               )}
 
               <p className="px-1 text-xs text-muted-foreground">
-                Дарсан дарааллаар нь оруулна. Хамгийн ихдээ {MAX_ATTRS} сонголт. Шинэ сонголт өгөгдлийн санд
-                нэмэгдэнэ.
+                Дарсан дарааллаар нь оруулна. Хамгийн ихдээ {MAX_ATTRS} сонголт. Шинэ сонголтыг{" "}
+                <Link href="/attrs" className="font-semibold text-primary-ink underline-offset-4 hover:underline">
+                  Үзүүлэлт
+                </Link>{" "}
+                хэсэгт нэмнэ.
               </p>
 
               {/* What the product form will ask for. */}
