@@ -27,7 +27,8 @@ export interface Category {
 
 type CategoryNode = Omit<Category, "attrs" | "children"> & {
   attrs?: number[] | null;
-  children: CategoryNode[];
+  /** May be left out on leaves. */
+  children?: CategoryNode[] | null;
 };
 
 /** `attrs` as sent, else as `getCategoryAttrs` has it for that id. */
@@ -35,13 +36,13 @@ function withAttrs(list: CategoryNode[], attrsById: Record<number, number[]>): C
   return list.map((node) => ({
     ...node,
     attrs: node.attrs !== undefined ? node.attrs : (attrsById[node.id] ?? null),
-    children: withAttrs(node.children, attrsById),
+    children: withAttrs(node.children ?? [], attrsById),
   }));
 }
 
 export async function getCategoryTree() {
   const [res, attrsById] = await Promise.all([
-    apiFetch<ApiItemResponse<CategoryNode[] | null>>("/category/getCategoryTree"),
+    apiFetch<ApiItemResponse<CategoryNode[] | null>>("/category/tree"),
     getCategoryAttrs(),
   ]);
   return withAttrs(res.data ?? [], attrsById);

@@ -36,7 +36,7 @@ export default function NewCategoryPage({
 
   return (
     <>
-      <DetailHeader backHref="/categories" title="Категори нэмэх" />
+      <DetailHeader backHref="/categories" title={parentId ? "Дэд категори нэмэх" : "Категори нэмэх"} />
       {error ? <ErrorState error={error} onRetry={reload} /> : <LoadingState />}
     </>
   );

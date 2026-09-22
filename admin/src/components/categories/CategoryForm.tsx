@@ -41,7 +41,10 @@ export default function CategoryForm({
 }: {
   /** `null` for a new category. */
   category: Category | null;
-  /** Where a new category starts out; an existing one keeps its own parent. */
+  /**
+   * Adds the new category under this one, from a row's "add subcategory"
+   * button; the parent then can't be changed here.
+   */
   parentId?: number | null;
   categories: (Category & { depth: number })[];
   catalogue: Attr[];
@@ -54,6 +57,7 @@ export default function CategoryForm({
 
   const [name, setName] = useState(category?.name ?? "");
   const [nameTouched, setNameTouched] = useState(false);
+  const parentLocked = !category && initialParentId != null;
   const [parentId, setParentId] = useState(() => {
     const id = category ? category.parentId : initialParentId;
     return id != null ? String(id) : "";
@@ -115,7 +119,7 @@ export default function CategoryForm({
     <form onSubmit={onSubmit} noValidate>
       <DetailHeader
         backHref="/categories"
-        title={category ? "Категори засах" : "Категори нэмэх"}
+        title={category ? "Категори засах" : parentLocked ? "Дэд категори нэмэх" : "Категори нэмэх"}
         aside={
           <Button type="submit" className="h-10 px-5">
             Хадгалах
@@ -137,11 +141,19 @@ export default function CategoryForm({
           />
         </Field>
 
-        <Field label="Эцэг категори" hint={`Категори хамгийн ихдээ ${MAX_CATEGORY_DEPTH} түвшин байна.`}>
+        <Field
+          label="Эцэг категори"
+          hint={
+            parentLocked
+              ? "Дэд категори нэмж байгаа тул эцэг категорийг солих боломжгүй."
+              : `Категори хамгийн ихдээ ${MAX_CATEGORY_DEPTH} түвшин байна.`
+          }
+        >
           <select
             value={parentId}
             onChange={(e) => setParentId(e.target.value)}
-            className="h-12 w-full rounded-full border border-input bg-white px-5 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            disabled={parentLocked}
+            className="h-12 w-full rounded-full border border-input bg-white px-5 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:bg-muted disabled:text-foreground"
           >
             <option value="">Үндсэн категори</option>
             {parents.map((c) => (

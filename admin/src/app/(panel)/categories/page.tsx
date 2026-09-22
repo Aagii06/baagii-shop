@@ -14,44 +14,27 @@ import {
   type Category,
 } from "@/lib/api/categories";
 import { getAttrs } from "@/lib/api/attrs";
-import { getPosts } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
-import { cn, formatQty } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
 async function loadCategories() {
-  const [tree, posts, catalogue] = await Promise.all([getCategoryTree(), getPosts(), getAttrs()]);
-  const productCount = new Map<number, number>();
-  for (const post of posts) {
-    if (post.categoryId != null) {
-      productCount.set(post.categoryId, (productCount.get(post.categoryId) ?? 0) + 1);
-    }
-  }
+  const [tree, catalogue] = await Promise.all([getCategoryTree(), getAttrs()]);
   const attrName = new Map(catalogue.map((attr) => [attr.id, attr.name]));
-  return { tree, productCount, attrName };
-}
-
-// Listings in this category plus all of its subcategories.
-function subtreeCount(category: Category, productCount: Map<number, number>): number {
-  return category.children.reduce(
-    (sum, child) => sum + subtreeCount(child, productCount),
-    productCount.get(category.id) ?? 0
-  );
+  return { tree, attrName };
 }
 
 function CategoryRow({
   category,
   attrs,
-  count,
   onChanged,
 }: {
   category: Category & { depth: number };
   /** Names of what its products vary by — its own or inherited. */
   attrs: string[];
-  count: number;
   onChanged: () => void;
 }) {
   const { run } = useToast();
@@ -76,8 +59,6 @@ function CategoryRow({
           {category.name}
         </span>
         <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-          <span className="font-mono">{formatQty(count)} бараа</span>
-          {" · "}
           <span className={cn(attrs.length > 0 && !inherited && "font-semibold text-primary-ink")}>
             {attrsSummary(attrs)}
           </span>
@@ -156,7 +137,6 @@ export default function CategoriesPage() {
               key={category.id}
               category={category}
               attrs={categoryAttrs(rows, category.id).map((id) => data.attrName.get(id) ?? `#${id}`)}
-              count={subtreeCount(category, data.productCount)}
               onChanged={reload}
             />
           ))}
