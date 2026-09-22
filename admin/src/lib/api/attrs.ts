@@ -1,5 +1,3 @@
-import { SAMPLE_ATTRS } from "./sample";
-
 // The attribute catalogue: what products can vary by ("Өнгө", "Хувцасны
 // хэмжээ (үсэг)", "Багтаамж"…) and the values offered for each. A category
 // lists the attributes its products use (`Category.attrs`); a product's
@@ -24,9 +22,74 @@ export interface Attr {
   values: AttrOption[];
 }
 
-// eshop-service has no endpoint for the catalogue yet, so this serves
-// placeholder data from `./sample`. Swap the body for an `apiFetch` call
-// once it lands; the pages won't need to change.
+type SampleValue = string | [value: string, color: string | null, id?: number];
+
+/**
+ * A sample `attr` row. Value ids count up from `firstId`; a `[value, color,
+ * id]` entry pins one seen on real posts instead.
+ */
+function sampleAttr(
+  id: number,
+  name: string,
+  viewType: Attr["viewType"],
+  firstId: number,
+  values: SampleValue[]
+): Attr {
+  return {
+    id,
+    name,
+    viewType,
+    orderNumber: 0,
+    values: values.map((v, i) => {
+      const [value, color = null, valueId = firstId + i] = typeof v === "string" ? [v] : v;
+      return { id: valueId, value, color, orderNumber: i };
+    }),
+  };
+}
+
+// eshop-service has no endpoint for the catalogue yet, so this serves sample
+// data. Attribute ids 1, 4, 5, 6 and the pinned value ids match real posts;
+// the rest are placeholders (attributes from 101, values from 1001). Once the
+// endpoint lands, return its rows instead, e.g.:
+//   const res = await apiFetch<ApiItemResponse<Attr[] | null>>("/attr");
+//   return res.data ?? [];
 export async function getAttrs(): Promise<Attr[]> {
-  return SAMPLE_ATTRS;
+  return [
+    sampleAttr(1, "Өнгө", "image", 1001, [
+      ["Хар", "#000000", 1],
+      ["Цагаан", "#ffffff", 2],
+      ["Саарал", "#bababa", 10],
+      ["Цайвар цэнхэр", "#82cfff", 9],
+      ["Хөх", "#1d4ed8"],
+      ["Улаан", "#dc2626"],
+      ["Ягаан", "#f472b6"],
+      ["Шар", "#facc15"],
+      ["Ногоон", "#16a34a"],
+      ["Бор", "#8b5e3c"],
+      ["Бежь", "#d9c3a0"],
+      ["Нил ягаан", "#7c3aed"],
+    ]),
+    sampleAttr(6, "Өнгө", "image", 1051, [
+      ["Cosmic Orange", null, 15],
+      ["Deep Blue", null, 16],
+      ["Silver", null, 17],
+    ]),
+    sampleAttr(101, "Хувцасны хэмжээ тоо", "text", 1101, ["59", "66", "73", "80", "90", "100", "110", "120", "130", "140"]),
+    sampleAttr(102, "Хувцасны хэмжээ үсэг", "text", 1201, ["XS", "S", "M", "L", "XL", "XXL", "XXXL", "XXXXL"]),
+    sampleAttr(4, "Гутлын хэмжээ тоо", "text", 1301, Array.from({ length: 20 }, (_, i) => String(16 + i))),
+    sampleAttr(103, "Гутлын хэмжээ нас", "text", 1401, [
+      "0–6 сар",
+      "6–12 сар",
+      "1 нас",
+      "2 нас",
+      "3 нас",
+      "4 нас",
+      "5 нас",
+      "6 нас",
+      "7 нас",
+      "8 нас",
+    ]),
+    sampleAttr(5, "Багтаамж", "text", 1501, ["64 ГБ", "128 ГБ", ["256 ГБ", null, 12], ["512ГБ", null, 13], ["1ТБ", null, 14], "2ТБ"]),
+    sampleAttr(104, "Эзлэхүүн", "text", 1601, ["30 мл", "50 мл", "100 мл", "250 мл", "500 мл", "1 л", "1.5 л", "2 л"]),
+  ].map((attr, i) => ({ ...attr, orderNumber: i }));
 }
