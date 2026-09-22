@@ -1,5 +1,11 @@
 import { apiFetch, type ApiItemResponse } from "./client";
 
+/** An attribute a category's products vary by, as the tree names it. */
+export interface CategoryAttr {
+  id: number;
+  name: string;
+}
+
 // `CategoryTreeNode` in the eshop-admin OpenAPI doc.
 export interface Category {
   id: number;
@@ -16,26 +22,26 @@ export interface Category {
   /** Undocumented; sent back unchanged when the category is saved. */
   childs?: number[] | null;
   /**
-   * What its products vary by — `Attr` ids from the catalogue (`getAttrs`),
+   * What its products vary by — attributes of the catalogue (`getAttrs`),
    * in the order they're entered. Only the last level — a category with no
    * subcategories — has them; `[]` sells each product in one version.
-   * `attrIds` on the backend.
+   * Saved as `attrIds`.
    */
-  attrs: number[];
+  attrs: CategoryAttr[];
   children: Category[];
 }
 
 type CategoryNode = Omit<Category, "attrs" | "children"> & {
-  attrIds?: number[] | null;
+  attrs?: CategoryAttr[] | null;
   /** May be left out on leaves. */
   children?: CategoryNode[] | null;
 };
 
 function toCategories(list: CategoryNode[]): Category[] {
-  return list.map(({ attrIds, children, ...node }) => ({
+  return list.map((node) => ({
     ...node,
-    attrs: attrIds ?? [],
-    children: toCategories(children ?? []),
+    attrs: node.attrs ?? [],
+    children: toCategories(node.children ?? []),
   }));
 }
 
@@ -68,10 +74,10 @@ export function countCategories(list: Category[]): number {
   return list.reduce((sum, c) => sum + 1 + countCategories(c.children), 0);
 }
 
-/** The attributes a category's products vary by — none unless it has no subcategories. */
+/** Ids of the attributes a category's products vary by — none unless it has no subcategories. */
 export function categoryAttrs(categories: Category[], id: number | null): number[] {
   const category = id != null ? categories.find((c) => c.id === id) : undefined;
-  return category && category.children.length === 0 ? category.attrs : [];
+  return category && category.children.length === 0 ? category.attrs.map((attr) => attr.id) : [];
 }
 
 /** `Category` in the eshop-admin OpenAPI doc — what its writes send back. */
@@ -90,7 +96,7 @@ export interface CategoryRecord extends Omit<Category, "attrs" | "children"> {
 export interface CategoryInput {
   name: string;
   parentId: number | null;
-  /** Like `Category.attrs`; `[]` for a category with subcategories. */
+  /** Ids, like `Category.attrs`; `[]` for a category with subcategories. */
   attrs: number[];
 }
 

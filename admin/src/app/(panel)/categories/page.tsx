@@ -7,13 +7,11 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import {
   canNestUnder,
-  categoryAttrs,
   deleteCategory,
   flattenCategories,
   getCategoryTree,
   type Category,
 } from "@/lib/api/categories";
-import { getAttrs } from "@/lib/api/attrs";
 import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
 import { cn, formatQty } from "@/lib/utils";
@@ -21,20 +19,11 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
-async function loadCategories() {
-  const [tree, catalogue] = await Promise.all([getCategoryTree(), getAttrs()]);
-  const attrName = new Map(catalogue.map((attr) => [attr.id, attr.name]));
-  return { tree, attrName };
-}
-
 function CategoryRow({
   category,
-  attrs,
   onChanged,
 }: {
   category: Category & { depth: number };
-  /** Names of what its products vary by; only the last level has them. */
-  attrs: string[];
   onChanged: () => void;
 }) {
   const { run } = useToast();
@@ -70,7 +59,9 @@ function CategoryRow({
           {category.children.length > 0 ? (
             `${formatQty(category.children.length)} дэд категори`
           ) : (
-            <span className={cn(attrs.length > 0 && "font-semibold text-primary-ink")}>{attrsSummary(attrs)}</span>
+            <span className={cn(category.attrs.length > 0 && "font-semibold text-primary-ink")}>
+              {attrsSummary(category.attrs.map((attr) => attr.name))}
+            </span>
           )}
         </span>
       </span>
@@ -108,9 +99,9 @@ function CategoryRow({
 }
 
 export default function CategoriesPage() {
-  const { data, error, reload } = useApi(loadCategories);
+  const { data, error, reload } = useApi(getCategoryTree);
 
-  const rows = useMemo(() => (data ? flattenCategories(data.tree) : []), [data]);
+  const rows = useMemo(() => (data ? flattenCategories(data) : []), [data]);
 
   return (
     <>
@@ -143,7 +134,6 @@ export default function CategoriesPage() {
             <CategoryRow
               key={category.id}
               category={category}
-              attrs={categoryAttrs(rows, category.id).map((id) => data.attrName.get(id) ?? `#${id}`)}
               onChanged={reload}
             />
           ))}

@@ -5,6 +5,7 @@ import { useConfirm } from "@/components/common/Confirm";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Swatch } from "@/components/products/AttrPickers";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteAttr, getAttrRecords, sortedValues, type AttrRecord } from "@/lib/api/attrs";
 import { useApi } from "@/lib/useApi";
@@ -34,20 +35,25 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
   return (
     <li className="flex items-center gap-2 py-3.5">
       <span className="min-w-0 grow">
-        <span className="block truncate text-[15px] font-bold">{attr.name}</span>
-        <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-          {values.some((v) => v.color) && (
-            <span className="flex shrink-0 -space-x-1">
-              {values.slice(0, 5).map((v, i) => (
-                <Swatch key={v.id ?? i} color={v.color} className="size-3.5" />
-              ))}
-            </span>
-          )}
-          <span className="truncate">
-            <span className="font-mono">{formatQty(count)} утга</span>
-            {preview && ` · ${preview}`}
-          </span>
+        <span className="flex items-center gap-2">
+          <span className="truncate text-[15px] font-bold">{attr.name}</span>
+          <Badge className="shrink-0 px-2 py-0.5 font-mono">
+            {formatQty(count)}
+            <span className="sr-only"> утга</span>
+          </Badge>
         </span>
+        {preview && (
+          <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            {values.some((v) => v.color) && (
+              <span className="flex shrink-0 -space-x-1">
+                {values.slice(0, 5).map((v, i) => (
+                  <Swatch key={v.id ?? i} color={v.color} className="size-3.5" />
+                ))}
+              </span>
+            )}
+            <span className="truncate">{preview}</span>
+          </span>
+        )}
       </span>
       <Button asChild variant="outline" size="icon-sm" className="shrink-0">
         <Link href={`/attrs/${attr.id}`} aria-label={`“${attr.name}” засах`} title="Засах">

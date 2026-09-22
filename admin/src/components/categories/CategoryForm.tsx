@@ -52,7 +52,7 @@ export default function CategoryForm({
   const isLeaf = !category || category.children.length === 0;
   // Ids gone from the catalogue are dropped: they have no card to turn them off.
   const [attrs, setAttrs] = useState<number[]>(() =>
-    category && isLeaf ? category.attrs.filter((id) => catalogue.some((a) => a.id === id)) : []
+    category && isLeaf ? category.attrs.map((attr) => attr.id).filter((id) => catalogue.some((a) => a.id === id)) : []
   );
   const full = attrs.length >= MAX_ATTRS;
   const nameOf = (id: number) => catalogue.find((a) => a.id === id)?.name ?? `#${id}`;
