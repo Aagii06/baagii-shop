@@ -1,21 +1,86 @@
+import type { Attr } from "./attrs";
 import type { Order, SalesRange, SalesSummary } from "./orders";
 
 // Placeholder data for the screens whose eshop-service endpoints don't exist
-// yet (orders, sales, category attributes). Only `./orders` and
-// `./categories` read it. Delete this file once those endpoints are wired up.
+// yet (orders, sales, the attribute catalogue, category attributes). Only
+// `./orders`, `./attrs` and `./categories` read it. Delete this file once
+// those endpoints are wired up.
+
+// Ids seen on real posts (`attrId` 1, 4, 5, 6 and their `attrValueId`s) are
+// kept; the rest are placeholders — attributes from 101, values from 1001.
+let placeholderValueId = 1000;
+
+function attr(
+  id: number,
+  name: string,
+  viewType: Attr["viewType"],
+  values: (string | [value: string, color: string | null, id?: number])[]
+): Attr {
+  return {
+    id,
+    name,
+    viewType,
+    orderNumber: 0,
+    values: values.map((v, i) => {
+      const [value, color = null, valueId = ++placeholderValueId] = typeof v === "string" ? [v] : v;
+      return { id: valueId, value, color, orderNumber: i };
+    }),
+  };
+}
+
+/** What `getAttrs` serves until the catalogue endpoint exists. */
+export const SAMPLE_ATTRS: Attr[] = [
+  attr(1, "Өнгө", "image", [
+    ["Хар", "#000000", 1],
+    ["Цагаан", "#ffffff", 2],
+    ["Саарал", "#bababa", 10],
+    ["Цайвар цэнхэр", "#82cfff", 9],
+    ["Хөх", "#1d4ed8"],
+    ["Улаан", "#dc2626"],
+    ["Ягаан", "#f472b6"],
+    ["Шар", "#facc15"],
+    ["Ногоон", "#16a34a"],
+    ["Бор", "#8b5e3c"],
+    ["Бежь", "#d9c3a0"],
+    ["Нил ягаан", "#7c3aed"],
+  ]),
+  attr(6, "Өнгө", "image", [
+    ["Cosmic Orange", null, 15],
+    ["Deep Blue", null, 16],
+    ["Silver", null, 17],
+  ]),
+  attr(101, "Хувцасны хэмжээ тоо", "text", ["59", "66", "73", "80", "90", "100", "110", "120", "130", "140"]),
+  attr(102, "Хувцасны хэмжээ үсэг", "text", ["XS", "S", "M", "L", "XL", "XXL", "XXXL", "XXXXL"]),
+  attr(4, "Гутлын хэмжээ тоо", "text", Array.from({ length: 20 }, (_, i) => String(16 + i))),
+  attr(103, "Гутлын хэмжээ нас", "text", [
+    "0–6 сар",
+    "6–12 сар",
+    "1 нас",
+    "2 нас",
+    "3 нас",
+    "4 нас",
+    "5 нас",
+    "6 нас",
+    "7 нас",
+    "8 нас",
+  ]),
+  attr(5, "Багтаамж", "text", ["64 ГБ", "128 ГБ", ["256 ГБ", null, 12], ["512ГБ", null, 13], ["1ТБ", null, 14], "2ТБ"]),
+  attr(104, "Эзлэхүүн", "text", ["30 мл", "50 мл", "100 мл", "250 мл", "500 мл", "1 л", "1.5 л", "2 л"]),
+].map((a, i) => ({ ...a, orderNumber: i }));
 
 /**
- * `Category.attrs` by category code, until `getCategoryTree` sends it.
- * Subcategories not listed take their parent's.
+ * `Category.attrs` (attribute ids) by category code, until `getCategoryTree`
+ * sends it. Subcategories not listed take their parent's.
  */
-export const SAMPLE_CATEGORY_ATTRS: Record<string, string[]> = {
-  electronics: ["color", "capacity"],
+export const SAMPLE_CATEGORY_ATTRS: Record<string, number[]> = {
+  electronics: [6, 5],
   tv: [],
-  clothing: ["color", "size"],
-  food: ["weight"],
-  drinks: ["volume"],
-  home: ["color"],
-  beauty: ["volume"],
+  clothing: [1, 102],
+  men: [1, 102, 4],
+  kids: [1, 101],
+  drinks: [104],
+  home: [1],
+  beauty: [104],
 };
 
 /** ISO timestamp for `hh:mm` on the day `daysAgo` days before today. */

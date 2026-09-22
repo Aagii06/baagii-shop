@@ -139,16 +139,21 @@ export interface PostInput {
 }
 
 export interface PostAttrInput {
-  /** Existing attribute (`PostAttr.attrId`); `null` when new to this product. */
+  /** Catalogue attribute (`Attr.id`); `null` only for old posts whose variants differ by name alone. */
   attrId: number | null;
-  /** `lib/attributes` key ("color", "size", …) or a custom attribute's name. */
-  key: string;
   name: string;
   /**
-   * `color` is the swatch hex. `image` (the value's cover) and `images` are
-   * what the shop shows once a shopper picks this value.
+   * `attrValueId` is the catalogue value (`AttrOption.id`), `null` for one
+   * typed in on the product. `color` is the swatch hex. `image` (the value's
+   * cover) and `images` are what the shop shows once a shopper picks it.
    */
-  values: { value: string; color: string | null; image: string | null; images: string[] }[];
+  values: {
+    attrValueId: number | null;
+    value: string;
+    color: string | null;
+    image: string | null;
+    images: string[];
+  }[];
 }
 
 export interface PostVariantInput {

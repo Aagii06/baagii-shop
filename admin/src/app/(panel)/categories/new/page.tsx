@@ -3,15 +3,19 @@
 import CategoryForm from "@/components/categories/CategoryForm";
 import { ErrorState, LoadingState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
+import { getAttrs } from "@/lib/api/attrs";
 import { flattenCategories, getCategoryTree } from "@/lib/api/categories";
 import { useApi } from "@/lib/useApi";
-import { useMemo } from "react";
+
+async function loadForm() {
+  const [tree, catalogue] = await Promise.all([getCategoryTree(), getAttrs()]);
+  return { categories: flattenCategories(tree), catalogue };
+}
 
 export default function NewCategoryPage() {
-  const { data: tree, error, reload } = useApi(getCategoryTree);
-  const categories = useMemo(() => (tree ? flattenCategories(tree) : null), [tree]);
+  const { data, error, reload } = useApi(loadForm);
 
-  if (categories) return <CategoryForm category={null} categories={categories} />;
+  if (data) return <CategoryForm category={null} categories={data.categories} catalogue={data.catalogue} />;
 
   return (
     <>

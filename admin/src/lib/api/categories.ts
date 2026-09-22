@@ -16,17 +16,17 @@ export interface Category {
     icon?: string;
   } | null;
   /**
-   * What its products vary by, in the order they're entered — `lib/attributes`
-   * keys ("color", "size", …) or custom names. `[]` sells each product in one
-   * version; `null` takes the parent's. Not sent by eshop-service yet, so
+   * What its products vary by — `Attr` ids from the catalogue (`getAttrs`),
+   * in the order they're entered. `[]` sells each product in one version;
+   * `null` takes the parent's. Not sent by eshop-service yet, so
    * `getCategoryTree` fills it from `SAMPLE_CATEGORY_ATTRS`.
    */
-  attrs: string[] | null;
+  attrs: number[] | null;
   children: Category[];
 }
 
 type CategoryNode = Omit<Category, "attrs" | "children"> & {
-  attrs?: string[] | null;
+  attrs?: number[] | null;
   children: CategoryNode[];
 };
 
@@ -62,7 +62,7 @@ export function countCategories(list: Category[]): number {
 }
 
 /** The attributes a category's products vary by — its own, else the nearest parent's. */
-export function categoryAttrs(categories: Category[], id: number | null): string[] {
+export function categoryAttrs(categories: Category[], id: number | null): number[] {
   const byId = new Map(categories.map((c) => [c.id, c]));
   let category = id != null ? byId.get(id) : undefined;
   while (category) {
@@ -77,7 +77,7 @@ export interface CategoryInput {
   name: string;
   parentId: number | null;
   /** Like `Category.attrs`; `null` only under a parent. */
-  attrs: string[] | null;
+  attrs: number[] | null;
 }
 
 // No write endpoints on eshop-service yet (see README) — implement these

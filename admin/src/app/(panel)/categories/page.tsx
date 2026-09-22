@@ -12,6 +12,7 @@ import {
   getCategoryTree,
   type Category,
 } from "@/lib/api/categories";
+import { getAttrs } from "@/lib/api/attrs";
 import { getPosts } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
@@ -21,14 +22,15 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 async function loadCategories() {
-  const [tree, posts] = await Promise.all([getCategoryTree(), getPosts()]);
+  const [tree, posts, catalogue] = await Promise.all([getCategoryTree(), getPosts(), getAttrs()]);
   const productCount = new Map<number, number>();
   for (const post of posts) {
     if (post.categoryId != null) {
       productCount.set(post.categoryId, (productCount.get(post.categoryId) ?? 0) + 1);
     }
   }
-  return { tree, productCount };
+  const attrName = new Map(catalogue.map((attr) => [attr.id, attr.name]));
+  return { tree, productCount, attrName };
 }
 
 // Listings in this category plus all of its subcategories.
@@ -46,7 +48,7 @@ function CategoryRow({
   onChanged,
 }: {
   category: Category & { depth: number };
-  /** What its products vary by — its own or inherited. */
+  /** Names of what its products vary by — its own or inherited. */
   attrs: string[];
   count: number;
   onChanged: () => void;
@@ -110,7 +112,8 @@ export default function CategoriesPage() {
         }
       />
       <SampleNotice className="mb-2">
-        Backend категорийн сонголтыг (өнгө, хэмжээ…) хараахан илгээдэггүй тул жишээ тохиргоо харуулж байна.
+        Backend сонголтуудын жагсаалт болон категорийн тохиргоог (өнгө, хэмжээ…) хараахан илгээдэггүй тул
+        жишээ өгөгдөл харуулж байна.
       </SampleNotice>
 
       {error && !data ? (
@@ -129,7 +132,7 @@ export default function CategoriesPage() {
             <CategoryRow
               key={category.id}
               category={category}
-              attrs={categoryAttrs(rows, category.id)}
+              attrs={categoryAttrs(rows, category.id).map((id) => data.attrName.get(id) ?? `#${id}`)}
               count={subtreeCount(category, data.productCount)}
               onChanged={reload}
             />

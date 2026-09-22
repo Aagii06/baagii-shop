@@ -3,7 +3,7 @@
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { attrDef, attrsSummary, valueKey } from "@/lib/attributes";
+import { attrsSummary, valueKey } from "@/lib/attributes";
 import { cn, formatQty, toNumber } from "@/lib/utils";
 import { Trash2, Undo2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -35,7 +35,7 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
   const { variants, updateVariant } = useProductEditor();
   const [first, ...rest] = attrs;
   const labelAttrs = rest.length > 0 ? rest : attrs;
-  const colorAttr = labelAttrs.find((attr) => attrDef(attr.key).kind === "color");
+  const colorAttr = labelAttrs.find((attr) => attr.viewType === "image");
   const groups =
     rest.length === 0
       ? [{ value: null, rows: variants }]
@@ -69,7 +69,7 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
   return (
     <div className="rounded-2xl border border-border bg-card px-2.5 py-3">
       <div className={cn(ROW_GRID, "px-0.5 text-xs text-muted-foreground")}>
-        <span className="truncate">{attrDef(labelAttrs[0].key).label}</span>
+        <span className="truncate">{labelAttrs[0].name}</span>
         <span className="text-center">Тоо (ш)</span>
         <span className="text-center">Үнэ (₮)</span>
         <span className="text-center">Хямдрал (₮)</span>
@@ -78,7 +78,7 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
         <div key={group.value?.value ?? ""}>
           {group.value && (
             <p className="mb-1.5 mt-3.5 flex items-center gap-2 px-0.5 text-sm font-extrabold">
-              {attrDef(first.key).kind === "color" && <Swatch color={group.value.color} />}
+              {first.viewType === "image" && <Swatch color={group.value.color} />}
               {group.value.value}
             </p>
           )}
@@ -129,16 +129,16 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
 }
 
 /**
- * One section per attribute the product's category lists (colour swatches,
- * size types, value chips), then stock and prices per combination. Edits
- * the shared draft; the product form saves it.
+ * One section per attribute the product's category lists (colour swatches
+ * or value chips), then stock and prices per combination. Edits the shared
+ * draft; the product form saves it.
  */
 export default function ProductVariantsForm() {
   const router = useRouter();
   const { form, basePath, attrs, inCategory, setAttrValues } = useProductEditor();
   const ready = hasProductBasics(form) && attrs.length > 0;
   const picked = attrs.filter((attr) => attr.values.length > 0);
-  const title = attrsSummary(attrs.map((attr) => attr.key));
+  const title = attrsSummary(attrs.map((attr) => attr.name));
 
   // Reached by URL before the name and price were entered, or for a
   // category without attributes (its stock is on the form itself).
@@ -169,11 +169,11 @@ export default function ProductVariantsForm() {
       <div className="space-y-6">
         {attrs.map((attr, i) => (
           <section key={attr.key}>
-            <StepTitle step={i + 1}>{attrDef(attr.key).label} сонгох</StepTitle>
+            <StepTitle step={i + 1}>{attr.name} сонгох</StepTitle>
             {!inCategory(attr.key) && (
               // Left over from the product's earlier category.
               <div className="mb-2.5 flex items-center gap-3 rounded-xl bg-warning-soft px-3 py-2 text-xs font-semibold text-foreground/80">
-                <span className="grow">Энэ категорид “{attrDef(attr.key).label}” сонголт байхгүй.</span>
+                <span className="grow">Энэ категорид “{attr.name}” сонголт байхгүй.</span>
                 <Button type="button" variant="outline" size="sm" onClick={() => setAttrValues(attr.key, [])}>
                   Хасах
                 </Button>

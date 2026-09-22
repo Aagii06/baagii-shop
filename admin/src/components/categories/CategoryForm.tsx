@@ -7,6 +7,7 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import type { Attr } from "@/lib/api/attrs";
 import {
   categoryAttrs,
   createCategory,
@@ -14,23 +15,31 @@ import {
   updateCategory,
   type Category,
 } from "@/lib/api/categories";
-import { ATTRS, attrDef, attrKeyForName, attrsSummary, MAX_ATTRS } from "@/lib/attributes";
+import { attrsSummary, MAX_ATTRS } from "@/lib/attributes";
 import { cn } from "@/lib/utils";
-import { Check, Plus, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 
+/** "Хар, Цагаан, Саарал, Цайвар цэнхэр…" — tells apart attributes of the same name. */
+function valuesPreview(attr: Attr) {
+  const values = [...attr.values].sort((a, b) => a.orderNumber - b.orderNumber);
+  return values.slice(0, 4).map((v) => v.value).join(", ") + (values.length > 4 ? "…" : "");
+}
+
 /**
- * Create or edit a category, and choose what its products vary by — the
- * product form then asks for exactly those (colours, sizes, …).
+ * Create or edit a category, and choose from the attribute catalogue what
+ * its products vary by — the product form then asks for exactly those.
  */
 export default function CategoryForm({
   category,
   categories,
+  catalogue,
 }: {
   /** `null` for a new category. */
   category: Category | null;
   categories: (Category & { depth: number })[];
+  catalogue: Attr[];
 }) {
   const router = useRouter();
   const { run } = useToast();
@@ -43,10 +52,10 @@ export default function CategoryForm({
   const [parentId, setParentId] = useState(category?.parentId != null ? String(category.parentId) : "");
   // Under a parent, the parent's attributes apply until turned off here.
   const [inherit, setInherit] = useState(category ? category.attrs === null : true);
-  const [attrs, setAttrs] = useState<string[]>(() =>
-    category ? categoryAttrs(categories, category.id) : []
+  // Ids gone from the catalogue are dropped: they have no card to turn them off.
+  const [attrs, setAttrs] = useState<number[]>(() =>
+    category ? categoryAttrs(categories, category.id).filter((id) => catalogue.some((a) => a.id === id)) : []
   );
-  const [customDraft, setCustomDraft] = useState("");
 
   // A category can't sit under itself or its own subcategories.
   const excluded = new Set(category ? flattenCategories([category]).map((c) => c.id) : []);
@@ -55,22 +64,14 @@ export default function CategoryForm({
   const inheriting = parentId !== "" && inherit;
   const effective = inheriting ? parentAttrs : attrs;
   const full = attrs.length >= MAX_ATTRS;
-  const custom = attrs.filter((key) => !ATTRS.some((a) => a.key === key));
+  const nameOf = (id: number) => catalogue.find((a) => a.id === id)?.name ?? `#${id}`;
 
   const nameError = nameTouched && !name.trim() ? "Категорийн нэр оруулна уу" : undefined;
 
-  function toggleAttr(key: string) {
+  function toggleAttr(id: number) {
     setAttrs((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : prev.length < MAX_ATTRS ? [...prev, key] : prev
+      prev.includes(id) ? prev.filter((k) => k !== id) : prev.length < MAX_ATTRS ? [...prev, id] : prev
     );
-  }
-
-  function addCustom() {
-    // A typed "Размер" is the built-in size, not a new attribute.
-    const key = attrKeyForName(customDraft);
-    if (!key) return;
-    if (!attrs.includes(key) && !full) setAttrs((prev) => [...prev, key]);
-    setCustomDraft("");
   }
 
   function onInheritChange(checked: boolean) {
@@ -153,7 +154,7 @@ export default function CategoryForm({
               <span id={inheritLabelId} className="min-w-0">
                 <span className="block text-sm font-semibold">Эцэг категорийнхоо адил</span>
                 <span className="block truncate text-sm text-muted-foreground">
-                  {attrsSummary(parentAttrs)}
+                  {attrsSummary(parentAttrs.map(nameOf))}
                 </span>
               </span>
               <Switch checked={inherit} onCheckedChange={onInheritChange} aria-labelledby={inheritLabelId} />
@@ -162,92 +163,52 @@ export default function CategoryForm({
 
           {!inheriting && (
             <>
-              <div role="group" aria-label="Сонголтууд" className="grid grid-cols-2 gap-2">
-                {ATTRS.map((attr) => {
-                  const order = attrs.indexOf(attr.key);
-                  const on = order !== -1;
-                  return (
-                    <button
-                      key={attr.key}
-                      type="button"
-                      aria-pressed={on}
-                      disabled={!on && full}
-                      onClick={() => toggleAttr(attr.key)}
-                      className={cn(
-                        "flex items-start gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors disabled:opacity-45",
-                        on ? "border-primary bg-primary-soft" : "border-border bg-white hover:bg-muted"
-                      )}
-                    >
-                      <span
+              {catalogue.length === 0 ? (
+                <p className="rounded-xl bg-muted px-3.5 py-3 text-sm text-muted-foreground">
+                  Сонголтын жагсаалт хоосон байна.
+                </p>
+              ) : (
+                <div role="group" aria-label="Сонголтууд" className="grid grid-cols-2 gap-2">
+                  {catalogue.map((attr) => {
+                    const order = attrs.indexOf(attr.id);
+                    const on = order !== -1;
+                    return (
+                      <button
+                        key={attr.id}
+                        type="button"
+                        aria-pressed={on}
+                        disabled={!on && full}
+                        onClick={() => toggleAttr(attr.id)}
                         className={cn(
-                          "mt-px grid size-5 shrink-0 place-items-center rounded-full border font-mono text-[11px] font-bold",
-                          on ? "border-primary bg-primary text-primary-foreground" : "border-input"
+                          "flex items-start gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors disabled:opacity-45",
+                          on ? "border-primary bg-primary-soft" : "border-border bg-white hover:bg-muted"
                         )}
                       >
-                        {on && order + 1}
-                      </span>
-                      <span className="min-w-0">
-                        <span className={cn("block text-sm font-bold", on && "text-primary-ink")}>
-                          {attr.label}
+                        <span
+                          className={cn(
+                            "mt-px grid size-5 shrink-0 place-items-center rounded-full border font-mono text-[11px] font-bold",
+                            on ? "border-primary bg-primary text-primary-foreground" : "border-input"
+                          )}
+                        >
+                          {on && order + 1}
                         </span>
-                        <span className="block text-xs leading-snug text-muted-foreground">{attr.example}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {custom.length > 0 && (
-                <ul className="flex flex-wrap gap-2">
-                  {custom.map((key) => (
-                    <li
-                      key={key}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-primary bg-primary-soft pl-3 pr-1 text-sm font-bold text-primary-ink"
-                    >
-                      <span className="font-mono text-xs">{attrs.indexOf(key) + 1}</span>
-                      {key}
-                      <button
-                        type="button"
-                        aria-label={`“${key}” сонголтыг хасах`}
-                        onClick={() => toggleAttr(key)}
-                        className="grid size-7 place-items-center rounded-full hover:bg-primary/15"
-                      >
-                        <X className="size-3.5" />
+                        <span className="min-w-0">
+                          <span className={cn("block text-sm font-bold", on && "text-primary-ink")}>
+                            {attr.name}
+                          </span>
+                          <span className="block text-xs leading-snug text-muted-foreground">
+                            {valuesPreview(attr)}
+                          </span>
+                        </span>
                       </button>
-                    </li>
-                  ))}
-                </ul>
+                    );
+                  })}
+                </div>
               )}
 
-              <div className="flex gap-2">
-                <Input
-                  aria-label="Өөр сонголтын нэр"
-                  placeholder="Өөр сонголт, ж: Загвар"
-                  value={customDraft}
-                  disabled={full}
-                  onChange={(e) => setCustomDraft(e.target.value)}
-                  // Enter would submit (save) the whole form.
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addCustom();
-                    }
-                  }}
-                  className="h-11"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 shrink-0 px-4"
-                  disabled={full || !customDraft.trim()}
-                  onClick={addCustom}
-                >
-                  <Plus />
-                  Нэмэх
-                </Button>
-              </div>
               <p className="px-1 text-xs text-muted-foreground">
-                Дарсан дарааллаар нь оруулна. Хамгийн ихдээ {MAX_ATTRS} сонголт.
+                Дарсан дарааллаар нь оруулна. Хамгийн ихдээ {MAX_ATTRS} сонголт. Шинэ сонголт өгөгдлийн санд
+                нэмэгдэнэ.
               </p>
             </>
           )}
@@ -263,7 +224,7 @@ export default function CategoryForm({
               <span>
                 Бараа бүртгэхэд:{" "}
                 <b>
-                  {effective.map((key) => `${attrDef(key).label} сонгох`).join(" → ")} → тоо, үнэ
+                  {effective.map((id) => `${nameOf(id)} сонгох`).join(" → ")} → тоо, үнэ
                 </b>
               </span>
             )}
@@ -271,7 +232,8 @@ export default function CategoryForm({
         </section>
 
         <SampleNotice>
-          Backend категорийн сонголтыг хараахан хадгалдаггүй тул жишээ тохиргоо харуулж байна.
+          Backend сонголтуудын жагсаалт болон категорийн тохиргоог хараахан илгээдэггүй тул жишээ өгөгдөл
+          харуулж байна.
         </SampleNotice>
       </div>
     </form>

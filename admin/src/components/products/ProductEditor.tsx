@@ -1,8 +1,9 @@
 "use client";
 
+import type { Attr } from "@/lib/api/attrs";
 import { categoryAttrs, type Category } from "@/lib/api/categories";
 import type { PostDetail, PostInput } from "@/lib/api/posts";
-import { attrDef, attrKeyForName, valueKey } from "@/lib/attributes";
+import { valueKey } from "@/lib/attributes";
 import { toNumber } from "@/lib/utils";
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 
@@ -22,16 +23,18 @@ export interface ProductFormState {
 export interface AttrValue {
   value: string;
   color: string | null;
+  /** The catalogue value (`AttrOption.id`); `null` for one typed in here. */
+  attrValueId: number | null;
 }
 
 /** Something the product varies by, and the values it's sold in. */
 export interface ProductAttr {
-  /** `lib/attributes` key, or a custom attribute's name. */
+  /** `String(attrId)` — how variants and images refer to it. */
   key: string;
-  /** Saved as — the product's existing `PostAttr.attrName`, else the built-in label. */
-  name: string;
-  /** Existing `PostAttr.attrId`; `null` when new to this product. */
+  /** Catalogue attribute (`Attr.id`); `null` only for `VARIANT_NAME_ATTR`. */
   attrId: number | null;
+  name: string;
+  viewType: Attr["viewType"];
   values: AttrValue[];
 }
 
@@ -108,11 +111,18 @@ function newVariantRow(values: Record<string, string>, form: ProductFormState): 
   };
 }
 
+const attrKey = (attrId: number) => String(attrId);
+
+/** An attribute of the catalogue, before any of its values are picked. */
+function emptyAttr(attr: Attr): ProductAttr {
+  return { key: attrKey(attr.id), attrId: attr.id, name: attr.name, viewType: attr.viewType, values: [] };
+}
+
 // Posts from before categories had attributes may keep several variants
 // apart by name alone; those names become the values of this attribute.
-const VARIANT_NAME_ATTR = "Хувилбар";
+const VARIANT_NAME_ATTR = "variant-name";
 
-function initialAttrs(post: PostDetail | null): ProductAttr[] {
+function initialAttrs(post: PostDetail | null, catalogue: Attr[]): ProductAttr[] {
   const products = post?.postProducts ?? [];
   const postAttrs = [...(post?.postAttrs ?? [])].sort((a, b) => a.orderNumber - b.orderNumber);
   if (postAttrs.length === 0) {
@@ -120,31 +130,34 @@ function initialAttrs(post: PostDetail | null): ProductAttr[] {
       ? [
           {
             key: VARIANT_NAME_ATTR,
-            name: VARIANT_NAME_ATTR,
             attrId: null,
-            values: products.map((p) => ({ value: p.variantName, color: null })),
+            name: "Хувилбар",
+            viewType: "text",
+            values: products.map((p) => ({ value: p.variantName, color: null, attrValueId: null })),
           },
         ]
       : [];
   }
 
-  const keys = new Set<string>();
   return postAttrs.map((attr) => {
-    let key = attrKeyForName(attr.attrName);
-    if (keys.has(key)) key = attr.attrName.trim();
-    keys.add(key);
-
+    const known = catalogue.find((a) => a.id === attr.attrId);
     const values: AttrValue[] = [...(attr.postAttrValues ?? [])]
       .sort((a, b) => a.orderNumber - b.orderNumber)
-      .map((v) => ({ value: v.value, color: v.color }));
+      .map((v) => ({ value: v.value, color: v.color, attrValueId: v.attrValueId }));
     // Values a variant uses without being listed on the attribute.
     for (const p of products) {
       const value = p.attr?.[attr.attrId];
       if (value && !values.some((v) => valueKey(v.value) === valueKey(value))) {
-        values.push({ value, color: null });
+        values.push({ value, color: null, attrValueId: null });
       }
     }
-    return { key, name: attr.attrName, attrId: attr.attrId, values };
+    return {
+      key: attrKey(attr.attrId),
+      attrId: attr.attrId,
+      name: known?.name ?? attr.attrName,
+      viewType: known?.viewType ?? (attr.viewType === "image" ? "image" : "text"),
+      values,
+    };
   });
 }
 
@@ -228,11 +241,10 @@ function toPostInput(
     images: own,
     attrs: used.map(({ attrId, key, name, values }) => ({
       attrId,
-      key,
       name,
-      values: values.map(({ value, color }) => {
+      values: values.map(({ value, color, attrValueId }) => {
         const [image = null, ...rest] = valueImages(key, value);
-        return { value, color, image, images: rest };
+        return { attrValueId, value, color, image, images: rest };
       }),
     })),
     variants: variants
@@ -250,6 +262,8 @@ function toPostInput(
 interface ProductEditor {
   post: PostDetail | null;
   categories: (Category & { depth: number })[];
+  /** The attribute catalogue, for the values each attribute offers. */
+  catalogue: Attr[];
   /** `/products/new` or `/products/{id}` — the form; variants live under `/variants`. */
   basePath: string;
   form: ProductFormState;
@@ -279,16 +293,18 @@ const ProductEditorContext = createContext<ProductEditor | null>(null);
 export function ProductEditorProvider({
   post,
   categories,
+  catalogue,
   children,
 }: {
   post: PostDetail | null;
   categories: (Category & { depth: number })[];
+  catalogue: Attr[];
   children: React.ReactNode;
 }) {
   const [form, setForm] = useState(() => initialForm(post));
   // Every attribute given values so far — also ones a later category change
   // left out, so switching back finds them again.
-  const [allAttrs, setAllAttrs] = useState(() => initialAttrs(post));
+  const [allAttrs, setAllAttrs] = useState(() => initialAttrs(post, catalogue));
   const [rows, setRows] = useState(() => initialRows(post, allAttrs, form));
   const [images, setImages] = useState(() => initialImages(post, allAttrs));
   // Picked files by the `blob:` URL that previews them until they're uploaded.
@@ -300,13 +316,14 @@ export function ProductEditorProvider({
   }, []);
 
   const value = useMemo<ProductEditor>(() => {
-    const categoryKeys = categoryAttrs(categories, form.categoryId ? Number(form.categoryId) : null);
+    const fromCategory = categoryAttrs(categories, form.categoryId ? Number(form.categoryId) : null)
+      .map((id) => catalogue.find((attr) => attr.id === id))
+      .filter((attr): attr is Attr => Boolean(attr))
+      .map(emptyAttr);
     const byKey = new Map(allAttrs.map((attr) => [attr.key, attr]));
     const attrs = [
-      ...categoryKeys.map(
-        (key) => byKey.get(key) ?? { key, name: attrDef(key).label, attrId: null, values: [] }
-      ),
-      ...allAttrs.filter((attr) => !categoryKeys.includes(attr.key) && attr.values.length > 0),
+      ...fromCategory.map((attr) => byKey.get(attr.key) ?? attr),
+      ...allAttrs.filter((attr) => !fromCategory.some((a) => a.key === attr.key) && attr.values.length > 0),
     ];
 
     const variants = combinations(attrs).map((values) => rows[comboKey(values)] ?? newVariantRow(values, form));
@@ -314,6 +331,7 @@ export function ProductEditorProvider({
     return {
       post,
       categories,
+      catalogue,
       basePath: post ? `/products/${post.id}` : "/products/new",
       form,
       setField: (key, fieldValue) => {
@@ -333,13 +351,16 @@ export function ProductEditorProvider({
         }
       },
       attrs,
-      inCategory: (key) => categoryKeys.includes(key),
-      setAttrValues: (key, values) =>
+      inCategory: (key) => fromCategory.some((attr) => attr.key === key),
+      setAttrValues: (key, values) => {
+        const attr = attrs.find((a) => a.key === key);
+        if (!attr) return;
         setAllAttrs((prev) =>
-          prev.some((attr) => attr.key === key)
-            ? prev.map((attr) => (attr.key === key ? { ...attr, values } : attr))
-            : [...prev, { key, name: attrDef(key).label, attrId: null, values }]
-        ),
+          prev.some((a) => a.key === key)
+            ? prev.map((a) => (a.key === key ? { ...a, values } : a))
+            : [...prev, { ...attr, values }]
+        );
+      },
       variants,
       updateVariant: (row, patch) =>
         setRows((prev) => ({ ...prev, [row.key]: { ...(prev[row.key] ?? row), ...patch } })),
@@ -358,7 +379,7 @@ export function ProductEditorProvider({
       },
       toPostInput: () => toPostInput(form, attrs, variants, images, files.current),
     };
-  }, [post, categories, form, allAttrs, rows, images]);
+  }, [post, categories, catalogue, form, allAttrs, rows, images]);
 
   return <ProductEditorContext.Provider value={value}>{children}</ProductEditorContext.Provider>;
 }

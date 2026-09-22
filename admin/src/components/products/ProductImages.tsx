@@ -2,7 +2,6 @@
 
 import ChipTabs from "@/components/common/ChipTabs";
 import Thumb from "@/components/common/Thumb";
-import { attrDef } from "@/lib/attributes";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { Swatch } from "./AttrPickers";
@@ -14,7 +13,7 @@ import { imageKey, useProductEditor } from "./ProductEditor";
  */
 export default function ProductImages() {
   const { form, attrs, images, addImages, removeImage } = useProductEditor();
-  const colorAttr = attrs.find((attr) => attrDef(attr.key).kind === "color");
+  const colorAttr = attrs.find((attr) => attr.viewType === "image");
   const groups = [
     { key: "", label: "Ерөнхий", color: null as string | null },
     ...(colorAttr

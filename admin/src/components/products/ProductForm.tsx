@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { deletePost, savePost } from "@/lib/api/posts";
-import { attrDef, attrsSummary } from "@/lib/attributes";
+import { attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
-import { ChevronRight, Lock, Palette, Ruler, Tag } from "lucide-react";
+import { ChevronRight, Lock, Palette, Tag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
@@ -25,10 +25,10 @@ import ProductImages from "./ProductImages";
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
-const ATTR_ICONS = { color: Palette, size: Ruler, option: Tag };
+const ATTR_ICONS = { image: Palette, text: Tag };
 
 /** "Өнгө, хэмжээ, тоо оруулах" */
-const variantsTitle = (attrs: ProductAttr[]) => `${attrsSummary(attrs.map((attr) => attr.key))}, тоо оруулах`;
+const variantsTitle = (attrs: ProductAttr[]) => `${attrsSummary(attrs.map((attr) => attr.name))}, тоо оруулах`;
 
 function variantsTotal(variants: VariantRow[]) {
   const sold = variants.filter((row) => !row.off);
@@ -47,7 +47,7 @@ export default function ProductForm() {
   const priceRef = useRef<HTMLInputElement>(null);
   const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant, toPostInput } =
     useProductEditor();
-  const Icon = ATTR_ICONS[attrs.length > 0 ? attrDef(attrs[0].key).kind : "option"];
+  const Icon = ATTR_ICONS[attrs[0]?.viewType ?? "text"];
   // Until values are picked, the product has one variant, stocked on this form.
   const picked = attrs.some((attr) => attr.values.length > 0);
 
@@ -162,7 +162,7 @@ export default function ProductForm() {
             label="Тоо ширхэг"
             hint={
               attrs.length > 0
-                ? `${attrsSummary(attrs.map((attr) => attr.key))} сонговол тоог тус бүрээр нь оруулна.`
+                ? `${attrsSummary(attrs.map((attr) => attr.name))} сонговол тоог тус бүрээр нь оруулна.`
                 : undefined
             }
           >
@@ -190,7 +190,7 @@ export default function ProductForm() {
                 <span className="block text-[15px] font-bold">{variantsTitle(attrs)}</span>
                 {attrs.map((attr) => (
                   <span key={attr.key} className="mt-0.5 block truncate text-sm text-muted-foreground">
-                    {attrDef(attr.key).label}:{" "}
+                    {attr.name}:{" "}
                     {attr.values.length > 0 ? (
                       <span className="text-foreground">{attr.values.map((v) => v.value).join(", ")}</span>
                     ) : (
