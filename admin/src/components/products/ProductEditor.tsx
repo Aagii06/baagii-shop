@@ -4,7 +4,7 @@ import { categoryAttrs, type Category } from "@/lib/api/categories";
 import type { PostDetail, PostInput } from "@/lib/api/posts";
 import { attrDef, attrKeyForName, valueKey } from "@/lib/attributes";
 import { toNumber } from "@/lib/utils";
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 // Numbers are kept as strings while editing so a field can be cleared.
 export interface ProductFormState {
@@ -177,6 +177,26 @@ function initialRows(post: PostDetail | null, attrs: ProductAttr[], form: Produc
   return rows;
 }
 
+/**
+ * Where a group of images sits in `ProductEditor.images`: `""` for the
+ * product's own, else one attribute value's ("color=ХАР"). Keyed apart from
+ * the values so a colour turned off and on again gets its images back.
+ */
+export const imageKey = (attrKey = "", value = "") => (attrKey ? `${attrKey}=${valueKey(value)}` : "");
+
+function initialImages(post: PostDetail | null, attrs: ProductAttr[]) {
+  const images: Record<string, string[]> = { "": post?.images ?? [] };
+  for (const attr of attrs) {
+    const postAttr = post?.postAttrs?.find((a) => attr.attrId != null && a.attrId === attr.attrId);
+    for (const v of postAttr?.postAttrValues ?? []) {
+      // The cover first; the API often repeats it in `images`.
+      const list = [...new Set([v.image, ...(v.images ?? [])].filter((id): id is string => Boolean(id)))];
+      if (list.length > 0) images[imageKey(attr.key, v.value)] = list;
+    }
+  }
+  return images;
+}
+
 /** "Хямдрал" left empty is saved as the price itself — no discount. */
 function prices(price: string, salePrice: string) {
   const mainPrice = Number(price) || 0;
@@ -185,17 +205,36 @@ function prices(price: string, salePrice: string) {
 
 /**
  * Attributes without values are left out; with none left, the one variant
- * takes the product's own prices. Combinations turned off are dropped.
+ * takes the product's own prices. Combinations turned off are dropped, and
+ * so are the images of values no longer picked.
  */
-export function toPostInput(form: ProductFormState, attrs: ProductAttr[], variants: VariantRow[]): PostInput {
+function toPostInput(
+  form: ProductFormState,
+  attrs: ProductAttr[],
+  variants: VariantRow[],
+  images: Record<string, string[]>,
+  files: Map<string, File>
+): PostInput {
   const used = attrs.filter((attr) => attr.values.length > 0);
+  const own = images[""] ?? [];
+  const valueImages = (attrKey: string, value: string) => images[imageKey(attrKey, value)] ?? [];
+  const saved = [...own, ...used.flatMap((attr) => attr.values.flatMap((v) => valueImages(attr.key, v.value)))];
   return {
     name: form.name.trim(),
     ...prices(form.price, form.salePrice),
     categoryId: form.categoryId ? Number(form.categoryId) : null,
     note: form.note.trim(),
     isActive: form.isActive,
-    attrs: used.map(({ attrId, key, name, values }) => ({ attrId, key, name, values })),
+    images: own,
+    attrs: used.map(({ attrId, key, name, values }) => ({
+      attrId,
+      key,
+      name,
+      values: values.map(({ value, color }) => {
+        const [image = null, ...rest] = valueImages(key, value);
+        return { value, color, image, images: rest };
+      }),
+    })),
     variants: variants
       .filter((row) => !row.off)
       .map((row) => ({
@@ -204,6 +243,7 @@ export function toPostInput(form: ProductFormState, attrs: ProductAttr[], varian
         qty: Number(row.qty) || 0,
         ...(used.length > 0 ? prices(row.price, row.salePrice) : prices(form.price, form.salePrice)),
       })),
+    newFiles: Object.fromEntries(saved.flatMap((ref) => (files.has(ref) ? [[ref, files.get(ref)!]] : []))),
   };
 }
 
@@ -222,6 +262,12 @@ interface ProductEditor {
   /** Every combination of the picked values — a single row when none are picked. */
   variants: VariantRow[];
   updateVariant: (row: VariantRow, patch: Partial<VariantRow>) => void;
+  /** File ids, or `blob:` URLs for files picked here, by `imageKey`. */
+  images: Record<string, string[]>;
+  addImages: (key: string, files: File[]) => void;
+  removeImage: (key: string, ref: string) => void;
+  /** The draft as saved. */
+  toPostInput: () => PostInput;
 }
 
 const ProductEditorContext = createContext<ProductEditor | null>(null);
@@ -244,6 +290,14 @@ export function ProductEditorProvider({
   // left out, so switching back finds them again.
   const [allAttrs, setAllAttrs] = useState(() => initialAttrs(post));
   const [rows, setRows] = useState(() => initialRows(post, allAttrs, form));
+  const [images, setImages] = useState(() => initialImages(post, allAttrs));
+  // Picked files by the `blob:` URL that previews them until they're uploaded.
+  const files = useRef(new Map<string, File>());
+
+  useEffect(() => {
+    const picked = files.current;
+    return () => picked.forEach((_, url) => URL.revokeObjectURL(url));
+  }, []);
 
   const value = useMemo<ProductEditor>(() => {
     const categoryKeys = categoryAttrs(categories, form.categoryId ? Number(form.categoryId) : null);
@@ -254,6 +308,8 @@ export function ProductEditorProvider({
       ),
       ...allAttrs.filter((attr) => !categoryKeys.includes(attr.key) && attr.values.length > 0),
     ];
+
+    const variants = combinations(attrs).map((values) => rows[comboKey(values)] ?? newVariantRow(values, form));
 
     return {
       post,
@@ -284,11 +340,25 @@ export function ProductEditorProvider({
             ? prev.map((attr) => (attr.key === key ? { ...attr, values } : attr))
             : [...prev, { key, name: attrDef(key).label, attrId: null, values }]
         ),
-      variants: combinations(attrs).map((values) => rows[comboKey(values)] ?? newVariantRow(values, form)),
+      variants,
       updateVariant: (row, patch) =>
         setRows((prev) => ({ ...prev, [row.key]: { ...(prev[row.key] ?? row), ...patch } })),
+      images,
+      addImages: (key, picked) => {
+        const refs = picked.map((file) => {
+          const url = URL.createObjectURL(file);
+          files.current.set(url, file);
+          return url;
+        });
+        setImages((prev) => ({ ...prev, [key]: [...(prev[key] ?? []), ...refs] }));
+      },
+      removeImage: (key, ref) => {
+        setImages((prev) => ({ ...prev, [key]: (prev[key] ?? []).filter((r) => r !== ref) }));
+        if (files.current.delete(ref)) URL.revokeObjectURL(ref);
+      },
+      toPostInput: () => toPostInput(form, attrs, variants, images, files.current),
     };
-  }, [post, categories, form, allAttrs, rows]);
+  }, [post, categories, form, allAttrs, rows, images]);
 
   return <ProductEditorContext.Provider value={value}>{children}</ProductEditorContext.Provider>;
 }

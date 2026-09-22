@@ -125,10 +125,17 @@ export interface PostInput {
   categoryId: number | null;
   note: string;
   isActive: boolean;
+  /** Shown while no colour is picked in the shop. See `newFiles` for `blob:` entries. */
+  images: string[];
   /** What the product varies by (colour, size, …); empty for a one-version product. */
   attrs: PostAttrInput[];
   /** Stock per combination of `attrs` values — one entry when `attrs` is empty. */
   variants: PostVariantInput[];
+  /**
+   * Images picked in this draft, by the `blob:` URL that stands in for them in
+   * `images` / `attrs[].values[].image(s)` — upload each and swap in its file id.
+   */
+  newFiles: Record<string, File>;
 }
 
 export interface PostAttrInput {
@@ -137,8 +144,11 @@ export interface PostAttrInput {
   /** `lib/attributes` key ("color", "size", …) or a custom attribute's name. */
   key: string;
   name: string;
-  /** `color` is the swatch hex, for colours. */
-  values: { value: string; color: string | null }[];
+  /**
+   * `color` is the swatch hex. `image` (the value's cover) and `images` are
+   * what the shop shows once a shopper picks this value.
+   */
+  values: { value: string; color: string | null; image: string | null; images: string[] }[];
 }
 
 export interface PostVariantInput {
@@ -160,6 +170,3 @@ export const savePost: (id: number | null, input: PostInput) => Promise<void> = 
 
 export const deletePost: (id: number) => Promise<void> = () =>
   endpointMissing("Барааг устгах");
-
-export const addPostImage: (id: number | null, file: File) => Promise<void> = () =>
-  endpointMissing("Зураг нэмэх");

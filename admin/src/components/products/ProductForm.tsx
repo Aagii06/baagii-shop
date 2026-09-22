@@ -2,13 +2,12 @@
 
 import Field from "@/components/common/Field";
 import { useToast } from "@/components/common/Toast";
-import Thumb from "@/components/common/Thumb";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { addPostImage, deletePost, savePost } from "@/lib/api/posts";
+import { deletePost, savePost } from "@/lib/api/posts";
 import { attrDef, attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
 import { ChevronRight, Lock, Palette, Ruler, Tag } from "lucide-react";
@@ -18,11 +17,11 @@ import { useId, useRef, useState } from "react";
 import {
   hasProductBasics,
   productErrors,
-  toPostInput,
   useProductEditor,
   type ProductAttr,
   type VariantRow,
 } from "./ProductEditor";
+import ProductImages from "./ProductImages";
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
@@ -46,7 +45,7 @@ export default function ProductForm() {
   const priceErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
-  const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant } =
+  const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant, toPostInput } =
     useProductEditor();
   const Icon = ATTR_ICONS[attrs.length > 0 ? attrDef(attrs[0].key).kind : "option"];
   // Until values are picked, the product has one variant, stocked on this form.
@@ -70,7 +69,7 @@ export default function ProductForm() {
     e.preventDefault();
     if (!validate()) return;
     const saved = await run(
-      () => savePost(post?.id ?? null, toPostInput(form, attrs, variants)),
+      () => savePost(post?.id ?? null, toPostInput()),
       "Хадгаллаа"
     );
     if (saved && !post) router.replace("/products");
@@ -79,12 +78,6 @@ export default function ProductForm() {
   async function onDelete() {
     if (!post || !window.confirm(`“${form.name}” барааг устгах уу?`)) return;
     if (await run(() => deletePost(post.id), "Барааг устгалаа")) router.replace("/products");
-  }
-
-  function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (file) run(() => addPostImage(post?.id ?? null, file), "Зураг нэмлээ");
   }
 
   return (
@@ -100,22 +93,6 @@ export default function ProductForm() {
       />
 
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          {(post?.images ?? []).map((id, i) => (
-            <Thumb
-              key={`${id}-${i}`}
-              id={id}
-              alt={`${form.name} — зураг ${i + 1}`}
-              variant="original"
-              className="aspect-[17/9] w-full rounded-2xl"
-            />
-          ))}
-          <label className="img-placeholder grid aspect-[17/9] cursor-pointer place-items-center rounded-2xl border border-dashed border-input font-mono text-xs text-muted-foreground transition-colors focus-within:ring-4 focus-within:ring-primary/15 hover:text-foreground">
-            + зураг
-            <input type="file" accept="image/*" className="sr-only" onChange={onPickImage} />
-          </label>
-        </div>
-
         <Field label="Нэр" error={nameError} errorId={nameErrorId}>
           <Input
             ref={nameRef}
@@ -249,6 +226,9 @@ export default function ProductForm() {
               <Lock className="size-4 shrink-0 text-muted-foreground" />
             </button>
           ))}
+
+        {/* After the variants: a colour needs picking before it gets images. */}
+        <ProductImages />
 
         <Field label="Тайлбар">
           <Textarea rows={4} value={form.note} onChange={(e) => set("note", e.target.value)} />

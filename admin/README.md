@@ -46,9 +46,14 @@ npm run dev            # http://localhost:3771
   Жин, Амт, Материал + өөрийн нэртэй (ж: Загвар). Категорид дээд тал нь 3.
 - `attrs: []` — сонголтгүй, бараа нэг хувилбартай, зөвхөн тоо ширхэг
   оруулна. `attrs: null` — эцэг категорийнхоо сонголтыг авна.
+- Зураг: "Ерөнхий" (`post.images`, өнгө сонгоогүй үед дэлгүүрт харагдана) ба
+  өнгө бүрийн (`postAttrValues[].image` + `images`, эхнийх нь нүүр) гэж
+  табаар тусдаа оруулна. Шинэ зураг хадгалах хүртэл `blob:` URL-аар
+  урьдчилан харагдаж, `PostInput.newFiles`-ээр дамжина.
 - Backend-д хэрэгтэй: `getCategoryTree`-ийн node бүр `attrs: string[] | null`
   буцаах, категори нэмэх/засах endpoint (`CategoryInput`), барааг хадгалахдаа
-  `PostInput.attrs` / `variants`-ийг (`src/lib/api/posts.ts`) хүлээж авах.
+  `PostInput.attrs` / `variants` / `images`-ийг (`src/lib/api/posts.ts`) хүлээж
+  авах, `newFiles`-ийг файл сервис рүү хуулах.
   Тэр болтол `attrs`-ийг `src/lib/api/sample.ts`-ийн `SAMPLE_CATEGORY_ATTRS`-аас
   (категорийн `code`-оор) авч, категорийн хуудсууд "жишээ өгөгдөл" гэж харуулна.
 
