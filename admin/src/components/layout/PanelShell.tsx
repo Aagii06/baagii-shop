@@ -1,5 +1,6 @@
 "use client";
 
+import { ConfirmProvider } from "@/components/common/Confirm";
 import { ToastProvider } from "@/components/common/Toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -44,24 +45,26 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
 
   return (
     <ToastProvider>
-      {isTabPage && (
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur">
-          <Link href="/" aria-label="Хяналтын самбар">
-            <BrandMark />
-          </Link>
-        </header>
-      )}
-
-      <main
-        className={cn(
-          "min-w-0 px-4",
-          isTabPage ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "pb-8"
+      <ConfirmProvider>
+        {isTabPage && (
+          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur">
+            <Link href="/" aria-label="Хяналтын самбар">
+              <BrandMark />
+            </Link>
+          </header>
         )}
-      >
-        {children}
-      </main>
 
-      {isTabPage && <BottomNav pathname={pathname} />}
+        <main
+          className={cn(
+            "min-w-0 px-4",
+            isTabPage ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "pb-8"
+          )}
+        >
+          {children}
+        </main>
+
+        {isTabPage && <BottomNav pathname={pathname} />}
+      </ConfirmProvider>
     </ToastProvider>
   );
 }

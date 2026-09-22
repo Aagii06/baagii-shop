@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import { useConfirm } from "@/components/common/Confirm";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
@@ -37,11 +38,20 @@ function CategoryRow({
   onChanged: () => void;
 }) {
   const { run } = useToast();
+  const confirm = useConfirm();
   // Subcategories sit indented under their parent.
   const indent = { paddingLeft: `${category.depth * 20}px` };
 
   async function onDelete() {
-    if (!window.confirm(`“${category.name}” категорийг устгах уу?`)) return;
+    const ok = await confirm({
+      title: "Категори устгах уу?",
+      description: `“${category.name}” категорийг устгана.${
+        category.children.length > 0 ? ` Энэ категори ${category.children.length} дэд категоритой.` : ""
+      } Буцаах боломжгүй.`,
+      confirmLabel: "Устгах",
+      tone: "danger",
+    });
+    if (!ok) return;
     if (await run(() => deleteCategory(category.id), "Категорийг устгалаа")) onChanged();
   }
 

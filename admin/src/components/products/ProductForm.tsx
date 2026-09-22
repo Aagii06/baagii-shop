@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirm } from "@/components/common/Confirm";
 import Field from "@/components/common/Field";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -40,6 +41,7 @@ function variantsTotal(variants: VariantRow[]) {
 export default function ProductForm() {
   const router = useRouter();
   const { run } = useToast();
+  const confirm = useConfirm();
   const publishLabelId = useId();
   const nameErrorId = useId();
   const priceErrorId = useId();
@@ -76,7 +78,14 @@ export default function ProductForm() {
   }
 
   async function onDelete() {
-    if (!post || !window.confirm(`“${form.name}” барааг устгах уу?`)) return;
+    if (!post) return;
+    const ok = await confirm({
+      title: "Бараа устгах уу?",
+      description: `“${form.name}” барааг устгана. Буцаах боломжгүй.`,
+      confirmLabel: "Устгах",
+      tone: "danger",
+    });
+    if (!ok) return;
     if (await run(() => deletePost(post.id), "Барааг устгалаа")) router.replace("/products");
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import { useConfirm } from "@/components/common/Confirm";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Swatch } from "@/components/products/AttrPickers";
@@ -13,21 +14,27 @@ import Link from "next/link";
 
 function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void }) {
   const { run } = useToast();
+  const confirm = useConfirm();
+  // The count is the backend's; names and swatches are the values it sent.
   const values = sortedValues(attr);
+  const count = attr.valuesCnt ?? values.length;
   const preview = values.slice(0, 4).map((v) => v.name).join(", ") + (values.length > 4 ? "…" : "");
 
   async function onDelete() {
-    if (!window.confirm(`“${attr.name}” үзүүлэлтийг устгах уу?`)) return;
+    const ok = await confirm({
+      title: "Үзүүлэлт устгах уу?",
+      description: `“${attr.name}” үзүүлэлтийг устгана. Буцаах боломжгүй.`,
+      confirmLabel: "Устгах",
+      tone: "danger",
+    });
+    if (!ok) return;
     if (await run(() => deleteAttr(attr.id), "Үзүүлэлтийг устгалаа")) onChanged();
   }
 
   return (
     <li className="flex items-center gap-2 py-3.5">
       <span className="min-w-0 grow">
-        <span className="flex items-baseline gap-2">
-          <span className="truncate text-[15px] font-bold">{attr.name}</span>
-          <span className="shrink-0 font-mono text-xs text-muted-foreground">{attr.code}</span>
-        </span>
+        <span className="block truncate text-[15px] font-bold">{attr.name}</span>
         <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
           {values.some((v) => v.color) && (
             <span className="flex shrink-0 -space-x-1">
@@ -37,7 +44,7 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
             </span>
           )}
           <span className="truncate">
-            <span className="font-mono">{formatQty(values.length)} утга</span>
+            <span className="font-mono">{formatQty(count)} утга</span>
             {preview && ` · ${preview}`}
           </span>
         </span>

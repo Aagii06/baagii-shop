@@ -39,13 +39,16 @@ export interface AttrValueRecord {
 /** An `Attr` in the eshop-admin OpenAPI doc, with its values. */
 export interface AttrRecord {
   id: number;
-  code: string;
+  code: string | null;
   name: string;
   shortName: string | null;
   attrValueTypeId: "text" | "number" | "date" | "boolean" | "select" | null;
   description: string | null;
   image: string | null;
-  attrValues: AttrValueRecord[] | null;
+  /** How many values it has, as the list counts them. */
+  valuesCnt?: number;
+  /** Always sent by `GET /attr/{id}`; the list may send fewer than `valuesCnt`. */
+  attrValues?: AttrValueRecord[] | null;
 }
 
 function toAttr(row: AttrRecord, orderNumber: number): Attr {
@@ -72,9 +75,18 @@ export async function getAttrRecords() {
   return fetchAllRows<AttrRecord>("/attr");
 }
 
-/** The catalogue as the category and product forms use it. */
+/**
+ * The catalogue as the category and product forms use it, values included —
+ * an attribute the list sends short of `valuesCnt` values is read on its own.
+ */
 export async function getAttrs(): Promise<Attr[]> {
-  return (await getAttrRecords()).map(toAttr);
+  const rows = await getAttrRecords();
+  const full = await Promise.all(
+    rows.map(async (row) =>
+      (row.attrValues?.length ?? 0) < (row.valuesCnt ?? 0) ? ((await getAttr(row.id)) ?? row) : row
+    )
+  );
+  return full.map(toAttr);
 }
 
 export async function getAttr(id: number) {
@@ -85,8 +97,7 @@ export async function getAttr(id: number) {
 /** Fields edited on the attribute form; values are saved in list order. */
 export interface AttrInput {
   name: string;
-  code: string;
-  values: { id: number | null; name: string; color: string | null }[];
+  values: { id: number | null; name: string }[];
 }
 
 /**
@@ -98,7 +109,6 @@ function valuesBody(input: AttrInput, saved: AttrValueRecord[]) {
     ...saved.find((old) => old.id != null && old.id === v.id),
     id: v.id,
     name: v.name,
-    color: v.color,
     orderNumber: i,
   }));
 }
@@ -107,7 +117,7 @@ function valuesBody(input: AttrInput, saved: AttrValueRecord[]) {
 export async function createAttr(input: AttrInput) {
   await apiFetch<ApiItemResponse<AttrRecord | null>>("/attr", {
     method: "POST",
-    body: { code: input.code, name: input.name, attrValueTypeId: "select", attrValues: valuesBody(input, []) },
+    body: { name: input.name, attrValueTypeId: "select", attrValues: valuesBody(input, []) },
   });
 }
 
@@ -116,8 +126,8 @@ export async function updateAttr(attr: AttrRecord, input: AttrInput) {
   await apiFetch<ApiItemResponse<AttrRecord | null>>(`/attr/${attr.id}`, {
     method: "PUT",
     body: {
-      code: input.code,
       name: input.name,
+      code: attr.code,
       shortName: attr.shortName,
       attrValueTypeId: attr.attrValueTypeId,
       description: attr.description,

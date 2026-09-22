@@ -5,7 +5,6 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { createAttr, sortedValues, updateAttr, type AttrInput, type AttrRecord } from "@/lib/api/attrs";
 import { valueKey } from "@/lib/attributes";
 import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
@@ -13,8 +12,6 @@ import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 
 type ValueRow = AttrInput["values"][number] & { key: string };
-
-const DEFAULT_COLOR = "#000000";
 
 /** "Хар", "Хар " — the first name that appears twice, loosely compared. */
 function firstDuplicate(names: string[]) {
@@ -29,45 +26,41 @@ function firstDuplicate(names: string[]) {
 
 /**
  * Create or edit an attribute ("Өнгө", "Хэмжээ"…) and its values, in the
- * order products offer them. Colour-like ones carry a swatch per value.
+ * order products offer them.
  */
 export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
   const router = useRouter();
   const { run } = useToast();
   const nameErrorId = useId();
-  const codeErrorId = useId();
   const draftErrorId = useId();
-  const colorsLabelId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
-  const codeRef = useRef<HTMLInputElement>(null);
+  const draftRef = useRef<HTMLInputElement>(null);
   const newKey = useRef(0);
 
   const [name, setName] = useState(attr?.name ?? "");
-  const [code, setCode] = useState(attr?.code ?? "");
-  const [touched, setTouched] = useState({ name: false, code: false });
+  const [nameTouched, setNameTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [values, setValues] = useState<ValueRow[]>(() =>
     (attr ? sortedValues(attr) : []).map((v, i) => ({
       key: v.id != null ? `id-${v.id}` : `saved-${i}`,
       id: v.id,
       name: v.name,
-      color: v.color,
     }))
   );
-  const [withColors, setWithColors] = useState(() => values.some((v) => v.color));
   const [draft, setDraft] = useState("");
   const [draftError, setDraftError] = useState<string>();
 
-  const nameError = (touched.name || submitted) && !name.trim() ? "Үзүүлэлтийн нэр оруулна уу" : undefined;
-  const codeError = (touched.code || submitted) && !code.trim() ? "Код оруулна уу" : undefined;
+  const nameError = (nameTouched || submitted) && !name.trim() ? "Үзүүлэлтийн нэр оруулна уу" : undefined;
   const duplicate = firstDuplicate(values.map((v) => v.name));
   const valuesError = !submitted
     ? undefined
-    : values.some((v) => !v.name.trim())
-      ? "Хоосон утгыг бөглөх эсвэл хасна уу"
-      : duplicate
-        ? `“${duplicate}” утга давхардсан байна`
-        : undefined;
+    : values.length === 0
+      ? "Хамгийн багадаа нэг утга нэмнэ үү"
+      : values.some((v) => !v.name.trim())
+        ? "Хоосон утгыг бөглөх эсвэл хасна уу"
+        : duplicate
+          ? `“${duplicate}” утга давхардсан байна`
+          : undefined;
 
   function updateValue(index: number, patch: Partial<ValueRow>) {
     setValues((prev) => prev.map((v, i) => (i === index ? { ...v, ...patch } : v)));
@@ -89,20 +82,11 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
       setDraftError(`“${value}” утга аль хэдийн байна`);
       return null;
     }
-    const next = [
-      ...values,
-      { key: `new-${++newKey.current}`, id: null, name: value, color: withColors ? DEFAULT_COLOR : null },
-    ];
+    const next = [...values, { key: `new-${++newKey.current}`, id: null, name: value }];
     setValues(next);
     setDraft("");
     setDraftError(undefined);
     return next;
-  }
-
-  function onColorsChange(checked: boolean) {
-    setWithColors(checked);
-    // Turning swatches on gives every value one to adjust.
-    if (checked) setValues((prev) => prev.map((v) => ({ ...v, color: v.color ?? DEFAULT_COLOR })));
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -111,13 +95,12 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
     // A value typed but not yet added goes in with the rest.
     const rows = addDraft();
     if (!name.trim()) return nameRef.current?.focus();
-    if (!code.trim()) return codeRef.current?.focus();
     if (!rows || rows.some((v) => !v.name.trim()) || firstDuplicate(rows.map((v) => v.name))) return;
+    if (rows.length === 0) return draftRef.current?.focus();
 
     const input: AttrInput = {
       name: name.trim(),
-      code: code.trim(),
-      values: rows.map((v) => ({ id: v.id, name: v.name.trim(), color: withColors ? v.color : null })),
+      values: rows.map((v) => ({ id: v.id, name: v.name.trim() })),
     };
     const saved = await run(
       () => (attr ? updateAttr(attr, input) : createAttr(input)),
@@ -145,25 +128,9 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
             value={name}
             placeholder="ж: Өнгө, Хувцасны хэмжээ"
             onChange={(e) => setName(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+            onBlur={() => setNameTouched(true)}
             aria-invalid={Boolean(nameError)}
             aria-describedby={nameError ? nameErrorId : undefined}
-            required
-          />
-        </Field>
-
-        <Field label="Код" hint="Латин үсгээр, давхцахгүй — ж: color, size" error={codeError} errorId={codeErrorId}>
-          <Input
-            ref={codeRef}
-            value={code}
-            placeholder="ж: color"
-            onChange={(e) => setCode(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, code: true }))}
-            aria-invalid={Boolean(codeError)}
-            aria-describedby={codeError ? codeErrorId : undefined}
-            className="font-mono"
-            autoCapitalize="none"
-            spellCheck={false}
             required
           />
         </Field>
@@ -176,27 +143,10 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
             </p>
           </div>
 
-          <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-3.5 py-3">
-            <span id={colorsLabelId} className="min-w-0">
-              <span className="block text-sm font-semibold">Өнгөтэй</span>
-              <span className="block text-sm text-muted-foreground">Утга бүр өнгөний дугуйтай харагдана</span>
-            </span>
-            <Switch checked={withColors} onCheckedChange={onColorsChange} aria-labelledby={colorsLabelId} />
-          </div>
-
           {values.length > 0 && (
             <ul className="divide-y divide-border rounded-xl border border-border">
               {values.map((v, i) => (
                 <li key={v.key} className="flex items-center gap-1.5 px-2 py-2">
-                  {withColors && (
-                    <input
-                      type="color"
-                      value={v.color ?? DEFAULT_COLOR}
-                      onChange={(e) => updateValue(i, { color: e.target.value })}
-                      aria-label={`${v.name || "Утга"} — өнгө`}
-                      className="size-9 shrink-0 cursor-pointer rounded-full border border-border bg-transparent p-0 [&::-moz-color-swatch]:rounded-full [&::-moz-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch-wrapper]:p-0"
-                    />
-                  )}
                   <Input
                     value={v.name}
                     onChange={(e) => updateValue(i, { name: e.target.value })}
@@ -242,8 +192,9 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
           <div>
             <div className="flex gap-2">
               <Input
+                ref={draftRef}
                 value={draft}
-                placeholder={withColors ? "ж: Хар" : "ж: XL"}
+                placeholder="ж: Хар, XL"
                 onChange={(e) => {
                   setDraft(e.target.value);
                   setDraftError(undefined);
