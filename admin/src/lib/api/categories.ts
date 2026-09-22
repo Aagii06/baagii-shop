@@ -59,6 +59,22 @@ export function flattenCategories(
   ]);
 }
 
+/** Categories nest at most this many levels: root → sub → sub-sub. */
+export const MAX_CATEGORY_DEPTH = 3;
+
+/** Levels in a category's subtree, itself included — a leaf is 1. */
+function subtreeHeight(category: Category): number {
+  return 1 + Math.max(0, ...category.children.map(subtreeHeight));
+}
+
+/**
+ * Whether `category` (with its subcategories), or a new one when `null`,
+ * fits under `parent` without going past `MAX_CATEGORY_DEPTH`.
+ */
+export function canNestUnder(parent: { depth: number }, category: Category | null): boolean {
+  return parent.depth + 1 + (category ? subtreeHeight(category) : 1) <= MAX_CATEGORY_DEPTH;
+}
+
 export function countCategories(list: Category[]): number {
   return list.reduce((sum, c) => sum + 1 + countCategories(c.children), 0);
 }

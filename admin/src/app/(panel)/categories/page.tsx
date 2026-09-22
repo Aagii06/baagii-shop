@@ -6,6 +6,7 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import {
+  canNestUnder,
   categoryAttrs,
   deleteCategory,
   flattenCategories,
@@ -17,7 +18,7 @@ import { getPosts } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
 import { cn, formatQty } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -82,11 +83,34 @@ function CategoryRow({
           </span>
         </span>
       </span>
-      <Button asChild variant="outline" size="sm" className="font-medium">
-        <Link href={`/categories/${category.id}`}>Засах</Link>
+      <Button asChild variant="outline" size="icon-sm" className="shrink-0">
+        <Link href={`/categories/${category.id}`} aria-label={`“${category.name}” засах`} title="Засах">
+          <Pencil />
+        </Link>
       </Button>
-      <Button variant="danger" size="sm" className="font-medium" onClick={onDelete}>
-        Устгах
+      {canNestUnder(category, null) ? (
+        <Button asChild variant="soft" size="icon-sm" className="shrink-0">
+          <Link
+            href={`/categories/new?parentId=${category.id}`}
+            aria-label={`“${category.name}” дотор дэд категори нэмэх`}
+            title="Дэд категори нэмэх"
+          >
+            <Plus />
+          </Link>
+        </Button>
+      ) : (
+        // The deepest level takes no subcategories; keeps the buttons lined up.
+        <span className="size-9 shrink-0" aria-hidden />
+      )}
+      <Button
+        variant="danger"
+        size="icon-sm"
+        className="shrink-0"
+        aria-label={`“${category.name}” устгах`}
+        title="Устгах"
+        onClick={onDelete}
+      >
+        <Trash2 />
       </Button>
     </li>
   );

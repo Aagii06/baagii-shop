@@ -9,9 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import type { Attr } from "@/lib/api/attrs";
 import {
+  canNestUnder,
   categoryAttrs,
   createCategory,
   flattenCategories,
+  MAX_CATEGORY_DEPTH,
   updateCategory,
   type Category,
 } from "@/lib/api/categories";
@@ -33,11 +35,14 @@ function valuesPreview(attr: Attr) {
  */
 export default function CategoryForm({
   category,
+  parentId: initialParentId = null,
   categories,
   catalogue,
 }: {
   /** `null` for a new category. */
   category: Category | null;
+  /** Where a new category starts out; an existing one keeps its own parent. */
+  parentId?: number | null;
   categories: (Category & { depth: number })[];
   catalogue: Attr[];
 }) {
@@ -49,7 +54,10 @@ export default function CategoryForm({
 
   const [name, setName] = useState(category?.name ?? "");
   const [nameTouched, setNameTouched] = useState(false);
-  const [parentId, setParentId] = useState(category?.parentId != null ? String(category.parentId) : "");
+  const [parentId, setParentId] = useState(() => {
+    const id = category ? category.parentId : initialParentId;
+    return id != null ? String(id) : "";
+  });
   // Under a parent, the parent's attributes apply until turned off here.
   const [inherit, setInherit] = useState(category ? category.attrs === null : true);
   // Ids gone from the catalogue are dropped: they have no card to turn them off.
@@ -57,9 +65,13 @@ export default function CategoryForm({
     category ? categoryAttrs(categories, category.id).filter((id) => catalogue.some((a) => a.id === id)) : []
   );
 
-  // A category can't sit under itself or its own subcategories.
+  // A category can't sit under itself or its own subcategories, nor so deep
+  // that it or they go past MAX_CATEGORY_DEPTH. Its current parent stays
+  // listed even so, in case the tree was already deeper.
   const excluded = new Set(category ? flattenCategories([category]).map((c) => c.id) : []);
-  const parents = categories.filter((c) => !excluded.has(c.id));
+  const parents = categories.filter(
+    (c) => !excluded.has(c.id) && (canNestUnder(c, category) || c.id === category?.parentId)
+  );
   const parentAttrs = parentId ? categoryAttrs(categories, Number(parentId)) : [];
   const inheriting = parentId !== "" && inherit;
   const effective = inheriting ? parentAttrs : attrs;
@@ -125,7 +137,7 @@ export default function CategoryForm({
           />
         </Field>
 
-        <Field label="Эцэг категори">
+        <Field label="Эцэг категори" hint={`Категори хамгийн ихдээ ${MAX_CATEGORY_DEPTH} түвшин байна.`}>
           <select
             value={parentId}
             onChange={(e) => setParentId(e.target.value)}

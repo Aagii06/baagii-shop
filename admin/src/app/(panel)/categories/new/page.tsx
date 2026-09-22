@@ -4,18 +4,35 @@ import CategoryForm from "@/components/categories/CategoryForm";
 import { ErrorState, LoadingState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { getAttrs } from "@/lib/api/attrs";
-import { flattenCategories, getCategoryTree } from "@/lib/api/categories";
+import { canNestUnder, flattenCategories, getCategoryTree } from "@/lib/api/categories";
 import { useApi } from "@/lib/useApi";
+import { use } from "react";
 
 async function loadForm() {
   const [tree, catalogue] = await Promise.all([getCategoryTree(), getAttrs()]);
   return { categories: flattenCategories(tree), catalogue };
 }
 
-export default function NewCategoryPage() {
+export default function NewCategoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  // `?parentId=` from a row's "add subcategory" button.
+  const { parentId } = use(searchParams);
   const { data, error, reload } = useApi(loadForm);
 
-  if (data) return <CategoryForm category={null} categories={data.categories} catalogue={data.catalogue} />;
+  if (data) {
+    const parent = data.categories.find((c) => String(c.id) === parentId);
+    return (
+      <CategoryForm
+        category={null}
+        parentId={parent && canNestUnder(parent, null) ? parent.id : null}
+        categories={data.categories}
+        catalogue={data.catalogue}
+      />
+    );
+  }
 
   return (
     <>
