@@ -73,9 +73,9 @@ export async function getAttrs(): Promise<Attr[]> {
 
 // Which attributes each category's products vary by (`Category.attrs`), by
 // category id — sample data for the live category tree until the backend
-// sends `attrs` with it (`getCategoryTree` prefers what it sends). Ids left
-// out take their parent's; a root left out has none. Attribute ids missing
-// from `GET /attr` are skipped.
+// sends `attrs` with it (`getCategoryTree` prefers what it sends). Only
+// categories without subcategories use theirs; ids left out have none.
+// Attribute ids missing from `GET /attr` are skipped.
 export async function getCategoryAttrs(): Promise<Record<number, number[]>> {
   return {
     1: [6, 5], // Цахилгаан бараа: Өнгө, Багтаамж

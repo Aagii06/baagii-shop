@@ -16,7 +16,7 @@ import {
 import { getAttrs } from "@/lib/api/attrs";
 import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
-import { cn } from "@/lib/utils";
+import { cn, formatQty } from "@/lib/utils";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -33,14 +33,13 @@ function CategoryRow({
   onChanged,
 }: {
   category: Category & { depth: number };
-  /** Names of what its products vary by — its own or inherited. */
+  /** Names of what its products vary by; only the last level has them. */
   attrs: string[];
   onChanged: () => void;
 }) {
   const { run } = useToast();
   // Subcategories sit indented under their parent.
   const indent = { paddingLeft: `${category.depth * 20}px` };
-  const inherited = category.attrs === null && category.parentId != null;
 
   async function onDelete() {
     if (!window.confirm(`“${category.name}” категорийг устгах уу?`)) return;
@@ -59,9 +58,11 @@ function CategoryRow({
           {category.name}
         </span>
         <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-          <span className={cn(attrs.length > 0 && !inherited && "font-semibold text-primary-ink")}>
-            {attrsSummary(attrs)}
-          </span>
+          {category.children.length > 0 ? (
+            `${formatQty(category.children.length)} дэд категори`
+          ) : (
+            <span className={cn(attrs.length > 0 && "font-semibold text-primary-ink")}>{attrsSummary(attrs)}</span>
+          )}
         </span>
       </span>
       <Button asChild variant="outline" size="icon-sm" className="shrink-0">

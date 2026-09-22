@@ -6,7 +6,6 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import type { Attr } from "@/lib/api/attrs";
 import {
   canNestUnder,
@@ -17,7 +16,7 @@ import {
   updateCategory,
   type Category,
 } from "@/lib/api/categories";
-import { attrsSummary, MAX_ATTRS } from "@/lib/attributes";
+import { MAX_ATTRS } from "@/lib/attributes";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -52,7 +51,6 @@ export default function CategoryForm({
   const router = useRouter();
   const { run } = useToast();
   const nameErrorId = useId();
-  const inheritLabelId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(category?.name ?? "");
@@ -62,8 +60,9 @@ export default function CategoryForm({
     const id = category ? category.parentId : initialParentId;
     return id != null ? String(id) : "";
   });
-  // Under a parent, the parent's attributes apply until turned off here.
-  const [inherit, setInherit] = useState(category ? category.attrs === null : true);
+  // Only the last level picks what products vary by; a category with
+  // subcategories leaves it to them.
+  const isLeaf = !category || category.children.length === 0;
   // Ids gone from the catalogue are dropped: they have no card to turn them off.
   const [attrs, setAttrs] = useState<number[]>(() =>
     category ? categoryAttrs(categories, category.id).filter((id) => catalogue.some((a) => a.id === id)) : []
@@ -76,11 +75,6 @@ export default function CategoryForm({
   const parents = categories.filter(
     (c) => !excluded.has(c.id) && (canNestUnder(c, category) || c.id === category?.parentId)
   );
-  const parentAttrs = parentId
-    ? categoryAttrs(categories, Number(parentId)).filter((id) => catalogue.some((a) => a.id === id))
-    : [];
-  const inheriting = parentId !== "" && inherit;
-  const effective = inheriting ? parentAttrs : attrs;
   const full = attrs.length >= MAX_ATTRS;
   const nameOf = (id: number) => catalogue.find((a) => a.id === id)?.name ?? `#${id}`;
 
@@ -90,12 +84,6 @@ export default function CategoryForm({
     setAttrs((prev) =>
       prev.includes(id) ? prev.filter((k) => k !== id) : prev.length < MAX_ATTRS ? [...prev, id] : prev
     );
-  }
-
-  function onInheritChange(checked: boolean) {
-    setInherit(checked);
-    // Turning it off starts from what the parent has.
-    if (!checked && attrs.length === 0) setAttrs(parentAttrs);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -108,7 +96,7 @@ export default function CategoryForm({
     const input = {
       name: name.trim(),
       parentId: parentId ? Number(parentId) : null,
-      attrs: inheriting ? null : attrs,
+      attrs: isLeaf ? attrs : [],
     };
     const saved = await run(
       () => (category ? updateCategory(category.id, input) : createCategory(input)),
@@ -171,23 +159,13 @@ export default function CategoryForm({
           <div>
             <h2 className="text-[15px] font-bold">Барааны сонголт</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Худалдан авагч юугаар нь сонгож авах вэ? Бараа бүртгэхэд эдгээрийг оруулах хэсэг гарна.
+              {isLeaf
+                ? "Худалдан авагч юугаар нь сонгож авах вэ? Бараа бүртгэхэд эдгээрийг оруулах хэсэг гарна."
+                : "Дэд категоритой тул сонголтыг хамгийн сүүлийн түвшний дэд категориуд дээр нь сонгоно."}
             </p>
           </div>
 
-          {parentId && (
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-3.5 py-3">
-              <span id={inheritLabelId} className="min-w-0">
-                <span className="block text-sm font-semibold">Эцэг категорийнхоо адил</span>
-                <span className="block truncate text-sm text-muted-foreground">
-                  {attrsSummary(parentAttrs.map(nameOf))}
-                </span>
-              </span>
-              <Switch checked={inherit} onCheckedChange={onInheritChange} aria-labelledby={inheritLabelId} />
-            </div>
-          )}
-
-          {!inheriting && (
+          {isLeaf && (
             <>
               {catalogue.length === 0 ? (
                 <p className="rounded-xl bg-muted px-3.5 py-3 text-sm text-muted-foreground">
@@ -236,30 +214,32 @@ export default function CategoryForm({
                 Дарсан дарааллаар нь оруулна. Хамгийн ихдээ {MAX_ATTRS} сонголт. Шинэ сонголт өгөгдлийн санд
                 нэмэгдэнэ.
               </p>
+
+              {/* What the product form will ask for. */}
+              <p className="flex items-start gap-2 rounded-xl bg-primary-soft/60 px-3.5 py-3 text-sm">
+                <Check className="mt-0.5 size-4 shrink-0 text-primary-ink" />
+                {attrs.length === 0 ? (
+                  <span>
+                    <b>Сонголтгүй</b> — бараа нэг л хувилбартай, зөвхөн тоо ширхэгээ оруулна (ж: хүнс, ном).
+                  </span>
+                ) : (
+                  <span>
+                    Бараа бүртгэхэд:{" "}
+                    <b>
+                      {attrs.map((id) => `${nameOf(id)} сонгох`).join(" → ")} → тоо, үнэ
+                    </b>
+                  </span>
+                )}
+              </p>
             </>
           )}
-
-          {/* What the product form will ask for. */}
-          <p className="flex items-start gap-2 rounded-xl bg-primary-soft/60 px-3.5 py-3 text-sm">
-            <Check className="mt-0.5 size-4 shrink-0 text-primary-ink" />
-            {effective.length === 0 ? (
-              <span>
-                <b>Сонголтгүй</b> — бараа нэг л хувилбартай, зөвхөн тоо ширхэгээ оруулна (ж: хүнс, ном).
-              </span>
-            ) : (
-              <span>
-                Бараа бүртгэхэд:{" "}
-                <b>
-                  {effective.map((id) => `${nameOf(id)} сонгох`).join(" → ")} → тоо, үнэ
-                </b>
-              </span>
-            )}
-          </p>
         </section>
 
-        <SampleNotice>
-          Категори бүрийн сонголтыг хадгалах API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
-        </SampleNotice>
+        {isLeaf && (
+          <SampleNotice>
+            Категори бүрийн сонголтыг хадгалах API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
+          </SampleNotice>
+        )}
       </div>
     </form>
   );

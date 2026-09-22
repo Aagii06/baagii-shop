@@ -17,11 +17,12 @@ export interface Category {
   } | null;
   /**
    * What its products vary by — `Attr` ids from the catalogue (`getAttrs`),
-   * in the order they're entered. `[]` sells each product in one version;
-   * `null` takes the parent's. Not sent by eshop-service yet, so
-   * `getCategoryTree` fills it from `getCategoryAttrs`.
+   * in the order they're entered. Only the last level — a category with no
+   * subcategories — has them; `[]` sells each product in one version. Not
+   * sent by the backend yet, so `getCategoryTree` fills it from
+   * `getCategoryAttrs`.
    */
-  attrs: number[] | null;
+  attrs: number[];
   children: Category[];
 }
 
@@ -35,7 +36,7 @@ type CategoryNode = Omit<Category, "attrs" | "children"> & {
 function withAttrs(list: CategoryNode[], attrsById: Record<number, number[]>): Category[] {
   return list.map((node) => ({
     ...node,
-    attrs: node.attrs !== undefined ? node.attrs : (attrsById[node.id] ?? null),
+    attrs: node.attrs ?? attrsById[node.id] ?? [],
     children: withAttrs(node.children ?? [], attrsById),
   }));
 }
@@ -80,23 +81,18 @@ export function countCategories(list: Category[]): number {
   return list.reduce((sum, c) => sum + 1 + countCategories(c.children), 0);
 }
 
-/** The attributes a category's products vary by — its own, else the nearest parent's. */
+/** The attributes a category's products vary by — none unless it has no subcategories. */
 export function categoryAttrs(categories: Category[], id: number | null): number[] {
-  const byId = new Map(categories.map((c) => [c.id, c]));
-  let category = id != null ? byId.get(id) : undefined;
-  while (category) {
-    if (category.attrs) return category.attrs;
-    category = category.parentId != null ? byId.get(category.parentId) : undefined;
-  }
-  return [];
+  const category = id != null ? categories.find((c) => c.id === id) : undefined;
+  return category && category.children.length === 0 ? category.attrs : [];
 }
 
 /** Fields edited on the category form. */
 export interface CategoryInput {
   name: string;
   parentId: number | null;
-  /** Like `Category.attrs`; `null` only under a parent. */
-  attrs: number[] | null;
+  /** Like `Category.attrs`; `[]` for a category with subcategories. */
+  attrs: number[];
 }
 
 // No write endpoints on eshop-service yet (see README) — implement these
