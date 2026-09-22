@@ -1,5 +1,5 @@
-// The sizes a product can be sold in, picked on the product sizes page. The
-// group is only how the picker is browsed; a saved size is just its label.
+// The sizes a product can be sold in, picked on the product variants page.
+// The group is only how the picker is browsed; a saved size is just its label.
 export interface SizeGroup {
   id: string;
   label: string;

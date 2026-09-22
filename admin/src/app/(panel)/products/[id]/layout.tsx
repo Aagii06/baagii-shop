@@ -15,11 +15,11 @@ async function loadEditor(id: number) {
   return { post, categories: flattenCategories(tree) };
 }
 
-// Shared by the form and its sizes page so the draft survives moving between them.
+// Shared by the form and its variants page so the draft survives moving between them.
 export default function EditProductLayout({ children }: { children: React.ReactNode }) {
   const { id } = useParams<{ id: string }>();
   const { data, error, reload } = useApi(() => loadEditor(Number(id)), id);
-  const onSizes = useSelectedLayoutSegment() === "sizes";
+  const onVariants = useSelectedLayoutSegment() === "variants";
 
   if (data?.post) {
     return (
@@ -32,8 +32,8 @@ export default function EditProductLayout({ children }: { children: React.ReactN
   return (
     <>
       <DetailHeader
-        backHref={onSizes ? `/products/${id}` : "/products"}
-        title={onSizes ? "Хэмжээ, тоо" : "Бараа засах"}
+        backHref={onVariants ? `/products/${id}` : "/products"}
+        title={onVariants ? "Сонголт, тоо" : "Бараа засах"}
       />
       {error && !data ? (
         <ErrorState error={error} onRetry={reload} />

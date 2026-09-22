@@ -8,11 +8,11 @@ import { useApi } from "@/lib/useApi";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { useMemo } from "react";
 
-// Shared by the form and its sizes page so the draft survives moving between them.
+// Shared by the form and its variants page so the draft survives moving between them.
 export default function NewProductLayout({ children }: { children: React.ReactNode }) {
   const { data: tree, error, reload } = useApi(getCategoryTree);
   const categories = useMemo(() => (tree ? flattenCategories(tree) : null), [tree]);
-  const onSizes = useSelectedLayoutSegment() === "sizes";
+  const onVariants = useSelectedLayoutSegment() === "variants";
 
   if (categories) {
     return (
@@ -25,8 +25,8 @@ export default function NewProductLayout({ children }: { children: React.ReactNo
   return (
     <>
       <DetailHeader
-        backHref={onSizes ? "/products/new" : "/products"}
-        title={onSizes ? "Хэмжээ, тоо" : "Бараа нэмэх"}
+        backHref={onVariants ? "/products/new" : "/products"}
+        title={onVariants ? "Сонголт, тоо" : "Бараа нэмэх"}
       />
       {error ? <ErrorState error={error} onRetry={reload} /> : <LoadingState />}
     </>
