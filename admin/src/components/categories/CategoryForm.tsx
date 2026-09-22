@@ -76,7 +76,9 @@ export default function CategoryForm({
   const parents = categories.filter(
     (c) => !excluded.has(c.id) && (canNestUnder(c, category) || c.id === category?.parentId)
   );
-  const parentAttrs = parentId ? categoryAttrs(categories, Number(parentId)) : [];
+  const parentAttrs = parentId
+    ? categoryAttrs(categories, Number(parentId)).filter((id) => catalogue.some((a) => a.id === id))
+    : [];
   const inheriting = parentId !== "" && inherit;
   const effective = inheriting ? parentAttrs : attrs;
   const full = attrs.length >= MAX_ATTRS;
@@ -256,7 +258,7 @@ export default function CategoryForm({
         </section>
 
         <SampleNotice>
-          Сонголтуудын API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
+          Категори бүрийн сонголтыг хадгалах API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
         </SampleNotice>
       </div>
     </form>

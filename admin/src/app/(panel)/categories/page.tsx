@@ -117,7 +117,7 @@ export default function CategoriesPage() {
         }
       />
       <SampleNotice className="mb-2">
-        Сонголтуудын (өнгө, хэмжээ…) API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
+        Категори бүрийн сонголтыг (өнгө, хэмжээ…) хадгалах API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
       </SampleNotice>
 
       {error && !data ? (
@@ -136,7 +136,7 @@ export default function CategoriesPage() {
             <CategoryRow
               key={category.id}
               category={category}
-              attrs={categoryAttrs(rows, category.id).map((id) => data.attrName.get(id) ?? `#${id}`)}
+              attrs={categoryAttrs(rows, category.id).flatMap((id) => data.attrName.get(id) ?? [])}
               onChanged={reload}
             />
           ))}
