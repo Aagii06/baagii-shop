@@ -1,7 +1,8 @@
 "use client";
 
-import type { Category } from "@/lib/api/categories";
+import { categoryAttrs, type Category } from "@/lib/api/categories";
 import type { PostDetail, PostInput } from "@/lib/api/posts";
+import { attrDef, attrKeyForName, valueKey } from "@/lib/attributes";
 import { toNumber } from "@/lib/utils";
 import { createContext, useContext, useMemo, useState } from "react";
 
@@ -17,17 +18,36 @@ export interface ProductFormState {
   isActive: boolean;
 }
 
-export interface SizeRow {
-  /** React key — stable while the row is edited. */
+/** One value of an attribute; a colour carries its swatch hex. */
+export interface AttrValue {
+  value: string;
+  color: string | null;
+}
+
+/** Something the product varies by, and the values it's sold in. */
+export interface ProductAttr {
+  /** `lib/attributes` key, or a custom attribute's name. */
   key: string;
-  /** Existing variant (`PostProduct.id`); `null` for a row added here. */
+  /** Saved as — the product's existing `PostAttr.attrName`, else the built-in label. */
+  name: string;
+  /** Existing `PostAttr.attrId`; `null` when new to this product. */
+  attrId: number | null;
+  values: AttrValue[];
+}
+
+/** Stock and price of one combination of values ("Хар · 42"). */
+export interface VariantRow {
+  /** `comboKey(values)`. */
+  key: string;
+  /** Existing variant (`PostProduct.id`); `null` for a new combination. */
   id: number | null;
-  size: string;
+  /** attr key → value */
+  values: Record<string, string>;
   qty: string;
   price: string;
   salePrice: string;
-  /** The variant's other attributes (e.g. colour), shown read-only. */
-  extra: string;
+  /** Not sold. Kept so turning it back on restores its numbers; not saved. */
+  off: boolean;
 }
 
 function initialForm(post: PostDetail | null): ProductFormState {
@@ -52,51 +72,109 @@ export function productErrors(form: ProductFormState): ProductErrors {
   return errors;
 }
 
-/** Name and price are filled — the sizes page needs them. */
+/** Name and price are filled — the variants page needs them. */
 export function hasProductBasics(form: ProductFormState) {
   return Object.keys(productErrors(form)).length === 0;
 }
 
-// A variant combines attributes ("Өнгө: Саарал", "Гутлын хэмжээ: 38"); the
-// size ones are matched by name. With none, every value counts as the size.
-const SIZE_ATTR = /хэмжээ|size/i;
-
-function initialSizes(post: PostDetail | null): SizeRow[] {
-  const attrs = [...(post?.postAttrs ?? [])].sort((a, b) => a.orderNumber - b.orderNumber);
-  const hasSizeAttr = attrs.some((a) => SIZE_ATTR.test(a.attrName));
-  const isSize = (attrName: string) => !hasSizeAttr || SIZE_ATTR.test(attrName);
-  const values = (attr: Record<string, string> | null, size: boolean) =>
-    attrs
-      .filter((a) => isSize(a.attrName) === size)
-      .map((a) => attr?.[a.attrId])
-      .filter(Boolean)
-      .join(" · ");
-
-  return (post?.postProducts ?? []).map((p) => ({
-    key: `variant-${p.id}`,
-    id: p.id,
-    size: values(p.attr, true) || p.variantName,
-    qty: String(toNumber(p.qty)),
-    price: String(toNumber(p.mainPrice) || toNumber(p.price)),
-    salePrice: String(toNumber(p.price)),
-    extra: values(p.attr, false),
-  }));
+/** Same for any order of the attributes, so reordering keeps each row's numbers. */
+export function comboKey(values: Record<string, string>) {
+  return Object.keys(values)
+    .sort()
+    .map((key) => `${key}=${valueKey(values[key])}`)
+    .join("|");
 }
 
-let rowCount = 0;
+/** Every combination of the picked values, in attribute then value order; `[{}]` when none are picked. */
+function combinations(attrs: ProductAttr[]): Record<string, string>[] {
+  return attrs
+    .filter((attr) => attr.values.length > 0)
+    .reduce<Record<string, string>[]>(
+      (combos, attr) => combos.flatMap((combo) => attr.values.map((v) => ({ ...combo, [attr.key]: v.value }))),
+      [{}]
+    );
+}
 
-/** A new size starts at 0 in stock, priced like the product. */
-export function newSizeRow(size: string, form: ProductFormState): SizeRow {
-  rowCount += 1;
+/** A new combination starts at 0 in stock, priced like the product. */
+function newVariantRow(values: Record<string, string>, form: ProductFormState): VariantRow {
   return {
-    key: `new-${rowCount}`,
+    key: comboKey(values),
     id: null,
-    size,
+    values,
     qty: "0",
     price: form.price,
     salePrice: form.salePrice,
-    extra: "",
+    off: false,
   };
+}
+
+// Posts from before categories had attributes may keep several variants
+// apart by name alone; those names become the values of this attribute.
+const VARIANT_NAME_ATTR = "Хувилбар";
+
+function initialAttrs(post: PostDetail | null): ProductAttr[] {
+  const products = post?.postProducts ?? [];
+  const postAttrs = [...(post?.postAttrs ?? [])].sort((a, b) => a.orderNumber - b.orderNumber);
+  if (postAttrs.length === 0) {
+    return products.length > 1
+      ? [
+          {
+            key: VARIANT_NAME_ATTR,
+            name: VARIANT_NAME_ATTR,
+            attrId: null,
+            values: products.map((p) => ({ value: p.variantName, color: null })),
+          },
+        ]
+      : [];
+  }
+
+  const keys = new Set<string>();
+  return postAttrs.map((attr) => {
+    let key = attrKeyForName(attr.attrName);
+    if (keys.has(key)) key = attr.attrName.trim();
+    keys.add(key);
+
+    const values: AttrValue[] = [...(attr.postAttrValues ?? [])]
+      .sort((a, b) => a.orderNumber - b.orderNumber)
+      .map((v) => ({ value: v.value, color: v.color }));
+    // Values a variant uses without being listed on the attribute.
+    for (const p of products) {
+      const value = p.attr?.[attr.attrId];
+      if (value && !values.some((v) => valueKey(v.value) === valueKey(value))) {
+        values.push({ value, color: null });
+      }
+    }
+    return { key, name: attr.attrName, attrId: attr.attrId, values };
+  });
+}
+
+function initialRows(post: PostDetail | null, attrs: ProductAttr[], form: ProductFormState) {
+  const rows: Record<string, VariantRow> = {};
+  for (const p of post?.postProducts ?? []) {
+    const values: Record<string, string> = {};
+    for (const attr of attrs) {
+      const value = attr.attrId != null ? p.attr?.[attr.attrId] : p.variantName;
+      if (value) values[attr.key] = value;
+    }
+    const key = comboKey(values);
+    rows[key] = {
+      key,
+      id: p.id,
+      values,
+      qty: String(toNumber(p.qty)),
+      price: String(toNumber(p.mainPrice) || toNumber(p.price)),
+      salePrice: String(toNumber(p.price)),
+      off: false,
+    };
+  }
+  // Combinations the product isn't sold in stay off rather than showing up at 0.
+  if (post) {
+    for (const values of combinations(attrs)) {
+      const key = comboKey(values);
+      rows[key] ??= { ...newVariantRow(values, form), off: true };
+    }
+  }
+  return rows;
 }
 
 /** "Хямдрал" left empty is saved as the price itself — no discount. */
@@ -105,21 +183,26 @@ function prices(price: string, salePrice: string) {
   return { mainPrice, price: salePrice === "" ? mainPrice : Number(salePrice) };
 }
 
-/** Rows without a size are dropped. */
-export function toPostInput(form: ProductFormState, sizes: SizeRow[]): PostInput {
+/**
+ * Attributes without values are left out; with none left, the one variant
+ * takes the product's own prices. Combinations turned off are dropped.
+ */
+export function toPostInput(form: ProductFormState, attrs: ProductAttr[], variants: VariantRow[]): PostInput {
+  const used = attrs.filter((attr) => attr.values.length > 0);
   return {
     name: form.name.trim(),
     ...prices(form.price, form.salePrice),
     categoryId: form.categoryId ? Number(form.categoryId) : null,
     note: form.note.trim(),
     isActive: form.isActive,
-    sizes: sizes
-      .filter((row) => row.size.trim())
+    attrs: used.map(({ attrId, key, name, values }) => ({ attrId, key, name, values })),
+    variants: variants
+      .filter((row) => !row.off)
       .map((row) => ({
         id: row.id,
-        size: row.size.trim(),
+        values: used.map((attr) => row.values[attr.key]),
         qty: Number(row.qty) || 0,
-        ...prices(row.price, row.salePrice),
+        ...(used.length > 0 ? prices(row.price, row.salePrice) : prices(form.price, form.salePrice)),
       })),
   };
 }
@@ -127,18 +210,24 @@ export function toPostInput(form: ProductFormState, sizes: SizeRow[]): PostInput
 interface ProductEditor {
   post: PostDetail | null;
   categories: (Category & { depth: number })[];
-  /** `/products/new` or `/products/{id}` — the form; sizes live under `/sizes`. */
+  /** `/products/new` or `/products/{id}` — the form; variants live under `/variants`. */
   basePath: string;
   form: ProductFormState;
   setField: <K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) => void;
-  sizes: SizeRow[];
-  setSizes: React.Dispatch<React.SetStateAction<SizeRow[]>>;
+  /** The category's attributes, then any others the product already has values for. */
+  attrs: ProductAttr[];
+  /** Whether `key` is one of the category's attributes (not left over from another). */
+  inCategory: (key: string) => boolean;
+  setAttrValues: (key: string, values: AttrValue[]) => void;
+  /** Every combination of the picked values — a single row when none are picked. */
+  variants: VariantRow[];
+  updateVariant: (row: VariantRow, patch: Partial<VariantRow>) => void;
 }
 
 const ProductEditorContext = createContext<ProductEditor | null>(null);
 
 /**
- * Holds the unsaved product draft for the form and the sizes page. It is
+ * Holds the unsaved product draft for the form and the variants page. It is
  * mounted by the route's layout, so the draft survives moving between them.
  */
 export function ProductEditorProvider({
@@ -151,30 +240,55 @@ export function ProductEditorProvider({
   children: React.ReactNode;
 }) {
   const [form, setForm] = useState(() => initialForm(post));
-  const [sizes, setSizes] = useState(() => initialSizes(post));
+  // Every attribute given values so far — also ones a later category change
+  // left out, so switching back finds them again.
+  const [allAttrs, setAllAttrs] = useState(() => initialAttrs(post));
+  const [rows, setRows] = useState(() => initialRows(post, allAttrs, form));
 
-  const value = useMemo<ProductEditor>(
-    () => ({
+  const value = useMemo<ProductEditor>(() => {
+    const categoryKeys = categoryAttrs(categories, form.categoryId ? Number(form.categoryId) : null);
+    const byKey = new Map(allAttrs.map((attr) => [attr.key, attr]));
+    const attrs = [
+      ...categoryKeys.map(
+        (key) => byKey.get(key) ?? { key, name: attrDef(key).label, attrId: null, values: [] }
+      ),
+      ...allAttrs.filter((attr) => !categoryKeys.includes(attr.key) && attr.values.length > 0),
+    ];
+
+    return {
       post,
       categories,
       basePath: post ? `/products/${post.id}` : "/products/new",
       form,
       setField: (key, fieldValue) => {
         setForm((prev) => ({ ...prev, [key]: fieldValue }));
-        // Sizes still on the product's old price or sale price follow the change.
+        // Variants still on the product's old price or sale price follow the change.
         if (key === "price" || key === "salePrice") {
           const field = key as "price" | "salePrice";
           const previous = form[field];
-          setSizes((prev) =>
-            prev.map((row) => (row[field] === previous ? { ...row, [field]: String(fieldValue) } : row))
+          setRows((prev) =>
+            Object.fromEntries(
+              Object.entries(prev).map(([k, row]) => [
+                k,
+                row[field] === previous ? { ...row, [field]: String(fieldValue) } : row,
+              ])
+            )
           );
         }
       },
-      sizes,
-      setSizes,
-    }),
-    [post, categories, form, sizes]
-  );
+      attrs,
+      inCategory: (key) => categoryKeys.includes(key),
+      setAttrValues: (key, values) =>
+        setAllAttrs((prev) =>
+          prev.some((attr) => attr.key === key)
+            ? prev.map((attr) => (attr.key === key ? { ...attr, values } : attr))
+            : [...prev, { key, name: attrDef(key).label, attrId: null, values }]
+        ),
+      variants: combinations(attrs).map((values) => rows[comboKey(values)] ?? newVariantRow(values, form)),
+      updateVariant: (row, patch) =>
+        setRows((prev) => ({ ...prev, [row.key]: { ...(prev[row.key] ?? row), ...patch } })),
+    };
+  }, [post, categories, form, allAttrs, rows]);
 
   return <ProductEditorContext.Provider value={value}>{children}</ProductEditorContext.Provider>;
 }

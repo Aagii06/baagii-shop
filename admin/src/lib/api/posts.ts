@@ -125,16 +125,29 @@ export interface PostInput {
   categoryId: number | null;
   note: string;
   isActive: boolean;
-  /** Stock per size, entered on the sizes page. */
-  sizes: PostSizeInput[];
+  /** What the product varies by (colour, size, …); empty for a one-version product. */
+  attrs: PostAttrInput[];
+  /** Stock per combination of `attrs` values — one entry when `attrs` is empty. */
+  variants: PostVariantInput[];
 }
 
-export interface PostSizeInput {
-  /** Existing variant (`PostProduct.id`); `null` for a new size. */
+export interface PostAttrInput {
+  /** Existing attribute (`PostAttr.attrId`); `null` when new to this product. */
+  attrId: number | null;
+  /** `lib/attributes` key ("color", "size", …) or a custom attribute's name. */
+  key: string;
+  name: string;
+  /** `color` is the swatch hex, for colours. */
+  values: { value: string; color: string | null }[];
+}
+
+export interface PostVariantInput {
+  /** Existing variant (`PostProduct.id`); `null` for a new one. */
   id: number | null;
-  size: string;
+  /** One value per `PostInput.attrs` entry, in the same order. */
+  values: string[];
   qty: number;
-  /** Like `PostInput.mainPrice` / `price`, for this size. */
+  /** Like `PostInput.mainPrice` / `price`, for this variant. */
   mainPrice: number;
   price: number;
 }

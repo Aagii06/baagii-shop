@@ -1,8 +1,22 @@
 import type { Order, SalesRange, SalesSummary } from "./orders";
 
 // Placeholder data for the screens whose eshop-service endpoints don't exist
-// yet (orders, sales). Only `./orders` reads it. Delete this file once those
-// endpoints are wired up.
+// yet (orders, sales, category attributes). Only `./orders` and
+// `./categories` read it. Delete this file once those endpoints are wired up.
+
+/**
+ * `Category.attrs` by category code, until `getCategoryTree` sends it.
+ * Subcategories not listed take their parent's.
+ */
+export const SAMPLE_CATEGORY_ATTRS: Record<string, string[]> = {
+  electronics: ["color", "capacity"],
+  tv: [],
+  clothing: ["color", "size"],
+  food: ["weight"],
+  drinks: ["volume"],
+  home: ["color"],
+  beauty: ["volume"],
+};
 
 /** ISO timestamp for `hh:mm` on the day `daysAgo` days before today. */
 function at(hh: number, mm: number, daysAgo = 0) {
