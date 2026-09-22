@@ -1,3 +1,5 @@
+import { getCategoryAttrs } from "./attrs";
+import { apiFetch, type ApiItemResponse } from "./client";
 import { endpointMissing } from "./errors";
 
 // `CategoryTreeNode` in the eshop-service OpenAPI doc.
@@ -16,75 +18,33 @@ export interface Category {
   /**
    * What its products vary by — `Attr` ids from the catalogue (`getAttrs`),
    * in the order they're entered. `[]` sells each product in one version;
-   * `null` takes the parent's. Not sent by eshop-service yet — hence the
-   * sample tree in `getCategoryTree`.
+   * `null` takes the parent's. Not sent by eshop-service yet, so
+   * `getCategoryTree` fills it from `getCategoryAttrs`.
    */
   attrs: number[] | null;
   children: Category[];
 }
 
-type SampleCategory = Pick<Category, "id" | "name" | "code" | "attrs"> & { children?: SampleCategory[] };
+type CategoryNode = Omit<Category, "attrs" | "children"> & {
+  attrs?: number[] | null;
+  children: CategoryNode[];
+};
 
-/** Fills in what the sample tree leaves out: `parentId` from the nesting, no image or style. */
-function sampleTree(list: SampleCategory[], parentId: number | null = null): Category[] {
-  return list.map(({ children = [], ...node }) => ({
+/** `attrs` as sent, else as `getCategoryAttrs` has it for that id. */
+function withAttrs(list: CategoryNode[], attrsById: Record<number, number[]>): Category[] {
+  return list.map((node) => ({
     ...node,
-    parentId,
-    image: null,
-    style: null,
-    children: sampleTree(children, node.id),
+    attrs: node.attrs !== undefined ? node.attrs : (attrsById[node.id] ?? null),
+    children: withAttrs(node.children, attrsById),
   }));
 }
 
-// eshop-service's tree has no `attrs` yet, so this serves sample data (ids
-// 1–13 match the live tree, which posts point at; 20+ are placeholders).
-// Attribute ids are `getAttrs`'s. Once `attrs` is sent, return to:
-//   const res = await apiFetch<ApiItemResponse<Category[] | null>>("/category/getCategoryTree");
-//   return res.data ?? [];
-export async function getCategoryTree(): Promise<Category[]> {
-  return sampleTree([
-    {
-      id: 1,
-      name: "Цахилгаан бараа",
-      code: "electronics",
-      attrs: [6, 5],
-      children: [
-        { id: 2, name: "Гар утас", code: "phone", attrs: null },
-        { id: 3, name: "Компьютер", code: "computer", attrs: [1, 5] },
-        { id: 4, name: "Телевизор", code: "tv", attrs: [] },
-      ],
-    },
-    {
-      id: 5,
-      name: "Хувцас",
-      code: "clothing",
-      attrs: [1, 102],
-      children: [
-        { id: 6, name: "Эрэгтэй хувцас", code: "men", attrs: [1, 102, 4] },
-        { id: 7, name: "Эмэгтэй хувцас", code: "women", attrs: null },
-        { id: 8, name: "Хүүхдийн хувцас", code: "kids", attrs: [1, 101] },
-      ],
-    },
-    {
-      id: 20,
-      name: "Гутал",
-      code: "shoes",
-      attrs: [1, 4],
-      children: [{ id: 21, name: "Хүүхдийн гутал", code: "kids-shoes", attrs: [1, 103] }],
-    },
-    {
-      id: 9,
-      name: "Хүнс",
-      code: "food",
-      attrs: [],
-      children: [
-        { id: 10, name: "Ундаа", code: "drinks", attrs: [104] },
-        { id: 11, name: "Зууш", code: "snacks", attrs: null },
-      ],
-    },
-    { id: 12, name: "Гэр ахуй", code: "home", attrs: [1] },
-    { id: 13, name: "Гоо сайхан", code: "beauty", attrs: [104] },
+export async function getCategoryTree() {
+  const [res, attrsById] = await Promise.all([
+    apiFetch<ApiItemResponse<CategoryNode[] | null>>("/category/getCategoryTree"),
+    getCategoryAttrs(),
   ]);
+  return withAttrs(res.data ?? [], attrsById);
 }
 
 // Flattens the tree to a single list (parents followed by their children),

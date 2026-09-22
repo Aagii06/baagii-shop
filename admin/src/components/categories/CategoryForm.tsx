@@ -232,7 +232,7 @@ export default function CategoryForm({
         </section>
 
         <SampleNotice>
-          Категори болон сонголтуудын API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
+          Сонголтуудын API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
         </SampleNotice>
       </div>
     </form>

@@ -93,3 +93,22 @@ export async function getAttrs(): Promise<Attr[]> {
     sampleAttr(104, "Эзлэхүүн", "text", 1601, ["30 мл", "50 мл", "100 мл", "250 мл", "500 мл", "1 л", "1.5 л", "2 л"]),
   ].map((attr, i) => ({ ...attr, orderNumber: i }));
 }
+
+// Which attributes each category's products vary by (`Category.attrs`), by
+// category id — sample data for the live category tree until eshop-service
+// sends `attrs` with it (`getCategoryTree` prefers what it sends). Ids left
+// out take their parent's; a root left out has none.
+export async function getCategoryAttrs(): Promise<Record<number, number[]>> {
+  return {
+    1: [6, 5], // Цахилгаан бараа: Өнгө, Багтаамж
+    3: [1, 5], // Компьютер: Өнгө, Багтаамж
+    4: [], // Телевизор
+    5: [1, 102], // Хувцас: Өнгө, Хувцасны хэмжээ үсэг
+    6: [1, 102, 4], // Эрэгтэй хувцас: … + Гутлын хэмжээ тоо
+    8: [1, 101], // Хүүхдийн хувцас: Өнгө, Хувцасны хэмжээ тоо
+    9: [], // Хүнс
+    10: [104], // Ундаа: Эзлэхүүн
+    12: [1], // Гэр ахуй: Өнгө
+    13: [104], // Гоо сайхан: Эзлэхүүн
+  };
+}

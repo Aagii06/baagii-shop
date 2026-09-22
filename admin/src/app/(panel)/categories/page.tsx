@@ -112,7 +112,7 @@ export default function CategoriesPage() {
         }
       />
       <SampleNotice className="mb-2">
-        Категори болон сонголтуудын (өнгө, хэмжээ…) API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
+        Сонголтуудын (өнгө, хэмжээ…) API холбогдоогүй тул жишээ өгөгдөл харуулж байна.
       </SampleNotice>
 
       {error && !data ? (
