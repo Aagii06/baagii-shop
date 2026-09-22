@@ -4,7 +4,6 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { formatPhone } from "@/lib/utils";
 import { ChevronRight, LayoutGrid, LogOut, NotebookPen, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
@@ -42,7 +41,7 @@ export default function ProfilePage() {
             <span className="block truncate text-[17px] font-bold">{displayName}</span>
             {user?.userName && (
               <span className="mt-0.5 block truncate font-mono text-sm text-muted-foreground">
-                {formatPhone(user.userName)}
+                {user.userName}
               </span>
             )}
           </span>

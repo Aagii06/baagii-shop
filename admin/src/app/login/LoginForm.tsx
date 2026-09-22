@@ -4,7 +4,6 @@ import BrandMark from "@/components/layout/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { formatPhone } from "@/lib/utils";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,23 +13,13 @@ function safeNext(value: string | null) {
   return value && value.startsWith("/") && !value.startsWith("//") ? value : "/";
 }
 
-// Same phone mask as the shop's PhoneAuthGate (../web/src/components/checkout).
-const PHONE_LENGTH = 8;
-
-/** Keeps the 8-digit national part; autofill often hands over a +976 number. */
-function nationalDigits(value: string) {
-  const d = value.replace(/\D/g, "");
-  const national = d.length > PHONE_LENGTH && d.startsWith("976") ? d.slice(3) : d;
-  return national.slice(0, PHONE_LENGTH);
-}
-
 export default function LoginForm() {
   const { status, login } = useAuth();
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
 
   const [userName, setUserName] = useState("");
-  const [pin, setPin] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,14 +29,10 @@ export default function LoginForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (userName.length < PHONE_LENGTH) {
-      setError("Утасны дугаар 8 оронтой байх ёстой");
-      return;
-    }
     setError(null);
     setSubmitting(true);
     try {
-      await login(userName, pin);
+      await login(userName.trim(), password);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Нэвтрэхэд алдаа гарлаа");
       setSubmitting(false);
@@ -66,28 +51,22 @@ export default function LoginForm() {
       >
         <h1 className="text-xl font-bold">Нэвтрэх</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Удирдлагын хэсэгт нэвтрэхийн тулд утасны дугаар, нууц үгээ оруулна уу.
-        </p>
-        {/* Remove with the demo login in lib/api/auth.ts. */}
-        <p className="mt-3 rounded-xl bg-warning-soft px-3 py-2 text-xs font-semibold text-foreground/80">
-          Туршилтын горим: дурын утасны дугаар, PIN-ээр нэвтэрнэ.
+          Удирдлагын хэсэгт нэвтрэхийн тулд нэвтрэх нэр, нууц үгээ оруулна уу.
         </p>
 
         <div className="mt-6 space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">Утасны дугаар</span>
-            {/* State holds the bare digits; the field shows them grouped 4+4.
-                The pattern has to allow the space the mask inserts. */}
+            <span className="mb-1.5 block text-sm font-semibold">Нэвтрэх нэр</span>
             <Input
-              type="tel"
-              inputMode="numeric"
-              pattern="[0-9 ]*"
-              maxLength={PHONE_LENGTH + 1}
+              type="text"
               autoComplete="username"
-              placeholder="Утасны дугаар"
-              value={formatPhone(userName)}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="Нэвтрэх нэр"
+              value={userName}
               onChange={(e) => {
-                setUserName(nationalDigits(e.target.value));
+                setUserName(e.target.value);
                 setError(null);
               }}
               required
@@ -101,8 +80,11 @@ export default function LoginForm() {
               type="password"
               autoComplete="current-password"
               placeholder="••••"
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError(null);
+              }}
               required
             />
           </label>

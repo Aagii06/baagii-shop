@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // `next dev` only lets localhost use its dev endpoints (the HMR websocket,
+  // /_next/*). Allow the office LAN too, so another computer opening
+  // http://192.168.10.x:3790 gets live updates instead of a websocket error.
+  allowedDevOrigins: ["192.168.10.*"],
 };
 
 export default nextConfig;

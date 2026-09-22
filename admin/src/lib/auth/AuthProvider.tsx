@@ -22,7 +22,7 @@ type AuthStatus = "loading" | "authenticated" | "anonymous";
 interface AuthContextValue {
   status: AuthStatus;
   user: LoginUser | null;
-  login: (userName: string, pin: string) => Promise<void>;
+  login: (userName: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -34,7 +34,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Validate the stored token once on mount. `getUserData` rejects an
   // expired/revoked token with an authentication error (which also clears
-  // the session inside apiFetch).
+  // the session inside apiFetch). A token it accepts without a `user` is a
+  // guest one — left over from the old demo login — so sign in again.
   useEffect(() => {
     let cancelled = false;
     const finish = (next: AuthStatus, nextUser: LoginUser | null) => {
@@ -48,11 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       getUserData().then(
         (data) => {
+          if (!data.user) {
+            clearSession();
+            finish("anonymous", null);
+            return;
+          }
           const stored = getStoredUser();
-          const fromApi = data.user
-            ? { ...stored, ...data.user }
-            : stored;
-          finish("authenticated", fromApi as LoginUser | null);
+          finish("authenticated", { ...stored, ...data.user } as LoginUser);
         },
         () => finish(getAuthToken() ? "authenticated" : "anonymous", getStoredUser())
       );
@@ -72,8 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, []);
 
-  const login = useCallback(async (userName: string, pin: string) => {
-    const data = await loginRequest(userName, pin);
+  const login = useCallback(async (userName: string, password: string) => {
+    const data = await loginRequest(userName, password);
     setSession(data.token, data.user);
     setUser(data.user);
     setStatus("authenticated");
