@@ -7,7 +7,7 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/common/RichTextEditor";
 import { deletePost, savePost } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
@@ -240,7 +240,7 @@ export default function ProductForm() {
         <ProductImages />
 
         <Field label="Тайлбар">
-          <Textarea rows={4} value={form.note} onChange={(e) => set("note", e.target.value)} />
+          <RichTextEditor value={form.note} onChange={(html) => set("note", html)} />
         </Field>
 
         {/* Hidden until the backend saves publishing (`isActive` / `statusId`).

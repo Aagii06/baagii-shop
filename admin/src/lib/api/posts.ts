@@ -243,7 +243,7 @@ function toProductBody(input: PostInput) {
     mainPrice: input.mainPrice,
     price: input.price,
     variants: input.variants.map((variant) => ({
-      name: variant.values.join(" / ") || null,
+      name: variant.values.join(" / ") || input.name || "Нэргүй",
       price: variant.price,
       mainPrice: variant.mainPrice,
       qty: variant.qty,
