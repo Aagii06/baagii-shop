@@ -11,7 +11,7 @@ import { RichTextEditor } from "@/components/common/RichTextEditor";
 import { deletePost, savePost } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
-import { ChevronRight, Lock, Palette, Tag } from "lucide-react";
+import { ChevronDown, ChevronRight, Lock, Palette, Tag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
@@ -150,19 +150,25 @@ export default function ProductForm() {
                 : "Категори сонговол өнгө, хэмжээ зэрэг сонголтын хэсэг гарна."
           }
         >
-          <select
-            value={form.categoryId}
-            onChange={(e) => set("categoryId", e.target.value)}
-            className="h-12 w-full rounded-full border border-input bg-white px-5 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
-          >
-            <option value="">Сонгоогүй</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {"— ".repeat(c.depth)}
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={form.categoryId}
+              onChange={(e) => set("categoryId", e.target.value)}
+              className="h-12 w-full appearance-none rounded-full border border-input bg-white px-5 pr-12 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            >
+              <option value="">Сонгоогүй</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {"— ".repeat(c.depth)}
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              aria-hidden="true"
+              className="pointer-events-none absolute right-5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+          </div>
         </Field>
 
         {!picked && (

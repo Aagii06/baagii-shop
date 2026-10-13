@@ -56,6 +56,7 @@ export interface Post {
   id: number;
   categoryId: number | null;
   date: string;
+  createdAt: string;
   name: string;
   note: string | null;
   /** Not on `GET /product` yet — read it through `isPublished`. */
@@ -130,6 +131,7 @@ function toPostDetail(product: Product): PostDetail {
     id: product.id,
     categoryId: product.categoryId,
     date: product.date,
+    createdAt: product.createdAt,
     name: product.name || product.title || "",
     note: product.description,
     isActive: product.statusId ? product.statusId === "active" : product.isActive,

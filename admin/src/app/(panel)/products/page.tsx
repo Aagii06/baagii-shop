@@ -56,13 +56,18 @@ export default function ProductsPage() {
   const filtered = useMemo(() => {
     if (!data) return [];
     const q = query.trim().toLowerCase();
-    return data.posts.filter(
-      (p) =>
-        (rootId === "all" ||
-          (p.categoryId != null && categories.root.get(p.categoryId) === Number(rootId))) &&
-        (!q ||
-          p.name.toLowerCase().includes(q))
-    );
+    return data.posts
+      .filter(
+        (p) =>
+          (rootId === "all" ||
+            (p.categoryId != null && categories.root.get(p.categoryId) === Number(rootId))) &&
+          (!q ||
+            p.name.toLowerCase().includes(q))
+      )
+      .sort((a, b) => {
+        const byCreatedAt = Date.parse(b.createdAt) - Date.parse(a.createdAt);
+        return byCreatedAt || b.id - a.id;
+      });
   }, [data, categories, query, rootId]);
 
   const rows = filtered.slice(0, limit);
