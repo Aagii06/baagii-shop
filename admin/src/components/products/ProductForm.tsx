@@ -6,7 +6,7 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+// import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { deletePost, savePost } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
@@ -42,7 +42,7 @@ export default function ProductForm() {
   const router = useRouter();
   const { run } = useToast();
   const confirm = useConfirm();
-  const publishLabelId = useId();
+  // const publishLabelId = useId();
   const nameErrorId = useId();
   const priceErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
@@ -243,6 +243,7 @@ export default function ProductForm() {
           <Textarea rows={4} value={form.note} onChange={(e) => set("note", e.target.value)} />
         </Field>
 
+        {/* Hidden until the backend saves publishing (`isActive` / `statusId`).
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3.5">
           <span id={publishLabelId} className="text-[15px]">
             Нийтлэх
@@ -253,6 +254,7 @@ export default function ProductForm() {
             aria-labelledby={publishLabelId}
           />
         </div>
+        */}
 
         {post && (
           <Button type="button" variant="danger" size="lg" className="w-full" onClick={onDelete}>
