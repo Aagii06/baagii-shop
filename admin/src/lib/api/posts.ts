@@ -171,8 +171,6 @@ export async function getPost(id: number): Promise<PostDetail | null> {
 
 /** Fields edited on the product form. */
 export interface PostInput {
-  /** `YYYY-MM-DD`; an edited product keeps its own. */
-  date: string;
   name: string;
   /** Base price; the shop strikes it through when `price` is lower. */
   mainPrice: number;
@@ -228,7 +226,8 @@ export interface PostVariantInput {
 // has nowhere for a value's extra images — only its cover (`image`) is sent.
 function toProductBody(input: PostInput) {
   return {
-    date: input.date,
+    // Today, `YYYY-MM-DD` in local time — also when editing.
+    date: new Date().toLocaleDateString("en-CA"),
     categoryId: input.categoryId,
     name: input.name,
     description: input.note || null,

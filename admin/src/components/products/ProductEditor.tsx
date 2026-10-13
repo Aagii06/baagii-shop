@@ -222,7 +222,6 @@ function prices(price: string, salePrice: string) {
  * so are the images of values no longer picked.
  */
 function toPostInput(
-  post: PostDetail | null,
   form: ProductFormState,
   attrs: ProductAttr[],
   variants: VariantRow[],
@@ -234,7 +233,6 @@ function toPostInput(
   const valueImages = (attrKey: string, value: string) => images[imageKey(attrKey, value)] ?? [];
   const saved = [...own, ...used.flatMap((attr) => attr.values.flatMap((v) => valueImages(attr.key, v.value)))];
   return {
-    date: post?.date ?? new Date().toLocaleDateString("en-CA"),
     name: form.name.trim(),
     ...prices(form.price, form.salePrice),
     categoryId: form.categoryId ? Number(form.categoryId) : null,
@@ -379,7 +377,7 @@ export function ProductEditorProvider({
         setImages((prev) => ({ ...prev, [key]: (prev[key] ?? []).filter((r) => r !== ref) }));
         if (files.current.delete(ref)) URL.revokeObjectURL(ref);
       },
-      toPostInput: () => toPostInput(post, form, attrs, variants, images, files.current),
+      toPostInput: () => toPostInput(form, attrs, variants, images, files.current),
     };
   }, [post, categories, catalogue, form, allAttrs, rows, images]);
 
