@@ -223,7 +223,7 @@ function LowStockCard() {
                   className="flex items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
                 >
                   <span className="min-w-0 truncate text-[15px]">
-                    {post.productName || post.name}
+                    {post.name}
                   </span>
                   <span className="shrink-0 rounded-lg bg-destructive/10 px-2.5 py-1 font-mono text-xs font-bold text-destructive">
                     {remain <= 0 ? "Дууссан" : `${formatQty(remain)} үлдсэн`}

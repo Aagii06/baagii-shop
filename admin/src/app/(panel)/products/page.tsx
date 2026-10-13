@@ -61,9 +61,7 @@ export default function ProductsPage() {
         (rootId === "all" ||
           (p.categoryId != null && categories.root.get(p.categoryId) === Number(rootId))) &&
         (!q ||
-          [p.productName, p.name, p.productCode, p.code].some((field) =>
-            field?.toLowerCase().includes(q)
-          ))
+          p.name.toLowerCase().includes(q))
     );
   }, [data, categories, query, rootId]);
 
@@ -123,9 +121,7 @@ export default function ProductsPage() {
           <ul className="divide-y divide-border border-b border-border">
             {rows.map((post) => {
               const stock = stockLine(post);
-              const category =
-                (post.categoryId != null && categories.name.get(post.categoryId)) ||
-                post.category?.name;
+              const category = post.categoryId != null ? categories.name.get(post.categoryId) : undefined;
               return (
                 <li key={post.id}>
                   <Link
@@ -135,10 +131,10 @@ export default function ProductsPage() {
                     <Thumb id={post.images?.[0]} size={52} className="rounded-xl" />
                     <span className="min-w-0 grow">
                       <span className="block truncate text-[15px] font-semibold">
-                        {post.productName || post.name}
+                        {post.name}
                       </span>
                       <span className="mt-0.5 block truncate font-mono text-xs text-muted-foreground">
-                        {[post.productCode, category].filter(Boolean).join(" · ")}
+                        {category}
                       </span>
                     </span>
                     <span className="shrink-0 text-right">

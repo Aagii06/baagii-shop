@@ -1,76 +1,83 @@
-import { apiFetch, type ApiItemResponse, type ApiListResponse } from "./client";
+import { apiFetch, fetchAllRows, type ApiListResponse } from "./client";
 import { endpointMissing } from "./errors";
 
 /** Remaining stock at or below this is flagged as running low. */
 export const LOW_STOCK_THRESHOLD = 5;
 
-// A "post" is a shop listing of one catalogue product (`productId`). Shapes
-// follow the eshop-service OpenAPI doc (`GET /post`, `GET /post/{id}`);
+// Products come from eshop-admin `GET /product` (paged; no `GET /product/{id}`)
+// and are saved with `POST /product` / `PUT /product/{id}`. The backend turns
+// each into an eshop post, so the UI keeps the post-shaped `Post` /
+// `PostDetail` below, built from the rows by `toPostDetail`.
 // DECIMAL columns arrive as strings — convert with `toNumber`.
-export interface Post {
+
+interface ProductAttrValue {
+  attrId: number;
+  attrName: string | null;
+  value: string | null;
+  image: string | null;
+  color: string | null;
+}
+
+interface ProductVariant {
+  id: number;
+  productId: number;
+  name: string | null;
+  price: string;
+  mainPrice: string;
+  qty: string;
+  remain: string;
+  attr: ProductAttrValue[] | null;
+}
+
+interface Product {
   id: number;
   companyId: number;
-  code: string | null;
   categoryId: number | null;
-  productId: number;
-  productCode: string;
-  productName: string;
-  name: string;
   date: string;
+  name: string | null;
+  title: string | null;
+  description: string | null;
+  images: string[] | null;
+  qty: string;
+  mainPrice: string;
+  price: string;
+  /** Eshop post id. */
+  deepLink: string | null;
+  createdAt: string;
+  updatedAt: string;
+  variants: ProductVariant[] | null;
+}
+
+export interface Post {
+  id: number;
+  categoryId: number | null;
+  date: string;
+  name: string;
   note: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  isStock: boolean;
-  /** Missing from `GET /post` rows today — read it through `isPublished`. */
+  /** Not on `GET /product` — read it through `isPublished`. */
   isActive?: boolean;
-  isHot: boolean;
   mainPrice: string;
   price: string;
   qty: string;
-  orderQty: string;
-  cartQty: string;
+  /** Summed over the variants. */
   remain: string;
   images: string[] | null;
   deepLink: string | null;
-  cartTypeId: number | null;
-  createdAt: string;
-  updatedAt: string;
-  company?: { id: number; name: string };
-  category?: { id: number; name: string; image: string | null } | null;
 }
 
-export interface PostProductBranch {
-  id: number;
-  branchId: number;
-  remain: string;
-  branch?: { id: number; name: string };
-}
-
-/** One sellable variant of a post (size/colour/…). */
+/** One sellable variant (size/colour/…). */
 export interface PostProduct {
   id: number;
-  postId: number;
-  productId: number;
-  productCode: string;
-  productName: string;
-  variantId: number;
-  variantCode: string;
   variantName: string;
-  image: string | null;
-  images: string[] | null;
   qty: string;
-  orderQty: string;
-  cartQty: string;
   remain: string;
   price: string;
   mainPrice: string;
   /** attrId → value */
   attr: Record<string, string> | null;
-  postProductBranches?: PostProductBranch[];
 }
 
 export interface PostAttrValue {
-  id: number;
   attrValueId: number | null;
   value: string;
   color: string | null;
@@ -80,7 +87,6 @@ export interface PostAttrValue {
 }
 
 export interface PostAttr {
-  id: number;
   attrId: number;
   attrName: string;
   viewType: string;
@@ -93,6 +99,56 @@ export interface PostDetail extends Post {
   postAttrs?: PostAttr[];
 }
 
+/** The product's attributes and their values, in the order the variants first use them. */
+function collectAttrs(variants: ProductVariant[]): PostAttr[] {
+  const attrs = new Map<number, PostAttr>();
+  for (const variant of variants) {
+    for (const a of variant.attr ?? []) {
+      if (!a.value) continue;
+      let attr = attrs.get(a.attrId);
+      if (!attr) {
+        attr = { attrId: a.attrId, attrName: a.attrName ?? "", viewType: "text", orderNumber: attrs.size, postAttrValues: [] };
+        attrs.set(a.attrId, attr);
+      }
+      const values = attr.postAttrValues!;
+      if (values.some((v) => v.value === a.value)) continue;
+      if (a.color || a.image) attr.viewType = "image";
+      values.push({ attrValueId: null, value: a.value, color: a.color, image: a.image, images: null, orderNumber: values.length });
+    }
+  }
+  return [...attrs.values()];
+}
+
+function toPostDetail(product: Product): PostDetail {
+  const variants = product.variants ?? [];
+  const remain = variants.length > 0 ? variants.reduce((sum, v) => sum + Number(v.remain || 0), 0) : Number(product.qty || 0);
+  return {
+    id: product.id,
+    categoryId: product.categoryId,
+    date: product.date,
+    name: product.name || product.title || "",
+    note: product.description,
+    mainPrice: product.mainPrice,
+    price: product.price,
+    qty: product.qty,
+    remain: String(remain),
+    images: product.images,
+    deepLink: product.deepLink,
+    postProducts: variants.map((v) => ({
+      id: v.id,
+      variantName: v.name ?? "",
+      qty: v.qty,
+      remain: v.remain,
+      price: v.price,
+      mainPrice: v.mainPrice,
+      attr: v.attr?.length
+        ? Object.fromEntries(v.attr.flatMap((a) => (a.value ? [[String(a.attrId), a.value]] : [])))
+        : null,
+    })),
+    postAttrs: collectAttrs(variants),
+  };
+}
+
 /**
  * Only an explicit `isActive: false` is a draft. The list endpoint leaves the
  * field out, and the shop (web/src/lib/api/products.ts) shows those posts.
@@ -101,22 +157,22 @@ export function isPublished(post: Post) {
   return post.isActive !== false;
 }
 
-// The endpoint returns every post (inactive ones included) in one page.
-export async function getPosts(params: { categoryId?: number } = {}) {
-  const query = params.categoryId ? `?categoryId=${params.categoryId}` : "";
-  const res = await apiFetch<ApiListResponse<Post>>(`/post${query}`);
-  return res.data?.rows ?? [];
+export async function getPosts(): Promise<PostDetail[]> {
+  const rows = await fetchAllRows<Product>("/product");
+  return rows.map(toPostDetail);
 }
 
-export async function getPost(id: number) {
-  const res = await apiFetch<ApiItemResponse<PostDetail | null>>(
-    `/post/${id}`
-  );
-  return res.data;
+export async function getPost(id: number): Promise<PostDetail | null> {
+  const filter = encodeURIComponent(JSON.stringify(["id", "=", id]));
+  const res = await apiFetch<ApiListResponse<Product>>(`/product?take=1&filter=${filter}`);
+  const product = res.data?.rows?.find((p) => p.id === id);
+  return product ? toPostDetail(product) : null;
 }
 
 /** Fields edited on the product form. */
 export interface PostInput {
+  /** `YYYY-MM-DD`; an edited product keeps its own. */
+  date: string;
   name: string;
   /** Base price; the shop strikes it through when `price` is lower. */
   mainPrice: number;
@@ -124,6 +180,7 @@ export interface PostInput {
   price: number;
   categoryId: number | null;
   note: string;
+  /** Not saved yet — `POST/PUT /product` take no such field. */
   isActive: boolean;
   /** Shown while no colour is picked in the shop. See `newFiles` for `blob:` entries. */
   images: string[];
@@ -167,11 +224,42 @@ export interface PostVariantInput {
   price: number;
 }
 
-// No write endpoints on eshop-service yet (see README) — implement these
-// bodies once they land; the product form already calls them.
+// `POST/PUT /product` body. The backend matches variants by their `attr`, and
+// has nowhere for a value's extra images — only its cover (`image`) is sent.
+function toProductBody(input: PostInput) {
+  return {
+    date: input.date,
+    categoryId: input.categoryId,
+    name: input.name,
+    description: input.note || null,
+    images: input.images,
+    qty: input.variants.reduce((sum, v) => sum + v.qty, 0),
+    mainPrice: input.mainPrice,
+    price: input.price,
+    variants: input.variants.map((variant) => ({
+      name: variant.values.join(" / ") || null,
+      price: variant.price,
+      mainPrice: variant.mainPrice,
+      qty: variant.qty,
+      attr: input.attrs.flatMap((attr, i) => {
+        const value = attr.values.find((v) => v.value === variant.values[i]);
+        if (attr.attrId == null || !value) return [];
+        return [{ attrId: attr.attrId, attrName: attr.name, value: value.value, color: value.color, image: value.image }];
+      }),
+    })),
+  };
+}
+
 /** `id` is `null` for a new product. */
-export const savePost: (id: number | null, input: PostInput) => Promise<void> = () =>
-  endpointMissing("Барааг хадгалах");
+export async function savePost(id: number | null, input: PostInput): Promise<void> {
+  if (input.categoryId == null) throw new Error("Категори сонгоно уу.");
+  // No file-upload endpoint yet, and `blob:` URLs mean nothing to the backend.
+  if (Object.keys(input.newFiles).length > 0) return endpointMissing("Зураг хуулах");
+  await apiFetch(id == null ? "/product" : `/product/${id}`, {
+    method: id == null ? "POST" : "PUT",
+    body: toProductBody(input),
+  });
+}
 
 export const deletePost: (id: number) => Promise<void> = () =>
   endpointMissing("Барааг устгах");
