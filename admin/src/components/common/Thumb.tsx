@@ -1,10 +1,15 @@
+"use client";
+
 import { fileUrl } from "@/lib/api/files";
 import { cn } from "@/lib/utils";
+import { ImageOff } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 // Image from the file service, square by default. Pass `size` for a fixed
 // pixel box, or omit it and size the box with `className`. `unoptimized`
 // serves the file-service URL as-is, so no remotePatterns entry is needed.
+// With no image, or one that fails to load, an image icon stands in.
 export default function Thumb({
   id,
   alt = "",
@@ -23,16 +28,22 @@ export default function Thumb({
   className?: string;
 }) {
   const src = fileUrl(id, variant);
+  // The src that failed, so a new one gets its own try.
+  const [failed, setFailed] = useState<string | null>(null);
+  const missing = !src || failed === src;
 
   return (
     <span
       className={cn(
-        "img-placeholder relative block shrink-0 overflow-hidden rounded-lg border border-border",
+        "relative block shrink-0 overflow-hidden rounded-lg border border-border",
+        missing ? "flex items-center justify-center bg-muted" : "img-placeholder",
         className
       )}
       style={size ? { width: size, height: size } : undefined}
     >
-      {src && (
+      {missing ? (
+        <ImageOff aria-hidden className="size-2/5 max-h-12 max-w-12 text-muted-foreground/60" strokeWidth={1.5} />
+      ) : (
         <Image
           src={src}
           alt={alt}
@@ -41,6 +52,7 @@ export default function Thumb({
           className="object-cover"
           loading={eager ? "eager" : undefined}
           unoptimized
+          onError={() => setFailed(src)}
         />
       )}
     </span>

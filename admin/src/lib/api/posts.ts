@@ -43,6 +43,10 @@ interface Product {
   price: string;
   /** Eshop post id. */
   deepLink: string | null;
+  // Neither is in the spec yet — picked up once the backend sends them.
+  // The shop's `GET /post` marks publishing with `statusId`.
+  isActive?: boolean;
+  statusId?: "draft" | "active" | "inactive";
   createdAt: string;
   updatedAt: string;
   variants: ProductVariant[] | null;
@@ -54,7 +58,7 @@ export interface Post {
   date: string;
   name: string;
   note: string | null;
-  /** Not on `GET /product` — read it through `isPublished`. */
+  /** Not on `GET /product` yet — read it through `isPublished`. */
   isActive?: boolean;
   mainPrice: string;
   price: string;
@@ -128,6 +132,7 @@ function toPostDetail(product: Product): PostDetail {
     date: product.date,
     name: product.name || product.title || "",
     note: product.description,
+    isActive: product.statusId ? product.statusId === "active" : product.isActive,
     mainPrice: product.mainPrice,
     price: product.price,
     qty: product.qty,
@@ -178,7 +183,7 @@ export interface PostInput {
   price: number;
   categoryId: number | null;
   note: string;
-  /** Not saved yet — `POST/PUT /product` take no such field. */
+  /** Sent ahead of the spec, which has no such field yet — also as the post's `statusId`. */
   isActive: boolean;
   /** Shown while no colour is picked in the shop. See `newFiles` for `blob:` entries. */
   images: string[];
@@ -231,6 +236,8 @@ function toProductBody(input: PostInput) {
     categoryId: input.categoryId,
     name: input.name,
     description: input.note || null,
+    isActive: input.isActive,
+    statusId: input.isActive ? "active" : "inactive",
     images: input.images,
     qty: input.variants.reduce((sum, v) => sum + v.qty, 0),
     mainPrice: input.mainPrice,
