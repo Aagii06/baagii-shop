@@ -1,6 +1,5 @@
 "use client";
 
-import ProductImage from "@/components/ui/product-image";
 import QuickViewModal from "@/components/product/QuickViewModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -9,6 +8,7 @@ import { useSavedStore } from "@/store/savedStore";
 import { cn } from "@/lib/utils";
 import { Heart, MoreHorizontal, Star } from "lucide-react";
 import { useState } from "react";
+import SafeImage from "@/components/ui/safe-image";
 
 interface Product {
   id: number;
@@ -54,19 +54,11 @@ export default function ProductCard({ product }: { product: Product }) {
           className="block w-full text-left relative"
         >
           <div className="relative aspect-square overflow-hidden">
-            {product.thumbnail || product.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={product.thumbnail || product.image}
-                alt={product.name}
-                className="w-full h-full object-cover bg-muted transition-transform duration-300 group-hover:scale-105"
-              />
-            ) : (
-              <ProductImage
-                category={product.category}
-                className="w-full h-full transition-transform duration-300 group-hover:scale-105"
-              />
-            )}
+            <SafeImage
+              src={product.thumbnail || product.image}
+              alt={product.name}
+              className="w-full h-full object-cover bg-muted transition-transform duration-300 group-hover:scale-105"
+            />
             {discount > 0 && (
               <span className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded-md">
                 -{discount}%

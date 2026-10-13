@@ -1,10 +1,10 @@
 "use client";
 
-import PlaceholderImage from "@/components/ui/placeholder-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
 import { Minus, Plus, X } from "lucide-react";
+import SafeImage from "@/components/ui/safe-image";
 
 interface CartItemProps {
   item: {
@@ -45,16 +45,11 @@ export default function CartItem({ item }: CartItemProps) {
 
   return (
     <div className="flex items-start gap-4 py-4 border-b border-border last:border-b-0">
-      {item.image ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={item.image}
-          alt={item.name}
-          className="w-20 h-20 rounded-xl shrink-0 object-cover bg-muted"
-        />
-      ) : (
-        <PlaceholderImage className="w-20 h-20 rounded-xl shrink-0" />
-      )}
+      <SafeImage
+        src={item.image}
+        alt={item.name}
+        className="w-20 h-20 rounded-xl shrink-0 object-cover bg-muted"
+      />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3">

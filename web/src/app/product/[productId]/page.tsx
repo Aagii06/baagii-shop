@@ -1,6 +1,5 @@
 "use client";
 
-import ProductImage from "@/components/ui/product-image";
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductNotFound from "@/components/product/ProductNotFound";
 import RelatedProducts from "@/components/product/RelatedProducts";
@@ -23,6 +22,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import SafeImage from "@/components/ui/safe-image";
 
 function findMatchingVariant(
   variants: ProductVariant[],
@@ -195,8 +195,7 @@ export default function ProductPage() {
                 className="flex overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 {images.map((src, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <SafeImage
                     key={i}
                     src={src}
                     alt={product.name}
@@ -205,10 +204,7 @@ export default function ProductPage() {
                 ))}
               </div>
             ) : (
-              <ProductImage
-                category={product.category}
-                className="w-full aspect-square"
-              />
+              <SafeImage alt={product.name} className="w-full aspect-square object-cover" />
             )}
             {discount > 0 && (
               <span className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm font-bold px-2.5 py-1 rounded-md">
@@ -263,8 +259,7 @@ export default function ProductPage() {
                     activeThumb === i ? "border-primary" : "border-transparent"
                   )}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <SafeImage
                     src={src}
                     alt=""
                     className="h-full w-full object-cover bg-muted"
@@ -333,8 +328,7 @@ export default function ProductPage() {
                         }
                       >
                         {val.image && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <SafeImage
                             src={val.image}
                             alt={val.value}
                             className="h-full w-full object-cover"
