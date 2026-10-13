@@ -64,10 +64,8 @@ export default function ProductsPage() {
           (!q ||
             p.name.toLowerCase().includes(q))
       )
-      .sort((a, b) => {
-        const byCreatedAt = Date.parse(b.createdAt) - Date.parse(a.createdAt);
-        return byCreatedAt || b.id - a.id;
-      });
+      // Newest first — ids are auto-increment, so they follow creation order.
+      .sort((a, b) => b.id - a.id);
   }, [data, categories, query, rootId]);
 
   const rows = filtered.slice(0, limit);
