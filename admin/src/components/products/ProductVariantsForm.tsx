@@ -15,7 +15,8 @@ import { hasProductBasics, useProductEditor, type ProductAttr, type VariantRow }
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
 // Variant | count | price | sale price | remove
-const ROW_GRID = "grid grid-cols-[5.5rem_3.5rem_minmax(0,1fr)_minmax(0,1fr)_2.25rem] items-center gap-1.5";
+// Qty, price and sale price under each variant's name; the header above uses the same columns.
+const INPUT_GRID = "grid grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,1fr)] gap-1.5";
 
 function StepTitle({ step, children }: { step: number; children: React.ReactNode }) {
   return (
@@ -29,27 +30,19 @@ function StepTitle({ step, children }: { step: number; children: React.ReactNode
 }
 
 /**
- * Stock and prices for every combination of the picked values. With two or
- * more attributes, rows sit under the first one's values ("Хар" → 40, 41).
+ * Stock and prices for every combination of the picked values. Each row is
+ * named by all its values on one line ("XL - Хар").
  */
 function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
   const { t } = useLanguage();
   const { variants, updateVariant } = useProductEditor();
-  const [first, ...rest] = attrs;
-  const labelAttrs = rest.length > 0 ? rest : attrs;
-  const colorAttr = labelAttrs.find((attr) => attr.viewType === "image");
-  const groups =
-    rest.length === 0
-      ? [{ value: null, rows: variants }]
-      : first.values.map((value) => ({
-          value,
-          rows: variants.filter((row) => valueKey(row.values[first.key]) === valueKey(value.value)),
-        }));
+  const colorAttr = attrs.find((attr) => attr.viewType === "image");
+  const groups = [{ value: null, rows: variants }];
 
   const sold = variants.filter((row) => !row.off);
   const total = sold.reduce((sum, row) => sum + toNumber(row.qty), 0);
 
-  const label = (row: VariantRow) => labelAttrs.map((attr) => row.values[attr.key]).join(" · ");
+  const label = (row: VariantRow) => attrs.map((attr) => row.values[attr.key]).join(" - ");
   const swatch = (row: VariantRow) =>
     colorAttr?.values.find((v) => valueKey(v.value) === valueKey(row.values[colorAttr.key]))?.color ?? null;
 
@@ -70,53 +63,48 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
 
   return (
     <div className="rounded-2xl border border-border bg-card px-2.5 py-3">
-      <div className={cn(ROW_GRID, "px-0.5 text-xs text-muted-foreground")}>
-        <span className="truncate">{labelAttrs[0].name}</span>
+      <div className={cn(INPUT_GRID, "px-0.5 text-xs text-muted-foreground")}>
         <span className="text-center">{t("vf.qtyCol")}</span>
         <span className="text-center">{t("vf.priceCol")}</span>
         <span className="text-center">{t("vf.saleCol")}</span>
       </div>
       {groups.map((group) => (
-        <div key={group.value?.value ?? ""}>
-          {group.value && (
-            <p className="mb-1.5 mt-3.5 flex items-center gap-2 px-0.5 text-sm font-extrabold">
-              {first.viewType === "image" && <Swatch color={group.value.color} />}
-              {group.value.value}
-            </p>
-          )}
-          <ul className={cn("space-y-2", !group.value && "mt-2")}>
+        <div key="all">
+          <ul className="mt-2 space-y-3">
             {group.rows.map((row) => (
-              <li key={row.key} className={ROW_GRID}>
-                <span
-                  className={cn(
-                    "flex items-center gap-1.5 px-0.5 text-sm font-bold leading-tight",
-                    row.off && "text-muted-foreground line-through"
-                  )}
-                >
-                  {colorAttr && <Swatch color={swatch(row)} className="size-3" />}
-                  <span className="min-w-0">{label(row)}</span>
-                </span>
+              <li key={row.key} className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "flex min-w-0 grow items-center gap-1.5 px-0.5 text-sm font-bold leading-tight",
+                      row.off && "text-muted-foreground line-through"
+                    )}
+                  >
+                    {colorAttr && <Swatch color={swatch(row)} className="size-3.5" />}
+                    <span className="min-w-0">{label(row)}</span>
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={row.off ? t("vf.restoreAria", { label: label(row) }) : t("vf.removeAria", { label: label(row) })}
+                    className={cn("shrink-0 text-muted-foreground", !row.off && "hover:text-destructive")}
+                    onClick={() => updateVariant(row, { off: !row.off })}
+                  >
+                    {row.off ? <Undo2 /> : <Trash2 />}
+                  </Button>
+                </div>
                 {row.off ? (
-                  <span className="col-span-3 rounded-xl border border-dashed border-border py-2.5 text-center text-sm text-muted-foreground">
+                  <span className="block rounded-xl border border-dashed border-border py-2.5 text-center text-sm text-muted-foreground">
                     {t("vf.notSold")}
                   </span>
                 ) : (
-                  <>
+                  <div className={INPUT_GRID}>
                     {numberInput(row, "qty", t("vf.qtyLabel"))}
                     {numberInput(row, "price", t("vf.priceLabel"))}
                     {numberInput(row, "salePrice", t("vf.saleLabel"))}
-                  </>
+                  </div>
                 )}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={row.off ? t("vf.restoreAria", { label: label(row) }) : t("vf.removeAria", { label: label(row) })}
-                  className={cn("text-muted-foreground", !row.off && "hover:text-destructive")}
-                  onClick={() => updateVariant(row, { off: !row.off })}
-                >
-                  {row.off ? <Undo2 /> : <Trash2 />}
-                </Button>
               </li>
             ))}
           </ul>
