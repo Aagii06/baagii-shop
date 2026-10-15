@@ -1,12 +1,7 @@
 import { ORDER_STATUS_LABEL, type OrderStatus } from "@/lib/api/orders";
 import { cn } from "@/lib/utils";
+import { ORDER_TONE } from "./orderTone";
 
-const TONE: Record<OrderStatus, string> = {
-  pending: "bg-primary-soft text-primary-ink",
-  confirmed: "bg-tint-blue text-tint-blue-ink",
-  delivered: "bg-tint-mint text-tint-mint-ink",
-  returned: "bg-muted text-muted-foreground",
-};
 
 export default function OrderStatusBadge({
   status,
@@ -19,7 +14,7 @@ export default function OrderStatusBadge({
     <span
       className={cn(
         "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold",
-        TONE[status],
+        ORDER_TONE[status].soft,
         className
       )}
     >

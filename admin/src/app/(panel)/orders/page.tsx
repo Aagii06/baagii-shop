@@ -7,6 +7,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/common/States
 import { useToast } from "@/components/common/Toast";
 import PageHeader from "@/components/layout/PageHeader";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
+import { ORDER_TONE } from "@/components/orders/orderTone";
 import { Button } from "@/components/ui/button";
 import {
   getOrders,
@@ -16,7 +17,7 @@ import {
   type OrderStatus,
 } from "@/lib/api/orders";
 import { useApi } from "@/lib/useApi";
-import { formatMNT, formatWhen } from "@/lib/utils";
+import { cn, formatMNT, formatWhen } from "@/lib/utils";
 import { Plus, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -64,6 +65,9 @@ export default function OrdersPage() {
             value: s,
             label: ORDER_STATUS_LABEL[s],
             count: s === "pending" ? pendingCount : undefined,
+            idleClassName: ORDER_TONE[s].soft,
+            activeClassName: ORDER_TONE[s].solid,
+            badgeClassName: "bg-warning text-white",
           }))}
         />
       </PageHeader>
@@ -107,7 +111,8 @@ export default function OrdersPage() {
               {order.status === "pending" && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <Button
-                    className="h-10"
+                    variant="ghost"
+                    className={cn("h-10", ORDER_TONE.confirmed.solid)}
                     onClick={() => changeStatus(order.id, "confirmed", t("orders.confirmed"))}
                   >
                     {t("orders.confirm")}

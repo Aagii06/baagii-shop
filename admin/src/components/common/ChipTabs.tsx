@@ -12,8 +12,18 @@ export default function ChipTabs<T extends string>({
   /** Accessible name for the group. */
   label: string;
   value: T;
-  /** `count` shows as a badge after the label when above zero. */
-  options: { value: T; label: React.ReactNode; count?: number }[];
+  /**
+   * `count` shows as a badge after the label when above zero. The class
+   * names give a chip its own colour (selected / not, and its badge).
+   */
+  options: {
+    value: T;
+    label: React.ReactNode;
+    count?: number;
+    activeClassName?: string;
+    idleClassName?: string;
+    badgeClassName?: string;
+  }[];
   onChange: (value: T) => void;
 }) {
   return (
@@ -33,8 +43,8 @@ export default function ChipTabs<T extends string>({
             className={cn(
               "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
               active
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-white text-foreground hover:bg-muted"
+                ? (option.activeClassName ? `border-transparent ${option.activeClassName}` : "border-primary bg-primary text-primary-foreground")
+                : (option.idleClassName ? `border-transparent ${option.idleClassName}` : "border-border bg-white text-foreground hover:bg-muted")
             )}
           >
             {option.label}
@@ -42,7 +52,11 @@ export default function ChipTabs<T extends string>({
               <span
                 className={cn(
                   "-my-0.5 -mr-1.5 grid h-5 min-w-5 place-items-center rounded-full px-1.5 font-mono text-xs font-bold leading-none",
-                  active ? "bg-white text-primary-ink" : "bg-primary text-primary-foreground"
+                  active
+                    ? option.activeClassName
+                      ? "bg-white text-foreground"
+                      : "bg-white text-primary-ink"
+                    : (option.badgeClassName ?? "bg-primary text-primary-foreground")
                 )}
               >
                 {option.count}

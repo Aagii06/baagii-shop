@@ -17,6 +17,7 @@ import {
   type Order,
   type OrderStatus,
 } from "@/lib/api/orders";
+import { ORDER_TONE } from "@/components/orders/orderTone";
 import { useApi } from "@/lib/useApi";
 import { cn, formatDate, formatPhone, formatTime } from "@/lib/utils";
 import { ReceiptText } from "lucide-react";
@@ -112,7 +113,8 @@ export default function OrderDetailPage() {
             <div className="mx-auto max-w-md border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:border-x">
               <Button
                 size="lg"
-                className="w-full"
+                variant="ghost"
+                className={cn("w-full", ORDER_TONE[action.to].solid)}
                 onClick={async () => {
                   if (await run(() => setOrderStatus(order.id, action.to), t("orders.statusUpdated"))) {
                     reload();
