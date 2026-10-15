@@ -91,6 +91,17 @@ export function leafIds(category: Category): number[] {
   return category.children.flatMap(leafIds);
 }
 
+// Root-to-leaf chain of categories ending at `id`, for breadcrumbs.
+export function categoryPath(list: Category[], id?: number): Category[] {
+  const path: Category[] = [];
+  let current = findCategoryById(list, id);
+  while (current) {
+    path.unshift(current);
+    current = findCategoryById(list, current.parentId ?? undefined);
+  }
+  return path;
+}
+
 // Flattens the tree to a single list (parents followed by their children).
 export function flattenCategories(list: Category[]): Category[] {
   return list.flatMap((category) => [

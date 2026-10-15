@@ -183,7 +183,7 @@ export default function ProductPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      <ProductBreadcrumb category={product.category} name={product.name} />
+      <ProductBreadcrumb categoryId={product.categoryId} name={product.name} />
 
       <div className="grid lg:grid-cols-[1.1fr_1fr_320px] gap-8 mb-16">
         <div className="space-y-3">
