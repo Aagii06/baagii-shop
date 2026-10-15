@@ -313,4 +313,5 @@ export const mn: Dict = {
   "on.deliveryFee": "Хүргэлтийн үнэ (₮)",
   "on.pick": "Бараа сонгох",
   "on.confirmPick": "Сонгох ({count})",
+  "pr.total": "Нийт хүсэлт",
 };

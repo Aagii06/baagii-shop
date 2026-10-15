@@ -313,4 +313,5 @@ export const en: Dict = {
   "on.deliveryFee": "Delivery fee (₮)",
   "on.pick": "Pick products",
   "on.confirmPick": "Select ({count})",
+  "pr.total": "All requests",
 };

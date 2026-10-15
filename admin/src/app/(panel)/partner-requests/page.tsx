@@ -6,6 +6,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/common/States
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   approvePartnerRequest,
   getPartnerRequests,
@@ -21,6 +22,22 @@ import Link from "next/link";
 import { useState } from "react";
 
 const TABS: PartnerRequestStatus[] = ["pending", "approved", "rejected"];
+
+/** Number colour per status on the summary tiles. */
+const STAT_TONE: Record<PartnerRequestStatus, string> = {
+  pending: "text-warning",
+  approved: "text-success",
+  rejected: "text-destructive",
+};
+
+function StatTile({ label, value, className }: { label: string; value: number; className?: string }) {
+  return (
+    <Card className="p-4">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className={cn("mt-2 font-mono text-2xl font-bold leading-none", className)}>{value}</p>
+    </Card>
+  );
+}
 
 const TONE: Record<PartnerRequestStatus, string> = {
   pending: "bg-primary-soft text-primary-ink",
@@ -69,6 +86,20 @@ export default function PartnerRequestsPage() {
       </div>
 
       <SampleNotice className="mt-4">{t("pr.sampleNotice")}</SampleNotice>
+
+      {data && (
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <StatTile label={t("pr.total")} value={data.length} />
+          {TABS.map((s) => (
+            <StatTile
+              key={s}
+              label={partnerStatusLabel(s)}
+              value={data.filter((request) => request.status === s).length}
+              className={STAT_TONE[s]}
+            />
+          ))}
+        </div>
+      )}
 
       {error && !data ? (
         <div className="pt-4">

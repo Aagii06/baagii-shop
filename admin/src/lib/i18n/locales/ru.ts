@@ -313,4 +313,5 @@ export const ru: Dict = {
   "on.deliveryFee": "Стоимость доставки (₮)",
   "on.pick": "Выбрать товары",
   "on.confirmPick": "Выбрать ({count})",
+  "pr.total": "Всего заявок",
 };
