@@ -170,6 +170,34 @@ export async function getPosts(): Promise<PostDetail[]> {
   return rows.map(toPostDetail);
 }
 
+/** One page of products, newest first. `query` matches the name; `categoryIds` limits the categories. */
+export async function getPostsPage({
+  skip,
+  take,
+  query = "",
+  categoryIds,
+}: {
+  skip: number;
+  take: number;
+  query?: string;
+  categoryIds?: number[];
+}): Promise<{ rows: Post[]; count: number }> {
+  const conditions: unknown[] = [];
+  if (query.trim()) conditions.push(["name", "contains", query.trim()]);
+  if (categoryIds && categoryIds.length > 0) {
+    conditions.push(
+      categoryIds.length === 1
+        ? ["categoryId", "=", categoryIds[0]]
+        : categoryIds.flatMap((id, i) => (i === 0 ? [["categoryId", "=", id]] : ["or", ["categoryId", "=", id]]))
+    );
+  }
+  const filter = conditions.flatMap((c, i) => (i === 0 ? [c] : ["and", c]));
+  const params = new URLSearchParams({ take: String(take), skip: String(skip) });
+  if (filter.length > 0) params.set("filter", JSON.stringify(filter.length === 1 ? filter[0] : filter));
+  const res = await apiFetch<ApiListResponse<Product>>(`/product?${params}`);
+  return { rows: (res.data?.rows ?? []).map(toPostDetail), count: res.data?.count ?? 0 };
+}
+
 export async function getPost(id: number): Promise<PostDetail | null> {
   const filter = encodeURIComponent(JSON.stringify(["id", "=", id]));
   const res = await apiFetch<ApiListResponse<Product>>(`/product?take=1&filter=${filter}`);

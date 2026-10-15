@@ -3,25 +3,21 @@
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { tr } from "@/lib/i18n/translations";
 import ChipTabs from "@/components/common/ChipTabs";
-import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import { EmptyState, ErrorState } from "@/components/common/States";
 import Thumb from "@/components/common/Thumb";
 import PageHeader from "@/components/layout/PageHeader";
+import ProductListSkeleton from "@/components/products/ProductListSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCategoryTree, type Category } from "@/lib/api/categories";
-import { getPosts, isPublished, LOW_STOCK_THRESHOLD, type Post } from "@/lib/api/posts";
+import { getPostsPage, isPublished, LOW_STOCK_THRESHOLD, type Post } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
 import { cn, formatMNT, formatQty, toNumber } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const PAGE_SIZE = 30;
-
-async function loadProducts() {
-  const [posts, tree] = await Promise.all([getPosts(), getCategoryTree()]);
-  return { posts, tree };
-}
+const PAGE_SIZE = 20;
 
 /** Category id → its name, and → the id of its top-level ancestor. */
 function indexCategories(tree: Category[]) {
@@ -48,30 +44,96 @@ function stockLine(post: Post) {
 
 export default function ProductsPage() {
   const { t } = useLanguage();
-  const { data, error, reload } = useApi(loadProducts);
+  const { data: tree } = useApi(getCategoryTree);
 
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [rootId, setRootId] = useState("all");
-  const [limit, setLimit] = useState(PAGE_SIZE);
 
-  const categories = useMemo(() => indexCategories(data?.tree ?? []), [data]);
+  const categories = useMemo(() => indexCategories(tree ?? []), [tree]);
 
-  const filtered = useMemo(() => {
-    if (!data) return [];
-    const q = query.trim().toLowerCase();
-    return data.posts
-      .filter(
-        (p) =>
-          (rootId === "all" ||
-            (p.categoryId != null && categories.root.get(p.categoryId) === Number(rootId))) &&
-          (!q ||
-            p.name.toLowerCase().includes(q))
-      )
-      // Newest first — ids are auto-increment, so they follow creation order.
-      .sort((a, b) => b.id - a.id);
-  }, [data, categories, query, rootId]);
+  // The search waits for a pause in typing before it asks the backend.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
-  const rows = filtered.slice(0, limit);
+  // A chip's category plus everything below it.
+  const categoryIds = useMemo(() => {
+    if (rootId === "all") return undefined;
+    return [...categories.root].filter(([, root]) => root === Number(rootId)).map(([id]) => id);
+  }, [categories, rootId]);
+
+  // Pages load as the list is scrolled — like a social feed. `key` ties the
+  // loaded rows to the search/category they were fetched for, so a stale
+  // page is treated as "loading" until the new one lands.
+  const key = `${debouncedQuery}|${rootId}`;
+  const [page, setPage] = useState<{ key: string; rows: Post[]; count: number; error?: Error } | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [moreFailed, setMoreFailed] = useState(false);
+  const [version, setVersion] = useState(0);
+  const sentinel = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPostsPage({ skip: 0, take: PAGE_SIZE, query: debouncedQuery, categoryIds }).then(
+      (result) => {
+        if (cancelled) return;
+        setMoreFailed(false);
+        setPage({ key, ...result });
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        setPage({ key, rows: [], count: 0, error: error instanceof Error ? error : new Error(String(error)) });
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [key, version, debouncedQuery, categoryIds]);
+
+  const ready = page?.key === key;
+  const rows = ready ? page.rows : [];
+  const hasMore = ready && !page.error && page.rows.length < page.count;
+
+  const loadMore = useCallback(async () => {
+    if (!page || page.key !== key || loadingMore || page.rows.length >= page.count) return;
+    setLoadingMore(true);
+    setMoreFailed(false);
+    try {
+      const result = await getPostsPage({
+        skip: page.rows.length,
+        take: PAGE_SIZE,
+        query: debouncedQuery,
+        categoryIds,
+      });
+      setPage((prev) =>
+        prev && prev.key === key
+          ? {
+              ...prev,
+              count: result.count,
+              rows: [...prev.rows, ...result.rows.filter((r) => !prev.rows.some((p) => p.id === r.id))],
+            }
+          : prev
+      );
+    } catch {
+      setMoreFailed(true);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [page, key, loadingMore, debouncedQuery, categoryIds]);
+
+  // Loads the next page once the bottom of the list nears the screen. A
+  // failed page stops the loop; "try again" retries it.
+  useEffect(() => {
+    const node = sentinel.current;
+    if (!node || !hasMore || moreFailed) return;
+    const observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
+      rootMargin: "600px 0px",
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, moreFailed, loadMore]);
 
   return (
     <>
@@ -91,33 +153,27 @@ export default function ProductsPage() {
           placeholder={t("products.search")}
           aria-label={t("products.search")}
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setLimit(PAGE_SIZE);
-          }}
+          onChange={(e) => setQuery(e.target.value)}
         />
-        {data && data.tree.length > 0 && (
+        {tree && tree.length > 0 && (
           <ChipTabs
             label={t("common.category")}
             value={rootId}
             options={[
               { value: "all", label: t("common.all") },
-              ...data.tree.map((c) => ({ value: String(c.id), label: c.name })),
+              ...tree.map((c) => ({ value: String(c.id), label: c.name })),
             ]}
-            onChange={(value) => {
-              setRootId(value);
-              setLimit(PAGE_SIZE);
-            }}
+            onChange={setRootId}
           />
         )}
       </PageHeader>
 
-      {error && !data ? (
+      {ready && page.error ? (
         <div className="pt-4">
-          <ErrorState error={error} onRetry={reload} />
+          <ErrorState error={page.error} onRetry={() => setVersion((v) => v + 1)} />
         </div>
-      ) : !data ? (
-        <LoadingState />
+      ) : !ready ? (
+        <ProductListSkeleton />
       ) : rows.length === 0 ? (
         <div className="pt-4">
           <EmptyState title={t("products.notFound")} description={t("products.notFoundHint")} />
@@ -155,14 +211,16 @@ export default function ProductsPage() {
             })}
           </ul>
 
-          {filtered.length > limit && (
-            <Button
-              variant="outline"
-              className="mt-4 w-full"
-              onClick={() => setLimit((n) => n + PAGE_SIZE)}
-            >
-              {t("products.more", { count: formatQty(filtered.length - limit) })}
-            </Button>
+          {hasMore && (
+            <div ref={sentinel}>
+              {moreFailed ? (
+                <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
+                  {t("common.retry")}
+                </Button>
+              ) : (
+                <ProductListSkeleton rows={3} className="border-b-0" />
+              )}
+            </div>
           )}
         </>
       )}

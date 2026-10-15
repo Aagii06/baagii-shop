@@ -15,7 +15,7 @@ import { hasProductBasics, useProductEditor, type ProductAttr, type VariantRow }
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
 // Variant | count | price | sale price | remove
-const ROW_GRID = "grid grid-cols-[4rem_3.75rem_minmax(0,1fr)_minmax(0,1fr)_2.25rem] items-center gap-1.5";
+const ROW_GRID = "grid grid-cols-[5.5rem_3.5rem_minmax(0,1fr)_minmax(0,1fr)_2.25rem] items-center gap-1.5";
 
 function StepTitle({ step, children }: { step: number; children: React.ReactNode }) {
   return (
@@ -89,7 +89,7 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
               <li key={row.key} className={ROW_GRID}>
                 <span
                   className={cn(
-                    "flex items-center gap-1.5 break-words px-0.5 text-sm font-bold leading-tight",
+                    "flex items-center gap-1.5 px-0.5 text-sm font-bold leading-tight",
                     row.off && "text-muted-foreground line-through"
                   )}
                 >
