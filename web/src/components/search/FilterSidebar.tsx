@@ -4,12 +4,12 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { brands } from "@/lib/categories";
+import { brands, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import PriceRangeSlider from "./PriceRangeSlider";
 
 export interface SearchFilters {
-  categories: string[];
+  categories: number[];
   brands: string[];
   freeDeliveryOnly: boolean;
   priceRange: [number, number];
@@ -20,7 +20,7 @@ interface FilterSidebarProps {
   onChange: (filters: SearchFilters) => void;
   priceBounds: [number, number];
   counts: {
-    category: Record<string, number>;
+    category: Record<number, number>;
     brand: Record<string, number>;
     freeDelivery: number;
   };
@@ -73,19 +73,19 @@ export function FilterPanelContent({
 }: FilterSidebarProps) {
   const { t } = useLanguage();
   const { categories } = useCategories();
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(
+  const [openCategories, setOpenCategories] = useState<Record<number, boolean>>(
     {}
   );
 
-  const toggleCategory = (slug: string) => {
-    const next = filters.categories.includes(slug)
-      ? filters.categories.filter((c) => c !== slug)
-      : [...filters.categories, slug];
+  const toggleCategory = (id: number) => {
+    const next = filters.categories.includes(id)
+      ? filters.categories.filter((c) => c !== id)
+      : [...filters.categories, id];
     onChange({ ...filters, categories: next });
   };
 
-  const toggleOpen = (code: string) =>
-    setOpenCategories((prev) => ({ ...prev, [code]: !prev[code] }));
+  const toggleOpen = (id: number) =>
+    setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const toggleBrand = (brand: string) => {
     const next = filters.brands.includes(brand)
@@ -94,78 +94,72 @@ export function FilterPanelContent({
     onChange({ ...filters, brands: next });
   };
 
+  // The tree can be several levels deep. Only leaves are filter targets (the
+  // product API has nothing under a parent id), so a parent is just an
+  // expandable group whose count is the sum of the leaves beneath it.
+  const countOf = (category: Category): number =>
+    category.children.length === 0
+      ? counts.category[category.id] ?? 0
+      : category.children.reduce((sum, child) => sum + countOf(child), 0);
+
+  const hasSelectedLeaf = (category: Category): boolean =>
+    category.children.length === 0
+      ? filters.categories.includes(category.id)
+      : category.children.some(hasSelectedLeaf);
+
+  const renderCategory = (category: Category) => {
+    if (category.children.length === 0) {
+      return (
+        <Checkbox
+          key={category.id}
+          checked={filters.categories.includes(category.id)}
+          onChange={() => toggleCategory(category.id)}
+          label={category.name}
+          count={countOf(category)}
+        />
+      );
+    }
+
+    const isOpen = openCategories[category.id] ?? hasSelectedLeaf(category);
+
+    return (
+      <div key={category.id}>
+        <button
+          type="button"
+          onClick={() => toggleOpen(category.id)}
+          aria-expanded={isOpen}
+          className="flex w-full items-center gap-2.5 py-1.5 text-left"
+        >
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+              isOpen && "rotate-180"
+            )}
+          />
+          <span className="flex-1 text-sm font-medium text-foreground">
+            {category.name}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {countOf(category)}
+          </span>
+        </button>
+
+        {isOpen && (
+          <div className="ml-4 border-l border-border pl-2">
+            {category.children.map(renderCategory)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="font-semibold text-sm text-foreground mb-2">
           {t("search.filters.category")}
         </h3>
-        {categories.map((category) => {
-          const hasChildren = category.children.length > 0;
-
-          // A leaf category is a plain filter checkbox.
-          if (!hasChildren) {
-            return (
-              <Checkbox
-                key={category.code}
-                checked={filters.categories.includes(category.code)}
-                onChange={() => toggleCategory(category.code)}
-                label={category.name}
-                count={counts.category[category.code] ?? 0}
-              />
-            );
-          }
-
-          // A parent is only a group: it never filters on its own (the API
-          // has no products under a parent id). It shows its subcategories,
-          // and its count is their combined total.
-          const anyChildSelected = category.children.some((child) =>
-            filters.categories.includes(child.code)
-          );
-          const isOpen = openCategories[category.code] ?? anyChildSelected;
-          const groupCount = category.children.reduce(
-            (sum, child) => sum + (counts.category[child.code] ?? 0),
-            0
-          );
-
-          return (
-            <div key={category.code}>
-              <button
-                type="button"
-                onClick={() => toggleOpen(category.code)}
-                aria-expanded={isOpen}
-                className="flex w-full items-center gap-2.5 py-1.5 text-left"
-              >
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-                    isOpen && "rotate-180"
-                  )}
-                />
-                <span className="flex-1 text-sm font-medium text-foreground">
-                  {category.name}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {groupCount}
-                </span>
-              </button>
-
-              {isOpen && (
-                <div className="ml-4 border-l border-border pl-2">
-                  {category.children.map((child) => (
-                    <Checkbox
-                      key={child.code}
-                      checked={filters.categories.includes(child.code)}
-                      onChange={() => toggleCategory(child.code)}
-                      label={child.name}
-                      count={counts.category[child.code] ?? 0}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {categories.map((category) => renderCategory(category))}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">

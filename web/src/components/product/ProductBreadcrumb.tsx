@@ -2,7 +2,7 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { findCategory } from "@/lib/categories";
+import { categoryHref, findCategory } from "@/lib/categories";
 import Link from "next/link";
 
 export default function ProductBreadcrumb({
@@ -25,7 +25,7 @@ export default function ProductBreadcrumb({
         <>
           <span className="mx-1.5">›</span>
           <Link
-            href={`/search?category=${cat.code}`}
+            href={categoryHref(cat)}
             className="hover:text-foreground"
           >
             {cat.name}

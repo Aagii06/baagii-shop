@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { categoryHref } from "@/lib/categories";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
@@ -52,7 +53,7 @@ export default function Header() {
     ...(isMounted
       ? categories.slice(0, 4).map((category) => ({
           label: category.name,
-          href: `/search?category=${category.code}`,
+          href: categoryHref(category),
         }))
       : []),
     { label: t("header.tabs.newArrivals"), href: "/search?sort=new" },
