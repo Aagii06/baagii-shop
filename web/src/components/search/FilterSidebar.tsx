@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { brands, type Category } from "@/lib/categories";
+import type { Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import PriceRangeSlider from "./PriceRangeSlider";
 
@@ -87,13 +87,6 @@ export function FilterPanelContent({
   const toggleOpen = (id: number) =>
     setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const toggleBrand = (brand: string) => {
-    const next = filters.brands.includes(brand)
-      ? filters.brands.filter((b) => b !== brand)
-      : [...filters.brands, brand];
-    onChange({ ...filters, brands: next });
-  };
-
   // The tree can be several levels deep. Only leaves are filter targets (the
   // product API has nothing under a parent id), so a parent is just an
   // expandable group whose count is the sum of the leaves beneath it.
@@ -160,21 +153,6 @@ export function FilterPanelContent({
           {t("search.filters.category")}
         </h3>
         {categories.map((category) => renderCategory(category))}
-      </div>
-
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <h3 className="font-semibold text-sm text-foreground mb-2">
-          {t("search.filters.brand")}
-        </h3>
-        {brands.map((brand) => (
-          <Checkbox
-            key={brand}
-            checked={filters.brands.includes(brand)}
-            onChange={() => toggleBrand(brand)}
-            label={brand === "Бусад" ? t("common.other") : brand}
-            count={counts.brand[brand] ?? 0}
-          />
-        ))}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
