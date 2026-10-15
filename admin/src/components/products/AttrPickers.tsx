@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Attr } from "@/lib/api/attrs";
@@ -87,6 +88,7 @@ function AddValue({
   onAdd: (value: string) => void;
   before?: React.ReactNode;
 }) {
+  const { t } = useLanguage();
   const [draft, setDraft] = useState("");
 
   function add() {
@@ -115,7 +117,7 @@ function AddValue({
       />
       <Button type="button" variant="outline" className="h-11 shrink-0 px-4" disabled={!draft.trim()} onClick={add}>
         <Plus />
-        Нэмэх
+        {t("common.add")}
       </Button>
     </div>
   );
@@ -127,6 +129,7 @@ function AddValue({
  * catalogue list, for sizes where most are sold.
  */
 export function AttrPicker({ attr, onChange }: { attr: ProductAttr; onChange: (values: AttrValue[]) => void }) {
+  const { t } = useLanguage();
   const { catalogue } = useProductEditor();
   const def = catalogue.find((a) => a.id === attr.attrId);
   const isColor = attr.viewType === "image";
@@ -158,14 +161,14 @@ export function AttrPicker({ attr, onChange }: { attr: ProductAttr; onChange: (v
               onClick={() => onChange(allPicked ? [] : offered)}
               className="px-1 text-sm font-semibold text-primary-ink underline-offset-4 hover:underline"
             >
-              {allPicked ? "Бүгдийг болих" : "Бүгдийг сонгох"}
+              {allPicked ? t("ap.pickNone") : t("ap.pickAll")}
             </button>
           )}
         </>
       )}
       <AddValue
-        label={`Өөр ${attr.name.toLowerCase()}`}
-        placeholder={isColor ? "Өөр өнгө нэмэх" : "Өөр утга нэмэх"}
+        label={t("ap.otherNamed", { name: attr.name.toLowerCase() })}
+        placeholder={isColor ? t("ap.otherColor") : t("ap.otherValue")}
         onAdd={add}
         before={
           isColor && (
@@ -173,7 +176,7 @@ export function AttrPicker({ attr, onChange }: { attr: ProductAttr; onChange: (v
               <Swatch color={hex} className="size-6" />
               <input
                 type="color"
-                aria-label="Өөр өнгийн өнгө"
+                aria-label={t("ap.otherColorAria")}
                 value={hex}
                 onChange={(e) => setHex(e.target.value)}
                 className="sr-only"

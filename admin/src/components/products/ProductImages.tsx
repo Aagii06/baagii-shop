@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import ChipTabs from "@/components/common/ChipTabs";
 import Thumb from "@/components/common/Thumb";
 import { X } from "lucide-react";
@@ -12,10 +13,11 @@ import { imageKey, useProductEditor } from "./ProductEditor";
  * one group at a time, like the shop: its own until a colour is chosen.
  */
 export default function ProductImages() {
+  const { t } = useLanguage();
   const { form, attrs, images, addImages, removeImage } = useProductEditor();
   const colorAttr = attrs.find((attr) => attr.viewType === "image");
   const groups = [
-    { key: "", label: "Ерөнхий", color: null as string | null },
+    { key: "", label: t("img.general"), color: null as string | null },
     ...(colorAttr
       ? colorAttr.values.map((v) => ({ key: imageKey(colorAttr.key, v.value), label: v.value, color: v.color }))
       : []),
@@ -34,17 +36,17 @@ export default function ProductImages() {
   const hint = !colorAttr
     ? null
     : group.key
-      ? `Худалдан авагч “${group.label}” өнгийг сонгоход харагдана. Эхний зураг нь өнгөний нүүр зураг.`
+      ? t("img.hintColor", { label: group.label })
       : groups.length > 1
-        ? "Өнгө сонгоогүй үед дэлгүүрт харагдана."
-        : "Өнгө сонговол өнгө бүрт тусад нь зураг оруулж болно.";
+        ? t("img.hintDefault")
+        : t("img.hintPerColor");
 
   return (
-    <div role="group" aria-label="Зураг" className="space-y-2.5">
-      <span className="block text-sm text-muted-foreground">Зураг</span>
+    <div role="group" aria-label={t("img.title")} className="space-y-2.5">
+      <span className="block text-sm text-muted-foreground">{t("img.title")}</span>
       {groups.length > 1 && (
         <ChipTabs
-          label="Зургийн бүлэг"
+          label={t("img.group")}
           value={group.key}
           onChange={setGroupKey}
           options={groups.map((g) => ({
@@ -63,15 +65,15 @@ export default function ProductImages() {
       <div className="grid grid-cols-3 gap-2">
         {list.map((ref, i) => (
           <div key={ref} className="relative">
-            <Thumb id={ref} alt={`${form.name} — ${group.label}, зураг ${i + 1}`} className="aspect-square w-full rounded-2xl" />
+            <Thumb id={ref} alt={t("img.alt", { name: form.name, group: group.label, n: i + 1 })} className="aspect-square w-full rounded-2xl" />
             {group.key && i === 0 && (
               <span className="absolute bottom-1.5 left-1.5 rounded-full bg-dark/75 px-2 py-0.5 text-[11px] font-bold text-dark-foreground">
-                Нүүр
+                {t("img.cover")}
               </span>
             )}
             <button
               type="button"
-              aria-label={`${group.label} — зураг ${i + 1} устгах`}
+              aria-label={t("img.removeAria", { group: group.label, n: i + 1 })}
               onClick={() => removeImage(group.key, ref)}
               className="absolute right-1.5 top-1.5 grid size-7 place-items-center rounded-full bg-white/90 text-foreground shadow-sm transition-colors hover:text-destructive"
             >
@@ -80,7 +82,7 @@ export default function ProductImages() {
           </div>
         ))}
         <label className="img-placeholder grid aspect-square cursor-pointer place-items-center rounded-2xl border border-dashed border-input font-mono text-xs text-muted-foreground transition-colors focus-within:ring-4 focus-within:ring-primary/15 hover:text-foreground">
-          + зураг
+          {t("img.add")}
           <input type="file" accept="image/*" multiple className="sr-only" onChange={onPick} />
         </label>
       </div>
