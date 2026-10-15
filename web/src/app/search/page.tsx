@@ -18,7 +18,6 @@ import {
 import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
 import { X } from "lucide-react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
@@ -281,16 +280,6 @@ function SearchContent() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
-          <nav className="text-sm text-muted-foreground mb-1">
-            <Link href="/" className="hover:text-foreground">
-              {t("search.breadcrumb.home")}
-            </Link>{" "}
-            <span className="mx-1">›</span>
-            <span>{t("search.breadcrumb.search")}</span> <span className="mx-1">›</span>
-            <span className="text-foreground font-medium">
-              {breadcrumbLabel}
-            </span>
-          </nav>
           <h1 className="text-2xl font-bold text-foreground">
             {breadcrumbLabel}{" "}
             <span className="text-base font-normal text-muted-foreground">
