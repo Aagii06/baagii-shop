@@ -62,8 +62,8 @@ export function flattenCategories(
   ]);
 }
 
-/** Categories nest at most this many levels: root → sub → sub-sub. */
-export const MAX_CATEGORY_DEPTH = 3;
+/** Categories nest at most this many levels: root → sub → sub-sub → sub-sub-sub. */
+export const MAX_CATEGORY_DEPTH = 4;
 
 /** Whether a subcategory under `parent` stays within `MAX_CATEGORY_DEPTH`. */
 export function canNestUnder(parent: { depth: number }): boolean {
