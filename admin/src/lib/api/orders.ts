@@ -116,7 +116,7 @@ export const returnOrderItem: (orderId: number, itemId: number, qty: number) => 
 
 /** What an admin enters to place an order on a customer's behalf. */
 export interface OrderInput {
-  customer: { name: string; phone: string; address: string };
+  customer: { phone: string; address: string };
   items: {
     /** The product's variant (`PostProduct.id`), which carries the stock and price. */
     variantId: number;

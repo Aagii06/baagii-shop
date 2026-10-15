@@ -311,4 +311,6 @@ export const ru: Dict = {
   "on.noneSelected": "Выберите хотя бы один товар",
   "on.removeAria": "Убрать {name} из заказа",
   "on.deliveryFee": "Стоимость доставки (₮)",
+  "on.pick": "Выбрать товары",
+  "on.confirmPick": "Выбрать ({count})",
 };

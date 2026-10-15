@@ -311,4 +311,6 @@ export const mn: Dict = {
   "on.noneSelected": "Бараагаа сонгоно уу",
   "on.removeAria": "{name} — захиалгаас хасах",
   "on.deliveryFee": "Хүргэлтийн үнэ (₮)",
+  "on.pick": "Бараа сонгох",
+  "on.confirmPick": "Сонгох ({count})",
 };
