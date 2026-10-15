@@ -165,7 +165,7 @@ export function AttrPicker({ attr, onChange }: { attr: ProductAttr; onChange: (v
       )}
       <AddValue
         label={`Өөр ${attr.name.toLowerCase()}`}
-        placeholder={isColor ? "Өөр өнгө, ж: Цайвар ногоон" : "Өөр утга нэмэх"}
+        placeholder={isColor ? "Өөр өнгө нэмэх" : "Өөр утга нэмэх"}
         onAdd={add}
         before={
           isColor && (

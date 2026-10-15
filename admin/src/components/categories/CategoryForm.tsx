@@ -101,7 +101,6 @@ export default function CategoryForm({
           <Input
             ref={nameRef}
             value={name}
-            placeholder="ж: Эрэгтэй гутал"
             onChange={(e) => setName(e.target.value)}
             onBlur={() => setNameTouched(true)}
             aria-invalid={Boolean(nameError)}

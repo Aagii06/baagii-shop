@@ -126,7 +126,6 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
           <Input
             ref={nameRef}
             value={name}
-            placeholder="ж: Өнгө, Хувцасны хэмжээ"
             onChange={(e) => setName(e.target.value)}
             onBlur={() => setNameTouched(true)}
             aria-invalid={Boolean(nameError)}
@@ -194,7 +193,6 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
               <Input
                 ref={draftRef}
                 value={draft}
-                placeholder="ж: Хар, XL"
                 onChange={(e) => {
                   setDraft(e.target.value);
                   setDraftError(undefined);
