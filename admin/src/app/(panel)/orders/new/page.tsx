@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createOrder } from "@/lib/api/orders";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT, toNumber } from "@/lib/utils";
-import { Plus, X } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -122,10 +122,11 @@ export default function NewOrderPage() {
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t("on.removeAria", { name: line.name })}
-                    className="shrink-0 text-muted-foreground hover:text-destructive"
+                    title={t("common.delete")}
+                    className="shrink-0 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive"
                     onClick={() => setQty(line.key, 0)}
                   >
-                    <X />
+                    <Trash2 />
                   </Button>
                 </div>
               ))}
