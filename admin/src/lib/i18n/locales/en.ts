@@ -279,4 +279,10 @@ export const en: Dict = {
   "bf.publish": "Publish in the shop",
   "login.showPassword": "Show password",
   "login.hidePassword": "Hide password",
+  "pr.add": "Add a partner",
+  "pr.added": "Partner added",
+  "pr.addAction": "Adding partners",
+  "pr.phone": "Phone number",
+  "pr.phoneHint": "8 digits. They're approved as soon as they're added.",
+  "checkout.phoneInvalid": "Enter a valid phone number",
 };

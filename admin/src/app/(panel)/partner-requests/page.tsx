@@ -16,7 +16,8 @@ import {
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useApi } from "@/lib/useApi";
 import { cn, formatPhone, formatWhen } from "@/lib/utils";
-import { Handshake } from "lucide-react";
+import { Handshake, Plus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 const TABS: PartnerRequestStatus[] = ["pending", "approved", "rejected"];
@@ -42,7 +43,18 @@ export default function PartnerRequestsPage() {
 
   return (
     <>
-      <DetailHeader backHref="/profile" title={t("pr.title")} />
+      <DetailHeader
+        backHref="/profile"
+        title={t("pr.title")}
+        aside={
+          <Button asChild className="h-10 px-4">
+            <Link href="/partner-requests/new">
+              <Plus />
+              {t("common.add")}
+            </Link>
+          </Button>
+        }
+      />
       <div className="-mx-4 -mt-4 border-b border-border px-4 py-4">
         <ChipTabs
           label={t("orders.status")}

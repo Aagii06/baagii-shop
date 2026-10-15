@@ -45,3 +45,11 @@ export const approvePartnerRequest: (id: number) => Promise<void> = () =>
 
 export const rejectPartnerRequest: (id: number) => Promise<void> = () =>
   endpointMissing(tr("pr.rejectAction"));
+
+/**
+ * An admin adds a shopper by phone number themselves — same result as
+ * approving a request, so it shows up as "approved".
+ * Wanted from the backend: `POST /partnerRequest` with `{ phone }`.
+ */
+export const createPartnerRequest: (phone: string) => Promise<void> = () =>
+  endpointMissing(tr("pr.addAction"));

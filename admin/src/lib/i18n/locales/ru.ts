@@ -279,4 +279,10 @@ export const ru: Dict = {
   "bf.publish": "Опубликовать в магазине",
   "login.showPassword": "Показать пароль",
   "login.hidePassword": "Скрыть пароль",
+  "pr.add": "Добавить партнёра",
+  "pr.added": "Партнёр добавлен",
+  "pr.addAction": "Добавление партнёров",
+  "pr.phone": "Номер телефона",
+  "pr.phoneHint": "8 цифр. После добавления сразу считается одобренным.",
+  "checkout.phoneInvalid": "Введите корректный номер телефона",
 };

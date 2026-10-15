@@ -279,4 +279,10 @@ export const mn: Dict = {
   "bf.publish": "Дэлгүүрт нийтлэх",
   "login.showPassword": "Нууц үгийг харуулах",
   "login.hidePassword": "Нууц үгийг нуух",
+  "pr.add": "Хамтран ажиллагч нэмэх",
+  "pr.added": "Хамтран ажиллагчийг нэмлээ",
+  "pr.addAction": "Хамтран ажиллагч нэмэх",
+  "pr.phone": "Утасны дугаар",
+  "pr.phoneHint": "8 оронтой дугаар. Нэмэхэд шууд баталсан болно.",
+  "checkout.phoneInvalid": "Зөв утасны дугаар оруулна уу",
 };
