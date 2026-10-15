@@ -5,6 +5,7 @@ import SampleNotice from "@/components/common/SampleNotice";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
+import { ORDER_TONE } from "@/components/orders/orderTone";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -39,10 +40,11 @@ function StatTile({ label, value, className }: { label: string; value: number; c
   );
 }
 
-const TONE: Record<PartnerRequestStatus, string> = {
-  pending: "bg-primary-soft text-primary-ink",
-  approved: "bg-tint-mint text-tint-mint-ink",
-  rejected: "bg-muted text-muted-foreground",
+// Same colours as the orders: waiting = yellow, approved = green, rejected = red.
+const TONE: Record<PartnerRequestStatus, (typeof ORDER_TONE)[keyof typeof ORDER_TONE]> = {
+  pending: ORDER_TONE.pending,
+  approved: ORDER_TONE.delivered,
+  rejected: ORDER_TONE.returned,
 };
 
 export default function PartnerRequestsPage() {
@@ -81,6 +83,9 @@ export default function PartnerRequestsPage() {
             value: s,
             label: partnerStatusLabel(s),
             count: s === "pending" ? pendingCount : undefined,
+            idleClassName: TONE[s].soft,
+            activeClassName: TONE[s].solid,
+            badgeClassName: "bg-warning text-white",
           }))}
         />
       </div>
@@ -120,27 +125,27 @@ export default function PartnerRequestsPage() {
             <li key={request.id} className="py-4">
               <div className="flex items-start justify-between gap-3">
                 <span className="min-w-0">
-                  <span className="block font-mono text-[15px] font-bold">
-                    {formatPhone(request.phone)}
+                  <span className="flex items-center gap-2">
+                    <span className="font-mono text-sm text-muted-foreground">#{request.id}</span>
+                    <span
+                      className={cn(
+                        "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                        TONE[request.status].soft
+                      )}
+                    >
+                      {partnerStatusLabel(request.status)}
+                    </span>
                   </span>
-                  <span className="mt-0.5 block text-sm text-muted-foreground">
-                    {formatWhen(request.createdAt)}
-                  </span>
-                </span>
-                <span
-                  className={cn(
-                    "inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                    TONE[request.status]
-                  )}
-                >
-                  {partnerStatusLabel(request.status)}
+                  <span className="mt-1.5 block font-mono text-[15px] font-bold">{formatPhone(request.phone)}</span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">{formatWhen(request.createdAt)}</span>
                 </span>
               </div>
 
               {request.status === "pending" && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <Button
-                    className="h-10"
+                    variant="ghost"
+                    className={cn("h-10", TONE.approved.solid)}
                     onClick={() => decide(() => approvePartnerRequest(request.id), t("pr.approved"))}
                   >
                     {t("pr.approve")}
