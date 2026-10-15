@@ -29,7 +29,7 @@ const MENU: { href: string; label: string; description: string; icon: LucideIcon
 ];
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, role, logout } = useAuth();
 
   const displayName =
     [user?.lastName, user?.firstName].filter(Boolean).join(" ") || user?.name || "Хэрэглэгч";
@@ -53,6 +53,7 @@ export default function ProfilePage() {
           </span>
         </Card>
 
+        {role === "admin" && (
         <Card className="overflow-hidden">
           <ul className="divide-y divide-border">
             {MENU.map(({ href, label, description, icon: Icon }) => (
@@ -74,6 +75,7 @@ export default function ProfilePage() {
             ))}
           </ul>
         </Card>
+        )}
 
         <Button variant="danger" size="lg" className="w-full" onClick={logout}>
           <LogOut />

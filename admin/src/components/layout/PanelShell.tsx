@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BrandMark from "./BrandMark";
-import { isActivePath, NAV_ITEMS } from "./nav";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { isActivePath, NAV_ITEMS, navItemsFor } from "./nav";
 
 // Tab pages get the brand header and bottom nav; pages below a tab (product
 // edit, order detail, the profile menu's pages) bring their own back-button
@@ -14,10 +15,14 @@ import { isActivePath, NAV_ITEMS } from "./nav";
 const TAB_PATHS = new Set(NAV_ITEMS.map((item) => item.href));
 
 function BottomNav({ pathname }: { pathname: string }) {
+  const { role } = useAuth();
+  const items = navItemsFor(role);
   return (
     <nav aria-label="Үндсэн цэс" className="fixed inset-x-0 bottom-0 z-30">
-      <div className="mx-auto grid max-w-md grid-cols-4 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:border-x">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      <div className="mx-auto grid max-w-md border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:border-x"
+        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+      >
+        {items.map(({ href, label, icon: Icon }) => {
           const active = isActivePath(pathname, href);
           return (
             <Link

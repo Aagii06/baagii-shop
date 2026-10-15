@@ -8,6 +8,7 @@ import {
   getStoredUser,
   setSession,
 } from "@/lib/api/token";
+import { getRole, type Role } from "./roles";
 import {
   createContext,
   useCallback,
@@ -22,6 +23,7 @@ type AuthStatus = "loading" | "authenticated" | "anonymous";
 interface AuthContextValue {
   status: AuthStatus;
   user: LoginUser | null;
+  role: Role;
   login: (userName: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -89,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, login, logout }),
+    () => ({ status, user, role: getRole(user), login, logout }),
     [status, user, login, logout]
   );
 

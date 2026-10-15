@@ -10,6 +10,9 @@ export interface LoginUser {
   email?: string | null;
   userName: string;
   customerId?: number | null;
+  /** Filled from `/auth/getUserData`, not by login. */
+  roles?: number[];
+  roleNames?: string | null;
 }
 
 export interface ObjectPermission {
