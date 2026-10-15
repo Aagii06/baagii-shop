@@ -4,6 +4,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { categoryHref, categoryPath } from "@/lib/categories";
 import Link from "next/link";
+import { Fragment } from "react";
 
 export default function ProductBreadcrumb({
   categoryId,
@@ -17,20 +18,23 @@ export default function ProductBreadcrumb({
   const path = categoryPath(categories, categoryId);
 
   return (
-    <nav className="mb-6 text-sm text-muted-foreground">
-      <Link href="/" className="hover:text-foreground">
+    <nav className="mb-6 flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-sm text-muted-foreground">
+      <Link href="/" className="shrink-0 hover:text-foreground">
         {t("search.breadcrumb.home")}
       </Link>
       {path.map((cat) => (
-        <span key={cat.id}>
-          <span className="mx-1.5">›</span>
-          <Link href={categoryHref(cat)} className="hover:text-foreground">
+        <Fragment key={cat.id}>
+          <span className="shrink-0">›</span>
+          <Link
+            href={categoryHref(cat)}
+            className="shrink-0 hover:text-foreground"
+          >
             {cat.name}
           </Link>
-        </span>
+        </Fragment>
       ))}
-      <span className="mx-1.5">›</span>
-      <span className="text-foreground font-medium line-clamp-1 align-middle">
+      <span className="shrink-0">›</span>
+      <span className="min-w-0 truncate text-foreground font-medium">
         {name}
       </span>
     </nav>
