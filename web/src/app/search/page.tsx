@@ -13,7 +13,7 @@ import {
   findCategory,
   findCategoryById,
   flattenCategories,
-  leafIds,
+  subtreeIds,
 } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
@@ -23,14 +23,14 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 const PAGE_SIZE = 12;
 const DEFAULT_PRICE_BOUNDS: [number, number] = [0, 10_000_000];
 
-// A category with subcategories is not a real filter target (the product API
-// has nothing under a parent id) — expand it to every leaf beneath it.
+// The product API filters by exact category id, so a category with
+// subcategories expands to itself plus every category beneath it.
 function resolveCategoryIds(
   list: ReturnType<typeof useCategories>["categories"],
   key: string | null
 ): number[] {
   const cat = findCategory(list, key);
-  return cat ? leafIds(cat) : [];
+  return cat ? subtreeIds(cat) : [];
 }
 
 function discountPercent(p: Product): number {
@@ -147,14 +147,12 @@ function SearchContent() {
   }, [activeCategoryKey, query]);
 
   // Per-category counts need a dedicated call each since the API only
-  // filters by a single category at a time. Only leaves hold products; the
-  // sidebar sums them up for parent groups.
+  // filters by a single category at a time. The sidebar sums them up
+  // for parent groups.
   useEffect(() => {
     let cancelled = false;
     Promise.all(
-      flattenCategories(categories)
-        .filter((c) => c.children.length === 0)
-        .map((c) =>
+      flattenCategories(categories).map((c) =>
         getProducts({ categoryId: c.id, search: query || undefined })
           .then((list): [number, number] => [c.id, list.length])
           .catch((): [number, number] => [c.id, 0])

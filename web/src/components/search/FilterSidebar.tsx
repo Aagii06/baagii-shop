@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { leafIds, type Category } from "@/lib/categories";
+import { subtreeIds, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import PriceRangeSlider from "./PriceRangeSlider";
 
@@ -92,7 +92,7 @@ export function FilterPanelContent({
   // Selecting a group selects every leaf beneath it; if they are all selected
   // already, it clears them instead.
   const toggleGroup = (category: Category) => {
-    const ids = leafIds(category);
+    const ids = subtreeIds(category);
     const allSelected = ids.every((id) => filters.categories.includes(id));
     const next = allSelected
       ? filters.categories.filter((c) => !ids.includes(c))
@@ -103,18 +103,14 @@ export function FilterPanelContent({
   const toggleOpen = (id: number) =>
     setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  // The tree can be several levels deep. Only leaves are filter targets (the
-  // product API has nothing under a parent id), so a parent is just an
-  // expandable group whose count is the sum of the leaves beneath it.
+  // The tree can be several levels deep. A parent filters on itself plus
+  // everything beneath it; its count is the sum over that subtree.
   const countOf = (category: Category): number =>
-    category.children.length === 0
-      ? counts.category[category.id] ?? 0
-      : category.children.reduce((sum, child) => sum + countOf(child), 0);
+    (counts.category[category.id] ?? 0) +
+    category.children.reduce((sum, child) => sum + countOf(child), 0);
 
-  const hasSelectedLeaf = (category: Category): boolean =>
-    category.children.length === 0
-      ? filters.categories.includes(category.id)
-      : category.children.some(hasSelectedLeaf);
+  const hasSelected = (category: Category): boolean =>
+    subtreeIds(category).some((id) => filters.categories.includes(id));
 
   const renderCategory = (category: Category) => {
     if (category.children.length === 0) {
@@ -129,8 +125,8 @@ export function FilterPanelContent({
       );
     }
 
-    const isOpen = openCategories[category.id] ?? hasSelectedLeaf(category);
-    const ids = leafIds(category);
+    const isOpen = openCategories[category.id] ?? hasSelected(category);
+    const ids = subtreeIds(category);
     const selectedCount = ids.filter((id) =>
       filters.categories.includes(id)
     ).length;

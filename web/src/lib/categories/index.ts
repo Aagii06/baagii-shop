@@ -84,11 +84,11 @@ export function findCategoryById(
   return undefined;
 }
 
-// Products only live under leaf categories, so selecting a group means
-// selecting every leaf beneath it.
-export function leafIds(category: Category): number[] {
-  if (category.children.length === 0) return [category.id];
-  return category.children.flatMap(leafIds);
+// The product API filters by exact category id (a parent does not include its
+// children), and products can be assigned to a parent as well as a leaf — so
+// selecting a group means selecting it and every category beneath it.
+export function subtreeIds(category: Category): number[] {
+  return [category.id, ...category.children.flatMap(subtreeIds)];
 }
 
 // Root-to-leaf chain of categories ending at `id`, for breadcrumbs.
