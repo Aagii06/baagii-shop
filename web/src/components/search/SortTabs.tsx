@@ -1,9 +1,15 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-export type SortOption = "popular" | "new" | "price-asc" | "rating";
+export type SortOption = "discount" | "new" | "price-asc" | "rating";
 
 export default function SortTabs({
   value,
@@ -15,28 +21,27 @@ export default function SortTabs({
   const { t } = useLanguage();
 
   const options: { value: SortOption; label: string }[] = [
-    { value: "popular", label: t("search.sort.popular") },
+    { value: "discount", label: t("search.sort.discount") },
     { value: "new", label: t("search.sort.new") },
     { value: "price-asc", label: t("search.sort.priceAsc") },
     { value: "rating", label: t("search.sort.rating") },
   ];
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-      {options.map((option) => (
-        <button
-          key={option.value}
-          onClick={() => onChange(option.value)}
-          className={cn(
-            "shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
-            value === option.value
-              ? "bg-primary text-primary-foreground border-primary"
-              : "border-border text-foreground hover:bg-muted"
-          )}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <Select value={value} onValueChange={(v) => onChange(v as SortOption)}>
+      <SelectTrigger
+        aria-label={t("search.sort.label")}
+        className="h-10 w-52 rounded-xl bg-card"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end">
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

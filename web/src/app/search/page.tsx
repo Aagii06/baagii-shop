@@ -34,6 +34,12 @@ function resolveCategoryIds(
   return cat ? leafIds(cat) : [];
 }
 
+function discountPercent(p: Product): number {
+  return p.originalPrice && p.originalPrice > p.price
+    ? (p.originalPrice - p.price) / p.originalPrice
+    : 0;
+}
+
 function computePriceBounds(products: Product[]): [number, number] {
   if (products.length === 0) return DEFAULT_PRICE_BOUNDS;
   const prices = products.map((p) => p.price);
@@ -60,7 +66,7 @@ function SearchContent() {
   });
   const [saleOnly, setSaleOnly] = useState(initialSale);
   const [sort, setSort] = useState<SortOption>(
-    initialSort === "new" ? "new" : "popular"
+    initialSort === "new" ? "new" : "discount"
   );
   const [page, setPage] = useState(1);
 
@@ -204,7 +210,7 @@ function SearchContent() {
         result.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
         break;
       default:
-        result.sort((a, b) => (b.soldCount ?? 0) - (a.soldCount ?? 0));
+        result.sort((a, b) => discountPercent(b) - discountPercent(a));
     }
 
     return result;
@@ -299,10 +305,8 @@ function SearchContent() {
         />
 
         <div className="flex-1 min-w-0 space-y-5">
-          <div className="flex items-center gap-3 justify-between">
-            <div className="min-w-0 flex-1">
-              <SortTabs value={sort} onChange={setSort} />
-            </div>
+          <div className="flex items-center gap-3 justify-end">
+            <SortTabs value={sort} onChange={setSort} />
             <MobileFilterDrawer
               filters={filters}
               onChange={setFilters}
