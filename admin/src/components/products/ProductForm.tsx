@@ -13,7 +13,7 @@ import { RichTextEditor } from "@/components/common/RichTextEditor";
 import { deletePost, savePost } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
-import { ChevronDown, ChevronRight, Lock, Palette, Tag } from "lucide-react";
+import { ChevronRight, Lock, Palette, Tag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
@@ -24,6 +24,7 @@ import {
   type ProductAttr,
   type VariantRow,
 } from "./ProductEditor";
+import CategoryPicker from "./CategoryPicker";
 import ProductImages from "./ProductImages";
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
@@ -143,36 +144,14 @@ export default function ProductForm() {
           </Field>
         </div>
 
-        <Field
-          label={t("common.category")}
+        <CategoryPicker
+          categories={categories}
+          value={form.categoryId}
+          onChange={(id) => set("categoryId", id)}
           hint={
-            attrs.length > 0
-              ? undefined
-              : form.categoryId
-                ? t("pf.categoryNoOptions")
-                : t("pf.categoryHint")
+            attrs.length > 0 ? undefined : form.categoryId ? t("pf.categoryNoOptions") : t("pf.categoryHint")
           }
-        >
-          <div className="relative">
-            <select
-              value={form.categoryId}
-              onChange={(e) => set("categoryId", e.target.value)}
-              className="h-12 w-full appearance-none rounded-full border border-input bg-white px-5 pr-12 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
-            >
-              <option value="">{t("pf.noneSelected")}</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {"— ".repeat(c.depth)}
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              aria-hidden="true"
-              className="pointer-events-none absolute right-5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-          </div>
-        </Field>
+        />
 
         {!picked && (
           // Nothing picked: the product is sold in one version, stocked here.

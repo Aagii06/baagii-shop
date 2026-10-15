@@ -285,4 +285,6 @@ export const mn: Dict = {
   "pr.phone": "Утасны дугаар",
   "pr.phoneHint": "8 оронтой дугаар. Нэмэхэд шууд баталсан болно.",
   "checkout.phoneInvalid": "Зөв утасны дугаар оруулна уу",
+  "cat.pickSub": "Дэд категори сонгох",
+  "cat.picked": "Категори сонгогдлоо",
 };

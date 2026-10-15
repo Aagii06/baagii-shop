@@ -285,4 +285,6 @@ export const en: Dict = {
   "pr.phone": "Phone number",
   "pr.phoneHint": "8 digits. They're approved as soon as they're added.",
   "checkout.phoneInvalid": "Enter a valid phone number",
+  "cat.pickSub": "Choose a subcategory",
+  "cat.picked": "Category selected",
 };
