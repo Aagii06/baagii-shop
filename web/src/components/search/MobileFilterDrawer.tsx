@@ -10,7 +10,7 @@ interface MobileFilterDrawerProps {
   onChange: (filters: SearchFilters) => void;
   priceBounds: [number, number];
   counts: {
-    category: Record<string, number>;
+    category: Record<number, number>;
     brand: Record<string, number>;
     freeDelivery: number;
   };

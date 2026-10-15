@@ -11,8 +11,9 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import {
   findCategory,
+  findCategoryById,
   flattenCategories,
-  type Category,
+  leafIds,
 } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
@@ -24,18 +25,14 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 const PAGE_SIZE = 12;
 const DEFAULT_PRICE_BOUNDS: [number, number] = [0, 10_000_000];
 
-// A top-level category with subcategories is not a real filter target (the
-// product API has nothing under a parent id) — expand it to its children.
-function resolveCategorySlugs(
-  list: Category[],
-  slug: string | null
-): string[] {
-  if (!slug) return [];
-  const cat = findCategory(list, slug);
-  if (cat && cat.children.length > 0) {
-    return cat.children.map((child) => child.code);
-  }
-  return [slug];
+// A category with subcategories is not a real filter target (the product API
+// has nothing under a parent id) — expand it to every leaf beneath it.
+function resolveCategoryIds(
+  list: ReturnType<typeof useCategories>["categories"],
+  key: string | null
+): number[] {
+  const cat = findCategory(list, key);
+  return cat ? leafIds(cat) : [];
 }
 
 function computePriceBounds(products: Product[]): [number, number] {
@@ -57,7 +54,7 @@ function SearchContent() {
   const query = searchParams.get("q") ?? "";
 
   const [filters, setFilters] = useState<SearchFilters>({
-    categories: initialCategory ? [initialCategory] : [],
+    categories: [],
     brands: [],
     freeDeliveryOnly: false,
     priceRange: DEFAULT_PRICE_BOUNDS,
@@ -70,27 +67,27 @@ function SearchContent() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [categoryCounts, setCategoryCounts] = useState<Record<number, number>>({});
 
   // A comma-joined, sorted list of the category ids currently in play. A
   // primitive key keeps the fetch effect from re-firing on array identity
   // changes (which would loop: the effect itself calls setFilters).
-  const activeCategoryKey = useMemo(() => {
-    const ids = filters.categories
-      .map((slug) => findCategory(categories, slug)?.id)
-      .filter((id): id is number => typeof id === "number");
-    return Array.from(new Set(ids))
-      .sort((a, b) => a - b)
-      .join(",");
-  }, [filters.categories, categories]);
+  const activeCategoryKey = useMemo(
+    () =>
+      Array.from(new Set(filters.categories))
+        .sort((a, b) => a - b)
+        .join(","),
+    [filters.categories]
+  );
 
-  const resolvedInitialKey = resolveCategorySlugs(categories, initialCategory)
+  const resolvedInitialKey = resolveCategoryIds(categories, initialCategory)
+    .sort((a, b) => a - b)
     .join(",");
 
   useEffect(() => {
     setFilters((prev) => ({
       ...prev,
-      categories: resolvedInitialKey ? resolvedInitialKey.split(",") : [],
+      categories: resolvedInitialKey ? resolvedInitialKey.split(",").map(Number) : [],
     }));
     setSaleOnly(initialSale);
     setPage(1);
@@ -146,14 +143,17 @@ function SearchContent() {
   }, [activeCategoryKey, query]);
 
   // Per-category counts need a dedicated call each since the API only
-  // filters by a single category at a time — parents and subcategories alike.
+  // filters by a single category at a time. Only leaves hold products; the
+  // sidebar sums them up for parent groups.
   useEffect(() => {
     let cancelled = false;
     Promise.all(
-      flattenCategories(categories).map((c) =>
+      flattenCategories(categories)
+        .filter((c) => c.children.length === 0)
+        .map((c) =>
         getProducts({ categoryId: c.id, search: query || undefined })
-          .then((list): [string, number] => [c.code, list.length])
-          .catch((): [string, number] => [c.code, 0])
+          .then((list): [number, number] => [c.id, list.length])
+          .catch((): [number, number] => [c.id, 0])
       )
     ).then((entries) => {
       if (!cancelled) setCategoryCounts(Object.fromEntries(entries));
@@ -216,21 +216,23 @@ function SearchContent() {
 
   const activeCategory =
     findCategory(categories, initialCategory ?? undefined) ??
-    findCategory(categories, filters.categories[0]);
+    (filters.categories.length === 1
+      ? findCategoryById(categories, filters.categories[0])
+      : undefined);
   const priceChanged =
     filters.priceRange[0] !== priceBounds[0] ||
     filters.priceRange[1] !== priceBounds[1];
 
   const chips: { key: string; label: string; onRemove: () => void }[] = [
-    ...filters.categories.map((slug) => {
-      const cat = findCategory(categories, slug);
+    ...filters.categories.map((id) => {
+      const cat = findCategoryById(categories, id);
       return {
-        key: `cat-${slug}`,
-        label: cat ? cat.name : slug,
+        key: `cat-${id}`,
+        label: cat ? cat.name : String(id),
         onRemove: () =>
           setFilters((f) => ({
             ...f,
-            categories: f.categories.filter((c) => c !== slug),
+            categories: f.categories.filter((c) => c !== id),
           })),
       };
     }),
