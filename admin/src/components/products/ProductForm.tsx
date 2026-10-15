@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { tr } from "@/lib/i18n/translations";
 import { useConfirm } from "@/components/common/Confirm";
 import Field from "@/components/common/Field";
 import { useToast } from "@/components/common/Toast";
@@ -29,17 +31,18 @@ const digitsOnly = (value: string) => value.replace(/\D/g, "");
 const ATTR_ICONS = { image: Palette, text: Tag };
 
 /** "Өнгө, хэмжээ, тоо оруулах" */
-const variantsTitle = (attrs: ProductAttr[]) => `${attrsSummary(attrs.map((attr) => attr.name))}, тоо оруулах`;
+const variantsTitle = (attrs: ProductAttr[]) => tr("pf.variantsTitle", { attrs: attrsSummary(attrs.map((attr) => attr.name)) });
 
 function variantsTotal(variants: VariantRow[]) {
   const sold = variants.filter((row) => !row.off);
   const total = sold.reduce((sum, row) => sum + toNumber(row.qty), 0);
-  return `${sold.length} хувилбар · нийт ${formatQty(total)} ширхэг`;
+  return tr("pf.variantsSummary", { count: sold.length, total: formatQty(total) });
 }
 
 /** Create or edit a product — the draft comes from `ProductEditorProvider`. */
 export default function ProductForm() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { run } = useToast();
   const confirm = useConfirm();
   // const publishLabelId = useId();
@@ -72,7 +75,7 @@ export default function ProductForm() {
     if (!validate()) return;
     const saved = await run(
       () => savePost(post?.id ?? null, toPostInput()),
-      "Хадгаллаа"
+      t("common.saved")
     );
     if (saved && !post) router.replace("/products");
   }
@@ -80,29 +83,29 @@ export default function ProductForm() {
   async function onDelete() {
     if (!post) return;
     const ok = await confirm({
-      title: "Бараа устгах уу?",
-      description: `“${form.name}” барааг устгана. Буцаах боломжгүй.`,
-      confirmLabel: "Устгах",
+      title: t("pf.deleteTitle"),
+      description: t("pf.deleteDesc", { name: form.name }),
+      confirmLabel: t("common.delete"),
       tone: "danger",
     });
     if (!ok) return;
-    if (await run(() => deletePost(post.id), "Барааг устгалаа")) router.replace("/products");
+    if (await run(() => deletePost(post.id), t("pf.deleted"))) router.replace("/products");
   }
 
   return (
     <form onSubmit={onSubmit} noValidate>
       <DetailHeader
         backHref="/products"
-        title={post ? "Бараа засах" : "Бараа нэмэх"}
+        title={post ? t("products.edit") : t("products.add")}
         aside={
           <Button type="submit" className="h-10 px-5">
-            Хадгалах
+            {t("common.save")}
           </Button>
         }
       />
 
       <div className="space-y-4">
-        <Field label="Нэр" error={nameError} errorId={nameErrorId}>
+        <Field label={t("common.name")} error={nameError} errorId={nameErrorId}>
           <Input
             ref={nameRef}
             value={form.name}
@@ -115,7 +118,7 @@ export default function ProductForm() {
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Үнэ (₮)" error={priceError} errorId={priceErrorId}>
+          <Field label={t("pf.price")} error={priceError} errorId={priceErrorId}>
             <Input
               ref={priceRef}
               className="font-mono"
@@ -128,7 +131,7 @@ export default function ProductForm() {
               required
             />
           </Field>
-          <Field label="Хямдрал (₮)">
+          <Field label={t("pf.salePrice")}>
             {/* Empty is saved as the price; the placeholder shows that value. */}
             <Input
               className="font-mono"
@@ -141,13 +144,13 @@ export default function ProductForm() {
         </div>
 
         <Field
-          label="Категори"
+          label={t("common.category")}
           hint={
             attrs.length > 0
               ? undefined
               : form.categoryId
-                ? "Энэ категорийн бараа сонголтгүй — зөвхөн тоо ширхэгээ оруулна."
-                : "Категори сонговол өнгө, хэмжээ зэрэг сонголтын хэсэг гарна."
+                ? t("pf.categoryNoOptions")
+                : t("pf.categoryHint")
           }
         >
           <div className="relative">
@@ -156,7 +159,7 @@ export default function ProductForm() {
               onChange={(e) => set("categoryId", e.target.value)}
               className="h-12 w-full appearance-none rounded-full border border-input bg-white px-5 pr-12 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
             >
-              <option value="">Сонгоогүй</option>
+              <option value="">{t("pf.noneSelected")}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {"— ".repeat(c.depth)}
@@ -174,10 +177,10 @@ export default function ProductForm() {
         {!picked && (
           // Nothing picked: the product is sold in one version, stocked here.
           <Field
-            label="Тоо ширхэг"
+            label={t("pf.qty")}
             hint={
               attrs.length > 0
-                ? `${attrsSummary(attrs.map((attr) => attr.name))} сонговол тоог тус бүрээр нь оруулна.`
+                ? t("pf.qtyHint", { attrs: attrsSummary(attrs.map((attr) => attr.name)) })
                 : undefined
             }
           >
@@ -209,12 +212,12 @@ export default function ProductForm() {
                     {attr.values.length > 0 ? (
                       <span className="text-foreground">{attr.values.map((v) => v.value).join(", ")}</span>
                     ) : (
-                      "сонгоогүй"
+                      t("pf.notPicked")
                     )}
                   </span>
                 ))}
                 <span className="mt-1 block truncate font-mono text-xs text-muted-foreground">
-                  {picked ? variantsTotal(variants) : "Оруулаагүй"}
+                  {picked ? variantsTotal(variants) : t("pf.notEntered")}
                 </span>
               </span>
               <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
@@ -235,7 +238,7 @@ export default function ProductForm() {
                   {variantsTitle(attrs)}
                 </span>
                 <span className="mt-0.5 block text-sm text-muted-foreground">
-                  Эхлээд барааны нэр, үнээ оруулна уу
+                  {t("pf.enterNamePriceFirst")}
                 </span>
               </span>
               <Lock className="size-4 shrink-0 text-muted-foreground" />
@@ -245,7 +248,7 @@ export default function ProductForm() {
         {/* After the variants: a colour needs picking before it gets images. */}
         <ProductImages />
 
-        <Field label="Тайлбар">
+        <Field label={t("pf.description")}>
           <RichTextEditor value={form.note} onChange={(html) => set("note", html)} />
         </Field>
 
@@ -264,7 +267,7 @@ export default function ProductForm() {
 
         {post && (
           <Button type="button" variant="danger" size="lg" className="w-full" onClick={onDelete}>
-            Барааг устгах
+            {t("pf.deleteProduct")}
           </Button>
         )}
       </div>

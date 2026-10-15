@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ function StepTitle({ step, children }: { step: number; children: React.ReactNode
  * more attributes, rows sit under the first one's values ("Хар" → 40, 41).
  */
 function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
+  const { t } = useLanguage();
   const { variants, updateVariant } = useProductEditor();
   const [first, ...rest] = attrs;
   const labelAttrs = rest.length > 0 ? rest : attrs;
@@ -70,9 +72,9 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
     <div className="rounded-2xl border border-border bg-card px-2.5 py-3">
       <div className={cn(ROW_GRID, "px-0.5 text-xs text-muted-foreground")}>
         <span className="truncate">{labelAttrs[0].name}</span>
-        <span className="text-center">Тоо (ш)</span>
-        <span className="text-center">Үнэ (₮)</span>
-        <span className="text-center">Хямдрал (₮)</span>
+        <span className="text-center">{t("vf.qtyCol")}</span>
+        <span className="text-center">{t("vf.priceCol")}</span>
+        <span className="text-center">{t("vf.saleCol")}</span>
       </div>
       {groups.map((group) => (
         <div key={group.value?.value ?? ""}>
@@ -96,20 +98,20 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
                 </span>
                 {row.off ? (
                   <span className="col-span-3 rounded-xl border border-dashed border-border py-2.5 text-center text-sm text-muted-foreground">
-                    Зарахгүй
+                    {t("vf.notSold")}
                   </span>
                 ) : (
                   <>
-                    {numberInput(row, "qty", "тоо")}
-                    {numberInput(row, "price", "үнэ")}
-                    {numberInput(row, "salePrice", "хямдрал")}
+                    {numberInput(row, "qty", t("vf.qtyLabel"))}
+                    {numberInput(row, "price", t("vf.priceLabel"))}
+                    {numberInput(row, "salePrice", t("vf.saleLabel"))}
                   </>
                 )}
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={row.off ? `${label(row)} — буцааж нэмэх` : `${label(row)} — хасах`}
+                  aria-label={row.off ? t("vf.restoreAria", { label: label(row) }) : t("vf.removeAria", { label: label(row) })}
                   className={cn("text-muted-foreground", !row.off && "hover:text-destructive")}
                   onClick={() => updateVariant(row, { off: !row.off })}
                 >
@@ -121,8 +123,8 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
         </div>
       ))}
       <p className="mt-3 flex items-center justify-between border-t border-border px-1.5 pt-3 text-[15px]">
-        <span className="text-muted-foreground">Нийт {sold.length} хувилбар</span>
-        <span className="font-mono font-bold">{formatQty(total)} ширхэг</span>
+        <span className="text-muted-foreground">{t("vf.totalVariants", { count: sold.length })}</span>
+        <span className="font-mono font-bold">{t("vf.totalPcs", { qty: formatQty(total) })}</span>
       </p>
     </div>
   );
@@ -135,6 +137,7 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
  */
 export default function ProductVariantsForm() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { form, basePath, attrs, inCategory, setAttrValues } = useProductEditor();
   const ready = hasProductBasics(form) && attrs.length > 0;
   const picked = attrs.filter((attr) => attr.values.length > 0);
@@ -161,7 +164,7 @@ export default function ProductVariantsForm() {
         subtitle={form.name.trim()}
         aside={
           <Button type="submit" className="h-10 px-5">
-            Болсон
+            {t("common.done")}
           </Button>
         }
       />
@@ -169,13 +172,13 @@ export default function ProductVariantsForm() {
       <div className="space-y-6">
         {attrs.map((attr, i) => (
           <section key={attr.key}>
-            <StepTitle step={i + 1}>{attr.name} сонгох</StepTitle>
+            <StepTitle step={i + 1}>{t("vf.pick", { name: attr.name })}</StepTitle>
             {!inCategory(attr.key) && (
               // Left over from the product's earlier category.
               <div className="mb-2.5 flex items-center gap-3 rounded-xl bg-warning-soft px-3 py-2 text-xs font-semibold text-foreground/80">
-                <span className="grow">Энэ категорид “{attr.name}” сонголт байхгүй.</span>
+                <span className="grow">{t("vf.noAttr", { name: attr.name })}</span>
                 <Button type="button" variant="outline" size="sm" onClick={() => setAttrValues(attr.key, [])}>
-                  Хасах
+                  {t("common.remove")}
                 </Button>
               </div>
             )}
@@ -184,10 +187,10 @@ export default function ProductVariantsForm() {
         ))}
 
         <section>
-          <StepTitle step={attrs.length + 1}>Тоо, үнэ</StepTitle>
+          <StepTitle step={attrs.length + 1}>{t("vf.qtyPrice")}</StepTitle>
           {picked.length === 0 ? (
             <p className="rounded-2xl bg-muted px-4 py-3 text-center text-sm text-muted-foreground">
-              Дээрээс {title.toLowerCase()} сонгоно уу.
+              {t("vf.pickAbove", { title: title.toLowerCase() })}
             </p>
           ) : (
             <VariantTable attrs={picked} />

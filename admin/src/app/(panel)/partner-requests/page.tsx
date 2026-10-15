@@ -1,0 +1,120 @@
+"use client";
+
+import ChipTabs from "@/components/common/ChipTabs";
+import SampleNotice from "@/components/common/SampleNotice";
+import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import { useToast } from "@/components/common/Toast";
+import DetailHeader from "@/components/layout/DetailHeader";
+import { Button } from "@/components/ui/button";
+import {
+  approvePartnerRequest,
+  getPartnerRequests,
+  partnerStatusLabel,
+  rejectPartnerRequest,
+  type PartnerRequestStatus,
+} from "@/lib/api/partnerRequests";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useApi } from "@/lib/useApi";
+import { cn, formatPhone, formatWhen } from "@/lib/utils";
+import { Handshake } from "lucide-react";
+import { useState } from "react";
+
+const TABS: PartnerRequestStatus[] = ["pending", "approved", "rejected"];
+
+const TONE: Record<PartnerRequestStatus, string> = {
+  pending: "bg-primary-soft text-primary-ink",
+  approved: "bg-tint-mint text-tint-mint-ink",
+  rejected: "bg-muted text-muted-foreground",
+};
+
+export default function PartnerRequestsPage() {
+  const { t } = useLanguage();
+  const { data, error, reload } = useApi(getPartnerRequests);
+  const { run } = useToast();
+  const [status, setStatus] = useState<PartnerRequestStatus>("pending");
+
+  const rows = data?.filter((request) => request.status === status) ?? [];
+  const pendingCount = data?.filter((request) => request.status === "pending").length ?? 0;
+
+  async function decide(action: () => Promise<void>, success: string) {
+    if (await run(action, success)) reload();
+  }
+
+  return (
+    <>
+      <DetailHeader backHref="/profile" title={t("pr.title")} />
+      <div className="-mx-4 -mt-4 border-b border-border px-4 py-4">
+        <ChipTabs
+          label={t("orders.status")}
+          value={status}
+          onChange={setStatus}
+          options={TABS.map((s) => ({
+            value: s,
+            label: partnerStatusLabel(s),
+            count: s === "pending" ? pendingCount : undefined,
+          }))}
+        />
+      </div>
+
+      <SampleNotice className="mt-4">{t("pr.sampleNotice")}</SampleNotice>
+
+      {error && !data ? (
+        <div className="pt-4">
+          <ErrorState error={error} onRetry={reload} />
+        </div>
+      ) : !data ? (
+        <LoadingState />
+      ) : rows.length === 0 ? (
+        <div className="pt-4">
+          <EmptyState
+            icon={Handshake}
+            title={t("pr.noneInStatus", { status: partnerStatusLabel(status) })}
+          />
+        </div>
+      ) : (
+        <ul className="divide-y divide-border border-b border-border">
+          {rows.map((request) => (
+            <li key={request.id} className="py-4">
+              <div className="flex items-start justify-between gap-3">
+                <span className="min-w-0">
+                  <span className="block font-mono text-[15px] font-bold">
+                    {formatPhone(request.phone)}
+                  </span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">
+                    {formatWhen(request.createdAt)}
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    "inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                    TONE[request.status]
+                  )}
+                >
+                  {partnerStatusLabel(request.status)}
+                </span>
+              </div>
+
+              {request.status === "pending" && (
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <Button
+                    className="h-10"
+                    onClick={() => decide(() => approvePartnerRequest(request.id), t("pr.approved"))}
+                  >
+                    {t("pr.approve")}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="h-10"
+                    onClick={() => decide(() => rejectPartnerRequest(request.id), t("pr.rejected"))}
+                  >
+                    {t("pr.reject")}
+                  </Button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
