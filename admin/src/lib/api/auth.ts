@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/translations";
 import { apiFetch, type ApiItemResponse } from "./client";
 
 /** `user` as returned by `POST /auth/login` (no password/image/audit fields). */
@@ -48,7 +49,7 @@ export async function login(userName: string, password: string) {
     body: { userName, password },
   });
   if (!res.data?.token) {
-    throw new Error(res.message || "Нэвтрэхэд алдаа гарлаа");
+    throw new Error(res.message || tr("login.failed"));
   }
   return { token: res.data.token, user: res.data.user ?? null };
 }

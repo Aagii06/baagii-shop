@@ -1,4 +1,5 @@
 import { apiFetch, fetchAllRows, type ApiListResponse } from "./client";
+import { tr } from "@/lib/i18n/translations";
 import { endpointMissing } from "./errors";
 
 /** Remaining stock at or below this is flagged as running low. */
@@ -245,7 +246,7 @@ function toProductBody(input: PostInput) {
     mainPrice: input.mainPrice,
     price: input.price,
     variants: input.variants.map((variant) => ({
-      name: variant.values.join(" / ") || input.name || "Нэргүй",
+      name: variant.values.join(" / ") || input.name || tr("common.unnamed"),
       price: variant.price,
       mainPrice: variant.mainPrice,
       qty: variant.qty,
@@ -260,9 +261,9 @@ function toProductBody(input: PostInput) {
 
 /** `id` is `null` for a new product. */
 export async function savePost(id: number | null, input: PostInput): Promise<void> {
-  if (input.categoryId == null) throw new Error("Категори сонгоно уу.");
+  if (input.categoryId == null) throw new Error(tr("pf.mustPickCategory"));
   // No file-upload endpoint yet, and `blob:` URLs mean nothing to the backend.
-  if (Object.keys(input.newFiles).length > 0) return endpointMissing("Зураг хуулах");
+  if (Object.keys(input.newFiles).length > 0) return endpointMissing(tr("pf.uploadImage"));
   await apiFetch(id == null ? "/product" : `/product/${id}`, {
     method: id == null ? "POST" : "PUT",
     body: toProductBody(input),
@@ -270,4 +271,4 @@ export async function savePost(id: number | null, input: PostInput): Promise<voi
 }
 
 export const deletePost: (id: number) => Promise<void> = () =>
-  endpointMissing("Барааг устгах");
+  endpointMissing(tr("pf.deleteAction"));

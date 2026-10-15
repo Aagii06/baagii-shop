@@ -4,7 +4,8 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { SHOP_URL } from "@/lib/api/config";
+import { ChevronRight, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, Store, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; label: string; description: string; icon: LucideIcon }[] = [
@@ -75,6 +76,26 @@ export default function ProfilePage() {
             ))}
           </ul>
         </Card>
+        )}
+
+        {SHOP_URL && (
+          <a
+            href={`${SHOP_URL}/seller`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 transition-colors hover:bg-muted/60"
+          >
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground/80">
+              <Store className="size-5" />
+            </span>
+            <span className="min-w-0 grow">
+              <span className="block truncate text-[15px] font-bold">Хамтран ажиллах</span>
+              <span className="block truncate text-sm text-muted-foreground">
+                Утасны дугаараараа хүсэлт илгээх
+              </span>
+            </span>
+            <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+          </a>
         )}
 
         <Button variant="danger" size="lg" className="w-full" onClick={logout}>

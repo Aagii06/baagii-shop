@@ -1,3 +1,5 @@
+import { tr } from "@/lib/i18n/translations";
+
 export class ApiError extends Error {
   status: number;
   errorType?: string;
@@ -18,7 +20,7 @@ export class ApiError extends Error {
  */
 export class EndpointMissingError extends Error {
   constructor(action: string) {
-    super(`${action} боломжгүй: backend-д endpoint хараахан байхгүй байна.`);
+    super(tr("err.endpointMissing", { action }));
     this.name = "EndpointMissingError";
   }
 }

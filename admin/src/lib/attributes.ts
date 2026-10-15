@@ -1,3 +1,5 @@
+import { tr } from "@/lib/i18n/translations";
+
 import type { Attr } from "./api/attrs";
 
 // Helpers for the attribute catalogue (`lib/api/attrs`), which says what
@@ -10,7 +12,7 @@ export const MAX_ATTRS = 3;
 
 /** "Өнгө, хувцасны хэмжээ үсэг" — or "Сонголтгүй". */
 export function attrsSummary(names: string[]) {
-  if (names.length === 0) return "Сонголтгүй";
+  if (names.length === 0) return tr("attrs.none");
   return names.map((name, i) => (i === 0 ? name : name.toLowerCase())).join(", ");
 }
 

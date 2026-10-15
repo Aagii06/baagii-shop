@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/translations";
 import { endpointMissing } from "./errors";
 import { SAMPLE_ORDERS, sampleSalesSummary } from "./sample";
 
@@ -10,24 +11,50 @@ import { SAMPLE_ORDERS, sampleSalesSummary } from "./sample";
 export type OrderStatus = "pending" | "confirmed" | "delivered" | "returned";
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: "Хүлээгдэж буй",
-  confirmed: "Баталгаажсан",
-  delivered: "Хүргэгдсэн",
-  returned: "Буцаагдсан",
+  get pending() {
+    return tr("os.pending");
+  },
+  get confirmed() {
+    return tr("os.confirmed");
+  },
+  get delivered() {
+    return tr("os.delivered");
+  },
+  get returned() {
+    return tr("os.returned");
+  },
 };
 
 /** Label for each step on the order's status timeline. */
 export const ORDER_STEP_LABEL: Record<OrderStatus, string> = {
-  pending: "Захиалга орсон",
-  confirmed: "Баталгаажсан",
-  delivered: "Хүргэгдсэн",
-  returned: "Буцаагдсан",
+  get pending() {
+    return tr("os.step.pending");
+  },
+  get confirmed() {
+    return tr("os.step.confirmed");
+  },
+  get delivered() {
+    return tr("os.step.delivered");
+  },
+  get returned() {
+    return tr("os.step.returned");
+  },
 };
 
 /** The one action that moves an order forward; final states have none. */
 export const NEXT_ORDER_ACTION: Record<OrderStatus, { label: string; to: OrderStatus } | null> = {
-  pending: { label: "Захиалга баталгаажуулах", to: "confirmed" },
-  confirmed: { label: "Хүргэгдсэн гэж тэмдэглэх", to: "delivered" },
+  pending: {
+    get label() {
+      return tr("os.action.confirm");
+    },
+    to: "confirmed",
+  },
+  confirmed: {
+    get label() {
+      return tr("os.action.deliver");
+    },
+    to: "delivered",
+  },
   delivered: null,
   returned: null,
 };
@@ -81,11 +108,11 @@ export async function getOrder(id: number): Promise<Order | null> {
 }
 
 export const setOrderStatus: (id: number, status: OrderStatus) => Promise<void> = () =>
-  endpointMissing("Захиалгын төлөв солих");
+  endpointMissing(tr("orders.changeStatus"));
 
 /** Sends back `qty` units of one line, e.g. 1 of the 2 ordered. */
 export const returnOrderItem: (orderId: number, itemId: number, qty: number) => Promise<void> = () =>
-  endpointMissing("Бараа буцаах");
+  endpointMissing(tr("orders.returnItems"));
 
 export type SalesRange = "today" | "yesterday" | "week" | "month";
 

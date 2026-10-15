@@ -1,3 +1,5 @@
+import { tr } from "@/lib/i18n/translations";
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -18,8 +20,8 @@ export function formatMNT(amount: number) {
 
 /** Short money for stat tiles: "₮2.5сая", "₮178мянга". Rounds down so a tile never overstates. */
 export function formatMNTCompact(amount: number) {
-  if (amount >= 1_000_000) return `₮${Math.floor(amount / 100_000) / 10}сая`;
-  if (amount >= 1_000) return `₮${Math.floor(amount / 1_000)}мянга`;
+  if (amount >= 1_000_000) return `₮${Math.floor(amount / 100_000) / 10}${tr("money.mln")}`;
+  if (amount >= 1_000) return `₮${Math.floor(amount / 1_000)}${tr("money.k")}`;
   return formatMNT(amount);
 }
 

@@ -1,3 +1,4 @@
+import { tr } from "@/lib/i18n/translations";
 import { API_BASE_URL } from "./config";
 import { ApiError } from "./errors";
 import { clearSession, getAuthToken } from "./token";
@@ -47,13 +48,13 @@ export async function fetchAllRows<T>(path: string): Promise<T[]> {
 // For failures that come without a JSON `message` — e.g. the gateway's
 // HTML "Not Found" page for a route the backend doesn't have.
 function statusMessage(status: number) {
-  if (status === 400) return "Хүсэлт буруу байна (400).";
-  if (status === 401) return "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү.";
-  if (status === 403) return "Танд энэ үйлдлийг хийх эрх байхгүй байна.";
-  if (status === 404) return "Сервер дээр энэ мэдээллийн хаяг олдсонгүй (404).";
-  if (status === 408 || status === 504) return "Сервер хугацаандаа хариу өгсөнгүй. Дахин оролдоно уу.";
-  if (status >= 500) return `Сервер дээр алдаа гарлаа (${status}). Дахин оролдоно уу.`;
-  return "Хүсэлт амжилтгүй боллоо.";
+  if (status === 400) return tr("err.400");
+  if (status === 401) return tr("err.401");
+  if (status === 403) return tr("err.403");
+  if (status === 404) return tr("err.404");
+  if (status === 408 || status === 504) return tr("err.timeout");
+  if (status >= 500) return tr("err.5xx", { status });
+  return tr("err.failed");
 }
 
 // eshop-service answers both success and failure with HTTP 200 and tells
@@ -80,7 +81,7 @@ export async function apiFetch<T>(
   } catch (err) {
     // The browser's own "Failed to fetch" — server down, offline, CORS.
     if (err instanceof TypeError) {
-      throw new ApiError(0, "Сервертэй холбогдож чадсангүй. Интернэт холболтоо шалгаад дахин оролдоно уу.");
+      throw new ApiError(0, tr("err.network"));
     }
     throw err;
   }
