@@ -96,6 +96,17 @@ export const phoneOtp = {
   },
 };
 
+// Seller sign-up request: registers the phone number (`userName`) through
+// `POST /auth/register`. The backend has no separate "seller request" yet, so
+// an admin turns the new user into a shopper afterwards.
+export async function registerSeller(phone: string): Promise<void> {
+  await apiFetch<ApiItemResponse<null>>("/auth/register", {
+    method: "POST",
+    auth: false,
+    body: { userName: phone },
+  });
+}
+
 let pendingLogin: Promise<string | null> | null = null;
 
 // Guarantees an auth token is available before a protected request goes
