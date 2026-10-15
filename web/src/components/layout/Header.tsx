@@ -56,7 +56,6 @@ export default function Header() {
           href: categoryHref(category),
         }))
       : []),
-    { label: t("header.tabs.newArrivals"), href: "/search?sort=new" },
   ];
 
   useEffect(() => {

@@ -28,7 +28,6 @@ export const en: Dict = {
   "header.tabs.clothing": "Clothing",
   "header.tabs.electronics": "Electronics",
   "header.tabs.home": "Home goods",
-  "header.tabs.newArrivals": "New arrivals",
   "header.mobileNavAria": "Mobile navigation",
   "header.langAria": "Select language",
 
@@ -38,7 +37,6 @@ export const en: Dict = {
   "footer.sections.company": "COMPANY",
   "footer.links.allCategories": "All categories",
   "footer.links.sale": "Sale",
-  "footer.links.newArrivals": "New arrivals",
   "footer.links.brands": "Brands",
   "footer.links.shippingTerms": "Shipping terms",
   "footer.links.returns": "Returns & exchanges",

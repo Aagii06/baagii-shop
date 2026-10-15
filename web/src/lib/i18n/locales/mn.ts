@@ -28,7 +28,6 @@ export const mn: Dict = {
   "header.tabs.clothing": "Хувцас",
   "header.tabs.electronics": "Цахилгаан бараа",
   "header.tabs.home": "Гэр ахуй",
-  "header.tabs.newArrivals": "Шинэ бараа",
   "header.mobileNavAria": "Гар утасны цэс",
   "header.langAria": "Хэл сонгох",
 
@@ -38,7 +37,6 @@ export const mn: Dict = {
   "footer.sections.company": "КОМПАНИ",
   "footer.links.allCategories": "Бүх ангилал",
   "footer.links.sale": "Хямдрал",
-  "footer.links.newArrivals": "Шинэ бараа",
   "footer.links.brands": "Брэндүүд",
   "footer.links.shippingTerms": "Хүргэлтийн нөхцөл",
   "footer.links.returns": "Буцаалт, солилт",

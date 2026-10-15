@@ -28,7 +28,6 @@ export const ru: Dict = {
   "header.tabs.clothing": "Одежда",
   "header.tabs.electronics": "Электроника",
   "header.tabs.home": "Товары для дома",
-  "header.tabs.newArrivals": "Новинки",
   "header.mobileNavAria": "Мобильное меню",
   "header.langAria": "Выбрать язык",
 
@@ -38,7 +37,6 @@ export const ru: Dict = {
   "footer.sections.company": "КОМПАНИЯ",
   "footer.links.allCategories": "Все категории",
   "footer.links.sale": "Скидки",
-  "footer.links.newArrivals": "Новинки",
   "footer.links.brands": "Бренды",
   "footer.links.shippingTerms": "Условия доставки",
   "footer.links.returns": "Возврат и обмен",

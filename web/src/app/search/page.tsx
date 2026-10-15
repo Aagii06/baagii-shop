@@ -17,7 +17,6 @@ import {
 } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
 import type { Product } from "@/types/product";
-import { X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
@@ -315,21 +314,6 @@ function SearchContent() {
               activeCount={chips.length}
             />
           </div>
-
-          {chips.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              {chips.map((chip) => (
-                <button
-                  key={chip.key}
-                  onClick={chip.onRemove}
-                  className="flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground text-xs font-medium pl-3 pr-2 py-1.5 hover:opacity-80 transition-opacity"
-                >
-                  {chip.label}
-                  <X className="h-3 w-3" />
-                </button>
-              ))}
-            </div>
-          )}
 
           <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
             <ProductList products={paged} />
