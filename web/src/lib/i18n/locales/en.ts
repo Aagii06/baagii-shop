@@ -351,7 +351,7 @@ export const en: Dict = {
   "contact.form.name": "Your name",
   "contact.form.namePlaceholder": "Bat-Erdene",
   "contact.form.email": "Email",
-  "contact.form.emailPlaceholder": "you@email.com",
+  "contact.form.emailPlaceholder": "Your email",
   "contact.form.subject": "Subject",
   "contact.form.subjectPlaceholder": "How can we help?",
   "contact.form.message": "Message",
