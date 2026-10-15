@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { tr } from "@/lib/i18n/translations";
 import ChipTabs from "@/components/common/ChipTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import Thumb from "@/components/common/Thumb";
@@ -36,15 +38,16 @@ function indexCategories(tree: Category[]) {
 }
 
 function stockLine(post: Post) {
-  if (!isPublished(post)) return { text: "Ноорог", tone: "text-muted-foreground/70" };
+  if (!isPublished(post)) return { text: tr("products.draft"), tone: "text-muted-foreground/70" };
   const remain = toNumber(post.remain);
   return {
-    text: `${formatQty(remain)} нөөц`,
+    text: tr("products.stock", { qty: formatQty(remain) }),
     tone: remain <= LOW_STOCK_THRESHOLD ? "text-destructive" : "text-muted-foreground",
   };
 }
 
 export default function ProductsPage() {
+  const { t } = useLanguage();
   const { data, error, reload } = useApi(loadProducts);
 
   const [query, setQuery] = useState("");
@@ -73,20 +76,20 @@ export default function ProductsPage() {
   return (
     <>
       <PageHeader
-        title="Бараа"
+        title={t("products.title")}
         aside={
           <Button asChild size="sm" className="px-4">
             <Link href="/products/new">
               <Plus />
-              Нэмэх
+              {t("common.add")}
             </Link>
           </Button>
         }
       >
         <Input
           type="search"
-          placeholder="Бараа хайх"
-          aria-label="Бараа хайх"
+          placeholder={t("products.search")}
+          aria-label={t("products.search")}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -95,10 +98,10 @@ export default function ProductsPage() {
         />
         {data && data.tree.length > 0 && (
           <ChipTabs
-            label="Категори"
+            label={t("common.category")}
             value={rootId}
             options={[
-              { value: "all", label: "Бүгд" },
+              { value: "all", label: t("common.all") },
               ...data.tree.map((c) => ({ value: String(c.id), label: c.name })),
             ]}
             onChange={(value) => {
@@ -117,7 +120,7 @@ export default function ProductsPage() {
         <LoadingState />
       ) : rows.length === 0 ? (
         <div className="pt-4">
-          <EmptyState title="Бараа олдсонгүй" description="Хайлт эсвэл категориа өөрчилж үзнэ үү." />
+          <EmptyState title={t("products.notFound")} description={t("products.notFoundHint")} />
         </div>
       ) : (
         <>
@@ -158,7 +161,7 @@ export default function ProductsPage() {
               className="mt-4 w-full"
               onClick={() => setLimit((n) => n + PAGE_SIZE)}
             >
-              Цааш үзэх ({formatQty(filtered.length - limit)})
+              {t("products.more", { count: formatQty(filtered.length - limit) })}
             </Button>
           )}
         </>

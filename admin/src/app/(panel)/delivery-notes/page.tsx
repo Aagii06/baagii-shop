@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { getDoNotes } from "@/lib/api/doNotes";
@@ -7,13 +8,14 @@ import { useApi } from "@/lib/useApi";
 import { formatDate } from "@/lib/utils";
 
 export default function DeliveryNotesPage() {
+  const { t } = useLanguage();
   const { data, error, reload } = useApi(getDoNotes);
 
   return (
     <>
       <DetailHeader
         backHref="/profile"
-        title="Хүргэлтийн тэмдэглэл"
+        title={t("profile.notes")}
         aside={
           data && (
             <span className="shrink-0 font-mono text-sm text-muted-foreground">{data.length}</span>
@@ -21,7 +23,7 @@ export default function DeliveryNotesPage() {
         }
       />
       <p className="-mx-4 -mt-4 border-b border-border px-4 py-4 text-sm text-muted-foreground">
-        Худалдан авагч захиалга хийхдээ сонгох боломжтой хүргэлтийн заавар.
+        {t("notes.desc")}
       </p>
 
       {error && !data ? (
@@ -32,7 +34,7 @@ export default function DeliveryNotesPage() {
         <LoadingState />
       ) : data.length === 0 ? (
         <div className="pt-4">
-          <EmptyState title="Тэмдэглэл алга" />
+          <EmptyState title={t("notes.empty")} />
         </div>
       ) : (
         <ul className="divide-y divide-border border-b border-border">

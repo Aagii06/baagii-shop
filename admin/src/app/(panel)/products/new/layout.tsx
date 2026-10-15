@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { ErrorState, LoadingState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { ProductEditorProvider } from "@/components/products/ProductEditor";
@@ -15,6 +16,7 @@ async function loadEditor() {
 
 // Shared by the form and its variants page so the draft survives moving between them.
 export default function NewProductLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
   const { data, error, reload } = useApi(loadEditor);
   const onVariants = useSelectedLayoutSegment() === "variants";
 
@@ -30,7 +32,7 @@ export default function NewProductLayout({ children }: { children: React.ReactNo
     <>
       <DetailHeader
         backHref={onVariants ? "/products/new" : "/products"}
-        title={onVariants ? "Сонголт, тоо" : "Бараа нэмэх"}
+        title={onVariants ? t("products.variantsTitle") : t("products.add")}
       />
       {error ? <ErrorState error={error} onRetry={reload} /> : <LoadingState />}
     </>

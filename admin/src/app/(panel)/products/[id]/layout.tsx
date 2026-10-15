@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { ProductEditorProvider } from "@/components/products/ProductEditor";
@@ -19,6 +20,7 @@ async function loadEditor(id: number) {
 // Shared by the form and its variants page so the draft survives moving between them.
 export default function EditProductLayout({ children }: { children: React.ReactNode }) {
   const { id } = useParams<{ id: string }>();
+  const { t } = useLanguage();
   const { data, error, reload } = useApi(() => loadEditor(Number(id)), id);
   const onVariants = useSelectedLayoutSegment() === "variants";
 
@@ -39,7 +41,7 @@ export default function EditProductLayout({ children }: { children: React.ReactN
     <>
       <DetailHeader
         backHref={onVariants ? `/products/${id}` : "/products"}
-        title={onVariants ? "Сонголт, тоо" : "Бараа засах"}
+        title={onVariants ? t("products.variantsTitle") : t("products.edit")}
       />
       {error && !data ? (
         <ErrorState error={error} onRetry={reload} />
@@ -48,8 +50,8 @@ export default function EditProductLayout({ children }: { children: React.ReactN
       ) : (
         <EmptyState
           icon={PackageX}
-          title="Бараа олдсонгүй"
-          description={`#${id} дугаартай бараа байхгүй байна.`}
+          title={t("products.notFound")}
+          description={t("products.idNotFound", { id })}
         />
       )}
     </>

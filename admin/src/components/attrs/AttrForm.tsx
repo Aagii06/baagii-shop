@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import Field from "@/components/common/Field";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -30,6 +31,7 @@ function firstDuplicate(names: string[]) {
  */
 export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const { run } = useToast();
   const nameErrorId = useId();
   const draftErrorId = useId();
@@ -50,16 +52,16 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
   const [draft, setDraft] = useState("");
   const [draftError, setDraftError] = useState<string>();
 
-  const nameError = (nameTouched || submitted) && !name.trim() ? "Үзүүлэлтийн нэр оруулна уу" : undefined;
+  const nameError = (nameTouched || submitted) && !name.trim() ? t("af.nameRequired") : undefined;
   const duplicate = firstDuplicate(values.map((v) => v.name));
   const valuesError = !submitted
     ? undefined
     : values.length === 0
-      ? "Хамгийн багадаа нэг утга нэмнэ үү"
+      ? t("af.needValue")
       : values.some((v) => !v.name.trim())
-        ? "Хоосон утгыг бөглөх эсвэл хасна уу"
+        ? t("af.fillOrRemove")
         : duplicate
-          ? `“${duplicate}” утга давхардсан байна`
+          ? t("af.duplicate", { value: duplicate })
           : undefined;
 
   function updateValue(index: number, patch: Partial<ValueRow>) {
@@ -79,7 +81,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
     const value = draft.trim();
     if (!value) return values;
     if (values.some((v) => valueKey(v.name) === valueKey(value))) {
-      setDraftError(`“${value}” утга аль хэдийн байна`);
+      setDraftError(t("af.exists", { value }));
       return null;
     }
     const next = [...values, { key: `new-${++newKey.current}`, id: null, name: value }];
@@ -104,7 +106,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
     };
     const saved = await run(
       () => (attr ? updateAttr(attr, input) : createAttr(input)),
-      attr ? "Хадгаллаа" : "Үзүүлэлт нэмлээ"
+      attr ? t("common.saved") : t("af.added")
     );
     if (saved) router.replace("/attrs");
   }
@@ -113,16 +115,16 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
     <form onSubmit={onSubmit} noValidate>
       <DetailHeader
         backHref="/attrs"
-        title={attr ? "Үзүүлэлт засах" : "Үзүүлэлт нэмэх"}
+        title={attr ? t("attrs.edit") : t("attrs.add")}
         aside={
           <Button type="submit" className="h-10 px-5">
-            Хадгалах
+            {t("common.save")}
           </Button>
         }
       />
 
       <div className="space-y-4">
-        <Field label="Нэр" error={nameError} errorId={nameErrorId}>
+        <Field label={t("common.name")} error={nameError} errorId={nameErrorId}>
           <Input
             ref={nameRef}
             value={name}
@@ -136,9 +138,9 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
 
         <section className="space-y-3 rounded-2xl border border-border bg-white p-4">
           <div>
-            <h2 className="text-[15px] font-bold">Утгууд</h2>
+            <h2 className="text-[15px] font-bold">{t("af.values")}</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Бараа бүртгэхэд эдгээрээс сонгоно. Энд байгаа дарааллаар харагдана.
+              {t("af.valuesHint")}
             </p>
           </div>
 
@@ -149,7 +151,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
                   <Input
                     value={v.name}
                     onChange={(e) => updateValue(i, { name: e.target.value })}
-                    aria-label={`Утга ${i + 1}`}
+                    aria-label={t("af.valueN", { n: i + 1 })}
                     aria-invalid={submitted && !v.name.trim()}
                     className="h-10 min-w-0 px-4"
                   />
@@ -157,7 +159,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`${v.name} — дээш`}
+                    aria-label={t("af.up", { name: v.name })}
                     disabled={i === 0}
                     onClick={() => moveValue(i, -1)}
                   >
@@ -167,7 +169,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`${v.name} — доош`}
+                    aria-label={t("af.down", { name: v.name })}
                     disabled={i === values.length - 1}
                     onClick={() => moveValue(i, 1)}
                   >
@@ -177,7 +179,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`${v.name} — хасах`}
+                    aria-label={t("af.removeValue", { name: v.name })}
                     className="text-muted-foreground hover:text-destructive"
                     onClick={() => setValues((prev) => prev.filter((_, k) => k !== i))}
                   >
@@ -204,14 +206,14 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
                     addDraft();
                   }
                 }}
-                aria-label="Шинэ утга"
+                aria-label={t("af.newValue")}
                 aria-invalid={Boolean(draftError)}
                 aria-describedby={draftError ? draftErrorId : undefined}
                 className="min-w-0"
               />
               <Button type="button" variant="soft" className="shrink-0 px-5" onClick={addDraft}>
                 <Plus />
-                Нэмэх
+                {t("common.add")}
               </Button>
             </div>
             {(draftError || valuesError) && (

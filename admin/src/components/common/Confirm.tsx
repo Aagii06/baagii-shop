@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CircleAlert, Trash2 } from "lucide-react";
@@ -24,6 +25,7 @@ const ConfirmContext = createContext<Confirm | null>(null);
  * button, `false` on "Болих", Esc or a tap outside.
  */
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const descriptionId = useId();
@@ -86,10 +88,10 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             <div className="mt-6 grid grid-cols-2 gap-2">
               {/* Focused first, so Enter doesn't delete by accident. */}
               <Button variant="outline" autoFocus onClick={() => close(false)}>
-                Болих
+                {t("common.cancel")}
               </Button>
               <Button variant={danger ? "destructive" : "default"} onClick={() => close(true)}>
-                {request.confirmLabel ?? "Тийм"}
+                {request.confirmLabel ?? t("common.yes")}
               </Button>
             </div>
           </div>

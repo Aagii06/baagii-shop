@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useConfirm } from "@/components/common/Confirm";
 import { useToast } from "@/components/common/Toast";
@@ -14,6 +15,7 @@ import { Pencil, Plus, SlidersHorizontal, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void }) {
+  const { t } = useLanguage();
   const { run } = useToast();
   const confirm = useConfirm();
   // The count is the backend's; names and swatches are the values it sent.
@@ -23,13 +25,13 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
 
   async function onDelete() {
     const ok = await confirm({
-      title: "Үзүүлэлт устгах уу?",
-      description: `“${attr.name}” үзүүлэлтийг устгана. Буцаах боломжгүй.`,
-      confirmLabel: "Устгах",
+      title: t("attrs.deleteTitle"),
+      description: t("attrs.deleteDesc", { name: attr.name }),
+      confirmLabel: t("common.delete"),
       tone: "danger",
     });
     if (!ok) return;
-    if (await run(() => deleteAttr(attr.id), "Үзүүлэлтийг устгалаа")) onChanged();
+    if (await run(() => deleteAttr(attr.id), t("attrs.deleted"))) onChanged();
   }
 
   return (
@@ -39,7 +41,7 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
           <span className="truncate text-[15px] font-bold">{attr.name}</span>
           <Badge className="shrink-0 px-2 py-0.5 font-mono">
             {formatQty(count)}
-            <span className="sr-only"> утга</span>
+            <span className="sr-only">{t("attrs.valuesSr")}</span>
           </Badge>
         </span>
         {preview && (
@@ -56,7 +58,7 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
         )}
       </span>
       <Button asChild variant="outline" size="icon-sm" className="shrink-0">
-        <Link href={`/attrs/${attr.id}`} aria-label={`“${attr.name}” засах`} title="Засах">
+        <Link href={`/attrs/${attr.id}`} aria-label={t("attrs.editAria", { name: attr.name })} title={t("common.edit")}>
           <Pencil />
         </Link>
       </Button>
@@ -64,8 +66,8 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
         variant="danger"
         size="icon-sm"
         className="shrink-0"
-        aria-label={`“${attr.name}” устгах`}
-        title="Устгах"
+        aria-label={t("attrs.deleteAria", { name: attr.name })}
+        title={t("common.delete")}
         onClick={onDelete}
       >
         <Trash2 />
@@ -75,18 +77,19 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
 }
 
 export default function AttrsPage() {
+  const { t } = useLanguage();
   const { data, error, reload } = useApi(getAttrRecords);
 
   return (
     <>
       <DetailHeader
         backHref="/profile"
-        title="Үзүүлэлт"
+        title={t("attrs.title")}
         aside={
           <Button asChild className="h-10 px-4">
             <Link href="/attrs/new">
               <Plus />
-              Нэмэх
+              {t("common.add")}
             </Link>
           </Button>
         }
@@ -102,8 +105,8 @@ export default function AttrsPage() {
         <div className="pt-4">
           <EmptyState
             icon={SlidersHorizontal}
-            title="Үзүүлэлт алга"
-            description="“Нэмэх” товчоор өнгө, хэмжээ зэрэг үзүүлэлт нэмнэ үү."
+            title={t("attrs.empty")}
+            description={t("attrs.emptyHint")}
           />
         </div>
       ) : (

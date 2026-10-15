@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import Thumb from "@/components/common/Thumb";
 import { useToast } from "@/components/common/Toast";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ function ReturnItemDialog({
   onClose: () => void;
   onReturned: (qty: number) => void;
 }) {
+  const { t } = useLanguage();
   const ref = useRef<HTMLDialogElement>(null);
   const max = keptQty(item);
   const [qty, setQty] = useState(1);
@@ -58,7 +60,7 @@ function ReturnItemDialog({
       await returnOrderItem(orderId, item.id, qty);
       onReturned(qty);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Алдаа гарлаа");
+      setError(err instanceof Error ? err.message : t("common.error"));
       setBusy(false);
     }
   }
@@ -78,7 +80,7 @@ function ReturnItemDialog({
     >
       <div className="p-5">
         <h2 id="return-item-title" className="text-lg font-extrabold">
-          Бараа буцаах
+          {t("oi.returnTitle")}
         </h2>
 
         <div className="mt-4 flex items-center gap-3">
@@ -86,19 +88,19 @@ function ReturnItemDialog({
           <span className="min-w-0">
             <span className="block truncate text-[15px] font-bold">{item.name}</span>
             <span className="block font-mono text-xs text-muted-foreground">
-              {max} ширхэг · {formatMNT(item.price)}
+              {t("oi.pcsPrice", { max, price: formatMNT(item.price) })}
             </span>
           </span>
         </div>
 
         <div className="mt-5 flex items-center justify-between rounded-xl bg-muted/60 px-4 py-3">
-          <span className="text-sm text-muted-foreground">Буцаах тоо</span>
+          <span className="text-sm text-muted-foreground">{t("oi.returnQty")}</span>
           {max > 1 ? (
             <span className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="icon-sm"
-                aria-label="Хасах"
+                aria-label={t("common.remove")}
                 disabled={qty <= 1}
                 onClick={() => setQty(qty - 1)}
               >
@@ -110,7 +112,7 @@ function ReturnItemDialog({
               <Button
                 variant="outline"
                 size="icon-sm"
-                aria-label="Нэмэх"
+                aria-label={t("common.add")}
                 disabled={qty >= max}
                 onClick={() => setQty(qty + 1)}
               >
@@ -123,7 +125,7 @@ function ReturnItemDialog({
         </div>
 
         <div className="mt-3 flex items-center justify-between px-1 text-sm">
-          <span className="text-muted-foreground">Буцаах дүн</span>
+          <span className="text-muted-foreground">{t("oi.returnAmount")}</span>
           <span className="font-mono font-bold">{formatMNT(qty * item.price)}</span>
         </div>
 
@@ -136,10 +138,10 @@ function ReturnItemDialog({
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <Button variant="outline" onClick={onClose}>
-            Болих
+            {t("common.cancel")}
           </Button>
           <Button variant="destructive" disabled={busy} onClick={submit}>
-            Буцаах
+            {t("oi.return")}
           </Button>
         </div>
       </div>
@@ -152,6 +154,7 @@ function ReturnItemDialog({
  * each line with units left has a button that opens the return modal.
  */
 export default function OrderItemsCard({ order, onChanged }: { order: Order; onChanged: () => void }) {
+  const { t } = useLanguage();
   const { show } = useToast();
   const [returning, setReturning] = useState<OrderItem | null>(null);
 
@@ -160,7 +163,7 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
 
   return (
     <Card className="overflow-hidden">
-      <h2 className="border-b border-border px-4 py-3.5 text-[15px] font-bold">Бараа</h2>
+      <h2 className="border-b border-border px-4 py-3.5 text-[15px] font-bold">{t("oi.items")}</h2>
       <ul className="divide-y divide-border">
         {order.items.map((item) => {
           const kept = keptQty(item);
@@ -181,7 +184,7 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
                 </span>
                 {item.returnedQty ? (
                   <span className="block text-xs font-semibold text-destructive">
-                    {item.returnedQty} ширхэг буцаагдсан
+                    {t("oi.returnedQty", { qty: item.returnedQty })}
                   </span>
                 ) : null}
               </span>
@@ -192,8 +195,8 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
                 <Button
                   variant="outline"
                   size="icon-sm"
-                  aria-label={`“${item.name}” буцаах`}
-                  title="Буцаах"
+                  aria-label={t("oi.returnAria", { name: item.name })}
+                  title={t("oi.return")}
                   disabled={kept === 0}
                   onClick={() => setReturning(item)}
                 >
@@ -205,13 +208,13 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
         })}
       </ul>
       <dl className="border-t border-border px-4 py-3 text-sm">
-        <SummaryRow label="Барааны дүн" value={formatMNT(orderSubtotal(order))} />
+        <SummaryRow label={t("oi.subtotal")} value={formatMNT(orderSubtotal(order))} />
         {returnedAmount > 0 && (
-          <SummaryRow label="Буцаалт" value={`−${formatMNT(returnedAmount)}`} />
+          <SummaryRow label={t("oi.returns")} value={`−${formatMNT(returnedAmount)}`} />
         )}
-        <SummaryRow label="Хүргэлт" value={formatMNT(order.deliveryFee)} />
+        <SummaryRow label={t("oi.delivery")} value={formatMNT(order.deliveryFee)} />
         <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
-          <dt className="text-base font-extrabold">Нийт</dt>
+          <dt className="text-base font-extrabold">{t("oi.total")}</dt>
           <dd className="font-mono text-lg font-bold">{formatMNT(orderTotal(order))}</dd>
         </div>
       </dl>
@@ -223,7 +226,7 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
           item={returning}
           onClose={() => setReturning(null)}
           onReturned={(qty) => {
-            show(`“${returning.name}” ${qty} ширхэг буцаагдлаа`);
+            show(t("oi.returnedToast", { name: returning.name, qty }));
             setReturning(null);
             onChanged();
           }}

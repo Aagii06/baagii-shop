@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import SampleNotice from "@/components/common/SampleNotice";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
@@ -28,6 +29,7 @@ function timelineSteps(order: Order): OrderStatus[] {
 }
 
 export default function OrderDetailPage() {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const { data: order, error, reload } = useApi(() => getOrder(Number(id)), id);
   const { run } = useToast();
@@ -43,8 +45,8 @@ export default function OrderDetailPage() {
         ) : (
           <EmptyState
             icon={ReceiptText}
-            title="Захиалга олдсонгүй"
-            description={`#${id} дугаартай захиалга байхгүй байна.`}
+            title={t("orders.notFound")}
+            description={t("orders.idNotFound", { id })}
           />
         )}
       </>
@@ -63,7 +65,7 @@ export default function OrderDetailPage() {
       />
 
       <div className="space-y-3">
-        <SampleNotice>Захиалгын API холбогдоогүй тул жишээ захиалга харуулж байна.</SampleNotice>
+        <SampleNotice>{t("common.sampleOrders")}</SampleNotice>
 
         <Card className="p-4">
           <p className="text-[15px] font-bold">{order.customer.name}</p>
@@ -79,7 +81,7 @@ export default function OrderDetailPage() {
         <OrderItemsCard order={order} onChanged={reload} />
 
         <Card className="p-4">
-          <h2 className="text-[15px] font-bold">Төлөв</h2>
+          <h2 className="text-[15px] font-bold">{t("orders.status")}</h2>
           <ol className="mt-3 space-y-3">
             {timelineSteps(order).map((step) => {
               const reachedAt = order.timeline[step];
@@ -112,7 +114,7 @@ export default function OrderDetailPage() {
                 size="lg"
                 className="w-full"
                 onClick={async () => {
-                  if (await run(() => setOrderStatus(order.id, action.to), "Төлөв шинэчлэгдлээ")) {
+                  if (await run(() => setOrderStatus(order.id, action.to), t("orders.statusUpdated"))) {
                     reload();
                   }
                 }}

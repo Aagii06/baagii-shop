@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import ChipTabs from "@/components/common/ChipTabs";
 import SampleNotice from "@/components/common/SampleNotice";
 import { ErrorState, LoadingState } from "@/components/common/States";
@@ -28,11 +29,11 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-const RANGES: { value: SalesRange; label: string }[] = [
-  { value: "today", label: "Өнөөдөр" },
-  { value: "yesterday", label: "Өчигдөр" },
-  { value: "week", label: "7 хоног" },
-  { value: "month", label: "30 хоног" },
+const RANGES: { value: SalesRange; labelKey: string }[] = [
+  { value: "today", labelKey: "dash.range.today" },
+  { value: "yesterday", labelKey: "dash.range.yesterday" },
+  { value: "week", labelKey: "dash.range.week" },
+  { value: "month", labelKey: "dash.range.month" },
 ];
 
 function CardTitleRow({ title, aside }: { title: string; aside?: React.ReactNode }) {
@@ -74,6 +75,7 @@ function StatTile({
 }
 
 function SalesChart({ summary }: { summary: SalesSummary }) {
+  const { t } = useLanguage();
   const { series } = summary;
   const max = Math.max(1, ...series.map((point) => point.value));
   const gap = series.length > 14 ? "gap-[3px]" : "gap-1.5";
@@ -81,12 +83,12 @@ function SalesChart({ summary }: { summary: SalesSummary }) {
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-[15px] font-bold">Борлуулалтын явц</h2>
+        <h2 className="text-[15px] font-bold">{t("dash.salesTrend")}</h2>
         <span className="font-mono text-xs text-muted-foreground">{summary.seriesUnit}</span>
       </div>
       <div
         role="img"
-        aria-label={`Борлуулалтын явц ${summary.seriesUnit}, хамгийн их нь ${formatMNT(max)}`}
+        aria-label={t("dash.salesTrendAria", { unit: summary.seriesUnit, max: formatMNT(max) })}
         className="mt-5"
       >
         <div className={cn("flex h-28 items-end", gap)}>
@@ -116,6 +118,7 @@ function SalesChart({ summary }: { summary: SalesSummary }) {
 }
 
 function SalesSection({ range, pending }: { range: SalesRange; pending?: number }) {
+  const { t } = useLanguage();
   const sales = useApi(() => getSalesSummary(range), range);
 
   if (sales.error && !sales.data) return <ErrorState error={sales.error} onRetry={sales.reload} />;
@@ -126,23 +129,23 @@ function SalesSection({ range, pending }: { range: SalesRange; pending?: number 
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
-        <StatTile label="Захиалга" value={formatQty(summary.orders)} delta={summary.ordersDelta} />
+        <StatTile label={t("dash.orders")} value={formatQty(summary.orders)} delta={summary.ordersDelta} />
         <StatTile
-          label="Борлуулалт"
+          label={t("dash.revenue")}
           value={formatMNTCompact(summary.revenue)}
           delta={summary.revenueDelta}
         />
         <StatTile
-          label="Дундаж дүн"
+          label={t("dash.avg")}
           value={formatMNTCompact(summary.orders ? summary.revenue / summary.orders : 0)}
         />
         <Link
           href="/orders"
           className="rounded-2xl border border-primary/25 bg-primary-soft/60 p-4 text-primary-ink transition-colors hover:bg-primary-soft"
         >
-          <p className="text-sm">Батлахыг хүлээж</p>
+          <p className="text-sm">{t("dash.pending")}</p>
           <p className="mt-2.5 font-mono text-2xl font-bold leading-none">{pending ?? "—"}</p>
-          <p className="mt-2.5 text-xs font-semibold">Харах →</p>
+          <p className="mt-2.5 text-xs font-semibold">{t("dash.view")}</p>
         </Link>
       </div>
 
@@ -152,13 +155,14 @@ function SalesSection({ range, pending }: { range: SalesRange; pending?: number 
 }
 
 function RecentOrdersCard({ orders }: { orders: Order[] }) {
+  const { t } = useLanguage();
   return (
     <Card className="overflow-hidden">
       <CardTitleRow
-        title="Сүүлийн захиалга"
+        title={t("dash.recentOrders")}
         aside={
           <Link href="/orders" className="text-sm font-semibold text-primary-ink hover:underline">
-            Бүгд
+            {t("dash.seeAll")}
           </Link>
         }
       />
@@ -192,6 +196,7 @@ function RecentOrdersCard({ orders }: { orders: Order[] }) {
 }
 
 function LowStockCard() {
+  const { t } = useLanguage();
   const { data, error, reload } = useApi(getPosts);
 
   const lowStock = (data ?? [])
@@ -201,7 +206,7 @@ function LowStockCard() {
 
   return (
     <Card className="overflow-hidden">
-      <CardTitleRow title="Нөөц дуусч байна" />
+      <CardTitleRow title={t("dash.lowStock")} />
       {error && !data ? (
         <div className="p-4">
           <ErrorState error={error} onRetry={reload} />
@@ -210,7 +215,7 @@ function LowStockCard() {
         <LoadingState className="py-8" />
       ) : lowStock.length === 0 ? (
         <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-          Бүх барааны нөөц хангалттай байна.
+          {t("dash.stockOk")}
         </p>
       ) : (
         <ul className="divide-y divide-border">
@@ -226,7 +231,7 @@ function LowStockCard() {
                     {post.name}
                   </span>
                   <span className="shrink-0 rounded-lg bg-destructive/10 px-2.5 py-1 font-mono text-xs font-bold text-destructive">
-                    {remain <= 0 ? "Дууссан" : `${formatQty(remain)} үлдсэн`}
+                    {remain <= 0 ? t("dash.soldOut") : t("dash.left", { qty: formatQty(remain) })}
                   </span>
                 </Link>
               </li>
@@ -239,6 +244,7 @@ function LowStockCard() {
 }
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [range, setRange] = useState<SalesRange>("today");
   // One fetch feeds both the "awaiting confirmation" tile and the recent list.
   const { data: orders } = useApi(getOrders);
@@ -246,19 +252,19 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title="Хяналтын самбар"
+        title={t("dash.title")}
         aside={
           <span className="shrink-0 font-mono text-sm text-muted-foreground">
             {formatDate(new Date())}
           </span>
         }
       >
-        <ChipTabs label="Хугацаа" value={range} options={RANGES} onChange={setRange} />
+        <ChipTabs label={t("dash.range.label")} value={range} options={RANGES.map((r) => ({ value: r.value, label: t(r.labelKey) }))} onChange={setRange} />
       </PageHeader>
 
       <div className="space-y-3 pt-4">
         <SampleNotice>
-          Захиалга, борлуулалтын API холбогдоогүй тул тэдгээрийн тоо жишээ өгөгдөл.
+          {t("dash.sampleNotice")}
         </SampleNotice>
         <SalesSection
           range={range}

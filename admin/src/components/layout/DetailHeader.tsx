@@ -1,3 +1,6 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -13,11 +16,12 @@ export default function DetailHeader({
   subtitle?: React.ReactNode;
   aside?: React.ReactNode;
 }) {
+  const { t } = useLanguage();
   return (
     <header className="sticky top-0 z-30 -mx-4 mb-4 flex min-h-[4.25rem] items-center gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
       <Link
         href={backHref}
-        aria-label="Буцах"
+        aria-label={t("common.back")}
         className="grid size-11 shrink-0 place-items-center rounded-full border border-border bg-white transition-colors hover:bg-muted"
       >
         <ArrowLeft className="size-5" />

@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n/translations";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
@@ -30,7 +31,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         show(success);
         return true;
       } catch (err) {
-        show(err instanceof Error ? err.message : "Алдаа гарлаа", "error");
+        show(err instanceof Error ? err.message : tr("common.error"), "error");
         return false;
       }
     },

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { ConfirmProvider } from "@/components/common/Confirm";
 import { ToastProvider } from "@/components/common/Toast";
 import { cn } from "@/lib/utils";
@@ -16,13 +17,14 @@ const TAB_PATHS = new Set(NAV_ITEMS.map((item) => item.href));
 
 function BottomNav({ pathname }: { pathname: string }) {
   const { role } = useAuth();
+  const { t } = useLanguage();
   const items = navItemsFor(role);
   return (
-    <nav aria-label="Үндсэн цэс" className="fixed inset-x-0 bottom-0 z-30">
+    <nav aria-label={t("nav.main")} className="fixed inset-x-0 bottom-0 z-30">
       <div className="mx-auto grid max-w-md border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:border-x"
         style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
       >
-        {items.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, labelKey, icon: Icon }) => {
           const active = isActivePath(pathname, href);
           return (
             <Link
@@ -35,7 +37,7 @@ function BottomNav({ pathname }: { pathname: string }) {
               )}
             >
               <Icon className="size-[22px]" strokeWidth={active ? 2.4 : 2} />
-              {label}
+              {t(labelKey)}
             </Link>
           );
         })}
@@ -45,6 +47,7 @@ function BottomNav({ pathname }: { pathname: string }) {
 }
 
 export default function PanelShell({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const isTabPage = TAB_PATHS.has(pathname);
 
@@ -53,7 +56,7 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
       <ConfirmProvider>
         {isTabPage && (
           <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur">
-            <Link href="/" aria-label="Хяналтын самбар">
+            <Link href="/" aria-label={t("nav.dashboardLink")}>
               <BrandMark />
             </Link>
           </header>

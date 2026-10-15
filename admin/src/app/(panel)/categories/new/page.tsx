@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import CategoryForm from "@/components/categories/CategoryForm";
 import { ErrorState, LoadingState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -20,6 +21,7 @@ export default function NewCategoryPage({
 }) {
   // `?parentId=` from a row's "add subcategory" button.
   const { parentId } = use(searchParams);
+  const { t } = useLanguage();
   const { data, error, reload } = useApi(loadForm);
 
   if (data) {
@@ -35,7 +37,7 @@ export default function NewCategoryPage({
 
   return (
     <>
-      <DetailHeader backHref="/categories" title={parentId ? "Дэд категори нэмэх" : "Категори нэмэх"} />
+      <DetailHeader backHref="/categories" title={parentId ? t("cat.addSub") : t("cat.add")} />
       {error ? <ErrorState error={error} onRetry={reload} /> : <LoadingState />}
     </>
   );

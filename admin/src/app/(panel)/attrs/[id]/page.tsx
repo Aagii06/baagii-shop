@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import AttrForm from "@/components/attrs/AttrForm";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -9,6 +10,7 @@ import { SearchX } from "lucide-react";
 import { useParams } from "next/navigation";
 
 export default function EditAttrPage() {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const { data, error, loading, reload } = useApi(() => getAttr(Number(id)), id);
 
@@ -16,7 +18,7 @@ export default function EditAttrPage() {
 
   return (
     <>
-      <DetailHeader backHref="/attrs" title="Үзүүлэлт засах" />
+      <DetailHeader backHref="/attrs" title={t("attrs.edit")} />
       {error ? (
         <ErrorState error={error} onRetry={reload} />
       ) : loading ? (
@@ -24,8 +26,8 @@ export default function EditAttrPage() {
       ) : (
         <EmptyState
           icon={SearchX}
-          title="Үзүүлэлт олдсонгүй"
-          description={`#${id} дугаартай үзүүлэлт байхгүй байна.`}
+          title={t("attrs.notFound")}
+          description={t("attrs.idNotFound", { id })}
         />
       )}
     </>

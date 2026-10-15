@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -16,6 +17,7 @@ export function RichTextEditor({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = useLanguage();
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -31,7 +33,7 @@ export function RichTextEditor({
         },
       }),
       Placeholder.configure({
-        placeholder: "Барааны тайлбарыг оруулна уу...",
+        placeholder: t("rte.placeholder"),
       }),
     ],
     content: value || "",
@@ -55,7 +57,7 @@ export function RichTextEditor({
 
   const addLink = () => {
     const previousUrl = editor.getAttributes("link").href ?? "";
-    const url = window.prompt("URL оруулна уу", previousUrl);
+    const url = window.prompt(t("rte.url"), previousUrl);
     if (url === null) return;
     if (url === "") {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();

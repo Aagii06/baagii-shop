@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import Field from "@/components/common/Field";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -40,6 +41,7 @@ export default function CategoryForm({
   catalogue: Attr[];
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const { run } = useToast();
   const nameErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
@@ -57,7 +59,7 @@ export default function CategoryForm({
   const full = attrs.length >= MAX_ATTRS;
   const nameOf = (id: number) => catalogue.find((a) => a.id === id)?.name ?? `#${id}`;
 
-  const nameError = nameTouched && !name.trim() ? "Категорийн нэр оруулна уу" : undefined;
+  const nameError = nameTouched && !name.trim() ? t("cf.nameRequired") : undefined;
 
   function toggleAttr(id: number) {
     setAttrs((prev) =>
@@ -79,7 +81,7 @@ export default function CategoryForm({
     };
     const saved = await run(
       () => (category ? updateCategory(category, input) : createCategory(input)),
-      category ? "Хадгаллаа" : "Категори нэмлээ"
+      category ? t("common.saved") : t("cf.added")
     );
     if (saved) router.replace("/categories");
   }
@@ -88,16 +90,16 @@ export default function CategoryForm({
     <form onSubmit={onSubmit} noValidate>
       <DetailHeader
         backHref="/categories"
-        title={category ? "Категори засах" : parentId != null ? "Дэд категори нэмэх" : "Категори нэмэх"}
+        title={category ? t("cat.edit") : parentId != null ? t("cat.addSub") : t("cat.add")}
         aside={
           <Button type="submit" className="h-10 px-5">
-            Хадгалах
+            {t("common.save")}
           </Button>
         }
       />
 
       <div className="space-y-4">
-        <Field label="Нэр" error={nameError} errorId={nameErrorId}>
+        <Field label={t("common.name")} error={nameError} errorId={nameErrorId}>
           <Input
             ref={nameRef}
             value={name}
@@ -111,11 +113,11 @@ export default function CategoryForm({
 
         <section className="space-y-3 rounded-2xl border border-border bg-white p-4">
           <div>
-            <h2 className="text-[15px] font-bold">Барааны сонголт</h2>
+            <h2 className="text-[15px] font-bold">{t("cf.options")}</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {isLeaf
-                ? "Худалдан авагч юугаар нь сонгож авах вэ? Бараа бүртгэхэд эдгээрийг оруулах хэсэг гарна."
-                : "Дэд категоритой тул сонголтыг хамгийн сүүлийн түвшний дэд категориуд дээр нь сонгоно."}
+                ? t("cf.optionsLeaf")
+                : t("cf.optionsParent")}
             </p>
           </div>
 
@@ -123,10 +125,10 @@ export default function CategoryForm({
             <>
               {catalogue.length === 0 ? (
                 <p className="rounded-xl bg-muted px-3.5 py-3 text-sm text-muted-foreground">
-                  Сонголтын жагсаалт хоосон байна.
+                  {t("cf.optionsEmpty")}
                 </p>
               ) : (
-                <div role="group" aria-label="Сонголтууд" className="grid grid-cols-2 gap-2">
+                <div role="group" aria-label={t("cf.optionsGroup")} className="grid grid-cols-2 gap-2">
                   {catalogue.map((attr) => {
                     const order = attrs.indexOf(attr.id);
                     const on = order !== -1;
@@ -165,11 +167,11 @@ export default function CategoryForm({
               )}
 
               <p className="px-1 text-xs text-muted-foreground">
-                Дарсан дарааллаар нь оруулна. Хамгийн ихдээ {MAX_ATTRS} сонголт. Шинэ сонголтыг{" "}
+                {t("cf.order", { max: MAX_ATTRS })}{" "}
                 <Link href="/attrs" className="font-semibold text-primary-ink underline-offset-4 hover:underline">
-                  Үзүүлэлт
-                </Link>{" "}
-                хэсэгт нэмнэ.
+                  {t("cf.orderLink")}
+                </Link>
+                {t("cf.orderEnd")}
               </p>
 
               {/* What the product form will ask for. */}
@@ -177,13 +179,13 @@ export default function CategoryForm({
                 <Check className="mt-0.5 size-4 shrink-0 text-primary-ink" />
                 {attrs.length === 0 ? (
                   <span>
-                    <b>Сонголтгүй</b> — бараа нэг л хувилбартай, зөвхөн тоо ширхэгээ оруулна (ж: хүнс, ном).
+                    <b>{t("cf.noOptions")}</b> — {t("cf.noOptionsDesc")}
                   </span>
                 ) : (
                   <span>
-                    Бараа бүртгэхэд:{" "}
+                    {t("cf.whenAdding")}{" "}
                     <b>
-                      {attrs.map((id) => `${nameOf(id)} сонгох`).join(" → ")} → тоо, үнэ
+                      {attrs.map((id) => t("cf.pickStep", { name: nameOf(id) })).join(" → ")} → {t("cf.qtyPriceEnd")}
                     </b>
                   </span>
                 )}

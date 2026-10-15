@@ -1,3 +1,4 @@
+import LanguageProvider from "@/lib/i18n/LanguageProvider";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
@@ -52,7 +53,9 @@ export default function RootLayout({
             column, centred. Keep max-w-md in sync with the fixed bars in
             PanelShell and the order detail page. */}
         <div className="relative mx-auto min-h-screen w-full max-w-md bg-background shadow-soft sm:border-x sm:border-border">
-          <AuthProvider>{children}</AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </LanguageProvider>
         </div>
       </body>
     </html>

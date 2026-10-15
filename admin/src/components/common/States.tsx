@@ -1,8 +1,12 @@
+"use client";
+
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, Inbox, Loader2, RotateCw } from "lucide-react";
 
 export function LoadingState({ className }: { className?: string }) {
+  const { t } = useLanguage();
   return (
     <div
       className={cn(
@@ -11,7 +15,7 @@ export function LoadingState({ className }: { className?: string }) {
       )}
     >
       <Loader2 className="size-4 animate-spin" />
-      Ачаалж байна…
+      {t("common.loading")}
     </div>
   );
 }
@@ -23,17 +27,18 @@ export function ErrorState({
   error: Error;
   onRetry?: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 px-6 py-12 text-center">
       <AlertTriangle className="size-6 text-destructive" />
       <div>
-        <p className="font-bold">Мэдээлэл ачаалж чадсангүй</p>
+        <p className="font-bold">{t("common.loadFailed")}</p>
         <p className="mt-1 text-sm text-muted-foreground">{error.message}</p>
       </div>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RotateCw />
-          Дахин оролдох
+          {t("common.retry")}
         </Button>
       )}
     </div>

@@ -1,8 +1,9 @@
+import { defaultLocale, translate } from "@/lib/i18n/translations";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import LoginForm from "./LoginForm";
 
-export const metadata: Metadata = { title: "Нэвтрэх" };
+export const metadata: Metadata = { title: translate(defaultLocale, "login.title") };
 
 export default function LoginPage() {
   return (

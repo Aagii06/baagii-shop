@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,36 +9,37 @@ import { SHOP_URL } from "@/lib/api/config";
 import { ChevronRight, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, Store, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
-const MENU: { href: string; label: string; description: string; icon: LucideIcon }[] = [
+const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon }[] = [
   {
     href: "/categories",
-    label: "Категори",
-    description: "Категори нэмэх, засах",
+    labelKey: "common.category",
+    descKey: "profile.categories",
     icon: LayoutGrid,
   },
   {
     href: "/attrs",
-    label: "Үзүүлэлт",
-    description: "Өнгө, хэмжээ зэрэг үзүүлэлт, утгууд",
+    labelKey: "attrs.title",
+    descKey: "profile.attrs",
     icon: SlidersHorizontal,
   },
   {
     href: "/delivery-notes",
-    label: "Хүргэлтийн тэмдэглэл",
-    description: "Захиалгад сонгох хүргэлтийн заавар",
+    labelKey: "profile.notes",
+    descKey: "profile.notesDesc",
     icon: NotebookPen,
   },
 ];
 
 export default function ProfilePage() {
   const { user, role, logout } = useAuth();
+  const { t } = useLanguage();
 
   const displayName =
-    [user?.lastName, user?.firstName].filter(Boolean).join(" ") || user?.name || "Хэрэглэгч";
+    [user?.lastName, user?.firstName].filter(Boolean).join(" ") || user?.name || t("profile.user");
 
   return (
     <>
-      <PageHeader title="Профайл" />
+      <PageHeader title={t("profile.title")} />
 
       <div className="space-y-3 pt-4">
         <Card className="flex items-center gap-4 p-4">
@@ -57,7 +59,7 @@ export default function ProfilePage() {
         {role === "admin" && (
         <Card className="overflow-hidden">
           <ul className="divide-y divide-border">
-            {MENU.map(({ href, label, description, icon: Icon }) => (
+            {MENU.map(({ href, labelKey, descKey, icon: Icon }) => (
               <li key={href}>
                 <Link
                   href={href}
@@ -67,8 +69,8 @@ export default function ProfilePage() {
                     <Icon className="size-5" />
                   </span>
                   <span className="min-w-0 grow">
-                    <span className="block truncate text-[15px] font-bold">{label}</span>
-                    <span className="block truncate text-sm text-muted-foreground">{description}</span>
+                    <span className="block truncate text-[15px] font-bold">{t(labelKey)}</span>
+                    <span className="block truncate text-sm text-muted-foreground">{t(descKey)}</span>
                   </span>
                   <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
                 </Link>
@@ -89,9 +91,9 @@ export default function ProfilePage() {
               <Store className="size-5" />
             </span>
             <span className="min-w-0 grow">
-              <span className="block truncate text-[15px] font-bold">Хамтран ажиллах</span>
+              <span className="block truncate text-[15px] font-bold">{t("profile.partner")}</span>
               <span className="block truncate text-sm text-muted-foreground">
-                Утасны дугаараараа хүсэлт илгээх
+                {t("profile.partnerDesc")}
               </span>
             </span>
             <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
@@ -100,7 +102,7 @@ export default function ProfilePage() {
 
         <Button variant="danger" size="lg" className="w-full" onClick={logout}>
           <LogOut />
-          Гарах
+          {t("profile.logout")}
         </Button>
       </div>
     </>

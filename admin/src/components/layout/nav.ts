@@ -9,16 +9,17 @@ import { canAccess, type Role } from "@/lib/auth/roles";
 
 export interface NavItem {
   href: string;
-  label: string;
+  /** Key in the translation dictionaries. */
+  labelKey: string;
   icon: LucideIcon;
 }
 
 /** Bottom tab bar. */
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Самбар", icon: ChartNoAxesColumn },
-  { href: "/products", label: "Бараа", icon: Square },
-  { href: "/orders", label: "Захиалга", icon: ReceiptText },
-  { href: "/profile", label: "Профайл", icon: UserRound },
+  { href: "/", labelKey: "nav.dashboard", icon: ChartNoAxesColumn },
+  { href: "/products", labelKey: "nav.products", icon: Square },
+  { href: "/orders", labelKey: "nav.orders", icon: ReceiptText },
+  { href: "/profile", labelKey: "nav.profile", icon: UserRound },
 ];
 
 /** Tabs a role may see — see `canAccess`. */

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import ChipTabs from "@/components/common/ChipTabs";
 import SampleNotice from "@/components/common/SampleNotice";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
@@ -23,6 +24,7 @@ import { useState } from "react";
 const TABS: OrderStatus[] = ["pending", "confirmed", "delivered", "returned"];
 
 export default function OrdersPage() {
+  const { t } = useLanguage();
   const { data, error, reload } = useApi(getOrders);
   const { run } = useToast();
   const [status, setStatus] = useState<OrderStatus>("pending");
@@ -37,17 +39,17 @@ export default function OrdersPage() {
   return (
     <>
       <PageHeader
-        title="Захиалга"
+        title={t("orders.title")}
         aside={
           data && (
             <span className="shrink-0 font-mono text-sm text-muted-foreground">
-              {rows.length} захиалга
+              {t("orders.count", { count: rows.length })}
             </span>
           )
         }
       >
         <ChipTabs
-          label="Төлөв"
+          label={t("orders.status")}
           value={status}
           onChange={setStatus}
           options={TABS.map((s) => ({
@@ -59,7 +61,7 @@ export default function OrdersPage() {
       </PageHeader>
 
       <SampleNotice className="mt-4">
-        Захиалгын API холбогдоогүй тул жишээ захиалга харуулж байна.
+        {t("common.sampleOrders")}
       </SampleNotice>
 
       {error && !data ? (
@@ -70,7 +72,7 @@ export default function OrdersPage() {
         <LoadingState />
       ) : rows.length === 0 ? (
         <div className="pt-4">
-          <EmptyState icon={ReceiptText} title={`“${ORDER_STATUS_LABEL[status]}” захиалга алга`} />
+          <EmptyState icon={ReceiptText} title={t("orders.noneInStatus", { status: ORDER_STATUS_LABEL[status] })} />
         </div>
       ) : (
         <ul className="divide-y divide-border border-b border-border">
@@ -86,7 +88,7 @@ export default function OrdersPage() {
                     {order.customer.name}
                   </span>
                   <span className="mt-0.5 block text-sm text-muted-foreground">
-                    {formatWhen(order.createdAt)} · {order.items.length} бараа
+                    {formatWhen(order.createdAt)} · {t("orders.itemsCount", { count: order.items.length })}
                   </span>
                 </span>
                 <span className="shrink-0 font-mono text-[15px] font-bold">
@@ -98,16 +100,16 @@ export default function OrdersPage() {
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <Button
                     className="h-10"
-                    onClick={() => changeStatus(order.id, "confirmed", "Захиалгыг баталлаа")}
+                    onClick={() => changeStatus(order.id, "confirmed", t("orders.confirmed"))}
                   >
-                    Батлах
+                    {t("orders.confirm")}
                   </Button>
                   <Button
                     variant="danger"
                     className="h-10"
-                    onClick={() => changeStatus(order.id, "returned", "Захиалгыг буцаалаа")}
+                    onClick={() => changeStatus(order.id, "returned", t("orders.returned"))}
                   >
-                    Буцаалт
+                    {t("orders.return")}
                   </Button>
                 </div>
               )}

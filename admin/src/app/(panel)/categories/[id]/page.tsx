@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import CategoryForm from "@/components/categories/CategoryForm";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -15,6 +16,7 @@ async function loadForm() {
 }
 
 export default function EditCategoryPage() {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const { data, error, reload } = useApi(loadForm);
   const categories = data?.categories;
@@ -28,7 +30,7 @@ export default function EditCategoryPage() {
 
   return (
     <>
-      <DetailHeader backHref="/categories" title="Категори засах" />
+      <DetailHeader backHref="/categories" title={t("cat.edit")} />
       {error && !categories ? (
         <ErrorState error={error} onRetry={reload} />
       ) : !categories ? (
@@ -36,8 +38,8 @@ export default function EditCategoryPage() {
       ) : (
         <EmptyState
           icon={FolderX}
-          title="Категори олдсонгүй"
-          description={`#${id} дугаартай категори байхгүй байна.`}
+          title={t("cat.notFound")}
+          description={t("cat.idNotFound", { id })}
         />
       )}
     </>

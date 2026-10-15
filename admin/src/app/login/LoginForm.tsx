@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import BrandMark from "@/components/layout/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ function safeNext(value: string | null) {
 
 export default function LoginForm() {
   const { status, login } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
 
@@ -34,7 +36,7 @@ export default function LoginForm() {
     try {
       await login(userName.trim(), password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Нэвтрэхэд алдаа гарлаа");
+      setError(err instanceof Error ? err.message : t("login.failed"));
       setSubmitting(false);
     }
   }
@@ -49,21 +51,21 @@ export default function LoginForm() {
         onSubmit={onSubmit}
         className="rounded-2xl border border-border bg-card p-6 shadow-card"
       >
-        <h1 className="text-xl font-bold">Нэвтрэх</h1>
+        <h1 className="text-xl font-bold">{t("login.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Удирдлагын хэсэгт нэвтрэхийн тулд нэвтрэх нэр, нууц үгээ оруулна уу.
+          {t("login.desc")}
         </p>
 
         <div className="mt-6 space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">Нэвтрэх нэр</span>
+            <span className="mb-1.5 block text-sm font-semibold">{t("login.userName")}</span>
             <Input
               type="text"
               autoComplete="username"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="Нэвтрэх нэр"
+              placeholder={t("login.userName")}
               value={userName}
               onChange={(e) => {
                 setUserName(e.target.value);
@@ -75,7 +77,7 @@ export default function LoginForm() {
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">Нууц үг</span>
+            <span className="mb-1.5 block text-sm font-semibold">{t("login.password")}</span>
             <Input
               type="password"
               autoComplete="current-password"
@@ -105,7 +107,7 @@ export default function LoginForm() {
             disabled={submitting || status === "loading"}
           >
             {submitting && <Loader2 className="animate-spin" />}
-            Нэвтрэх
+            {t("login.title")}
           </Button>
         </div>
       </form>
