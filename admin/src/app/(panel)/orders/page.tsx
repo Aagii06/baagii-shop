@@ -17,7 +17,7 @@ import {
 } from "@/lib/api/orders";
 import { useApi } from "@/lib/useApi";
 import { formatMNT, formatWhen } from "@/lib/utils";
-import { ReceiptText } from "lucide-react";
+import { Plus, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -41,11 +41,19 @@ export default function OrdersPage() {
       <PageHeader
         title={t("orders.title")}
         aside={
-          data && (
-            <span className="shrink-0 font-mono text-sm text-muted-foreground">
-              {t("orders.count", { count: rows.length })}
-            </span>
-          )
+          <div className="flex items-center gap-3">
+            {data && (
+              <span className="shrink-0 font-mono text-sm text-muted-foreground">
+                {t("orders.count", { count: rows.length })}
+              </span>
+            )}
+            <Button asChild size="sm" className="px-4">
+              <Link href="/orders/new">
+                <Plus />
+                {t("common.add")}
+              </Link>
+            </Button>
+          </div>
         }
       >
         <ChipTabs

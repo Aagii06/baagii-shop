@@ -181,7 +181,7 @@ export async function getPostsPage({
   take: number;
   query?: string;
   categoryIds?: number[];
-}): Promise<{ rows: Post[]; count: number }> {
+}): Promise<{ rows: PostDetail[]; count: number }> {
   const conditions: unknown[] = [];
   if (query.trim()) conditions.push(["name", "contains", query.trim()]);
   if (categoryIds && categoryIds.length > 0) {
