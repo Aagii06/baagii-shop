@@ -296,4 +296,6 @@ export const mn: Dict = {
   "cat.move": "Шилжүүлэх",
   "cf.parent": "Эх категори",
   "cf.topLevel": "Дээд түвшин",
+  "cat.expandAria": "“{name}” дэд категориудыг дэлгэх",
+  "cat.collapseAria": "“{name}” дэд категориудыг хураах",
 };

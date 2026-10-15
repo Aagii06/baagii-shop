@@ -18,9 +18,14 @@ import {
 import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
 import { cn, formatQty } from "@/lib/utils";
-import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+// Drag & drop moving is switched off for now — set to `true` to bring the
+// grip handle (and the drag logic in `CategoriesPage`) back. Moving still
+// works from the "Эх категори" field on the edit form.
+const DRAG_AND_DROP = false;
 
 function CategoryRow({
   category,
@@ -28,6 +33,8 @@ function CategoryRow({
   dragging,
   over,
   onDragStart,
+  open,
+  onToggle,
 }: {
   category: Category & { depth: number };
   onChanged: () => void;
@@ -36,6 +43,9 @@ function CategoryRow({
   /** The dragged category would land inside this row. */
   over: boolean;
   onDragStart: (id: number, x: number, y: number) => void;
+  /** Its subcategories are showing. */
+  open: boolean;
+  onToggle: () => void;
 }) {
   const { t } = useLanguage();
   const { run } = useToast();
@@ -66,6 +76,21 @@ function CategoryRow({
       )}
       style={indent}
     >
+      {category.children.length > 0 ? (
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={t(open ? "cat.collapseAria" : "cat.expandAria", { name: category.name })}
+          onClick={onToggle}
+          className="-ml-1 grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronRight className={cn("size-5 transition-transform", open && "rotate-90")} />
+        </button>
+      ) : (
+        // A leaf has nothing to fold; keeps the names lined up.
+        <span className="-ml-1 size-8 shrink-0" aria-hidden />
+      )}
+      {DRAG_AND_DROP && (
       <button
         type="button"
         aria-label={t("cat.dragAria", { name: category.name })}
@@ -78,7 +103,11 @@ function CategoryRow({
       >
         <GripVertical className="size-5" />
       </button>
-      <span className="min-w-0 grow">
+      )}
+      <span
+        className={cn("min-w-0 grow", category.children.length > 0 && "cursor-pointer")}
+        onClick={category.children.length > 0 ? onToggle : undefined}
+      >
         <span
           className={cn(
             "block truncate text-[15px]",
@@ -139,6 +168,22 @@ export default function CategoriesPage() {
   const confirm = useConfirm();
 
   const rows = useMemo(() => (data ? flattenCategories(data) : []), [data]);
+  // Folded by default: only top-level categories show until one is opened.
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const visibleRows = useMemo(() => {
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    const shown = (row: (typeof rows)[number]): boolean => {
+      const parent = row.parentId != null ? byId.get(row.parentId) : undefined;
+      return !parent || (expanded.has(parent.id) && shown(parent));
+    };
+    return rows.filter(shown);
+  }, [rows, expanded]);
+  const toggle = (id: number) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
   const [drag, setDrag] = useState<Drag | null>(null);
   const dragId = drag?.id ?? null;
   const moving = rows.find((row) => row.id === dragId);
@@ -236,7 +281,7 @@ export default function CategoriesPage() {
         </div>
       ) : (
         <ul className="divide-y divide-border border-b border-border">
-          {rows.map((category) => (
+          {visibleRows.map((category) => (
             <CategoryRow
               key={category.id}
               category={category}
@@ -244,6 +289,8 @@ export default function CategoriesPage() {
               dragging={category.id === dragId}
               over={drag?.over === category.id}
               onDragStart={(id, x, y) => setDrag({ id, x, y, over: null })}
+              open={expanded.has(category.id)}
+              onToggle={() => toggle(category.id)}
             />
           ))}
         </ul>

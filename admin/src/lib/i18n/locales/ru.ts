@@ -296,4 +296,6 @@ export const ru: Dict = {
   "cat.move": "Переместить",
   "cf.parent": "Родительская категория",
   "cf.topLevel": "Верхний уровень",
+  "cat.expandAria": "Показать подкатегории «{name}»",
+  "cat.collapseAria": "Скрыть подкатегории «{name}»",
 };

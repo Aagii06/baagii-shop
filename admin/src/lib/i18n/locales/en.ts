@@ -296,4 +296,6 @@ export const en: Dict = {
   "cat.move": "Move",
   "cf.parent": "Parent category",
   "cf.topLevel": "Top level",
+  "cat.expandAria": "Show the subcategories of “{name}”",
+  "cat.collapseAria": "Hide the subcategories of “{name}”",
 };
