@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n/translations";
 import type { Attr } from "@/lib/api/attrs";
 import { categoryAttrs, type Category } from "@/lib/api/categories";
 import type { PostDetail, PostInput } from "@/lib/api/posts";
@@ -70,8 +71,8 @@ export type ProductErrors = Partial<Record<"name" | "price", string>>;
 /** Required fields left empty, with the message shown under each. */
 export function productErrors(form: ProductFormState): ProductErrors {
   const errors: ProductErrors = {};
-  if (!form.name.trim()) errors.name = "Барааны нэр оруулна уу";
-  if (form.price === "") errors.price = "Үнэ оруулна уу";
+  if (!form.name.trim()) errors.name = tr("pf.nameRequired");
+  if (form.price === "") errors.price = tr("pf.priceRequired");
   return errors;
 }
 
@@ -131,7 +132,7 @@ function initialAttrs(post: PostDetail | null, catalogue: Attr[]): ProductAttr[]
           {
             key: VARIANT_NAME_ATTR,
             attrId: null,
-            name: "Хувилбар",
+            name: tr("pf.variantDefault"),
             viewType: "text",
             values: products.map((p) => ({ value: p.variantName, color: null, attrValueId: null })),
           },
