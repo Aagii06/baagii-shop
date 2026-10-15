@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
-import { Check, LogOut, UserRound } from "lucide-react";
+import { Check, ChevronRight, LogOut, Store, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -135,6 +135,24 @@ export default function ProfilePage() {
               )}
             </div>
           </form>
+
+          <Link
+            href="/seller"
+            className="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-muted/60"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+              <Store className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 grow">
+              <span className="block text-sm font-semibold text-foreground">
+                {t("footer.links.becomeSeller")}
+              </span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {t("seller.desc")}
+              </span>
+            </span>
+            <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+          </Link>
 
           <div className="mt-4">
             <Button
