@@ -7,7 +7,9 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import {
+  canMoveUnder,
   canNestUnder,
+  moveCategory,
   deleteCategory,
   flattenCategories,
   getCategoryTree,
@@ -16,16 +18,24 @@ import {
 import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
 import { cn, formatQty } from "@/lib/utils";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 function CategoryRow({
   category,
   onChanged,
+  dragging,
+  over,
+  onDragStart,
 }: {
   category: Category & { depth: number };
   onChanged: () => void;
+  /** This row is the one being dragged. */
+  dragging: boolean;
+  /** The dragged category would land inside this row. */
+  over: boolean;
+  onDragStart: (id: number, x: number, y: number) => void;
 }) {
   const { t } = useLanguage();
   const { run } = useToast();
@@ -47,7 +57,27 @@ function CategoryRow({
   }
 
   return (
-    <li className="flex items-center gap-2 py-3.5" style={indent}>
+    <li
+      data-drop={category.id}
+      className={cn(
+        "flex items-center gap-2 py-3.5 transition-colors",
+        dragging && "opacity-40",
+        over && "rounded-xl bg-primary-soft ring-2 ring-primary"
+      )}
+      style={indent}
+    >
+      <button
+        type="button"
+        aria-label={t("cat.dragAria", { name: category.name })}
+        title={t("cat.drag")}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          onDragStart(category.id, e.clientX, e.clientY);
+        }}
+        className="-ml-1 grid size-8 shrink-0 cursor-grab touch-none select-none place-items-center rounded-lg text-muted-foreground hover:text-foreground active:cursor-grabbing"
+      >
+        <GripVertical className="size-5" />
+      </button>
       <span className="min-w-0 grow">
         <span
           className={cn(
@@ -100,11 +130,84 @@ function CategoryRow({
   );
 }
 
+type Drag = { id: number; x: number; y: number; over: number | "root" | null };
+
 export default function CategoriesPage() {
   const { t } = useLanguage();
   const { data, error, reload } = useApi(getCategoryTree);
+  const { run } = useToast();
+  const confirm = useConfirm();
 
   const rows = useMemo(() => (data ? flattenCategories(data) : []), [data]);
+  const [drag, setDrag] = useState<Drag | null>(null);
+  const dragId = drag?.id ?? null;
+  const moving = rows.find((row) => row.id === dragId);
+
+  const onDrop = useCallback(
+    async (category: Category, target: number | "root") => {
+      const parent = target === "root" ? undefined : rows.find((row) => row.id === target);
+      if (parent && parent.children.length === 0 && parent.attrs.length > 0) {
+        const ok = await confirm({
+          title: t("cat.moveTitle"),
+          description: t("cat.moveClearsAttrs", { name: parent.name }),
+          confirmLabel: t("cat.move"),
+        });
+        if (!ok) return;
+      }
+      if (await run(() => moveCategory(category, parent ? parent.id : null, parent), t("cat.moved"))) reload();
+    },
+    [rows, confirm, run, reload, t]
+  );
+
+  // Dragging works with a pointer or a finger: the handle starts it, and
+  // everything after is tracked on the window. The row under the pointer
+  // (or the "top level" zone) is the drop target if the move is allowed.
+  useEffect(() => {
+    if (dragId == null || !moving) return;
+    const dragged = moving;
+    let pointerY = 0;
+    let frame = 0;
+
+    const targetAt = (x: number, y: number): number | "root" | null => {
+      const zone = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-drop]")?.dataset.drop;
+      if (!zone) return null;
+      if (zone === "root") return dragged.parentId == null ? null : "root";
+      const target = rows.find((row) => String(row.id) === zone);
+      if (!target || target.id === dragged.parentId) return null;
+      return canMoveUnder(dragged, target) ? target.id : null;
+    };
+    const onMove = (e: PointerEvent) => {
+      pointerY = e.clientY;
+      const over = targetAt(e.clientX, e.clientY);
+      setDrag((d) => d && { ...d, x: e.clientX, y: e.clientY, over });
+    };
+    const onUp = (e: PointerEvent) => {
+      const over = targetAt(e.clientX, e.clientY);
+      setDrag(null);
+      if (over != null) onDrop(dragged, over);
+    };
+    const onCancel = () => setDrag(null);
+    // Near the top or bottom edge, the page scrolls along.
+    const scroll = () => {
+      if (pointerY > 0 && pointerY < 90) window.scrollBy(0, -14);
+      else if (pointerY > window.innerHeight - 90) window.scrollBy(0, 14);
+      frame = requestAnimationFrame(scroll);
+    };
+    frame = requestAnimationFrame(scroll);
+
+    const previousSelect = document.body.style.userSelect;
+    document.body.style.userSelect = "none";
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.body.style.userSelect = previousSelect;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+    };
+  }, [dragId, moving, rows, onDrop]);
 
   return (
     <>
@@ -138,9 +241,36 @@ export default function CategoriesPage() {
               key={category.id}
               category={category}
               onChanged={reload}
+              dragging={category.id === dragId}
+              over={drag?.over === category.id}
+              onDragStart={(id, x, y) => setDrag({ id, x, y, over: null })}
             />
           ))}
         </ul>
+      )}
+
+      {drag && moving && (
+        <>
+          {/* Drop here to make it a top-level category. */}
+          {moving.parentId != null && (
+            <div
+              data-drop="root"
+              className={cn(
+                "fixed inset-x-4 bottom-24 z-40 mx-auto flex h-14 max-w-sm items-center justify-center rounded-2xl border-2 border-dashed bg-background/95 text-sm font-semibold shadow-soft backdrop-blur transition-colors",
+                drag.over === "root" ? "border-primary bg-primary-soft text-primary-ink" : "border-border text-muted-foreground"
+              )}
+            >
+              {t("cat.dropRoot")}
+            </div>
+          )}
+          <div
+            aria-hidden
+            className="pointer-events-none fixed z-50 max-w-[16rem] -translate-x-1/2 -translate-y-1/2 truncate rounded-full bg-dark px-4 py-2 text-sm font-semibold text-dark-foreground shadow-soft"
+            style={{ left: drag.x, top: drag.y - 28 }}
+          >
+            {moving.name}
+          </div>
+        </>
       )}
     </>
   );

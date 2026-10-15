@@ -31,6 +31,7 @@ export default function NewCategoryPage({
         category={null}
         parentId={parent && canNestUnder(parent) ? parent.id : null}
         catalogue={data.catalogue}
+        categories={data.categories}
       />
     );
   }

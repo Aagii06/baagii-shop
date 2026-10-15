@@ -7,10 +7,17 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Attr } from "@/lib/api/attrs";
-import { createCategory, updateCategory, type Category } from "@/lib/api/categories";
+import {
+  canMoveUnder,
+  canNestUnder,
+  createCategory,
+  releaseParentAttrs,
+  updateCategory,
+  type Category,
+} from "@/lib/api/categories";
 import { MAX_ATTRS } from "@/lib/attributes";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
@@ -30,6 +37,7 @@ export default function CategoryForm({
   category,
   parentId: newParentId = null,
   catalogue,
+  categories,
 }: {
   /** `null` for a new category. */
   category: Category | null;
@@ -39,6 +47,8 @@ export default function CategoryForm({
    */
   parentId?: number | null;
   catalogue: Attr[];
+  /** Every category, flattened — the places this one can go. */
+  categories: (Category & { depth: number })[];
 }) {
   const router = useRouter();
   const { t } = useLanguage();
@@ -48,7 +58,9 @@ export default function CategoryForm({
 
   const [name, setName] = useState(category?.name ?? "");
   const [nameTouched, setNameTouched] = useState(false);
-  const parentId = category ? category.parentId : newParentId;
+  const [parentId, setParentId] = useState<number | null>(category ? category.parentId : newParentId);
+  // Where it may sit: not inside itself, and within the depth limit.
+  const parentOptions = categories.filter((c) => (category ? canMoveUnder(category, c) : canNestUnder(c)));
   // Only the last level picks what products vary by; a category with
   // subcategories leaves it to them.
   const isLeaf = !category || category.children.length === 0;
@@ -80,7 +92,11 @@ export default function CategoryForm({
       attrs: isLeaf ? attrs : [],
     };
     const saved = await run(
-      () => (category ? updateCategory(category, input) : createCategory(input)),
+      async () => {
+        if (!category) return createCategory(input);
+        await updateCategory(category, input);
+        if (parentId !== category.parentId) await releaseParentAttrs(categories.find((c) => c.id === parentId));
+      },
       category ? t("common.saved") : t("cf.added")
     );
     if (saved) router.replace("/categories");
@@ -109,6 +125,28 @@ export default function CategoryForm({
             aria-describedby={nameError ? nameErrorId : undefined}
             required
           />
+        </Field>
+
+        <Field label={t("cf.parent")}>
+          <div className="relative">
+            <select
+              value={parentId ?? ""}
+              onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : null)}
+              className="h-12 w-full appearance-none rounded-full border border-input bg-white px-5 pr-12 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
+            >
+              <option value="">{t("cf.topLevel")}</option>
+              {parentOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {"— ".repeat(c.depth)}
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              aria-hidden="true"
+              className="pointer-events-none absolute right-5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            />
+          </div>
         </Field>
 
         <section className="space-y-3 rounded-2xl border border-border bg-white p-4">

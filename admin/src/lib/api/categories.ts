@@ -125,6 +125,43 @@ export async function updateCategory(category: Category, input: CategoryInput) {
   });
 }
 
+/** Levels in the category's own subtree, itself included (a leaf is 1). */
+export function subtreeHeight(category: Category): number {
+  return 1 + Math.max(0, ...category.children.map(subtreeHeight));
+}
+
+function inSubtree(root: Category, id: number): boolean {
+  return root.id === id || root.children.some((child) => inSubtree(child, id));
+}
+
+/**
+ * Whether `moving` (with everything below it) may go under `target` — or to
+ * the top level when `target` is `null` — without nesting into itself or
+ * past `MAX_CATEGORY_DEPTH`.
+ */
+export function canMoveUnder(moving: Category, target: (Category & { depth: number }) | null): boolean {
+  if (!target) return true;
+  if (inSubtree(moving, target.id)) return false;
+  return target.depth + subtreeHeight(moving) <= MAX_CATEGORY_DEPTH - 1;
+}
+
+/**
+ * Re-parents a category (`parentId` `null` = top level). A category that now
+ * has a subcategory has no options of its own, so a former leaf it lands in
+ * loses its attributes.
+ */
+export async function moveCategory(category: Category, parentId: number | null, newParent?: Category) {
+  await updateCategory(category, { name: category.name, parentId, attrs: category.attrs.map((attr) => attr.id) });
+  await releaseParentAttrs(newParent);
+}
+
+/** Once a leaf gets a subcategory its own attributes go; call after something moved under it. */
+export async function releaseParentAttrs(parent?: Category) {
+  if (parent && parent.children.length === 0 && parent.attrs.length > 0) {
+    await updateCategory(parent, { name: parent.name, parentId: parent.parentId, attrs: [] });
+  }
+}
+
 export async function deleteCategory(id: number) {
   await apiFetch<ApiItemResponse<CategoryRecord | null>>(`/category/${id}`, { method: "DELETE" });
 }

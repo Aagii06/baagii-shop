@@ -287,4 +287,13 @@ export const en: Dict = {
   "checkout.phoneInvalid": "Enter a valid phone number",
   "cat.pickSub": "Choose a subcategory",
   "cat.picked": "Category selected",
+  "cat.drag": "Drag to move",
+  "cat.dragAria": "Drag “{name}” to move it",
+  "cat.dropRoot": "Drop here to make it top-level",
+  "cat.moved": "Category moved",
+  "cat.moveTitle": "Move this category?",
+  "cat.moveClearsAttrs": "“{name}” will get a subcategory, so its options (colour, size…) will be cleared.",
+  "cat.move": "Move",
+  "cf.parent": "Parent category",
+  "cf.topLevel": "Top level",
 };
