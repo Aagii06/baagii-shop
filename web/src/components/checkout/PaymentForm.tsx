@@ -1,10 +1,12 @@
 "use client";
 
+import qpayLogo from "@/assets/qpay.png";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn, formatMNT } from "@/lib/utils";
 import type { PaymentMethod, ShippingInfo } from "@/types/order";
-import { Landmark, Lock, Smartphone } from "lucide-react";
+import { Landmark, Lock } from "lucide-react";
+import Image, { type StaticImageData } from "next/image";
 import { useState } from "react";
 
 /* --- Картаар төлөх түр хаалттай (дараа сэргээх) ---------------------------
@@ -46,10 +48,10 @@ export default function PaymentForm({
   const methods: {
     id: PaymentMethod;
     labelKey: string;
-    icon: typeof Landmark;
+    icon: typeof Landmark | StaticImageData;
   }[] = [
     { id: "bank", labelKey: "checkout.payment.bank", icon: Landmark },
-    { id: "qpay", labelKey: "checkout.payment.qpay", icon: Smartphone },
+    { id: "qpay", labelKey: "checkout.payment.qpay", icon: qpayLogo },
     // Картаар болон бэлнээр төлөх түр хаалттай — дараа сэргээнэ:
     // { id: "card", labelKey: "checkout.payment.card", icon: CreditCard },
     // { id: "cash", labelKey: "checkout.payment.cash", icon: Landmark },
@@ -103,7 +105,15 @@ export default function PaymentForm({
                   : "border-border hover:border-primary/40"
               )}
             >
-              <m.icon className="h-5 w-5 text-foreground" />
+              {"src" in m.icon ? (
+                <Image
+                  src={m.icon}
+                  alt=""
+                  className="h-6 w-6 rounded-md"
+                />
+              ) : (
+                <m.icon className="h-5 w-5 text-foreground" />
+              )}
               <span className="text-sm font-medium text-foreground">
                 {t(m.labelKey)}
               </span>
