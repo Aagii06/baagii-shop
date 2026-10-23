@@ -6,6 +6,7 @@ import NewAddressFields, {
   type NewAddress,
 } from "@/components/checkout/NewAddressFields";
 import { Input } from "@/components/ui/input";
+import { formatPhone, phoneDigits, PhoneInput } from "@/components/ui/phone-input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { SHIPPING_FEE } from "@/lib/pricing";
 import { cn, formatMNT } from "@/lib/utils";
@@ -35,7 +36,7 @@ export default function ShippingForm({
   const [customAddress, setCustomAddress] = useState<string | null>(null);
   const [newAddress, setNewAddress] = useState<NewAddress>(EMPTY_NEW_ADDRESS);
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState(defaultPhone);
+  const [phone, setPhone] = useState(phoneDigits(defaultPhone));
   const [extraPhone, setExtraPhone] = useState("");
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
@@ -76,8 +77,8 @@ export default function ShippingForm({
     const selected = savedAddresses.find((a) => a.id === selectedId);
     const recipient = {
       fullName,
-      phone,
-      extraPhone: extraPhone.trim() || undefined,
+      phone: formatPhone(phone),
+      extraPhone: extraPhone ? formatPhone(extraPhone) : undefined,
       email: email || undefined,
       note: note || undefined,
       deliveryMethod: "standard" as const,
@@ -213,30 +214,28 @@ export default function ShippingForm({
             </label>
             {/* The verified login number is the order's contact and can't be
                 edited here; extra numbers go in the field below. */}
-            <Input
+            <PhoneInput
               className={cn(
                 INVALID_AFTER_SUBMIT,
                 defaultPhone &&
                   "bg-muted text-muted-foreground cursor-not-allowed focus-visible:ring-0"
               )}
-              type="tel"
               required
               readOnly={!!defaultPhone}
               placeholder={t("checkout.recipient.phonePlaceholder")}
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={setPhone}
             />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
               {t("checkout.recipient.extraPhone")}
             </label>
-            <Input
+            <PhoneInput
               className={INVALID_AFTER_SUBMIT}
-              type="tel"
               placeholder={t("checkout.recipient.extraPhonePlaceholder")}
               value={extraPhone}
-              onChange={(e) => setExtraPhone(e.target.value)}
+              onChange={setExtraPhone}
             />
           </div>
           <div className="space-y-1.5">

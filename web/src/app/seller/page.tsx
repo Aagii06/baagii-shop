@@ -1,30 +1,35 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import PageLoader from "@/components/ui/page-loader";
+import { PhoneInput, phoneDigits } from "@/components/ui/phone-input";
 import { registerSeller } from "@/lib/api/auth";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useAuthStore } from "@/store/authStore";
 import { CheckCircle, Store } from "lucide-react";
 import { useState } from "react";
 
 export default function SellerRequestPage() {
   const { t } = useLanguage();
-  const [phone, setPhone] = useState("");
+  const authLoading = useAuthStore((s) => s.loading);
+  // A signed-in shopper's verified number is used as-is — no need to type it.
+  const verifiedPhone = useAuthStore((s) => s.phone);
+  const [typedPhone, setTypedPhone] = useState("");
+  const phone = verifiedPhone ? phoneDigits(verifiedPhone) : typedPhone;
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length < 8) {
+    if (phone.length < 8) {
       setError(t("checkout.auth.invalidPhone"));
       return;
     }
     setError(null);
     setBusy(true);
     try {
-      await registerSeller(digits);
+      await registerSeller(phone);
       setDone(true);
     } catch (err) {
       setError(err instanceof Error && err.message ? err.message : t("seller.error"));
@@ -32,6 +37,10 @@ export default function SellerRequestPage() {
       setBusy(false);
     }
   };
+
+  if (authLoading) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
@@ -54,14 +63,23 @@ export default function SellerRequestPage() {
                 <label className="text-sm font-medium text-foreground">
                   {t("checkout.auth.phoneLabel")}
                 </label>
-                <Input
-                  type="tel"
-                  autoFocus
+                <PhoneInput
+                  autoFocus={!verifiedPhone}
                   required
-                  placeholder="9911 2345"
+                  readOnly={!!verifiedPhone}
+                  className={
+                    verifiedPhone
+                      ? "bg-muted text-muted-foreground cursor-not-allowed focus-visible:ring-0"
+                      : undefined
+                  }
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={setTypedPhone}
                 />
+                {verifiedPhone && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("seller.registeredPhoneHint")}
+                  </p>
+                )}
               </div>
               {error && <p className="text-xs text-destructive">{error}</p>}
               <Button type="submit" size="lg" disabled={busy} className="w-full brand-gradient text-white">

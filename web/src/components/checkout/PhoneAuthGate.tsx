@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
 import { Phone, ShieldCheck } from "lucide-react";
@@ -70,13 +71,11 @@ export default function PhoneAuthGate() {
             <label className="text-sm font-medium text-foreground">
               {t("checkout.auth.phoneLabel")}
             </label>
-            <Input
-              type="tel"
+            <PhoneInput
               autoFocus
               required
-              placeholder="9911 2345"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={setPhone}
             />
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}

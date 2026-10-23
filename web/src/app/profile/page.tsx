@@ -3,6 +3,7 @@
 import OrdersSidebar from "@/components/orders/OrdersSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatPhone } from "@/components/ui/phone-input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
 import { Check, ChevronRight, LogOut, Store, UserRound } from "lucide-react";
@@ -64,7 +65,19 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="flex gap-6">
-        <OrdersSidebar />
+        {/* Sign out sits under the sidebar on desktop; the sidebar is hidden
+            below lg, so the button moves to the end of the page there. */}
+        <div className="hidden lg:flex w-64 shrink-0 flex-col gap-3">
+          <OrdersSidebar />
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="w-full justify-start rounded-2xl text-destructive hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4" />
+            {t("profile.logout")}
+          </Button>
+        </div>
 
         <div className="flex-1 min-w-0 max-w-2xl">
           <div className="mb-6">
@@ -104,7 +117,7 @@ export default function ProfilePage() {
               <label className="text-sm font-medium text-foreground">
                 {t("profile.phone.label")}
               </label>
-              <Input value={phone ?? ""} disabled readOnly />
+              <Input value={phone ? formatPhone(phone) : ""} disabled readOnly />
               <p className="text-xs text-muted-foreground">
                 {t("profile.phone.hint")}
               </p>
@@ -154,7 +167,7 @@ export default function ProfilePage() {
             <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </Link>
 
-          <div className="mt-4">
+          <div className="mt-4 lg:hidden">
             <Button
               variant="outline"
               onClick={handleLogout}
