@@ -11,7 +11,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useCouponStore } from "@/store/couponStore";
 import { useOrderStore } from "@/store/orderStore";
 import type { ShippingInfo } from "@/types/order";
-import { Loader2 } from "lucide-react";
+import PageLoader from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -86,11 +86,7 @@ export default function CheckoutPage() {
   }
 
   if (authLoading) {
-    return (
-      <div className="container mx-auto px-4 py-24 flex justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   // A guest token is enough to build a cart, but confirming the order needs a

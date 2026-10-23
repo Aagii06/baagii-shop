@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import PageLoader from "@/components/ui/page-loader";
 import SafeImage from "@/components/ui/safe-image";
 
 function findMatchingVariant(
@@ -101,7 +102,7 @@ export default function ProductPage() {
   }, [activeThumb]);
 
   if (loading) {
-    return null;
+    return <PageLoader />;
   }
 
   if (!product) {
@@ -396,7 +397,7 @@ export default function ProductPage() {
                 stock > 0 ? "text-emerald-600" : "text-destructive"
               )}
             >
-              {stock > 0 ? t("product.inStock") : t("product.outOfStock")}
+              {stock > 0 ? t("product.inStock", { count: stock }) : t("product.outOfStock")}
             </span>
           </div>
 

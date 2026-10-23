@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
 import { useSavedStore } from "@/store/savedStore";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart } from "lucide-react";
+import PageLoader from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -22,11 +23,7 @@ export default function SavedPage() {
   }, []);
 
   if (!mounted || authLoading) {
-    return (
-      <div className="container mx-auto px-4 py-24 flex justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (items.length === 0) {

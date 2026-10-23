@@ -123,7 +123,7 @@ export const mn: Dict = {
   "product.spec.dimensions": "Хэмжээ",
   "product.spec.weight": "Жин",
   "product.spec.origin": "Үйлдвэрлэгч",
-  "product.inStock": "Нөөцөд байна",
+  "product.inStock": "Нөөцөд {count} ширхэг байна",
   "product.outOfStock": "Дууссан",
   "product.addingToCart": "Нэмж байна...",
   "product.addedToCart": "Сагсанд нэмэгдлээ",

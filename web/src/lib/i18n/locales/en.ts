@@ -123,7 +123,7 @@ export const en: Dict = {
   "product.spec.dimensions": "Size",
   "product.spec.weight": "Weight",
   "product.spec.origin": "Made in",
-  "product.inStock": "In stock",
+  "product.inStock": "{count} in stock",
   "product.outOfStock": "Out of stock",
   "product.addingToCart": "Adding...",
   "product.addedToCart": "Added to cart",

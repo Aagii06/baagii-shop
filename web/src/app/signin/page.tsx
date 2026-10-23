@@ -2,7 +2,7 @@
 
 import PhoneAuthGate from "@/components/checkout/PhoneAuthGate";
 import { useAuthStore } from "@/store/authStore";
-import { Loader2 } from "lucide-react";
+import PageLoader from "@/components/ui/page-loader";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -17,11 +17,7 @@ export default function SignInPage() {
   }, [authLoading, isAuthed, router]);
 
   if (authLoading || isAuthed) {
-    return (
-      <div className="container mx-auto px-4 py-24 flex justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (

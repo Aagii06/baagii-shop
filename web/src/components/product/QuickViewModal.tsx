@@ -389,16 +389,18 @@ export default function QuickViewModal({
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
-                    <span
-                      className={cn(
-                        "text-xs font-medium",
-                        stock > 0 ? "text-emerald-600" : "text-destructive"
-                      )}
-                    >
-                      {stock > 0
-                        ? t("product.inStock")
-                        : t("product.outOfStock")}
-                    </span>
+                    {product && (
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          stock > 0 ? "text-emerald-600" : "text-destructive"
+                        )}
+                      >
+                        {stock > 0
+                          ? t("product.inStock", { count: stock })
+                          : t("product.outOfStock")}
+                      </span>
+                    )}
                   </div>
 
                   <Button

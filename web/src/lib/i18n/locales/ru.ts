@@ -123,7 +123,7 @@ export const ru: Dict = {
   "product.spec.dimensions": "Размер",
   "product.spec.weight": "Вес",
   "product.spec.origin": "Производитель",
-  "product.inStock": "В наличии",
+  "product.inStock": "В наличии: {count} шт.",
   "product.outOfStock": "Нет в наличии",
   "product.addingToCart": "Добавление...",
   "product.addedToCart": "Добавлено в корзину",

@@ -1,6 +1,7 @@
 "use client";
 
 import ProductList from "@/components/home/ProductList";
+import ProductListSkeleton from "@/components/home/ProductListSkeleton";
 import FilterSidebar, {
   type SearchFilters,
 } from "@/components/search/FilterSidebar";
@@ -313,9 +314,11 @@ function SearchContent() {
             />
           </div>
 
-          <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
+          {loading ? (
+            <ProductListSkeleton count={PAGE_SIZE} />
+          ) : (
             <ProductList products={paged} />
-          </div>
+          )}
 
           <div className="flex justify-center pt-4">
             <Pagination page={page} totalPages={totalPages} onChange={setPage} />

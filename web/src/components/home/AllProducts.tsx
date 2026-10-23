@@ -6,15 +6,18 @@ import type { Product } from "@/types/product";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ProductList from "./ProductList";
+import ProductListSkeleton from "./ProductListSkeleton";
 
 export default function AllProducts() {
   const { t } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getProducts()
       .then(setProducts)
-      .catch(() => setProducts([]));
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -30,7 +33,7 @@ export default function AllProducts() {
           {t("home.allProducts.viewAll")}
         </Link>
       </div>
-      <ProductList products={products} />
+      {loading ? <ProductListSkeleton /> : <ProductList products={products} />}
     </section>
   );
 }
