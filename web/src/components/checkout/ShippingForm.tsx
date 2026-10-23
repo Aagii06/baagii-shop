@@ -8,6 +8,7 @@ import NewAddressFields, {
 } from "@/components/checkout/NewAddressFields";
 import { Input } from "@/components/ui/input";
 import { formatPhone, phoneDigits, PhoneInput } from "@/components/ui/phone-input";
+import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { SHIPPING_FEE } from "@/lib/pricing";
 import { cn, formatMNT } from "@/lib/utils";
@@ -254,12 +255,12 @@ export default function ShippingForm({
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 sm:col-span-2">
             <label className="text-sm font-medium text-foreground">
               {t("checkout.recipient.note")}
             </label>
-            <Input
-              className={INVALID_AFTER_SUBMIT}
+            <Textarea
+              className={cn(INVALID_AFTER_SUBMIT, "min-h-24")}
               placeholder={t("checkout.recipient.notePlaceholder")}
               value={note}
               onChange={(e) => setNote(e.target.value)}
