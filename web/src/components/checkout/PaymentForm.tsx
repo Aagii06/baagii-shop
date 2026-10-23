@@ -261,6 +261,7 @@ export default function PaymentForm({
         </div>
         <p className="text-sm text-foreground">
           {shippingInfo.fullName} · {shippingInfo.phone}
+          {shippingInfo.extraPhone && `, ${shippingInfo.extraPhone}`}
         </p>
         <p className="text-sm text-muted-foreground mt-1">
           {shippingInfo.address} · {deliveryLabel}

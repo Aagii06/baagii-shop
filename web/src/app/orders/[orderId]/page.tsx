@@ -159,7 +159,11 @@ export default function OrderDetailPage() {
           <p className="text-foreground font-medium">
             {order.shippingInfo.fullName}
           </p>
-          <p>{order.shippingInfo.phone}</p>
+          <p>
+            {[order.shippingInfo.phone, order.shippingInfo.extraPhone]
+              .filter(Boolean)
+              .join(", ")}
+          </p>
           <p>
             {order.shippingInfo.addressLabel} · {order.shippingInfo.address}
           </p>
