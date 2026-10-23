@@ -1,7 +1,8 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import { EmptyState, ErrorState } from "@/components/common/States";
+import AttrListSkeleton from "@/components/attrs/AttrListSkeleton";
 import { useConfirm } from "@/components/common/Confirm";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -100,7 +101,7 @@ export default function AttrsPage() {
           <ErrorState error={error} onRetry={reload} />
         </div>
       ) : !data ? (
-        <LoadingState />
+        <AttrListSkeleton />
       ) : data.length === 0 ? (
         <div className="pt-4">
           <EmptyState
