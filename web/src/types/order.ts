@@ -20,6 +20,8 @@ export interface ShippingInfo {
   subDistrictId?: number;
   fullName: string;
   phone: string;
+  /** Optional second number the courier can call. */
+  extraPhone?: string;
   email?: string;
   note?: string;
   deliveryMethod: DeliveryMethod;

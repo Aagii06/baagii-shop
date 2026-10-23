@@ -48,6 +48,12 @@ interface ListResult<T> {
 
 const NONE: never[] = [];
 
+// Red border on fields that fail validation, but only once the shopper has
+// tried to submit (ShippingForm sets data-attempted on the form) — not while
+// they're still filling it in.
+export const INVALID_AFTER_SUBMIT =
+  "group-data-attempted:invalid:border-destructive group-data-attempted:invalid:focus-visible:ring-destructive";
+
 // Loads the list under parent `key` (`null` = parent not picked yet, nothing
 // to load). Results are tagged with the key they were fetched for, so a
 // previous parent's list never shows while the new one is loading.
@@ -216,7 +222,10 @@ function AreaSelect({
             list.items.find((a) => a.id === Number(e.target.value)) ?? null
           )
         }
-        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+        className={cn(
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          INVALID_AFTER_SUBMIT
+        )}
       >
         <option value="">
           {list.loading

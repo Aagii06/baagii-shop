@@ -2,6 +2,7 @@
 
 import NewAddressFields, {
   EMPTY_NEW_ADDRESS,
+  INVALID_AFTER_SUBMIT,
   type NewAddress,
 } from "@/components/checkout/NewAddressFields";
 import { Input } from "@/components/ui/input";
@@ -35,8 +36,10 @@ export default function ShippingForm({
   const [newAddress, setNewAddress] = useState<NewAddress>(EMPTY_NEW_ADDRESS);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState(defaultPhone);
+  const [extraPhone, setExtraPhone] = useState("");
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
+  const [attempted, setAttempted] = useState(false);
 
   // Keep a valid saved address selected once the store settles; default to
   // the shopper's default address.
@@ -56,12 +59,25 @@ export default function ShippingForm({
   // one, so treat it as always "custom".
   const usingCustom = !hasSaved || customAddress !== null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // The form is noValidate so the browser's tooltip never shows; check it
+    // here instead and let the red borders point at what's missing.
+    const form = e.currentTarget;
+    if (!form.checkValidity()) {
+      setAttempted(true);
+      form
+        .querySelector<HTMLElement>(
+          "input:invalid, select:invalid, textarea:invalid"
+        )
+        ?.focus();
+      return;
+    }
     const selected = savedAddresses.find((a) => a.id === selectedId);
     const recipient = {
       fullName,
       phone,
+      extraPhone: extraPhone.trim() || undefined,
       email: email || undefined,
       note: note || undefined,
       deliveryMethod: "standard" as const,
@@ -94,7 +110,13 @@ export default function ShippingForm({
   };
 
   return (
-    <form id="shipping-form" onSubmit={handleSubmit}>
+    <form
+      id="shipping-form"
+      noValidate
+      onSubmit={handleSubmit}
+      data-attempted={attempted || undefined}
+      className="group"
+    >
     <fieldset
       disabled={isSubmitting}
       className="space-y-6 disabled:opacity-60"
@@ -158,7 +180,10 @@ export default function ShippingForm({
                 required
                 rows={3}
                 placeholder={t("checkout.address.placeholder")}
-                className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                className={cn(
+                  "w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none",
+                  "group-data-attempted:invalid:border-destructive group-data-attempted:invalid:focus:ring-destructive"
+                )}
               />
             </div>
           </div>
@@ -175,6 +200,7 @@ export default function ShippingForm({
               {t("checkout.recipient.fullName")}
             </label>
             <Input
+              className={INVALID_AFTER_SUBMIT}
               required
               placeholder={t("checkout.recipient.fullNamePlaceholder")}
               value={fullName}
@@ -185,12 +211,32 @@ export default function ShippingForm({
             <label className="text-sm font-medium text-foreground">
               {t("checkout.recipient.phone")}
             </label>
+            {/* The verified login number is the order's contact and can't be
+                edited here; extra numbers go in the field below. */}
             <Input
+              className={cn(
+                INVALID_AFTER_SUBMIT,
+                defaultPhone &&
+                  "bg-muted text-muted-foreground cursor-not-allowed focus-visible:ring-0"
+              )}
               type="tel"
               required
-              placeholder="+976 9911 2345"
+              readOnly={!!defaultPhone}
+              placeholder={t("checkout.recipient.phonePlaceholder")}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t("checkout.recipient.extraPhone")}
+            </label>
+            <Input
+              className={INVALID_AFTER_SUBMIT}
+              type="tel"
+              placeholder={t("checkout.recipient.extraPhonePlaceholder")}
+              value={extraPhone}
+              onChange={(e) => setExtraPhone(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
@@ -198,8 +244,9 @@ export default function ShippingForm({
               {t("checkout.recipient.email")}
             </label>
             <Input
+              className={INVALID_AFTER_SUBMIT}
               type="email"
-              placeholder="you@example.mn"
+              placeholder={t("checkout.recipient.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -209,6 +256,7 @@ export default function ShippingForm({
               {t("checkout.recipient.note")}
             </label>
             <Input
+              className={INVALID_AFTER_SUBMIT}
               placeholder={t("checkout.recipient.notePlaceholder")}
               value={note}
               onChange={(e) => setNote(e.target.value)}
