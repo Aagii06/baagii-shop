@@ -21,12 +21,15 @@ interface ShippingFormProps {
   isSubmitting: boolean;
   /** Prefilled from the phone the shopper verified at checkout. */
   defaultPhone?: string;
+  /** Prefilled from the profile name; still editable for another recipient. */
+  defaultFullName?: string;
 }
 
 export default function ShippingForm({
   onSubmit,
   isSubmitting,
   defaultPhone = "",
+  defaultFullName = "",
 }: ShippingFormProps) {
   const { t } = useLanguage();
 
@@ -36,7 +39,7 @@ export default function ShippingForm({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [customAddress, setCustomAddress] = useState<string | null>(null);
   const [newAddress, setNewAddress] = useState<NewAddress>(EMPTY_NEW_ADDRESS);
-  const [fullName, setFullName] = useState("");
+  const [fullName, setFullName] = useState(defaultFullName);
   const [phone, setPhone] = useState(phoneDigits(defaultPhone));
   const [extraPhone, setExtraPhone] = useState("");
   const [email, setEmail] = useState("");

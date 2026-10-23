@@ -28,6 +28,7 @@ export default function CheckoutPage() {
   const authLoading = useAuthStore((s) => s.loading);
   const isAuthed = useAuthStore((s) => s.user != null || s.phone != null);
   const verifiedPhone = useAuthStore((s) => s.phone);
+  const profileName = useAuthStore((s) => s.user?.name ?? s.name);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
@@ -107,6 +108,7 @@ export default function CheckoutPage() {
             onSubmit={handlePlaceOrder}
             isSubmitting={isSubmitting}
             defaultPhone={verifiedPhone ?? ""}
+            defaultFullName={profileName ?? ""}
           />
         </div>
 
