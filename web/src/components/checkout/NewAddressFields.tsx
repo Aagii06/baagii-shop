@@ -32,6 +32,14 @@ export const EMPTY_NEW_ADDRESS: NewAddress = {
   subDistrict: null,
 };
 
+/** "Улаанбаатар, Баянзүрх, 1-р хороо, 5-р байр 12 тоот" */
+export function formatAddress(area: NewAddress, detail: string | null) {
+  return [area.city?.name, area.district?.name, area.subDistrict?.name, detail]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(", ");
+}
+
 interface Loaded<T> {
   key: number;
   attempt: number;

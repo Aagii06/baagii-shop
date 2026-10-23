@@ -1,20 +1,19 @@
 "use client";
 
+import NewAddressFields, {
+  EMPTY_NEW_ADDRESS,
+  formatAddress,
+  INVALID_AFTER_SUBMIT,
+  type NewAddress,
+} from "@/components/checkout/NewAddressFields";
 import OrdersSidebar from "@/components/orders/OrdersSidebar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { useAddressStore, type AddressInput } from "@/store/addressStore";
+import { cn } from "@/lib/utils";
+import { useAddressStore } from "@/store/addressStore";
 import { useAuthStore } from "@/store/authStore";
 import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-
-const EMPTY_FORM: AddressInput = {
-  label: "",
-  recipient: "",
-  phone: "",
-  address: "",
-};
 
 export default function AddressesPage() {
   const { t } = useLanguage();
@@ -28,7 +27,9 @@ export default function AddressesPage() {
   const [mounted, setMounted] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<AddressInput>(EMPTY_FORM);
+  const [area, setArea] = useState<NewAddress>(EMPTY_NEW_ADDRESS);
+  const [detail, setDetail] = useState("");
+  const [attempted, setAttempted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -36,45 +37,47 @@ export default function AddressesPage() {
 
   const ready = mounted && !authLoading;
 
-  const startAdd = () => {
-    setEditingId(null);
-    setForm(EMPTY_FORM);
+  const openForm = (id: string | null, nextArea: NewAddress, nextDetail: string) => {
+    setEditingId(id);
+    setArea(nextArea);
+    setDetail(nextDetail);
+    setAttempted(false);
     setShowForm(true);
   };
+
+  const startAdd = () => openForm(null, EMPTY_NEW_ADDRESS, "");
 
   const startEdit = (id: string) => {
     const addr = addresses.find((a) => a.id === id);
     if (!addr) return;
-    setEditingId(id);
-    setForm({
-      label: addr.label,
-      recipient: addr.recipient,
-      phone: addr.phone,
-      address: addr.address,
-    });
-    setShowForm(true);
+    // Older addresses have no picked areas; their whole text becomes the
+    // detail and the shopper picks the areas again.
+    openForm(id, addr.area ?? EMPTY_NEW_ADDRESS, addr.detail ?? addr.address);
   };
 
   const closeForm = () => {
     setShowForm(false);
     setEditingId(null);
-    setForm(EMPTY_FORM);
   };
 
-  const canSubmit =
-    form.label.trim() &&
-    form.recipient.trim() &&
-    form.phone.trim() &&
-    form.address.trim();
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    const payload: AddressInput = {
-      label: form.label.trim(),
-      recipient: form.recipient.trim(),
-      phone: form.phone.trim(),
-      address: form.address.trim(),
+    // Same as checkout: no browser tooltip, red borders show what's missing.
+    const form = e.currentTarget;
+    if (!form.checkValidity()) {
+      setAttempted(true);
+      form
+        .querySelector<HTMLElement>(
+          "input:invalid, select:invalid, textarea:invalid"
+        )
+        ?.focus();
+      return;
+    }
+    const payload = {
+      label: area.addressType?.name ?? t("checkout.address.newLabel"),
+      address: formatAddress(area, detail),
+      area,
+      detail: detail.trim(),
     };
     if (editingId) {
       update(editingId, payload);
@@ -83,19 +86,6 @@ export default function AddressesPage() {
     }
     closeForm();
   };
-
-  const field = (key: keyof AddressInput, labelKey: string) => (
-    <div className="space-y-1.5">
-      <label className="text-sm font-medium text-foreground">
-        {t(labelKey)}
-      </label>
-      <Input
-        value={form[key]}
-        onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-        required
-      />
-    </div>
-  );
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -117,8 +107,10 @@ export default function AddressesPage() {
 
           {showForm && (
             <form
+              noValidate
               onSubmit={handleSubmit}
-              className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-4 mb-6"
+              data-attempted={attempted || undefined}
+              className="group rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-4 mb-6"
             >
               <h2 className="text-sm font-semibold text-foreground">
                 {t(
@@ -127,12 +119,29 @@ export default function AddressesPage() {
                     : "addresses.form.newTitle"
                 )}
               </h2>
-              {field("label", "addresses.form.label")}
-              {field("recipient", "addresses.form.recipient")}
-              {field("phone", "addresses.form.phone")}
-              {field("address", "addresses.form.address")}
+              <NewAddressFields value={area} onChange={setArea} />
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="address-detail"
+                  className="text-sm font-medium text-foreground"
+                >
+                  {t("addresses.form.address")}
+                </label>
+                <textarea
+                  id="address-detail"
+                  value={detail}
+                  onChange={(e) => setDetail(e.target.value)}
+                  required
+                  rows={3}
+                  placeholder={t("checkout.address.placeholder")}
+                  className={cn(
+                    "w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring resize-none",
+                    INVALID_AFTER_SUBMIT
+                  )}
+                />
+              </div>
               <div className="flex items-center gap-3 pt-1">
-                <Button type="submit" disabled={!canSubmit}>
+                <Button type="submit">
                   {t("addresses.form.save")}
                 </Button>
                 <Button type="button" variant="ghost" onClick={closeForm}>
@@ -172,10 +181,16 @@ export default function AddressesPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-foreground">{addr.recipient}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {addr.phone}
-                      </p>
+                      {addr.recipient && (
+                        <p className="text-sm text-foreground">
+                          {addr.recipient}
+                        </p>
+                      )}
+                      {addr.phone && (
+                        <p className="text-sm text-muted-foreground">
+                          {addr.phone}
+                        </p>
+                      )}
                       <p className="text-sm text-muted-foreground">
                         {addr.address}
                       </p>

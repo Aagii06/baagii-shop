@@ -2,6 +2,7 @@
 
 import NewAddressFields, {
   EMPTY_NEW_ADDRESS,
+  formatAddress,
   INVALID_AFTER_SUBMIT,
   type NewAddress,
 } from "@/components/checkout/NewAddressFields";
@@ -90,6 +91,10 @@ export default function ShippingForm({
         ...recipient,
         addressLabel: selected.label,
         address: selected.address,
+        addressTypeId: selected.area?.addressType?.id,
+        cityId: selected.area?.city?.id,
+        districtId: selected.area?.district?.id,
+        subDistrictId: selected.area?.subDistrict?.id,
       });
       return;
     }
@@ -98,11 +103,7 @@ export default function ShippingForm({
     onSubmit({
       ...recipient,
       addressLabel: addressType?.name ?? t("checkout.address.newLabel"),
-      // "Улаанбаатар, Баянзүрх, 1-р хороо, 5-р байр 12 тоот"
-      address: [city?.name, district?.name, subDistrict?.name, customAddress]
-        .map((part) => part?.trim())
-        .filter(Boolean)
-        .join(", "),
+      address: formatAddress(newAddress, customAddress),
       addressTypeId: addressType?.id,
       cityId: city?.id,
       districtId: district?.id,

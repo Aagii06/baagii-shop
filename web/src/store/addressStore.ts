@@ -1,12 +1,19 @@
+import type { NewAddress } from "@/components/checkout/NewAddressFields";
 import { create } from "zustand";
 
 export interface Address {
   id: string;
-  /** Short name the shopper gives it, e.g. "Гэр", "Ажил". */
+  /** Address type name, e.g. "Гэр", "Ажил". */
   label: string;
-  recipient: string;
-  phone: string;
+  /** Full one-line address: "Улаанбаатар, Баянзүрх, 1-р хороо, 5-р байр". */
   address: string;
+  /** Picked type + Аймаг/Сум/Хороо; absent on addresses saved before the pickers. */
+  area?: NewAddress;
+  /** Free-text part after the picked areas (building, door, …). */
+  detail?: string;
+  /** Only on older addresses; the recipient now comes from checkout. */
+  recipient?: string;
+  phone?: string;
   isDefault: boolean;
 }
 
