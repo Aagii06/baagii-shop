@@ -193,7 +193,7 @@ export const en: Dict = {
   "checkout.address.workAddr":
     "Ulaanbaatar, Sukhbaatar district, khoroo 1, Central Tower, 8th floor",
   "checkout.address.placeholder": "Building, entrance, floor, unit...",
-  "checkout.address.newLabel": "New address",
+  "checkout.address.newLabel": "Other address",
   "checkout.address.detail": "Detailed address",
   "checkout.address.city": "Province / Capital",
   "checkout.address.district": "Soum / District",

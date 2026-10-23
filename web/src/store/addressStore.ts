@@ -17,6 +17,15 @@ export interface Address {
   isDefault: boolean;
 }
 
+/**
+ * Name to show for an address. Picker-based addresses take it from their
+ * type at display time, so a translation change (e.g. the no-type fallback)
+ * also reaches addresses saved earlier; older ones keep their stored label.
+ */
+export function addressLabel(addr: Address, fallback: string) {
+  return addr.area ? (addr.area.addressType?.name ?? fallback) : addr.label;
+}
+
 /** A shopper can keep at most this many saved addresses. */
 export const MAX_ADDRESSES = 3;
 

@@ -11,7 +11,7 @@ import { formatPhone, phoneDigits, PhoneInput } from "@/components/ui/phone-inpu
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { SHIPPING_FEE } from "@/lib/pricing";
 import { cn, formatMNT } from "@/lib/utils";
-import { useAddressStore } from "@/store/addressStore";
+import { addressLabel, useAddressStore } from "@/store/addressStore";
 import type { ShippingInfo } from "@/types/order";
 import { Plus, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -89,7 +89,7 @@ export default function ShippingForm({
     if (!usingCustom && selected) {
       onSubmit({
         ...recipient,
-        addressLabel: selected.label,
+        addressLabel: addressLabel(selected, t("checkout.address.newLabel")),
         address: selected.address,
         addressTypeId: selected.area?.addressType?.id,
         cityId: selected.area?.city?.id,
@@ -157,7 +157,7 @@ export default function ShippingForm({
                 )}
               >
                 <p className="font-semibold text-foreground mb-1">
-                  {addr.label}
+                  {addressLabel(addr, t("checkout.address.newLabel"))}
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {addr.address}

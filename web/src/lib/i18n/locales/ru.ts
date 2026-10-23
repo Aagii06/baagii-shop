@@ -194,7 +194,7 @@ export const ru: Dict = {
   "checkout.address.workAddr":
     "Улан-Батор, р-н Сухбаатар, хороо 1, Центральная башня, 8 этаж",
   "checkout.address.placeholder": "Здание, подъезд, этаж, квартира...",
-  "checkout.address.newLabel": "Новый адрес",
+  "checkout.address.newLabel": "Другой адрес",
   "checkout.address.detail": "Подробный адрес",
   "checkout.address.city": "Аймак / Столица",
   "checkout.address.district": "Сомон / Район",

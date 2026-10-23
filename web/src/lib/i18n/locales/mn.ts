@@ -193,7 +193,7 @@ export const mn: Dict = {
   "checkout.address.workAddr":
     "Улаанбаатар, СБД 1-р хороо, Централ тауэр, 8 давхар",
   "checkout.address.placeholder": "Байр, орц, давхар, тоот...",
-  "checkout.address.newLabel": "Шинэ хаяг",
+  "checkout.address.newLabel": "Бусад хаяг",
   "checkout.address.detail": "Дэлгэрэнгүй хаяг",
   "checkout.address.city": "Аймаг / Нийслэл",
   "checkout.address.district": "Сум / Дүүрэг",

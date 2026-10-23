@@ -10,7 +10,11 @@ import OrdersSidebar from "@/components/orders/OrdersSidebar";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
-import { MAX_ADDRESSES, useAddressStore } from "@/store/addressStore";
+import {
+  addressLabel,
+  MAX_ADDRESSES,
+  useAddressStore,
+} from "@/store/addressStore";
 import { useAuthStore } from "@/store/authStore";
 import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -187,7 +191,7 @@ export default function AddressesPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-semibold text-foreground">
-                          {addr.label}
+                          {addressLabel(addr, t("checkout.address.newLabel"))}
                         </span>
                         {addr.isDefault && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
