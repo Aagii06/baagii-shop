@@ -10,7 +10,7 @@ import OrdersSidebar from "@/components/orders/OrdersSidebar";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
-import { useAddressStore } from "@/store/addressStore";
+import { MAX_ADDRESSES, useAddressStore } from "@/store/addressStore";
 import { useAuthStore } from "@/store/authStore";
 import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -36,6 +36,11 @@ export default function AddressesPage() {
   }, []);
 
   const ready = mounted && !authLoading;
+  const atLimit = addresses.length >= MAX_ADDRESSES;
+  // Each type (Гэр, Ажил, …) is used once; the address being edited keeps its own.
+  const takenTypes = addresses
+    .filter((a) => a.id !== editingId)
+    .map((a) => a.area?.addressType?.name ?? a.label);
 
   const openForm = (id: string | null, nextArea: NewAddress, nextDetail: string) => {
     setEditingId(id);
@@ -97,13 +102,19 @@ export default function AddressesPage() {
             <h1 className="text-2xl font-bold text-foreground">
               {t("addresses.title")}
             </h1>
-            {!showForm && (
+            {!showForm && !atLimit && (
               <Button onClick={startAdd} size="sm">
                 <Plus className="h-4 w-4" />
                 {t("addresses.add")}
               </Button>
             )}
           </div>
+
+          {ready && atLimit && !showForm && (
+            <p className="mb-4 text-sm text-muted-foreground">
+              {t("addresses.limitReached", { count: MAX_ADDRESSES })}
+            </p>
+          )}
 
           {showForm && (
             <form
@@ -119,7 +130,11 @@ export default function AddressesPage() {
                     : "addresses.form.newTitle"
                 )}
               </h2>
-              <NewAddressFields value={area} onChange={setArea} />
+              <NewAddressFields
+                value={area}
+                onChange={setArea}
+                takenTypes={takenTypes}
+              />
               <div className="space-y-1.5">
                 <label
                   htmlFor="address-detail"

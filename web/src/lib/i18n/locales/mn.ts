@@ -289,6 +289,7 @@ export const mn: Dict = {
 
   "addresses.title": "Хүргэлтийн хаяг",
   "addresses.add": "Шинэ хаяг нэмэх",
+  "addresses.limitReached": "Хамгийн ихдээ {count} хаяг бүртгэх боломжтой.",
   "addresses.edit": "Засах",
   "addresses.delete": "Устгах",
   "addresses.default": "Үндсэн хаяг",

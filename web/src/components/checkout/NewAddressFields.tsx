@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import {
   useEffect,
   useId,
+  useMemo,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -104,6 +105,8 @@ function useList<T>(
 interface NewAddressFieldsProps {
   value: NewAddress;
   onChange: Dispatch<SetStateAction<NewAddress>>;
+  /** Address type names already used by other saved addresses; hidden here. */
+  takenTypes?: string[];
 }
 
 // Address type plus the Аймаг/Нийслэл → Сум/Дүүрэг → Баг/Хороо pickers.
@@ -112,6 +115,7 @@ interface NewAddressFieldsProps {
 export default function NewAddressFields({
   value,
   onChange,
+  takenTypes,
 }: NewAddressFieldsProps) {
   const { t } = useLanguage();
   const types = useList(0, getAddressTypes);
@@ -119,19 +123,29 @@ export default function NewAddressFields({
   const districts = useList(value.city?.id ?? null, getDistricts);
   const subDistricts = useList(value.district?.id ?? null, getSubDistricts);
 
-  // Preselect the first address type once the list arrives.
+  // A primitive key so a fresh array each render doesn't re-run the effect.
+  const takenKey = (takenTypes ?? []).join("\n");
+  const availableTypes = useMemo(() => {
+    const taken = new Set(takenKey ? takenKey.split("\n") : []);
+    return types.items.filter((type) => !taken.has(type.name));
+  }, [types.items, takenKey]);
+
+  // Preselect the first free address type once the list arrives, and move
+  // off a type that's no longer available.
   useEffect(() => {
     if (types.items.length === 0) return;
     onChange((v) =>
-      v.addressType ? v : { ...v, addressType: types.items[0] }
+      v.addressType && availableTypes.some((a) => a.id === v.addressType!.id)
+        ? v
+        : { ...v, addressType: availableTypes[0] ?? null }
     );
-  }, [types.items, onChange]);
+  }, [types.items, availableTypes, onChange]);
 
   return (
     <div className="space-y-4">
-      {types.items.length > 0 && (
+      {availableTypes.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {types.items.map((type) => {
+          {availableTypes.map((type) => {
             const selected = value.addressType?.id === type.id;
             return (
               <button

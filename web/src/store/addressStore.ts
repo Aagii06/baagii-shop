@@ -17,6 +17,9 @@ export interface Address {
   isDefault: boolean;
 }
 
+/** A shopper can keep at most this many saved addresses. */
+export const MAX_ADDRESSES = 3;
+
 export type AddressInput = Omit<Address, "id" | "isDefault">;
 
 interface AddressStore {
@@ -41,6 +44,7 @@ export const useAddressStore = create<AddressStore>((set) => ({
 
   add: (input) =>
     set((state) => {
+      if (state.addresses.length >= MAX_ADDRESSES) return state;
       const isFirst = state.addresses.length === 0;
       return {
         addresses: [

@@ -289,6 +289,7 @@ export const ru: Dict = {
 
   "addresses.title": "Адреса доставки",
   "addresses.add": "Добавить новый адрес",
+  "addresses.limitReached": "Можно сохранить не более {count} адресов.",
   "addresses.edit": "Изменить",
   "addresses.delete": "Удалить",
   "addresses.default": "Основной адрес",

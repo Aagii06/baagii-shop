@@ -288,6 +288,7 @@ export const en: Dict = {
 
   "addresses.title": "Delivery addresses",
   "addresses.add": "Add a new address",
+  "addresses.limitReached": "You can save up to {count} addresses.",
   "addresses.edit": "Edit",
   "addresses.delete": "Delete",
   "addresses.default": "Default address",
