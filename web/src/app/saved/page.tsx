@@ -28,15 +28,20 @@ export default function SavedPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-foreground mb-2">
-          {t("saved.empty.title")}
-        </h1>
-        <p className="text-muted-foreground mb-6">{t("saved.empty.desc")}</p>
-        <Button asChild>
-          <Link href="/search">{t("saved.empty.cta")}</Link>
-        </Button>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="flex gap-6">
+          <OrdersSidebar />
+          <div className="flex-1 min-w-0 py-10 text-center">
+            <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              {t("saved.empty.title")}
+            </h1>
+            <p className="text-muted-foreground mb-6">{t("saved.empty.desc")}</p>
+            <Button asChild>
+              <Link href="/search">{t("saved.empty.cta")}</Link>
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

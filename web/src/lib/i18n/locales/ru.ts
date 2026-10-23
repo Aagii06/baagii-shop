@@ -303,6 +303,7 @@ export const ru: Dict = {
   "addresses.form.address": "Полный адрес",
   "addresses.form.save": "Сохранить",
   "addresses.form.cancel": "Отмена",
+  "orders.tabs.all": "Все",
   "orders.tabs.active": "Активные",
   "orders.tabs.delivered": "Доставленные",
   "orders.tabs.cancelled": "Отменённые",

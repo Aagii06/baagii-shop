@@ -12,21 +12,24 @@ import { Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-type Tab = "active" | "delivered" | "cancelled";
+type Tab = "all" | "active" | "delivered" | "cancelled";
 
 export default function OrdersPage() {
   const { t, locale } = useLanguage();
   const orders = useOrderStore((s) => s.orders);
-  const [tab, setTab] = useState<Tab>("active");
+  const [tab, setTab] = useState<Tab>("all");
 
   const tabs: { id: Tab; label: string }[] = [
+    { id: "all", label: t("orders.tabs.all") },
     { id: "active", label: t("orders.tabs.active") },
     { id: "delivered", label: t("orders.tabs.delivered") },
     { id: "cancelled", label: t("orders.tabs.cancelled") },
   ];
 
   const filtered = orders.filter((order) =>
-    tab === "active"
+    tab === "all"
+      ? true
+      : tab === "active"
       ? order.status === "pending"
       : tab === "delivered"
       ? order.status === "confirmed"

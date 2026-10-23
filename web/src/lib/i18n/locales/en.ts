@@ -302,6 +302,7 @@ export const en: Dict = {
   "addresses.form.address": "Full address",
   "addresses.form.save": "Save",
   "addresses.form.cancel": "Cancel",
+  "orders.tabs.all": "All",
   "orders.tabs.active": "Active",
   "orders.tabs.delivered": "Delivered",
   "orders.tabs.cancelled": "Cancelled",

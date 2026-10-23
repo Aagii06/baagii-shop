@@ -303,6 +303,7 @@ export const mn: Dict = {
   "addresses.form.address": "Дэлгэрэнгүй хаяг",
   "addresses.form.save": "Хадгалах",
   "addresses.form.cancel": "Болих",
+  "orders.tabs.all": "Бүгд",
   "orders.tabs.active": "Идэвхтэй",
   "orders.tabs.delivered": "Хүргэгдсэн",
   "orders.tabs.cancelled": "Цуцлагдсан",
