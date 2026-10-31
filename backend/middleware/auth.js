@@ -3,19 +3,22 @@ const { roles } = require("../config/constants");
 
 const sign = (payload, expiresIn) => jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
 
+// Токен бүр нэг дэлгүүрийнх (shopId): өөр дэлгүүрийн X-Shop-Id-тай ирвэл хүчингүй.
+
 // Админ самбар (users хүснэгт)
-module.exports.signUser = (user) => sign({ user: { id: user.id, role: user.role } }, "7d");
+module.exports.signUser = (user) => sign({ shopId: user.shop_id, user: { id: user.id, role: user.role } }, "7d");
 
 // Вэб: зочин бүр guestId-тай (сагс үүгээр холбогдоно), утсаар нэвтэрсэн бол customerId нэмэгдэнэ
-module.exports.signWeb = ({ guestId, customerId = null }) =>
-  sign({ guestId, customerId }, customerId ? "30d" : "2d");
+module.exports.signWeb = ({ shopId, guestId, customerId = null }) =>
+  sign({ shopId, guestId, customerId }, customerId ? "30d" : "2d");
 
-// Токеноос payload-ийг уншина; байхгүй / буруу / хугацаа дууссан бол null
+// Токеноос payload-ийг уншина; байхгүй / буруу / хугацаа дууссан / өөр дэлгүүрийнх бол null
 const readToken = (req) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return null;
   try {
-    return jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    return payload.shopId === req.shopId ? payload : null;
   } catch (error) {
     return null;
   }
