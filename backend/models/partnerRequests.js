@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   partnerRequests.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      shop_id: { type: DataTypes.INTEGER },
       phone: { type: DataTypes.STRING },
       // pending | approved | rejected
       status: { type: DataTypes.STRING, defaultValue: "pending" },

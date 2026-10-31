@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   phoneOtps.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      shop_id: { type: DataTypes.INTEGER },
       phone: { type: DataTypes.STRING },
       purpose: { type: DataTypes.STRING },
       otp_hash: { type: DataTypes.STRING },

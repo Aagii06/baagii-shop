@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
   carts.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      shop_id: { type: DataTypes.INTEGER },
       // Зочны токены guestId, утсаар нэвтэрсэн бол customer_id
       guest_id: { type: DataTypes.STRING },
       customer_id: { type: DataTypes.INTEGER },

@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
   categories.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      shop_id: { type: DataTypes.INTEGER },
       parent_id: { type: DataTypes.INTEGER },
       code: { type: DataTypes.STRING },
       name: { type: DataTypes.STRING },

@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   actionLogs.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      shop_id: { type: DataTypes.INTEGER },
       object_name: { type: DataTypes.STRING },
       object_id: { type: DataTypes.INTEGER },
       log_action: { type: DataTypes.STRING },

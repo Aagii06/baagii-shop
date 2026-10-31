@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
   orders.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      shop_id: { type: DataTypes.INTEGER },
       customer_id: { type: DataTypes.INTEGER },
       // web | admin
       source: { type: DataTypes.STRING },

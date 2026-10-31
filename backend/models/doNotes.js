@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
   doNotes.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      shop_id: { type: DataTypes.INTEGER },
       name: { type: DataTypes.STRING },
       description: { type: DataTypes.STRING },
       ...auditFields(DataTypes),

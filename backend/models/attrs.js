@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
   attrs.init(
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      shop_id: { type: DataTypes.INTEGER },
       code: { type: DataTypes.STRING },
       name: { type: DataTypes.STRING },
       short_name: { type: DataTypes.STRING },
