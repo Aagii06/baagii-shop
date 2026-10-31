@@ -2,9 +2,7 @@ const Sequelize = require("sequelize");
 const { auditFields } = require("../utils/modelFields");
 
 module.exports = (sequelize, DataTypes) => {
-  class doNotes extends Sequelize.Model {
-
-  }
+  class doNotes extends Sequelize.Model {}
 
   doNotes.init(
     {

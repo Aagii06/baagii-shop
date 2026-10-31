@@ -1,9 +1,7 @@
 const Sequelize = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class addressTypes extends Sequelize.Model {
-
-  }
+  class addressTypes extends Sequelize.Model {}
 
   addressTypes.init(
     {

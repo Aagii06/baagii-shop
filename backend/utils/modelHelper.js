@@ -25,7 +25,11 @@ const getFilterValue = (opString, filterValue) => {
   return filterValue;
 };
 
+// Фронт camelCase (categoryId) илгээнэ, багана нь snake_case (category_id)
+const toColumn = (fieldName) => fieldName.replace(/[A-Z]/g, (c) => "_" + c.toLowerCase());
+
 const getFieldName = (fieldName) => {
+  fieldName = toColumn(fieldName);
   if (fieldName.includes(".")) fieldName = "$" + fieldName + "$";
   return fieldName;
 };
@@ -74,7 +78,7 @@ const getSort = (sorts) => {
       // desc байхгүй / false бол өсөхөөр (өмнө нь зөвхөн desc: true ажилладаг байсан)
       if (sort && sort["selector"])
         result.push([
-          Sequelize.col(sort["selector"]),
+          Sequelize.col(toColumn(sort["selector"])),
           sort["desc"] === true || sort["desc"] === "true" ? "desc" : "asc",
         ]);
     }

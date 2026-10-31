@@ -1,9 +1,7 @@
 const Sequelize = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class actionLogs extends Sequelize.Model {
-
-  }
+  class actionLogs extends Sequelize.Model {}
 
   actionLogs.init(
     {
