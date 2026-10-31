@@ -1,6 +1,6 @@
 "use strict";
 
-// Хаягийн төрөл, хүргэлтийн бэлэн тэмдэглэл, барааны сонголтын анхны каталог
+// Хаягийн төрөл (бүх дэлгүүрт нийтлэг); дэлгүүр бүрт хүргэлтийн бэлэн тэмдэглэл, барааны сонголтын анхны каталог
 const at = "2026-10-31 00:00:00";
 
 const addressTypes = [
@@ -34,14 +34,21 @@ const json = (rows, fields) => rows.map((r) => ({ ...r, ...Object.fromEntries(fi
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
-    const count = async (table) => (await queryInterface.sequelize.query(`SELECT COUNT(*) AS cnt FROM ${table}`))[0][0].cnt;
+    const count = async (table, shopId) =>
+      (
+        await queryInterface.sequelize.query(`SELECT COUNT(*) AS cnt FROM ${table}${shopId ? " WHERE shop_id = ?" : ""}`, {
+          replacements: shopId ? [shopId] : [],
+        })
+      )[0][0].cnt;
 
     if (!(await count("addressTypes"))) await queryInterface.bulkInsert("addressTypes", json(addressTypes, ["style"]));
-    if (!(await count("doNotes")))
-      await queryInterface.bulkInsert("doNotes", doNotes.map((n) => ({ ...n, status: "active", created_at: at })));
-    if (!(await count("attrs"))) {
+    const [shops] = await queryInterface.sequelize.query("SELECT id FROM shops");
+    for (const { id: shop_id } of shops) {
+      if (!(await count("doNotes", shop_id)))
+        await queryInterface.bulkInsert("doNotes", doNotes.map((n) => ({ ...n, shop_id, status: "active", created_at: at })));
+      if (await count("attrs", shop_id)) continue;
       for (const attr of attrs) {
-        await queryInterface.bulkInsert("attrs", [{ name: attr.name, value_type: "select", status: "active", created_at: at }]);
+        await queryInterface.bulkInsert("attrs", [{ shop_id, name: attr.name, value_type: "select", status: "active", created_at: at }]);
         const [[{ id }]] = await queryInterface.sequelize.query("SELECT MAX(id) AS id FROM attrs");
         await queryInterface.bulkInsert(
           "attrValues",
