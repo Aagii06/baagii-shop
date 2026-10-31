@@ -7,6 +7,7 @@ Router.use("/auth", require("./auth/router"));
 Router.use("/category", require("./category/router"));
 Router.use("/post", require("./post/router"));
 Router.use("/customerAddress", require("./customerAddress/router"));
+Router.use("/blog", require("./blog/router"));
 Router.use("/cart", protectWeb, require("./cart/router"));
 Router.use("/order", protectWeb, requireCustomer, require("./order/router"));
 
