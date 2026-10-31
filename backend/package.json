@@ -1,0 +1,33 @@
+{
+  "name": "uvs-shop-backend",
+  "version": "1.0.0",
+  "description": "GOLDEN UVS дэлгүүрийн backend (admin + web)",
+  "main": "server.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "nodemon server.js",
+    "start:prod": "NODE_ENV=production node server.js",
+    "migrate": "npx sequelize-cli db:migrate",
+    "migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "seed": "npx sequelize-cli db:seed:all"
+  },
+  "dependencies": {
+    "@supercharge/strings": "^1.28.0",
+    "bcrypt": "^5.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.17.2",
+    "express-validator": "^6.14.0",
+    "formidable": "^2.0.1",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
+    "mysql2": "^3.3.1",
+    "sequelize": "^6.16.1",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15",
+    "sequelize-cli": "^6.4.1"
+  }
+}
