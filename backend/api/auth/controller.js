@@ -2,24 +2,26 @@ const bcrypt = require("bcryptjs");
 const { users } = require("../../models");
 const { signUser } = require("../../middleware/auth");
 const { roles } = require("../../config/constants");
-const { ok, fail, handle } = require("../../helper/helper");
+const { ok, fail, handle, phoneDigits } = require("../../helper/helper");
 
 // admin/src/lib/api/auth.ts-ийн LoginUser / UserData.user
 const toUser = (user) => ({
   id: user.id,
-  name: user.name || user.username,
-  userName: user.username,
+  name: user.name || user.phone,
+  // Утасны дугаараар нэвтэрнэ
+  userName: user.phone,
   phone: user.phone,
   email: user.email,
   roles: [],
   roleNames: user.role === roles.admin ? "admin" : "shopper",
 });
 
+// { phone, password }
 module.exports.login = handle("login", async (req, res) => {
-  const { userName, password } = req.body;
-  const user = await users.findOne({ where: { shop_id: req.shopId, username: userName.trim(), status: "active" } });
+  const { phone, password } = req.body;
+  const user = await users.findOne({ where: { shop_id: req.shopId, phone: phoneDigits(phone), status: "active" } });
   const matches = user?.password && (await bcrypt.compare(password, user.password));
-  if (!matches) return fail(res, "Нэвтрэх нэр эсвэл нууц үг буруу байна");
+  if (!matches) return fail(res, "Утасны дугаар эсвэл нууц үг буруу байна");
   return ok(res, { token: signUser(user), user: toUser(user) });
 });
 

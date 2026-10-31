@@ -20,7 +20,7 @@ export default function LoginForm() {
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
 
-  const [userName, setUserName] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export default function LoginForm() {
     setError(null);
     setSubmitting(true);
     try {
-      await login(userName.trim(), password);
+      await login(phone, password);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("login.failed"));
       setSubmitting(false);
@@ -59,17 +59,17 @@ export default function LoginForm() {
 
         <div className="mt-6 space-y-4">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">{t("login.userName")}</span>
+            <span className="mb-1.5 block text-sm font-semibold">{t("login.phone")}</span>
             <Input
-              type="text"
+              type="tel"
+              inputMode="numeric"
               autoComplete="username"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder={t("login.userName")}
-              value={userName}
+              maxLength={8}
+              pattern="\d{8}"
+              placeholder={t("login.phone")}
+              value={phone}
               onChange={(e) => {
-                setUserName(e.target.value);
+                setPhone(e.target.value.replace(/\D/g, ""));
                 setError(null);
               }}
               required
@@ -83,7 +83,7 @@ export default function LoginForm() {
               <Input
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                placeholder="••••"
+                placeholder={t("login.password")}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);

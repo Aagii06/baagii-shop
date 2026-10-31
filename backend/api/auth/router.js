@@ -2,12 +2,13 @@ const router = require("express").Router();
 const { body } = require("express-validator");
 const { protect } = require("../../middleware/auth");
 const { validate } = require("../../utils/validationHelper");
+const { isPhone } = require("../../helper/helper");
 const { login, getUserData } = require("./controller");
 
 router.post(
   "/login",
   validate([
-    body("userName").trim().notEmpty().withMessage("Нэвтрэх нэр оруулна уу"),
+    body("phone").custom((v) => isPhone(v)).withMessage("Утасны дугаар 8 оронтой байна"),
     body("password").notEmpty().withMessage("Нууц үг оруулна уу"),
   ]),
   login,

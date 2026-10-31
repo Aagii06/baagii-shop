@@ -24,7 +24,7 @@ interface AuthContextValue {
   status: AuthStatus;
   user: LoginUser | null;
   role: Role;
-  login: (userName: string, password: string) => Promise<void>;
+  login: (phone: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -77,8 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, []);
 
-  const login = useCallback(async (userName: string, password: string) => {
-    const data = await loginRequest(userName, password);
+  const login = useCallback(async (phone: string, password: string) => {
+    const data = await loginRequest(phone, password);
     setSession(data.token, data.user);
     setUser(data.user);
     setStatus("authenticated");

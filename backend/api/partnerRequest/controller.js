@@ -14,7 +14,7 @@ module.exports.list = handle("partnerList", async (req, res) => {
 
 // Дугаарт SHOPPER хэрэглэгч байхгүй бол үүсгэнэ (нууц үггүй — нэвтрэхийн тулд админ тохируулна)
 const ensureShopper = async (shopId, phone, by, at, t) => {
-  const existing = await users.findOne({ where: { shop_id: shopId, username: phone, status: "active" }, transaction: t });
+  const existing = await users.findOne({ where: { shop_id: shopId, phone, status: "active" }, transaction: t });
   if (existing) return existing;
   return users.create({ shop_id: shopId, username: phone, phone, name: phone, role: roles.shopper, status: "active", created_by: by, created_at: at }, { transaction: t });
 };

@@ -9,6 +9,7 @@ export interface LoginUser {
   firstName?: string | null;
   phone?: string | null;
   email?: string | null;
+  /** The phone number the user signs in with. */
   userName: string;
   customerId?: number | null;
   /** Filled from `/auth/getUserData`, not by login. */
@@ -37,16 +38,16 @@ export interface UserData {
   objectPermission?: Record<string, ObjectPermission> | null;
 }
 
-// Admin sign-in by user name (e.g. "admin") and password. A wrong pair comes
+// Admin sign-in by phone number (8 digits) and password. A wrong pair comes
 // back as `success: false` with the reason in `message`, which apiFetch
 // throws as the error shown on the form.
-export async function login(userName: string, password: string) {
+export async function login(phone: string, password: string) {
   const res = await apiFetch<
     ApiItemResponse<{ token: string; user?: LoginUser | null } | null>
   >("/auth/login", {
     method: "POST",
     auth: false,
-    body: { userName, password },
+    body: { phone, password },
   });
   if (!res.data?.token) {
     throw new Error(res.message || tr("login.failed"));

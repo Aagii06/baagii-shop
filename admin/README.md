@@ -13,8 +13,8 @@ npm install
 npm run dev            # http://localhost:3771
 ```
 
-Нэвтрэх нэр (ж: `admin`), нууц үгээр `POST /auth/login`-оор нэвтэрнэ
-(`{ userName, password }`, `src/lib/api/auth.ts`). Хадгалсан token-ийг апп
+Утасны дугаар (8 оронтой), нууц үгээр `POST /auth/login`-оор нэвтэрнэ
+(`{ phone, password }`, `src/lib/api/auth.ts`). Хадгалсан token-ийг апп
 нээгдэхэд `GET /auth/getUserData`-аар шалгана; `user` буцаахгүй (зочны)
 token-той бол дахин нэвтрүүлнэ.
 
