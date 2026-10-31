@@ -7,12 +7,12 @@ const { ok, fail, handle, toNumber, phoneDigits, isPhone, FORMAT } = require("..
 
 // Бүх захиалга, шинэ нь эхэндээ
 module.exports.list = handle("orderList", async (req, res) => {
-  const rows = await orders.findAll({ include: itemsInclude, order: [["id", "desc"]] });
+  const rows = await orders.findAll({ where: { shop_id: req.shopId }, include: itemsInclude, order: [["id", "desc"]] });
   return ok(res, { rows: rows.map(toAdminOrder), count: rows.length, summary: [] });
 });
 
 module.exports.show = handle("orderShow", async (req, res) => {
-  const order = await findOrder({ id: req.params.id });
+  const order = await findOrder({ id: req.params.id, shop_id: req.shopId });
   return ok(res, order ? toAdminOrder(order) : null);
 });
 
@@ -22,6 +22,7 @@ module.exports.create = handle("orderCreate", async (req, res) => {
   if (!isPhone(customer.phone)) return fail(res, "Утасны дугаар 8 оронтой байна");
   if (!String(customer.address ?? "").trim()) return fail(res, "Хүргэлтийн хаяг оруулна уу");
   const id = await placeOrder({
+    shopId: req.shopId,
     lines: items.map((item) => ({ variantId: item.variantId, qty: item.qty, price: item.price })),
     info: {
       source: "admin",
@@ -32,7 +33,7 @@ module.exports.create = handle("orderCreate", async (req, res) => {
     },
     by,
   });
-  return ok(res, toAdminOrder(await findOrder({ id })));
+  return ok(res, toAdminOrder(await findOrder({ id, shop_id: req.shopId })));
 });
 
 const stampOf = { confirmed: "confirmed_at", delivered: "delivered_at", returned: "returned_at" };
@@ -42,7 +43,7 @@ module.exports.setStatus = handle("orderStatus", async (req, res) => {
   const { status, by, at } = req.body;
   const t = await sequelize.transaction();
   try {
-    const order = await findOrder({ id: req.params.id }, t);
+    const order = await findOrder({ id: req.params.id, shop_id: req.shopId }, t);
     if (!order) throw "Захиалга олдсонгүй";
     if (!(orderTransitions[order.status] ?? []).includes(status)) throw "Энэ төлөв рүү шилжүүлэх боломжгүй";
 
@@ -54,9 +55,9 @@ module.exports.setStatus = handle("orderStatus", async (req, res) => {
       }
     }
     await order.update({ status, [stampOf[status]]: at, updated_by: by, updated_at: at }, { transaction: t });
-    await saveLog({ object_name: "orders", object_id: order.id, log_action: status, created_by: by, created_at: at }, t);
+    await saveLog({ shop_id: req.shopId, object_name: "orders", object_id: order.id, log_action: status, created_by: by, created_at: at }, t);
     await t.commit();
-    return ok(res, toAdminOrder(await findOrder({ id: order.id })));
+    return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
   } catch (error) {
     await t.rollback();
     throw error;
@@ -69,7 +70,7 @@ module.exports.returnItem = handle("orderReturn", async (req, res) => {
   const count = Math.floor(toNumber(qty));
   const t = await sequelize.transaction();
   try {
-    const order = await findOrder({ id: req.params.id }, t);
+    const order = await findOrder({ id: req.params.id, shop_id: req.shopId }, t);
     if (!order) throw "Захиалга олдсонгүй";
     if (order.status === orderStatuses.returned) throw "Захиалга бүхэлдээ буцаагдсан байна";
     const item = order.items.find((i) => i.id === Number(itemId));
@@ -82,11 +83,11 @@ module.exports.returnItem = handle("orderReturn", async (req, res) => {
       await order.update({ status: orderStatuses.returned, returned_at: at }, { transaction: t });
     await order.update({ updated_by: by, updated_at: at }, { transaction: t });
     await saveLog(
-      { object_name: "orders", object_id: order.id, log_action: "itemReturned", modify_data: JSON.stringify({ itemId, qty: count }), created_by: by, created_at: at },
+      { shop_id: req.shopId, object_name: "orders", object_id: order.id, log_action: "itemReturned", modify_data: JSON.stringify({ itemId, qty: count }), created_by: by, created_at: at },
       t,
     );
     await t.commit();
-    return ok(res, toAdminOrder(await findOrder({ id: order.id })));
+    return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
   } catch (error) {
     await t.rollback();
     throw error;
@@ -110,6 +111,7 @@ module.exports.sales = handle("orderSales", async (req, res) => {
 
   const rows = await orders.findAll({
     where: {
+      shop_id: req.shopId,
       created_at: { [op.gte]: prevStart.format(FORMAT), [op.lt]: end.format(FORMAT) },
       status: { [op.ne]: orderStatuses.returned },
     },

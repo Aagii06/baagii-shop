@@ -1,4 +1,4 @@
-const { products, productVariants, categories, attrValues, sequelize, op } = require("../models");
+const { products, productVariants, categories, attrs: attrRows, attrValues, sequelize, op } = require("../models");
 const { defaultBranch } = require("../config/constants");
 const { toIso, toNumber, now, today } = require("./helper");
 const { saveLog } = require("../utils/logHelper");
@@ -133,8 +133,8 @@ module.exports.toWebPost = (product, detail = false) => {
   };
 };
 
-// Admin илгээсэн сонголтуудыг хадгалах хэлбэрт оруулна. Каталогид байгаа утгыг attrValueId-аар холбоно.
-const normalizeAttrs = async (input, variants) => {
+// Admin илгээсэн сонголтуудыг хадгалах хэлбэрт оруулна. Дэлгүүрийн каталогид байгаа утгыг attrValueId-аар холбоно.
+const normalizeAttrs = async (shopId, input, variants) => {
   let attrs = Array.isArray(input)
     ? input
         .filter((a) => a && a.attrId != null)
@@ -154,7 +154,11 @@ const normalizeAttrs = async (input, variants) => {
     : productAttrs({ variants });
 
   const catalog = attrs.length
-    ? await attrValues.findAll({ where: { attr_id: attrs.map((a) => a.attrId), status: "active" }, raw: true })
+    ? await attrValues.findAll({
+        where: { attr_id: attrs.map((a) => a.attrId), status: "active" },
+        include: [{ model: attrRows, as: "attr", attributes: [], where: { shop_id: shopId } }],
+        raw: true,
+      })
     : [];
   return attrs.map((a) => ({
     ...a,
@@ -174,14 +178,16 @@ const normalizeAttrs = async (input, variants) => {
  * сонголтын утгаар (`attr`) тааруулна; жагсаалтад байхгүй болсон хувилбар
  * устгагдана. `qty` бол үлдэгдэл.
  */
-module.exports.saveProduct = async ({ id = null, body, by }) => {
+module.exports.saveProduct = async ({ shopId, id = null, body, by }) => {
   const at = now();
   const variantsIn = Array.isArray(body.variants) ? body.variants : [];
   if (!body.name?.trim()) throw "Барааны нэр оруулна уу";
   if (!body.categoryId) throw "Категори сонгоно уу";
   if (variantsIn.length === 0) throw "Дор хаяж нэг хувилбар оруулна уу";
 
-  const attrs = await normalizeAttrs(body.attrs, variantsIn);
+  if (!(await categories.count({ where: { id: body.categoryId, shop_id: shopId, status: "active" } }))) throw "Категори олдсонгүй";
+
+  const attrs = await normalizeAttrs(shopId, body.attrs, variantsIn);
   const values = {
     category_id: body.categoryId,
     date: body.date || today(),
@@ -199,11 +205,11 @@ module.exports.saveProduct = async ({ id = null, body, by }) => {
   try {
     let product;
     if (id) {
-      product = await products.findOne({ where: { id, status: { [op.ne]: "deleted" } }, transaction: t });
+      product = await products.findOne({ where: { id, shop_id: shopId, status: { [op.ne]: "deleted" } }, transaction: t });
       if (!product) throw "Бараа олдсонгүй";
       await product.update({ ...values, updated_by: by, updated_at: at }, { transaction: t });
     } else {
-      product = await products.create({ ...values, status: "active", created_by: by, created_at: at }, { transaction: t });
+      product = await products.create({ ...values, shop_id: shopId, status: "active", created_by: by, created_at: at }, { transaction: t });
     }
 
     const existing = await productVariants.findAll({ where: { product_id: product.id, status: "active" }, transaction: t });
@@ -243,6 +249,7 @@ module.exports.saveProduct = async ({ id = null, body, by }) => {
 
     await saveLog(
       {
+        shop_id: shopId,
         object_name: "products",
         object_id: product.id,
         log_action: id ? "updated" : "created",
@@ -260,6 +267,7 @@ module.exports.saveProduct = async ({ id = null, body, by }) => {
   }
 };
 
+// where-д shop_id заавал өгнө
 module.exports.findProduct = (where) =>
   products.findOne({
     where: { ...where, status: "active" },

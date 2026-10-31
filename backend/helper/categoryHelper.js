@@ -1,15 +1,16 @@
 const { categories, categoryAttrs, attrs } = require("../models");
 
-// Категорийн мод (admin: /api/category/tree, вэб: /web/category/getCategoryTree).
+// Нэг дэлгүүрийн категорийн мод (admin: /api/category/tree, вэб: /web/category/getCategoryTree).
 // withAttrs - навч категорийн сонголтуудыг `attrs: [{ id, name }]`-аар нэмнэ (admin)
-module.exports.buildTree = async ({ withAttrs = false } = {}) => {
+module.exports.buildTree = async (shopId, { withAttrs = false } = {}) => {
   const rows = await categories.findAll({
-    where: { status: "active" },
+    where: { shop_id: shopId, status: "active" },
     order: [["order_number", "asc"], ["id", "asc"]],
     raw: true,
   });
   const links = withAttrs
     ? await categoryAttrs.findAll({
+        where: { category_id: rows.map((r) => r.id) },
         include: [{ model: attrs, as: "attr", attributes: ["id", "name"], where: { status: "active" } }],
         order: [["order_number", "asc"]],
       })

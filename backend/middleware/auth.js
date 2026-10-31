@@ -47,7 +47,7 @@ module.exports.isAdmin = (req, res, next) => {
 module.exports.protectWeb = (req, res, next) => {
   const payload = readToken(req);
   if (!payload?.guestId) return unauthorized(res);
-  req.session = { guestId: payload.guestId, customerId: payload.customerId ?? null };
+  req.session = { shopId: req.shopId, guestId: payload.guestId, customerId: payload.customerId ?? null };
   next();
 };
 

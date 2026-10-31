@@ -3,15 +3,16 @@ const { defaultBranch } = require("../config/constants");
 const { toNumber, now } = require("./helper");
 const { variantImage } = require("./productHelper");
 
-// Сагс: утсаар нэвтэрсэн бол customer_id-аар, үгүй бол зочны guest_id-аар хайна
-const ownerWhere = ({ guestId, customerId }) => (customerId ? { customer_id: customerId } : { guest_id: guestId, customer_id: null });
+// Сагс: утсаар нэвтэрсэн бол customer_id-аар, үгүй бол зочны guest_id-аар хайна (дэлгүүр бүрт тусдаа)
+const ownerWhere = ({ shopId, guestId, customerId }) =>
+  customerId ? { shop_id: shopId, customer_id: customerId } : { shop_id: shopId, guest_id: guestId, customer_id: null };
 
 module.exports.findCart = (session, t) =>
   carts.findOne({ where: { ...ownerWhere(session), status: "active" }, order: [["id", "desc"]], transaction: t });
 
 module.exports.getOrCreateCart = async (session, t) =>
   (await module.exports.findCart(session, t)) ??
-  carts.create({ guest_id: session.guestId, customer_id: session.customerId, status: "active", created_at: now() }, { transaction: t });
+  carts.create({ shop_id: session.shopId, guest_id: session.guestId, customer_id: session.customerId, status: "active", created_at: now() }, { transaction: t });
 
 const detailInclude = [
   { model: productVariants, as: "variant", include: [{ model: products, as: "product" }] },
@@ -47,10 +48,10 @@ module.exports.isSellable = (detail) =>
   detail.variant?.status === "active" && detail.variant.product?.status === "active" && detail.variant.product.is_active;
 
 // Утсаар нэвтрэхэд зочны сагсыг худалдан авагчийнх руу нийлүүлнэ
-module.exports.mergeGuestCart = async (guestId, customerId, t) => {
-  const guest = await module.exports.findCart({ guestId, customerId: null }, t);
+module.exports.mergeGuestCart = async (shopId, guestId, customerId, t) => {
+  const guest = await module.exports.findCart({ shopId, guestId, customerId: null }, t);
   if (!guest) return;
-  const own = await module.exports.findCart({ guestId, customerId }, t);
+  const own = await module.exports.findCart({ shopId, guestId, customerId }, t);
   if (!own) {
     await guest.update({ customer_id: customerId, updated_at: now() }, { transaction: t });
     return;

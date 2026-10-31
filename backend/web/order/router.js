@@ -9,7 +9,7 @@ const { ok, fail, handle, now, phoneDigits, isPhone } = require("../../helper/he
 router.get(
   "/",
   handle("myOrders", async (req, res) => {
-    const rows = await orders.findAll({ where: { customer_id: req.session.customerId }, include: itemsInclude, order: [["id", "desc"]] });
+    const rows = await orders.findAll({ where: { shop_id: req.shopId, customer_id: req.session.customerId }, include: itemsInclude, order: [["id", "desc"]] });
     return ok(res, { rows: rows.map(toWebOrder), count: rows.length, summary: [] });
   }),
 );
@@ -17,7 +17,7 @@ router.get(
 router.get(
   "/:id",
   handle("myOrder", async (req, res) => {
-    const order = await findOrder({ id: req.params.id, customer_id: req.session.customerId });
+    const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
     return ok(res, toWebOrder(order));
   }),
@@ -41,6 +41,7 @@ router.post(
       if (lines.length === 0) throw "Сагс хоосон байна";
 
       const id = await placeOrder({
+        shopId: req.shopId,
         lines: lines.map((l) => ({ variantId: l.variant_id, qty: l.qty })),
         info: {
           customer_id: req.session.customerId,
@@ -65,7 +66,7 @@ router.post(
       await cartDetails.destroy({ where: { cart_id: cart.id }, transaction: t });
       await cart.update({ status: "ordered", updated_at: now() }, { transaction: t });
       await t.commit();
-      return ok(res, toWebOrder(await findOrder({ id })));
+      return ok(res, toWebOrder(await findOrder({ id, shop_id: req.shopId })));
     } catch (error) {
       await t.rollback();
       throw error;
@@ -79,7 +80,7 @@ router.post(
   handle("payOrder", async (req, res) => {
     const { paymentMethod } = req.body;
     if (!paymentMethods.includes(paymentMethod)) return fail(res, "Төлбөрийн хэлбэр сонгоно уу");
-    const order = await findOrder({ id: req.params.id, customer_id: req.session.customerId });
+    const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
     if (!order.paid_at) await order.update({ payment_method: paymentMethod, paid_at: now(), updated_at: now() });
     return ok(res, toWebOrder(order));

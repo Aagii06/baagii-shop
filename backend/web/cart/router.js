@@ -63,7 +63,7 @@ router.post(
 
       const variant = await productVariants.findOne({
         where: { id: variantId, status: "active" },
-        include: [{ model: products, as: "product", where: { status: "active", is_active: true } }],
+        include: [{ model: products, as: "product", where: { shop_id: req.shopId, status: "active", is_active: true } }],
         transaction: t,
       });
       if (!variant) throw "Бараа олдсонгүй эсвэл зарагдахаа больсон байна";

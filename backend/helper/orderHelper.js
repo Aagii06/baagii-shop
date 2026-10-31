@@ -79,11 +79,11 @@ module.exports.toWebOrder = (order) => {
 };
 
 /**
- * Захиалга үүсгэж, хувилбаруудын үлдэгдлийг хасна.
+ * Захиалга үүсгэж, хувилбаруудын үлдэгдлийг хасна. Бараа нь shopId дэлгүүрийнх байх ёстой.
  * lines - [{ variantId, qty, price? }]; price өгөөгүй бол барааны одоогийн үнэ.
  * info  - orders хүснэгтийн багана (customer_name, phone, address, …)
  */
-module.exports.placeOrder = async ({ lines, info, by = null, transaction }) => {
+module.exports.placeOrder = async ({ shopId, lines, info, by = null, transaction }) => {
   const t = transaction ?? (await sequelize.transaction());
   try {
     const merged = new Map();
@@ -100,7 +100,7 @@ module.exports.placeOrder = async ({ lines, info, by = null, transaction }) => {
     for (const [variantId, line] of merged) {
       const variant = await productVariants.findOne({
         where: { id: variantId, status: "active" },
-        include: [{ model: products, as: "product", where: { status: "active" } }],
+        include: [{ model: products, as: "product", where: { shop_id: shopId, status: "active" } }],
         transaction: t,
         lock: t.LOCK.UPDATE,
       });
@@ -121,11 +121,11 @@ module.exports.placeOrder = async ({ lines, info, by = null, transaction }) => {
 
     const subtotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
     const order = await orders.create(
-      { ...info, subtotal, status: orderStatuses.pending, created_by: by, created_at: at },
+      { ...info, shop_id: shopId, subtotal, status: orderStatuses.pending, created_by: by, created_at: at },
       { transaction: t },
     );
     await orderItems.bulkCreate(items.map((item) => ({ ...item, order_id: order.id })), { transaction: t });
-    await saveLog({ object_name: "orders", object_id: order.id, log_action: "created", modify_data: JSON.stringify({ lines, info }), created_by: by, created_at: at }, t);
+    await saveLog({ shop_id: shopId, object_name: "orders", object_id: order.id, log_action: "created", modify_data: JSON.stringify({ lines, info }), created_by: by, created_at: at }, t);
 
     if (!transaction) await t.commit();
     return order.id;
@@ -141,4 +141,5 @@ module.exports.restock = async (variantId, qty, t) => {
   await productVariants.increment({ remain: qty }, { where: { id: variantId }, transaction: t });
 };
 
+// where-д shop_id заавал өгнө
 module.exports.findOrder = (where, t) => orders.findOne({ where, include: module.exports.itemsInclude, transaction: t });

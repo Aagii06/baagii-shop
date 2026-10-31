@@ -7,7 +7,7 @@ const { ok, fail, handle } = require("../../helper/helper");
 module.exports.list = handle("productList", async (req, res) => {
   const { limit, offset, where, order } = req;
   const { rows, count } = await products.findAndCountAll({
-    where: { [op.and]: [...where, { status: "active" }] },
+    where: { [op.and]: [...where, { shop_id: req.shopId, status: "active" }] },
     include: productInclude,
     distinct: true,
     limit,
@@ -18,33 +18,33 @@ module.exports.list = handle("productList", async (req, res) => {
 });
 
 module.exports.show = handle("productShow", async (req, res) => {
-  const product = await findProduct({ id: req.params.id });
+  const product = await findProduct({ id: req.params.id, shop_id: req.shopId });
   return ok(res, product ? toAdminProduct(product) : null);
 });
 
 module.exports.create = handle("productCreate", async (req, res) => {
   const { by, at, ...body } = req.body;
-  const id = await saveProduct({ body, by });
-  return ok(res, toAdminProduct(await findProduct({ id })));
+  const id = await saveProduct({ shopId: req.shopId, body, by });
+  return ok(res, toAdminProduct(await findProduct({ id, shop_id: req.shopId })));
 });
 
 module.exports.update = handle("productUpdate", async (req, res) => {
   const { by, at, ...body } = req.body;
-  const id = await saveProduct({ id: req.params.id, body, by });
-  return ok(res, toAdminProduct(await findProduct({ id })));
+  const id = await saveProduct({ shopId: req.shopId, id: req.params.id, body, by });
+  return ok(res, toAdminProduct(await findProduct({ id, shop_id: req.shopId })));
 });
 
 // Зөөлөн устгал: хуучин захиалга дээрх нэр, үнэ хэвээр үлдэнэ
 module.exports.destroy = handle("productDestroy", async (req, res) => {
   const { by, at } = req.body;
-  const product = await products.findOne({ where: { id: req.params.id, status: "active" } });
+  const product = await products.findOne({ where: { id: req.params.id, shop_id: req.shopId, status: "active" } });
   if (!product) return fail(res, "Бараа олдсонгүй");
   const t = await sequelize.transaction();
   try {
     const deleted = { status: "deleted", deleted_by: by, deleted_at: at };
     await product.update(deleted, { transaction: t });
     await productVariants.update(deleted, { where: { product_id: product.id, status: "active" }, transaction: t });
-    await saveLog({ object_name: "products", object_id: product.id, log_action: "deleted", created_by: by, created_at: at }, t);
+    await saveLog({ shop_id: req.shopId, object_name: "products", object_id: product.id, log_action: "deleted", created_by: by, created_at: at }, t);
     await t.commit();
     return ok(res, null);
   } catch (error) {

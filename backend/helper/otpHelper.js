@@ -16,8 +16,9 @@ const deliver = async (phone, code) => {
   if (process.env.NODE_ENV !== "production") console.log(`OTP ${phone}: ${code}`);
 };
 
-module.exports.sendPhoneOtp = async (phone, purpose = "login") => {
-  const where = { phone, purpose };
+// Код нь дэлгүүр бүрт тусдаа (нэг дугаар хоёр дэлгүүрт өөр өөр хэрэглэгч)
+module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login") => {
+  const where = { shop_id: shopId, phone, purpose };
   const existing = await phoneOtps.findOne({ where });
   const wait = OTP_RESEND_SECONDS - secondsSince(existing?.sent_at);
   if (wait > 0) return { success: false, message: `${wait} секундын дараа дахин код авна уу` };
@@ -37,9 +38,9 @@ module.exports.sendPhoneOtp = async (phone, purpose = "login") => {
   return { success: true, message: "Код илгээлээ" };
 };
 
-module.exports.verifyPhoneOtp = async (phone, code, purpose = "login") => {
+module.exports.verifyPhoneOtp = async (shopId, phone, code, purpose = "login") => {
   const invalid = (message) => ({ success: false, message });
-  const row = await phoneOtps.findOne({ where: { phone, purpose } });
+  const row = await phoneOtps.findOne({ where: { shop_id: shopId, phone, purpose } });
   if (!row) return invalid("Эхлээд код авна уу");
   if (row.attempts >= OTP_MAX_ATTEMPTS) return invalid("Оролдлого хэтэрлээ. Шинэ код авна уу");
   if (moment().isAfter(parseAt(row.expires_at))) return invalid("Кодын хугацаа дууссан. Шинэ код авна уу");
