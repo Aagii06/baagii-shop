@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const { users } = require("../../models");
 const { signUser } = require("../../middleware/auth");
 const { roles } = require("../../config/constants");

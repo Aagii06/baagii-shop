@@ -2,7 +2,7 @@
 
 // Анхны админ. Нууц үгийг кодонд бичихгүй — .env-ээс: ADMIN_USERNAME=admin ADMIN_PASSWORD=... npm run seed
 require("../config/env");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const { roles } = require("../config/constants");
 
 /** @type {import('sequelize-cli').Migration} */
