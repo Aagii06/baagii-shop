@@ -57,14 +57,17 @@ function statusMessage(status: number) {
   return tr("err.failed");
 }
 
-// eshop-service answers both success and failure with HTTP 200 and tells
-// them apart via `success`, so that flag is checked alongside `response.ok`.
+// The backend (../backend, and the old eshop-service before it) answers both
+// success and failure with HTTP 200 and tells them apart via `success`, so
+// that flag is checked alongside `response.ok`.
 export async function apiFetch<T>(
   path: string,
   { body, auth = true, headers, ...options }: RequestOptions = {}
 ): Promise<T> {
   const requestHeaders = new Headers(headers);
-  requestHeaders.set("Content-Type", "application/json");
+  // A file upload sends its own multipart boundary.
+  const isForm = body instanceof FormData;
+  if (!isForm) requestHeaders.set("Content-Type", "application/json");
 
   if (auth) {
     const token = getAuthToken();
@@ -76,7 +79,7 @@ export async function apiFetch<T>(
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       headers: requestHeaders,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: isForm ? (body as FormData) : body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch (err) {
     // The browser's own "Failed to fetch" — server down, offline, CORS.

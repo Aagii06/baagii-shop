@@ -314,4 +314,10 @@ export const en: Dict = {
   "on.pick": "Pick products",
   "on.confirmPick": "Select ({count})",
   "pr.total": "All requests",
+  "dash.unit.hour": "by hour",
+  "dash.unit.day": "by day",
+  "dash.vs.today": "vs yesterday",
+  "dash.vs.yesterday": "vs the day before",
+  "dash.vs.week": "vs previous 7 days",
+  "dash.vs.month": "vs previous 30 days",
 };

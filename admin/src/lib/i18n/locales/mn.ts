@@ -314,4 +314,10 @@ export const mn: Dict = {
   "on.pick": "Бараа сонгох",
   "on.confirmPick": "Сонгох ({count})",
   "pr.total": "Нийт хүсэлт",
+  "dash.unit.hour": "цагаар",
+  "dash.unit.day": "өдрөөр",
+  "dash.vs.today": "өчигдрөөс",
+  "dash.vs.yesterday": "уржигдраас",
+  "dash.vs.week": "өмнөх 7 хоногоос",
+  "dash.vs.month": "өмнөх 30 хоногоос",
 };

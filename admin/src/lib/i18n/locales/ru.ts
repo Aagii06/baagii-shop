@@ -314,4 +314,10 @@ export const ru: Dict = {
   "on.pick": "Выбрать товары",
   "on.confirmPick": "Выбрать ({count})",
   "pr.total": "Всего заявок",
+  "dash.unit.hour": "по часам",
+  "dash.unit.day": "по дням",
+  "dash.vs.today": "к вчера",
+  "dash.vs.yesterday": "к позавчера",
+  "dash.vs.week": "к прошлым 7 дням",
+  "dash.vs.month": "к прошлым 30 дням",
 };
