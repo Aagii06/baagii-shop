@@ -2,7 +2,6 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import ChipTabs from "@/components/common/ChipTabs";
-import SampleNotice from "@/components/common/SampleNotice";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import PageHeader from "@/components/layout/PageHeader";
@@ -71,10 +70,6 @@ export default function OrdersPage() {
           }))}
         />
       </PageHeader>
-
-      <SampleNotice className="mt-4">
-        {t("common.sampleOrders")}
-      </SampleNotice>
 
       {error && !data ? (
         <div className="pt-4">

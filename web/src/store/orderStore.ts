@@ -3,30 +3,24 @@ import type { Order } from "@/types/order";
 
 interface OrderStore {
   orders: Order[];
+  /** False while the shopper's orders are being fetched. */
+  loaded: boolean;
+  setLoaded: (loaded: boolean) => void;
   setOrders: (orders: Order[]) => void;
   createOrder: (order: Order) => void;
-  confirmOrder: (input: {
-    id: string;
-    paymentMethod?: Order["paymentMethod"];
-  }) => void;
+  /** Swaps in the backend's copy of an order, e.g. once it is paid. */
+  replaceOrder: (order: Order) => void;
 }
 
 export const useOrderStore = create<OrderStore>((set) => ({
   orders: [],
-  setOrders: (orders) => set({ orders }),
+  loaded: false,
+  setLoaded: (loaded) => set({ loaded }),
+  setOrders: (orders) => set({ orders, loaded: true }),
   createOrder: (order) =>
     set((state) => ({ orders: [order, ...state.orders] })),
-  confirmOrder: ({ id, paymentMethod }) =>
+  replaceOrder: (next) =>
     set((state) => ({
-      orders: state.orders.map((order): Order =>
-        order.id === id
-          ? {
-              ...order,
-              status: "confirmed",
-              confirmedAt: new Date().toISOString(),
-              paymentMethod,
-            }
-          : order
-      ),
+      orders: state.orders.map((order) => (order.id === next.id ? next : order)),
     })),
 }));

@@ -1,12 +1,9 @@
 import { tr } from "@/lib/i18n/translations";
-import { endpointMissing } from "./errors";
-import { SAMPLE_ORDERS, sampleSalesSummary } from "./sample";
+import { apiFetch, type ApiItemResponse, type ApiListResponse } from "./client";
 
-// eshop-service has no order list/detail/status or sales endpoints yet (only
-// `POST /order/checkOrders`, a status poll). Until they land, the readers
-// below serve placeholder data from `./sample` — pages that use them show a
-// "sample data" notice — and the writers reject. Swap the bodies for
-// `apiFetch` calls once the endpoints exist; the pages won't need to change.
+// Orders live in ../backend (`/order`): shop orders placed at checkout and
+// ones an admin enters here. Placing one takes its lines' stock; sending
+// items back returns it.
 
 export type OrderStatus = "pending" | "confirmed" | "delivered" | "returned";
 
@@ -100,19 +97,24 @@ export function orderTotal(order: Order) {
 
 /** Newest first. */
 export async function getOrders(): Promise<Order[]> {
-  return SAMPLE_ORDERS;
+  const res = await apiFetch<ApiListResponse<Order>>("/order");
+  return res.data?.rows ?? [];
 }
 
 export async function getOrder(id: number): Promise<Order | null> {
-  return SAMPLE_ORDERS.find((order) => order.id === id) ?? null;
+  const res = await apiFetch<ApiItemResponse<Order | null>>(`/order/${id}`);
+  return res.data;
 }
 
-export const setOrderStatus: (id: number, status: OrderStatus) => Promise<void> = () =>
-  endpointMissing(tr("orders.changeStatus"));
+/** `returned` sends back every unit still in the order. */
+export async function setOrderStatus(id: number, status: OrderStatus): Promise<void> {
+  await apiFetch(`/order/${id}/status`, { method: "PUT", body: { status } });
+}
 
 /** Sends back `qty` units of one line, e.g. 1 of the 2 ordered. */
-export const returnOrderItem: (orderId: number, itemId: number, qty: number) => Promise<void> = () =>
-  endpointMissing(tr("orders.returnItems"));
+export async function returnOrderItem(orderId: number, itemId: number, qty: number): Promise<void> {
+  await apiFetch(`/order/${orderId}/return`, { method: "POST", body: { itemId, qty } });
+}
 
 /** What an admin enters to place an order on a customer's behalf. */
 export interface OrderInput {
@@ -127,10 +129,10 @@ export interface OrderInput {
   deliveryFee: number;
 }
 
-// Wanted from the backend: `POST /order` with an `OrderInput` body — the
-// order starts as "pending" and takes its lines' stock.
-export const createOrder: (input: OrderInput) => Promise<void> = () =>
-  endpointMissing(tr("orders.createAction"));
+/** The order starts as "pending" and takes its lines' stock. */
+export async function createOrder(input: OrderInput): Promise<void> {
+  await apiFetch("/order", { method: "POST", body: input });
+}
 
 export type SalesRange = "today" | "yesterday" | "week" | "month";
 
@@ -146,6 +148,48 @@ export interface SalesSummary {
   series: { label: string; tick?: string; value: number }[];
 }
 
+/** `GET /order/sales` — revenue per hour or day of the range, and the period before it. */
+interface SalesData {
+  unit: "hour" | "day";
+  orders: number;
+  revenue: number;
+  previous: { orders: number; revenue: number };
+  series: { start: string; value: number }[];
+}
+
+const WEEKDAYS = ["Ня", "Да", "Мя", "Лх", "Пү", "Ба", "Бя"];
+
+function delta(now: number, before: number, against: string, percent: boolean) {
+  if (now === before) return null;
+  const diff = now - before;
+  const sign = diff > 0 ? "+" : "−";
+  const text = percent
+    ? before === 0
+      ? null
+      : `${sign}${Math.abs((diff / before) * 100).toFixed(1)}%`
+    : `${sign}${Math.abs(diff)} ${against}`;
+  return text ? { text, positive: diff > 0 } : null;
+}
+
 export async function getSalesSummary(range: SalesRange): Promise<SalesSummary> {
-  return sampleSalesSummary(range);
+  const res = await apiFetch<ApiItemResponse<SalesData>>(`/order/sales?range=${range}`);
+  const data = res.data;
+  const hourly = data.unit === "hour";
+  const tickEvery = hourly ? 6 : data.series.length <= 7 ? 1 : 7;
+  return {
+    orders: data.orders,
+    revenue: data.revenue,
+    ordersDelta: delta(data.orders, data.previous.orders, tr(`dash.vs.${range}`), false),
+    revenueDelta: delta(data.revenue, data.previous.revenue, "", true),
+    seriesUnit: tr(hourly ? "dash.unit.hour" : "dash.unit.day"),
+    series: data.series.map((point, i) => {
+      const date = new Date(point.start);
+      const label = hourly
+        ? `${String(date.getHours()).padStart(2, "0")}:00`
+        : data.series.length <= 7
+          ? WEEKDAYS[date.getDay()]
+          : `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      return { label, tick: i % tickEvery === 0 ? label : undefined, value: point.value };
+    }),
+  };
 }

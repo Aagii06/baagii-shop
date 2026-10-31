@@ -2,7 +2,6 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import ChipTabs from "@/components/common/ChipTabs";
-import SampleNotice from "@/components/common/SampleNotice";
 import { ErrorState, LoadingState } from "@/components/common/States";
 import PageHeader from "@/components/layout/PageHeader";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
@@ -263,9 +262,6 @@ export default function DashboardPage() {
       </PageHeader>
 
       <div className="space-y-3 pt-4">
-        <SampleNotice>
-          {t("dash.sampleNotice")}
-        </SampleNotice>
         <SalesSection
           range={range}
           pending={orders?.filter((order) => order.status === "pending").length}

@@ -1,7 +1,6 @@
 "use client";
 
 import Field from "@/components/common/Field";
-import SampleNotice from "@/components/common/SampleNotice";
 import Thumb from "@/components/common/Thumb";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -80,8 +79,6 @@ export default function NewOrderPage() {
       />
 
       <div className="space-y-5">
-        <SampleNotice>{t("common.sampleOrders")}</SampleNotice>
-
         <section className="space-y-3">
           <h2 className="px-1 text-[15px] font-bold">{t("on.customer")}</h2>
           <Field label={t("pr.phone")} error={show("phone")}>

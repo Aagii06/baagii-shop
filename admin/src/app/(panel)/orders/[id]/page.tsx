@@ -1,7 +1,6 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import SampleNotice from "@/components/common/SampleNotice";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -66,8 +65,6 @@ export default function OrderDetailPage() {
       />
 
       <div className="space-y-3">
-        <SampleNotice>{t("common.sampleOrders")}</SampleNotice>
-
         <Card className="p-4">
           <p className="text-[15px] font-bold">{order.customer.name}</p>
           <a

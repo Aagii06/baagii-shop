@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { getUserData, phoneOtp } from "@/lib/api/auth";
+import { getUserData, phoneOtp, signOut, updateProfileName } from "@/lib/api/auth";
 import type { AuthUser } from "@/lib/api/auth";
 
-const PHONE_KEY = "verified_phone";
-const NAME_KEY = "profile_name";
+// Left by the old mock sign-in, which kept the phone in the browser only.
+const LEGACY_KEYS = ["verified_phone", "profile_name"];
 
 /**
  * First name a freshly phone-registered shopper gets until they change it.
@@ -11,35 +11,27 @@ const NAME_KEY = "profile_name";
  */
 export const DEFAULT_PROFILE_NAME = "Зочин";
 
-function readStored(key: string): string | null {
+function dropLegacyKeys() {
   try {
-    return localStorage.getItem(key);
+    LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
   } catch {
-    return null;
-  }
-}
-
-function writeStored(key: string, value: string) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // non-fatal — the session still works for this page load
+    // ignore
   }
 }
 
 interface AuthStore {
   /** A real backend account, or null for a guest / phone-only session. */
   user: AuthUser | null;
-  /** Phone number verified in this browser (mock OTP for now). */
+  /** Phone number the shopper signed in with (`/auth/verifyOtp`). */
   phone: string | null;
   /** Profile first name — defaults to `DEFAULT_PROFILE_NAME` on registration. */
   name: string | null;
-  /** True until the initial `getUserData` + stored-phone load settles. */
+  /** True until the initial `getUserData` settles. */
   loading: boolean;
 
-  /** Loads the stored phone/name and the backend user; call once on mount. */
+  /** Loads the signed-in shopper from the backend; call once on mount. */
   bootstrap: () => Promise<void>;
-  /** Kicks off sending the one-time code (no-op until the backend has it). */
+  /** Sends the one-time code by SMS; rejects with the backend's reason. */
   requestOtp: (phone: string) => Promise<void>;
   /** Verifies the code; on success the phone becomes the session identity. */
   verifyOtp: (phone: string, code: string) => Promise<boolean>;
@@ -55,14 +47,18 @@ export const useAuthStore = create<AuthStore>((set) => ({
   loading: true,
 
   bootstrap: async () => {
-    set({ phone: readStored(PHONE_KEY), name: readStored(NAME_KEY) });
+    dropLegacyKeys();
     try {
       // A guest token is accepted by /auth/getUserData but comes back with
-      // no `user`, so this cleanly distinguishes a real login.
+      // no `customer`, so this cleanly distinguishes a phone sign-in.
       const data = await getUserData();
-      set({ user: data.user ?? null });
+      set({
+        user: data.user ?? null,
+        phone: data.customer?.phone ?? null,
+        name: data.customer?.name ?? null,
+      });
     } catch {
-      set({ user: null });
+      set({ user: null, phone: null, name: null });
     } finally {
       set({ loading: false });
     }
@@ -73,30 +69,23 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   verifyOtp: async (phone, code) => {
-    const ok = await phoneOtp.confirm(phone, code);
-    if (!ok) return false;
-    writeStored(PHONE_KEY, phone);
-    // A new phone registration starts with the default first name.
-    const name = readStored(NAME_KEY) ?? DEFAULT_PROFILE_NAME;
-    writeStored(NAME_KEY, name);
-    // The guest token (and the cart built under it) is left untouched, so
-    // the cart stays attached to this now phone-identified session.
-    set({ phone, name });
+    const customer = await phoneOtp.confirm(phone, code);
+    if (!customer) return false;
+    // The backend moved the guest cart to the shopper; a new phone
+    // registration starts with the default first name.
+    set({ phone: customer.phone, name: customer.name ?? DEFAULT_PROFILE_NAME });
     return true;
   },
 
   setName: (name) => {
-    writeStored(NAME_KEY, name);
     set({ name });
+    updateProfileName(name).catch(() => {
+      // kept for this page load; the next bootstrap shows the saved name
+    });
   },
 
   logout: () => {
-    try {
-      localStorage.removeItem(PHONE_KEY);
-      localStorage.removeItem(NAME_KEY);
-    } catch {
-      // ignore
-    }
     set({ phone: null, name: null, user: null });
+    signOut();
   },
 }));

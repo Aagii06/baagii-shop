@@ -15,8 +15,9 @@ import {
  */
 export const GUEST_SESSION_CHANGED_EVENT = "guest-session-changed";
 
-// Client-side TTL for guest sessions; the backend token itself doesn't
-// carry an expiry, so we age it out locally and re-login after this long.
+// Client-side TTL for guest sessions, well inside the backend token's own
+// expiry; we age it out locally and re-login after this long. A shopper's
+// token (`phoneOtp.confirm`) is kept until the backend rejects it.
 const GUEST_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 interface ApiItemResponse<T> {
@@ -46,10 +47,19 @@ export interface ObjectPermission {
   isDestroy: boolean;
 }
 
+/** A shopper signed in by phone (`/auth/verifyOtp`). */
+export interface Customer {
+  id: number;
+  phone: string;
+  name: string | null;
+}
+
 // A guest token is accepted but carries no user, so every field can be
-// absent; callers must null-check `user` before using it.
+// absent; callers must null-check `user` / `customer` before using them.
 export interface UserData {
   user?: AuthUser;
+  /** Set once the guest has signed in with a phone code. */
+  customer?: Customer;
   /** Keyed by menu code. */
   menuPermission?: Record<string, boolean>;
   /** Keyed by custom action code. */
@@ -75,30 +85,49 @@ function loginGuest() {
   }).then((res) => res.data);
 }
 
-// Phone verification for checkout. eshop-service has no OTP endpoint yet, so
-// this is mocked: sending the code is a no-op and the code "2222" verifies
-// any number. Because we keep the existing guest token, the cart built under
-// it stays attached to the now phone-identified session. Swap both calls for
-// real `/auth/*` requests once the backend lands.
-export const DEMO_OTP_CODE = "2222";
-
+// Phone sign-in for checkout. `verifyOtp` is sent with the current guest
+// token, so the backend moves the cart built under it to the shopper, and
+// answers with a new token that carries them. Until SMS is hooked up the
+// backend accepts its `OTP_DEV_CODE` (2222) for every number.
 export const phoneOtp = {
-  // TODO: POST /auth/sendOtp — send the one-time code by SMS.
   send: async (phone: string): Promise<void> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    if (!phone.trim()) throw new Error("phone required");
+    await apiFetch<ApiItemResponse<null>>("/auth/sendOtp", {
+      method: "POST",
+      auth: false,
+      body: { phone },
+    });
   },
-  // TODO: POST /auth/verifyOtp — exchange the code for a user session and
-  // merge the guest cart server-side.
-  confirm: async (phone: string, code: string): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return Boolean(phone.trim()) && code.trim() === DEMO_OTP_CODE;
+  /** The shopper on success; `null` for a wrong or expired code. */
+  confirm: async (phone: string, code: string): Promise<Customer | null> => {
+    try {
+      const res = await apiFetch<ApiItemResponse<{ token: string; customer: Customer }>>("/auth/verifyOtp", {
+        method: "POST",
+        body: { phone, code },
+      });
+      setAuthToken(res.data.token);
+      return res.data.customer;
+    } catch {
+      return null;
+    }
   },
 };
 
-// Seller sign-up request: registers the phone number (`userName`) through
-// `POST /auth/register`. The backend has no separate "seller request" yet, so
-// an admin turns the new user into a shopper afterwards.
+/** Renames the signed-in shopper. */
+export async function updateProfileName(name: string): Promise<void> {
+  await apiFetch<ApiItemResponse<Customer>>("/auth/me", { method: "PUT", body: { name } });
+}
+
+/**
+ * Drops the shopper's token and starts a fresh guest session — its new
+ * guest id fires `GUEST_SESSION_CHANGED_EVENT`, which clears the cart.
+ */
+export async function signOut(): Promise<void> {
+  clearAuthToken();
+  await ensureGuestToken();
+}
+
+// Seller sign-up request: `POST /auth/register` files a partner request for
+// the phone number (`userName`), which an admin approves in the admin panel.
 export async function registerSeller(phone: string): Promise<void> {
   await apiFetch<ApiItemResponse<null>>("/auth/register", {
     method: "POST",

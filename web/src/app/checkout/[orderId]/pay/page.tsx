@@ -2,9 +2,11 @@
 
 import PaymentForm from "@/components/checkout/PaymentForm";
 import { Button } from "@/components/ui/button";
+import { payOrder } from "@/lib/api/orders";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { useOrderStore } from "@/store/orderStore";
+import PageLoader from "@/components/ui/page-loader";
 import type { PaymentMethod } from "@/types/order";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -14,9 +16,11 @@ export default function PayOrderPage() {
   const { t } = useLanguage();
   const { orderId } = useParams();
   const router = useRouter();
-  const confirmOrder = useOrderStore((s) => s.confirmOrder);
+  const replaceOrder = useOrderStore((s) => s.replaceOrder);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const ordersLoaded = useOrderStore((s) => s.loaded);
   const order = useOrderStore((s) =>
     s.orders.find((order) => order.id === orderId)
   );
@@ -25,11 +29,19 @@ export default function PayOrderPage() {
     if (!order) return;
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    confirmOrder({ id: order.id, paymentMethod: method });
-    router.push(`/orders/${order.id}`);
+    setError(null);
+    try {
+      replaceOrder(await payOrder(order.id, method));
+      router.push(`/orders/${order.id}`);
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : t("cart.error.generic"));
+      setIsSubmitting(false);
+    }
   };
+
+  if (!ordersLoaded) {
+    return <PageLoader />;
+  }
 
   if (!order) {
     return (
@@ -72,6 +84,7 @@ export default function PayOrderPage() {
             onSubmit={handlePay}
             isSubmitting={isSubmitting}
           />
+          {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
         </div>
 
         <div className="lg:col-span-1">

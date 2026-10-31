@@ -1,7 +1,6 @@
 "use client";
 
 import ChipTabs from "@/components/common/ChipTabs";
-import SampleNotice from "@/components/common/SampleNotice";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -90,10 +89,8 @@ export default function PartnerRequestsPage() {
         />
       </div>
 
-      <SampleNotice className="mt-4">{t("pr.sampleNotice")}</SampleNotice>
-
       {data && (
-        <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-3">
           <StatTile label={t("pr.total")} value={data.length} />
           {TABS.map((s) => (
             <StatTile

@@ -7,6 +7,7 @@ import PlaceholderImage from "@/components/ui/placeholder-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatDateTime, formatMNT } from "@/lib/utils";
 import { useOrderStore } from "@/store/orderStore";
+import PageLoader from "@/components/ui/page-loader";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -15,9 +16,14 @@ export default function OrderDetailPage() {
   const { t, locale } = useLanguage();
   const { orderId } = useParams();
 
+  const ordersLoaded = useOrderStore((s) => s.loaded);
   const order = useOrderStore((s) =>
     s.orders.find((order) => order.id === orderId)
   );
+
+  if (!ordersLoaded) {
+    return <PageLoader />;
+  }
 
   if (!order) {
     return (

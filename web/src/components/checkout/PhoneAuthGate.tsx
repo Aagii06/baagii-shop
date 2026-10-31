@@ -36,6 +36,8 @@ export default function PhoneAuthGate() {
     try {
       await requestOtp(phone.trim());
       setStep("code");
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : t("checkout.auth.invalidPhone"));
     } finally {
       setBusy(false);
     }

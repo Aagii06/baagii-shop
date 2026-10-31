@@ -3,6 +3,7 @@
 import PhoneAuthGate from "@/components/checkout/PhoneAuthGate";
 import ShippingForm from "@/components/checkout/ShippingForm";
 import { Button } from "@/components/ui/button";
+import { placeOrder } from "@/lib/api/orders";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { calculatePricing } from "@/lib/pricing";
 import { formatMNT } from "@/lib/utils";
@@ -20,7 +21,7 @@ export default function CheckoutPage() {
   const { t } = useLanguage();
   const cart = useCartStore((s) => s.items);
   const cartHydrated = useCartStore((s) => s.hydrated);
-  const clearServerCart = useCartStore((s) => s.clearServerCart);
+  const refreshCart = useCartStore((s) => s.refreshCart);
   const couponCode = useCouponStore((s) => s.code);
   const couponValue = useCouponStore((s) => s.amount);
   const clearCoupon = useCouponStore((s) => s.clearCoupon);
@@ -32,38 +33,31 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const { subtotal, shipping, coupon: couponAmount, total } = calculatePricing(
     cart,
     { shippingFee: deliveryFee || undefined, couponAmount: couponValue }
   );
 
-  const handlePlaceOrder = (shippingInfo: ShippingInfo) => {
+  // The backend turns the server cart into the order (prices, delivery,
+  // coupon and stock are checked there) and empties the cart.
+  const handlePlaceOrder = async (shippingInfo: ShippingInfo) => {
     setIsSubmitting(true);
     setDeliveryFee(shippingInfo.deliveryFee);
+    setError(null);
 
-    const pricing = calculatePricing(cart, {
-      shippingFee: shippingInfo.deliveryFee,
-      couponAmount: couponValue,
-    });
-
-    const orderId = `UVS-${Date.now().toString(36).toUpperCase()}`;
-
-    createOrder({
-      id: orderId,
-      items: cart,
-      shippingInfo,
-      subtotal: pricing.subtotal,
-      shipping: pricing.shipping,
-      coupon: pricing.coupon,
-      total: pricing.total,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    });
-    clearServerCart();
-    clearCoupon();
-
-    router.push(`/checkout/${orderId}/pay`);
+    try {
+      const order = await placeOrder({ shippingInfo, couponCode });
+      createOrder(order);
+      clearCoupon();
+      router.push(`/checkout/${order.id}/pay`);
+      refreshCart();
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : t("cart.error.generic"));
+      setIsSubmitting(false);
+      refreshCart();
+    }
   };
 
   if (cart.length === 0 && !cartHydrated) {
@@ -167,6 +161,8 @@ export default function CheckoutPage() {
                 {formatMNT(total)}
               </span>
             </div>
+
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
             <Button
               type="submit"

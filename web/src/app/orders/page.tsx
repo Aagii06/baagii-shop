@@ -8,6 +8,7 @@ import PlaceholderImage from "@/components/ui/placeholder-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatDate, formatMNT } from "@/lib/utils";
 import { useOrderStore } from "@/store/orderStore";
+import PageLoader from "@/components/ui/page-loader";
 import { Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,6 +18,7 @@ type Tab = "all" | "active" | "delivered" | "cancelled";
 export default function OrdersPage() {
   const { t, locale } = useLanguage();
   const orders = useOrderStore((s) => s.orders);
+  const ordersLoaded = useOrderStore((s) => s.loaded);
   const [tab, setTab] = useState<Tab>("all");
 
   const tabs: { id: Tab; label: string }[] = [
@@ -35,6 +37,10 @@ export default function OrdersPage() {
       ? order.status === "confirmed"
       : false
   );
+
+  if (!ordersLoaded) {
+    return <PageLoader />;
+  }
 
   if (orders.length === 0) {
     return (

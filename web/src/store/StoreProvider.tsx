@@ -10,7 +10,7 @@ import SavedPersistence from "./SavedPersistence";
 
 // The Zustand stores are module singletons, so there is no context provider
 // to mount — this just wires up the app-wide side effects that keep them in
-// sync (guest login, server cart refresh, order persistence) plus the shared
+// sync (guest login, server cart refresh, the shopper's orders) plus the shared
 // cart error toast.
 export default function StoreProvider({
   children,

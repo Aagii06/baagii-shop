@@ -1,31 +1,39 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { getMyOrders } from "@/lib/api/orders";
+import { useAuthStore } from "./authStore";
 import { useOrderStore } from "./orderStore";
 
-// Orders are demo-only and never hit a backend, so they live in localStorage.
-// The read happens after mount (not in the store initializer) to keep the
-// server-rendered and first client render identical.
+// Orders live on the backend under the phone-signed-in shopper; a guest has
+// none. Reloaded whenever the signed-in phone changes.
 export default function OrderPersistence() {
-  const orders = useOrderStore((s) => s.orders);
   const setOrders = useOrderStore((s) => s.setOrders);
-  const isFirstWrite = useRef(true);
+  const setLoaded = useOrderStore((s) => s.setLoaded);
+  const phone = useAuthStore((s) => s.phone);
+  const authLoading = useAuthStore((s) => s.loading);
 
   useEffect(() => {
-    const saved = localStorage.getItem("orders");
-    if (saved) {
-      setOrders(JSON.parse(saved));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (isFirstWrite.current) {
-      isFirstWrite.current = false;
+    if (authLoading) return;
+    if (!phone) {
+      setOrders([]);
       return;
     }
-    localStorage.setItem("orders", JSON.stringify(orders));
-  }, [orders]);
+    let cancelled = false;
+    setLoaded(false);
+    getMyOrders().then(
+      (orders) => {
+        if (!cancelled) setOrders(orders);
+      },
+      () => {
+        // keep what's shown; the next sign-in or reload tries again
+        if (!cancelled) setLoaded(true);
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [phone, authLoading, setOrders, setLoaded]);
 
   return null;
 }
