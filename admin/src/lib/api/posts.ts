@@ -1,14 +1,15 @@
-import { apiFetch, fetchAllRows, type ApiListResponse } from "./client";
+import { apiFetch, fetchAllRows, type ApiItemResponse, type ApiListResponse } from "./client";
 import { tr } from "@/lib/i18n/translations";
-import { endpointMissing } from "./errors";
+import { uploadFile } from "./files";
 
 /** Remaining stock at or below this is flagged as running low. */
 export const LOW_STOCK_THRESHOLD = 5;
 
-// Products come from eshop-admin `GET /product` (paged; no `GET /product/{id}`)
-// and are saved with `POST /product` / `PUT /product/{id}`. The backend turns
-// each into an eshop post, so the UI keeps the post-shaped `Post` /
-// `PostDetail` below, built from the rows by `toPostDetail`.
+// Products come from `GET /product` (paged) and `GET /product/{id}`, are saved
+// with `POST /product` / `PUT /product/{id}` and removed with
+// `DELETE /product/{id}` (../backend). The shop sees each as a post, so the
+// UI keeps the post-shaped `Post` / `PostDetail` below, built from the rows by
+// `toPostDetail`.
 // DECIMAL columns arrive as strings — convert with `toNumber`.
 
 interface ProductAttrValue {
@@ -30,6 +31,15 @@ interface ProductVariant {
   attr: ProductAttrValue[] | null;
 }
 
+/** What the product varies by, each value with its images — sent and read back as `attrs`. */
+interface ProductAttr {
+  attrId: number;
+  attrName: string;
+  viewType: string;
+  orderNumber: number;
+  values: PostAttrValue[];
+}
+
 interface Product {
   id: number;
   companyId: number;
@@ -44,13 +54,14 @@ interface Product {
   price: string;
   /** Eshop post id. */
   deepLink: string | null;
-  // Neither is in the spec yet — picked up once the backend sends them.
-  // The shop's `GET /post` marks publishing with `statusId`.
+  // ../backend sends both; the old eshop-admin sent neither.
   isActive?: boolean;
   statusId?: "draft" | "active" | "inactive";
   createdAt: string;
   updatedAt: string;
   variants: ProductVariant[] | null;
+  /** Absent on products saved before the backend kept them. */
+  attrs?: ProductAttr[] | null;
 }
 
 export interface Post {
@@ -153,7 +164,9 @@ function toPostDetail(product: Product): PostDetail {
         ? Object.fromEntries(v.attr.flatMap((a) => (a.value ? [[String(a.attrId), a.value]] : [])))
         : null,
     })),
-    postAttrs: collectAttrs(variants),
+    postAttrs: product.attrs?.length
+      ? product.attrs.map(({ values, ...attr }) => ({ ...attr, postAttrValues: values }))
+      : collectAttrs(variants),
   };
 }
 
@@ -199,10 +212,8 @@ export async function getPostsPage({
 }
 
 export async function getPost(id: number): Promise<PostDetail | null> {
-  const filter = encodeURIComponent(JSON.stringify(["id", "=", id]));
-  const res = await apiFetch<ApiListResponse<Product>>(`/product?take=1&filter=${filter}`);
-  const product = res.data?.rows?.find((p) => p.id === id);
-  return product ? toPostDetail(product) : null;
+  const res = await apiFetch<ApiItemResponse<Product | null>>(`/product/${id}`);
+  return res.data ? toPostDetail(res.data) : null;
 }
 
 /** Fields edited on the product form. */
@@ -214,7 +225,7 @@ export interface PostInput {
   price: number;
   categoryId: number | null;
   note: string;
-  /** Sent ahead of the spec, which has no such field yet — also as the post's `statusId`. */
+  /** Whether the shop lists it; also sent as `statusId`. */
   isActive: boolean;
   /** Shown while no colour is picked in the shop. See `newFiles` for `blob:` entries. */
   images: string[];
@@ -258,8 +269,8 @@ export interface PostVariantInput {
   price: number;
 }
 
-// `POST/PUT /product` body. The backend matches variants by their `attr`, and
-// has nowhere for a value's extra images — only its cover (`image`) is sent.
+// `POST/PUT /product` body. The backend matches variants by `id`, else by
+// their `attr`; `attrs` carries every value's images.
 function toProductBody(input: PostInput) {
   return {
     // Today, `YYYY-MM-DD` in local time — also when editing.
@@ -273,7 +284,9 @@ function toProductBody(input: PostInput) {
     qty: input.variants.reduce((sum, v) => sum + v.qty, 0),
     mainPrice: input.mainPrice,
     price: input.price,
+    attrs: input.attrs.map((attr) => ({ attrId: attr.attrId, name: attr.name, values: attr.values })),
     variants: input.variants.map((variant) => ({
+      id: variant.id,
       name: variant.values.join(" / ") || input.name || tr("common.unnamed"),
       price: variant.price,
       mainPrice: variant.mainPrice,
@@ -290,13 +303,30 @@ function toProductBody(input: PostInput) {
 /** `id` is `null` for a new product. */
 export async function savePost(id: number | null, input: PostInput): Promise<void> {
   if (input.categoryId == null) throw new Error(tr("pf.mustPickCategory"));
-  // No file-upload endpoint yet, and `blob:` URLs mean nothing to the backend.
-  if (Object.keys(input.newFiles).length > 0) return endpointMissing(tr("pf.uploadImage"));
   await apiFetch(id == null ? "/product" : `/product/${id}`, {
     method: id == null ? "POST" : "PUT",
-    body: toProductBody(input),
+    body: toProductBody(await withUploads(input)),
   });
 }
 
-export const deletePost: (id: number) => Promise<void> = () =>
-  endpointMissing(tr("pf.deleteAction"));
+/** Uploads the draft's new images and puts their file ids where the `blob:` URLs were. */
+async function withUploads(input: PostInput): Promise<PostInput> {
+  const uploaded = new Map(
+    await Promise.all(Object.entries(input.newFiles).map(async ([ref, file]) => [ref, await uploadFile(file)] as const))
+  );
+  if (uploaded.size === 0) return input;
+  const swap = (ref: string) => uploaded.get(ref) ?? ref;
+  return {
+    ...input,
+    images: input.images.map(swap),
+    attrs: input.attrs.map((attr) => ({
+      ...attr,
+      values: attr.values.map((v) => ({ ...v, image: v.image && swap(v.image), images: v.images.map(swap) })),
+    })),
+    newFiles: {},
+  };
+}
+
+export async function deletePost(id: number): Promise<void> {
+  await apiFetch(`/product/${id}`, { method: "DELETE" });
+}
