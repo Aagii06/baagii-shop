@@ -6,7 +6,7 @@ const { ok, handle, toIso } = require("../../helper/helper");
 router.get(
   "/",
   handle("doNoteList", async (req, res) => {
-    const rows = await doNotes.findAll({ where: { status: "active" }, order: [["id", "asc"]], raw: true });
+    const rows = await doNotes.findAll({ where: { shop_id: req.shopId, status: "active" }, order: [["id", "asc"]], raw: true });
     return ok(res, {
       rows: rows.map((r) => ({ id: r.id, name: r.name, description: r.description, createdAt: toIso(r.created_at), updatedAt: toIso(r.updated_at ?? r.created_at) })),
       count: rows.length,

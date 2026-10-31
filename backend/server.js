@@ -11,6 +11,9 @@ app.use(cors());
 app.use(express.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 app.use(express.json({ limit: "50mb" }));
 
+// API-ийн тайлбар (docs/openapi.js) — X-Shop-Id шаардахгүй тул resolveShop-оос өмнө
+const swaggerUi = require("swagger-ui-express");
+app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(require("./docs/openapi"), { customSiteTitle: "UVS shop API" }));
 // Admin самбар (../admin) ба дэлгүүр (../web) — аль дэлгүүрийнх нь X-Shop-Id толгойгоор
 app.use("/api", resolveShop, require("./api/routes"));
 app.use("/web", resolveShop, require("./web/routes"));

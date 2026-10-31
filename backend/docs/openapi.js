@@ -26,8 +26,10 @@ const num = (example, description) => ({ type: "integer", example, description }
 const idParam = (description = "id") => ({ name: "id", in: "path", required: true, schema: { type: "integer" }, description });
 const query = (name, description, example) => ({ name, in: "query", schema: { type: "string" }, description, example });
 
-const admin = [{ adminToken: [] }];
-const web = [{ webToken: [] }];
+// /api, /web бүгд X-Shop-Id толгой шаардана (middleware/shop.js)
+const shop = [{ shopId: [] }];
+const admin = [{ shopId: [], adminToken: [] }];
+const web = [{ shopId: [], webToken: [] }];
 
 // Admin жагсаалтын нийтлэг query (middleware/base.js: list)
 const listQuery = [
@@ -37,7 +39,7 @@ const listQuery = [
   query("sort", "JSON эрэмбэ", '[{"selector":"id","desc":true}]'),
 ];
 
-const op = (tag, summary, extra = {}) => ({ tags: [tag], summary, responses: reply(), ...extra });
+const op = (tag, summary, extra = {}) => ({ tags: [tag], summary, security: shop, responses: reply(), ...extra });
 
 const product = {
   name: str("Цамц"),
@@ -81,6 +83,7 @@ module.exports = {
     version: "1.0.0",
     description:
       "Бүх хариу `{ success, message, data }` хэлбэртэй, HTTP 200. Алдаа гарвал `success: false`, шалтгаан нь `message`-д.\n\n" +
+      "**/api/** ба **/web/** хүсэлт бүрт `X-Shop-Id` толгой заавал явуулна (**shopId**). Эхлээд **Authorize** дарж оруулна.\n\n" +
       "- **/api/** нь admin самбарт зориулсан. `/api/auth/login`-оос авсан токеноор нэвтэрнэ (**adminToken**).\n" +
       "- **/web/** нь дэлгүүрийн вэбэд зориулсан. `/web/auth/loginGuest`-оос зочны токен авна. Утас + кодоор нэвтэрвэл худалдан авагчийн токен болно (**webToken**).\n" +
       "- **/file/** нь зураг. Нийтэд нээлттэй.",
@@ -88,6 +91,7 @@ module.exports = {
   servers: [{ url: "/", description: "Энэ сервер" }],
   components: {
     securitySchemes: {
+      shopId: { type: "apiKey", in: "header", name: "X-Shop-Id", description: "Дэлгүүрийн id (shops хүснэгт)" },
       adminToken: { type: "http", scheme: "bearer", bearerFormat: "JWT", description: "/api/auth/login → data.token" },
       webToken: { type: "http", scheme: "bearer", bearerFormat: "JWT", description: "/web/auth/loginGuest эсвэл /web/auth/verifyOtp → data.token" },
     },

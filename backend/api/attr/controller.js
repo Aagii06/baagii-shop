@@ -31,7 +31,7 @@ const toRecord = (attr) => ({
 module.exports.list = handle("attrList", async (req, res) => {
   const { limit, offset, where, order } = req;
   const { rows, count } = await attrs.findAndCountAll({
-    where: { [op.and]: [...where, { status: "active" }] },
+    where: { [op.and]: [...where, { shop_id: req.shopId, status: "active" }] },
     include: [valuesInclude],
     distinct: true,
     limit,
@@ -42,7 +42,7 @@ module.exports.list = handle("attrList", async (req, res) => {
 });
 
 module.exports.show = handle("attrShow", async (req, res) => {
-  const attr = await attrs.findOne({ where: { id: req.params.id, status: "active" }, include: [valuesInclude] });
+  const attr = await attrs.findOne({ where: { id: req.params.id, shop_id: req.shopId, status: "active" }, include: [valuesInclude] });
   return ok(res, attr ? toRecord(attr) : null);
 });
 
@@ -89,15 +89,15 @@ const save = (id) => async (req, res) => {
   try {
     let attr;
     if (id(req)) {
-      attr = await attrs.findOne({ where: { id: id(req), status: "active" }, transaction: t });
+      attr = await attrs.findOne({ where: { id: id(req), shop_id: req.shopId, status: "active" }, transaction: t });
       if (!attr) throw "Сонголт олдсонгүй";
       await attr.update({ ...fields(body), updated_by: by, updated_at: at }, { transaction: t });
     } else {
-      attr = await attrs.create({ ...fields(body), status: "active", created_by: by, created_at: at }, { transaction: t });
+      attr = await attrs.create({ ...fields(body), shop_id: req.shopId, status: "active", created_by: by, created_at: at }, { transaction: t });
     }
     await syncValues(attr.id, values, by, at, t);
     await saveLog(
-      { object_name: "attrs", object_id: attr.id, log_action: id(req) ? "updated" : "created", modify_data: JSON.stringify(req.body), created_by: by, created_at: at },
+      { shop_id: req.shopId, object_name: "attrs", object_id: attr.id, log_action: id(req) ? "updated" : "created", modify_data: JSON.stringify(req.body), created_by: by, created_at: at },
       t,
     );
     await t.commit();
@@ -115,13 +115,13 @@ module.exports.update = handle("attrUpdate", save((req) => req.params.id));
 // Категориудаас нь хасаад устгана (бараан дээр хадгалсан утгууд хэвээр)
 module.exports.destroy = handle("attrDestroy", async (req, res) => {
   const { by, at } = req.body;
-  const attr = await attrs.findOne({ where: { id: req.params.id, status: "active" } });
+  const attr = await attrs.findOne({ where: { id: req.params.id, shop_id: req.shopId, status: "active" } });
   if (!attr) return fail(res, "Сонголт олдсонгүй");
   const t = await sequelize.transaction();
   try {
     await attr.update({ status: "deleted", deleted_by: by, deleted_at: at }, { transaction: t });
     await categoryAttrs.destroy({ where: { attr_id: attr.id }, transaction: t });
-    await saveLog({ object_name: "attrs", object_id: attr.id, log_action: "deleted", created_by: by, created_at: at }, t);
+    await saveLog({ shop_id: req.shopId, object_name: "attrs", object_id: attr.id, log_action: "deleted", created_by: by, created_at: at }, t);
     await t.commit();
     return ok(res, null);
   } catch (error) {
