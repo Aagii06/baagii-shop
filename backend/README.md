@@ -52,8 +52,8 @@ query-г хүлээж авна (`middleware/base.js`).
 ## Бүтэц
 
 ```
-api/       admin (/api)  — auth, attr, category, product, file, doNote, order, partnerRequest
-web/       дэлгүүр (/web) — auth, category, post, cart, customerAddress, order
+api/       admin (/api)  — auth, attr, category, product, file, doNote, order, partnerRequest, blog
+web/       дэлгүүр (/web) — auth, category, post, cart, customerAddress, order, blog
 file/      зураг (/file/{id}, /file/thumbnail/{id}) — public/uploads/products
 helper/    бараа, захиалга, сагс, категори, OTP, файлын логик
 models/    Sequelize моделиуд (snake_case багана)
@@ -81,6 +81,13 @@ migrations/, seeders/
 - Admin: `pending → confirmed → delivered`, аль ч шатнаас `returned`
   (үлдсэн бүх бараа үлдэгдэлд буцна). `POST /api/order/{id}/return` нь нэг
   мөрөөс хэдэн ширхгийг буцаана.
+
+## Блог
+
+Дэлгүүр бүрийн нийтлэл (Ajrug: "Ээжүүдийн булан"). Admin: `/api/blog` (жагсаалт,
+`/{id}`, нэмэх, засах, устгах); вэб: `/web/blog`, `/web/blog/{slug}` — зөвхөн
+нийтэлсэн. Slug нь гарчгаас (латинаар) үүсч, засахад өөрчлөгдөхгүй. Ajrug-ийн
+анхны 7 нийтлэл, зургууд нь `seeders/data/blog`-оос seed-ээр орно.
 
 ## Анхаарах
 
