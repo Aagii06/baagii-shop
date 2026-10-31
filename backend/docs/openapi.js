@@ -115,7 +115,7 @@ module.exports = {
     // ───────── Admin ─────────
     "/api/auth/login": {
       post: op("Admin: Нэвтрэх", "Нэвтрэх", {
-        requestBody: json({ userName: str("admin"), password: str("******") }, ["userName", "password"]),
+        requestBody: json({ phone: str("80113290", "Утасны дугаар"), password: str("******") }, ["phone", "password"]),
         responses: reply("Токен ба хэрэглэгч", { type: "object", properties: { token: { type: "string" }, user: { type: "object" } } }),
       }),
     },
