@@ -1,5 +1,5 @@
 import { tr } from "@/lib/i18n/translations";
-import { API_BASE_URL } from "./config";
+import { API_BASE_URL, SHOP_ID } from "./config";
 import { ApiError } from "./errors";
 import { clearSession, getAuthToken } from "./token";
 
@@ -68,6 +68,7 @@ export async function apiFetch<T>(
   // A file upload sends its own multipart boundary.
   const isForm = body instanceof FormData;
   if (!isForm) requestHeaders.set("Content-Type", "application/json");
+  requestHeaders.set("X-Shop-Id", SHOP_ID);
 
   if (auth) {
     const token = getAuthToken();

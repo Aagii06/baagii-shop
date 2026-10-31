@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./config";
+import { API_BASE_URL, SHOP_ID } from "./config";
 import { ApiError } from "./errors";
 
 type RequestOptions = Omit<RequestInit, "body"> & {
@@ -20,6 +20,7 @@ async function request<T>(
 ): Promise<T> {
   const requestHeaders = new Headers(headers);
   requestHeaders.set("Content-Type", "application/json");
+  requestHeaders.set("X-Shop-Id", SHOP_ID);
 
   if (auth) {
     // Dynamic import avoids a static cycle: ./auth calls apiFetch itself
