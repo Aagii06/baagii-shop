@@ -20,10 +20,23 @@ const constant = {
     delivered: ["returned"],
     returned: [],
   },
-  // Захиалгын хүргэлтийн төлбөр (вэб: web/src/lib/pricing.ts SHIPPING_FEE)
-  deliveryFee: 6000,
-  // Хөнгөлөлтийн код → хасах дүн (вэб: VALID_COUPONS)
-  coupons: { UVS25: 13500 },
+  // Дэлгүүр бүрийн (shops.id) хүргэлтийн сонголт, хөнгөлөлтийн код — вэбийн
+  // web/src/lib/pricing.ts (DELIVERY_OPTIONS / SHIPPING_FEE, VALID_COUPONS)-тэй ижил байна.
+  // freeAbove: дэд дүн үүнээс их бол тухайн хүргэлт үнэгүй
+  shopSettings: {
+    1: {
+      delivery: { standard: { fee: 6000, freeAbove: null } },
+      coupons: { UVS25: 13500 },
+    },
+    2: {
+      delivery: {
+        standard: { fee: 5000, freeAbove: 60000 },
+        express: { fee: 8000, freeAbove: null },
+        regional: { fee: 15000, freeAbove: null },
+      },
+      coupons: { AJRUG10: 10000, EEJ25: 22000 },
+    },
+  },
   paymentMethods: ["card", "qpay", "bank", "cash"],
 
   partnerStatuses: {

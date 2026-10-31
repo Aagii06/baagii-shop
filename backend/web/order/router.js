@@ -1,9 +1,9 @@
 const router = require("express").Router();
 const { cartDetails, orders, sequelize } = require("../../models");
-const { deliveryFee, coupons, paymentMethods } = require("../../config/constants");
+const { shopSettings, paymentMethods } = require("../../config/constants");
 const { findCart, detailInclude, isSellable } = require("../../helper/cartHelper");
 const { placeOrder, findOrder, toWebOrder, itemsInclude } = require("../../helper/orderHelper");
-const { ok, fail, handle, now, phoneDigits, isPhone } = require("../../helper/helper");
+const { ok, fail, handle, now, phoneDigits, isPhone, toNumber } = require("../../helper/helper");
 
 // Утсаар нэвтэрсэн худалдан авагчийн захиалгууд (web/routes.js: requireCustomer)
 router.get(
@@ -23,7 +23,8 @@ router.get(
   }),
 );
 
-// Сагсаас захиалга үүсгэнэ: { shippingInfo, couponCode? }. Үнэ, хүргэлт, хөнгөлөлтийг backend тооцно.
+// Сагсаас захиалга үүсгэнэ: { shippingInfo, couponCode? }. Үнэ, хүргэлт (shippingInfo.deliveryMethod),
+// хөнгөлөлтийг дэлгүүрийн тохиргоогоор (shopSettings) backend тооцно.
 router.post(
   "/",
   handle("placeOrder", async (req, res) => {
@@ -31,6 +32,9 @@ router.post(
     if (!String(s.fullName ?? "").trim()) return fail(res, "Хүлээн авагчийн нэр оруулна уу");
     if (!isPhone(s.phone)) return fail(res, "Утасны дугаар 8 оронтой байна");
     if (!String(s.address ?? "").trim()) return fail(res, "Хүргэлтийн хаяг оруулна уу");
+    const { delivery, coupons } = shopSettings[req.shopId] ?? shopSettings[1];
+    const method = s.deliveryMethod || "standard";
+    if (!delivery[method]) return fail(res, "Хүргэлтийн сонголт буруу байна");
     const code = couponCode ? String(couponCode).trim().toUpperCase() : null;
     if (code && !coupons[code]) return fail(res, "Хөнгөлөлтийн код буруу байна");
 
@@ -39,6 +43,8 @@ router.post(
       const cart = await findCart(req.session, t);
       const lines = cart ? (await cartDetails.findAll({ where: { cart_id: cart.id }, include: detailInclude, transaction: t })).filter(isSellable) : [];
       if (lines.length === 0) throw "Сагс хоосон байна";
+      const subtotal = lines.reduce((sum, l) => sum + toNumber(l.variant.price) * l.qty, 0);
+      const { fee, freeAbove } = delivery[method];
 
       const id = await placeOrder({
         shopId: req.shopId,
@@ -57,7 +63,8 @@ router.post(
           district_id: s.districtId || null,
           sub_district_id: s.subDistrictId || null,
           note: s.note || null,
-          delivery_fee: deliveryFee,
+          delivery_method: method,
+          delivery_fee: freeAbove != null && subtotal >= freeAbove ? 0 : fee,
           coupon_code: code,
           coupon_amount: code ? coupons[code] : 0,
         },

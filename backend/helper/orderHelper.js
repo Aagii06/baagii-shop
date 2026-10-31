@@ -68,7 +68,7 @@ module.exports.toWebOrder = (order) => {
       extraPhone: order.extra_phone ?? undefined,
       email: order.email ?? undefined,
       note: order.note ?? undefined,
-      deliveryMethod: "standard",
+      deliveryMethod: order.delivery_method ?? "standard",
       deliveryFee: shipping,
     },
     subtotal,

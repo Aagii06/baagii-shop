@@ -28,6 +28,8 @@ module.exports = (sequelize, DataTypes) => {
       district_id: { type: DataTypes.INTEGER },
       sub_district_id: { type: DataTypes.INTEGER },
       note: { type: DataTypes.STRING(1000) },
+      // standard | express | regional (config/constants.js shopSettings.delivery)
+      delivery_method: { type: DataTypes.STRING },
       subtotal: { type: DataTypes.DECIMAL(14, 2), defaultValue: 0 },
       delivery_fee: { type: DataTypes.DECIMAL(14, 2), defaultValue: 0 },
       coupon_code: { type: DataTypes.STRING },
