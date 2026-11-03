@@ -47,11 +47,13 @@ export default function ProductForm() {
   const router = useRouter();
   const { t } = useLanguage();
   const { run } = useToast();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const confirm = useConfirm();
   // const publishLabelId = useId();
   const nameErrorId = useId();
   const priceErrorId = useId();
+  const storeId = useId();
+  const storeErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant, toPostInput } =
@@ -61,17 +63,21 @@ export default function ProductForm() {
   const picked = attrs.some((attr) => attr.values.length > 0);
 
   // A field's error shows once it has been left, or on a save attempt.
-  const [touched, setTouched] = useState({ name: false, price: false });
+  const [touched, setTouched] = useState({ name: false, price: false, store: false });
   const errors = productErrors(form);
   const nameError = touched.name ? errors.name : undefined;
   const priceError = touched.price ? errors.price : undefined;
+  // An admin says which store sells it; a shopper's always goes to their own.
+  const storeMissing = role === "admin" && !form.storeId;
+  const storeError = touched.store && storeMissing ? t("pf.storeRequired") : undefined;
 
   /** Reveals every error and focuses the first bad field; `true` when there are none. */
   function validate() {
-    setTouched({ name: true, price: true });
+    setTouched({ name: true, price: true, store: true });
     if (errors.name) nameRef.current?.focus();
     else if (errors.price) priceRef.current?.focus();
-    return !errors.name && !errors.price;
+    else if (storeMissing) document.getElementById(storeId)?.focus();
+    return !errors.name && !errors.price && !storeMissing;
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -147,10 +153,24 @@ export default function ProductForm() {
           </Field>
         </div>
 
-        {/* A shopper's products always go to their own store (set by the backend). */}
-        {role === "admin" && (
-          <Field label={t("pf.store")} hint={t("pf.storeHint")}>
-            <StoreSelect value={form.storeId} onChange={(id) => set("storeId", id)} placeholder={t("pf.ownStore")} />
+        {role === "admin" ? (
+          <Field label={t("pf.store")} hint={t("pf.storeHint")} error={storeError} errorId={storeErrorId}>
+            <StoreSelect
+              id={storeId}
+              value={form.storeId}
+              onChange={(id) => {
+                set("storeId", id);
+                setTouched((prev) => ({ ...prev, store: true }));
+              }}
+              placeholder={t("pf.pickStore")}
+              invalid={Boolean(storeError)}
+              describedBy={storeError ? storeErrorId : undefined}
+            />
+          </Field>
+        ) : (
+          // A shopper's products always go to their own store (the backend sets it).
+          <Field label={t("pf.store")} hint={t("pf.storeOwnHint")}>
+            <Input value={user?.store?.name ?? t("pf.noStore")} disabled />
           </Field>
         )}
 

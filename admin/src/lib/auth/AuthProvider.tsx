@@ -82,7 +82,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (phone: string, password: string) => {
     const data = await loginRequest(phone, password);
     setSession(data.token, data.user);
-    setUser(data.user);
+    // Login leaves out a shopper's store; `getUserData` has it. If that call
+    // fails the login still stands, just without it until the next load.
+    const extra = await getUserData().then((d) => d.user, () => undefined);
+    const full = { ...data.user, ...extra } as LoginUser;
+    if (extra) setSession(data.token, full);
+    setUser(full);
     setStatus("authenticated");
   }, []);
 
