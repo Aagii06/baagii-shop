@@ -15,6 +15,8 @@ export interface ProductFormState {
   price: string;
   /** "Хямдрал" — the discounted selling price; left empty, it's `price`. */
   salePrice: string;
+  /** Seller store id, or "" for the shop's own. */
+  storeId: string;
   categoryId: string;
   note: string;
   isActive: boolean;
@@ -60,6 +62,7 @@ function initialForm(post: PostDetail | null): ProductFormState {
     name: post?.name ?? "",
     price: post ? String(toNumber(post.mainPrice) || price) : "",
     salePrice: post ? String(price) : "",
+    storeId: post?.storeId != null ? String(post.storeId) : "",
     categoryId: post?.categoryId != null ? String(post.categoryId) : "",
     note: post?.note ?? "",
     isActive: post?.isActive ?? true,
@@ -236,6 +239,7 @@ function toPostInput(
   return {
     name: form.name.trim(),
     ...prices(form.price, form.salePrice),
+    storeId: form.storeId ? Number(form.storeId) : null,
     categoryId: form.categoryId ? Number(form.categoryId) : null,
     note: form.note.trim(),
     isActive: form.isActive,

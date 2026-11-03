@@ -1,4 +1,4 @@
-const { products, productVariants, categories, attrs: attrRows, attrValues, sequelize, op } = require("../models");
+const { products, productVariants, categories, stores, attrs: attrRows, attrValues, sequelize, op } = require("../models");
 const { defaultBranch } = require("../config/constants");
 const { toIso, toNumber, now, today } = require("./helper");
 const { saveLog } = require("../utils/logHelper");
@@ -11,6 +11,7 @@ const activeVariants = { model: productVariants, as: "variants", required: false
 module.exports.productInclude = [
   activeVariants,
   { model: categories, as: "category", attributes: ["id", "name", "image"] },
+  { model: stores, as: "store", attributes: ["id", "name", "logo"], required: false },
 ];
 module.exports.variantOrder = [[{ model: productVariants, as: "variants" }, "order_number", "asc"]];
 
@@ -51,6 +52,8 @@ const remainOf = (product) => {
 module.exports.toAdminProduct = (product) => ({
   id: product.id,
   companyId: 1,
+  storeId: product.store_id ?? null,
+  store: product.store ? { id: product.store.id, name: product.store.name } : null,
   categoryId: product.category_id,
   date: product.date,
   name: product.name,
@@ -104,6 +107,8 @@ module.exports.toWebPost = (product, detail = false) => {
     categoryId: product.category_id,
     category: product.category ? { id: product.category.id, name: product.category.name, image: product.category.image } : undefined,
     images: product.images ?? [],
+    // Вэб үүнийг брэнд болгон харуулж, шүүлтүүрт ашиглана
+    company: product.store ? { id: product.store.id, name: product.store.name } : undefined,
     createdAt: toIso(product.created_at),
   };
   if (!detail) return post;
@@ -178,7 +183,8 @@ const normalizeAttrs = async (shopId, input, variants) => {
  * сонголтын утгаар (`attr`) тааруулна; жагсаалтад байхгүй болсон хувилбар
  * устгагдана. `qty` бол үлдэгдэл.
  */
-module.exports.saveProduct = async ({ shopId, id = null, body, by }) => {
+// storeId - барааны дэлгүүр (stores.id эсвэл null, undefined бол өөрчлөхгүй); шалгалтыг controller хийнэ
+module.exports.saveProduct = async ({ shopId, id = null, body, by, storeId }) => {
   const at = now();
   const variantsIn = Array.isArray(body.variants) ? body.variants : [];
   if (!body.name?.trim()) throw "Барааны нэр оруулна уу";
@@ -189,6 +195,7 @@ module.exports.saveProduct = async ({ shopId, id = null, body, by }) => {
 
   const attrs = await normalizeAttrs(shopId, body.attrs, variantsIn);
   const values = {
+    ...(storeId !== undefined && { store_id: storeId }),
     category_id: body.categoryId,
     date: body.date || today(),
     name: body.name.trim(),

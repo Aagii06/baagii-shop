@@ -43,6 +43,9 @@ interface ProductAttr {
 interface Product {
   id: number;
   companyId: number;
+  /** The seller store (`/store`) it belongs to; `null` for the shop's own. */
+  storeId?: number | null;
+  store?: { id: number; name: string } | null;
   categoryId: number | null;
   date: string;
   name: string | null;
@@ -66,6 +69,9 @@ interface Product {
 
 export interface Post {
   id: number;
+  storeId: number | null;
+  /** Name of the seller store, for the list. */
+  storeName: string | null;
   categoryId: number | null;
   date: string;
   createdAt: string;
@@ -141,6 +147,8 @@ function toPostDetail(product: Product): PostDetail {
   const remain = variants.length > 0 ? variants.reduce((sum, v) => sum + Number(v.remain || 0), 0) : Number(product.qty || 0);
   return {
     id: product.id,
+    storeId: product.storeId ?? null,
+    storeName: product.store?.name ?? null,
     categoryId: product.categoryId,
     date: product.date,
     createdAt: product.createdAt,
@@ -223,6 +231,8 @@ export interface PostInput {
   mainPrice: number;
   /** Selling price after any discount. */
   price: number;
+  /** Seller store; `null` for the shop's own. */
+  storeId: number | null;
   categoryId: number | null;
   note: string;
   /** Whether the shop lists it; also sent as `statusId`. */
@@ -276,6 +286,8 @@ function toProductBody(input: PostInput) {
     // Today, `YYYY-MM-DD` in local time — also when editing.
     date: new Date().toLocaleDateString("en-CA"),
     categoryId: input.categoryId,
+    // A shopper's own store is set by the backend whatever is sent here.
+    storeId: input.storeId,
     name: input.name,
     description: input.note || null,
     isActive: input.isActive,

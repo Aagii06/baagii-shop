@@ -3,8 +3,9 @@ const { auditFields } = require("../utils/modelFields");
 
 module.exports = (sequelize, DataTypes) => {
   class products extends Sequelize.Model {
-    static associate({ categories, productVariants }) {
+    static associate({ categories, productVariants, stores }) {
       this.belongsTo(categories, { as: "category", foreignKey: "category_id" });
+      this.belongsTo(stores, { as: "store", foreignKey: "store_id" });
       this.hasMany(productVariants, { as: "variants", foreignKey: "product_id" });
     }
   }
@@ -13,6 +14,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       shop_id: { type: DataTypes.INTEGER },
+      // Борлуулагч дэлгүүр (stores)
+      store_id: { type: DataTypes.INTEGER },
       category_id: { type: DataTypes.INTEGER },
       date: { type: DataTypes.STRING },
       name: { type: DataTypes.STRING },

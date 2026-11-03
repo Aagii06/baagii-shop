@@ -12,5 +12,6 @@ Router.use("/doNote", protect, require("./doNote/router"));
 Router.use("/order", protect, require("./order/router"));
 Router.use("/partnerRequest", protect, require("./partnerRequest/router"));
 Router.use("/blog", protect, require("./blog/router"));
+Router.use("/store", protect, require("./store/router"));
 
 module.exports = Router;

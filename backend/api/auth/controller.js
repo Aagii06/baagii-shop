@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { users } = require("../../models");
+const { users, stores } = require("../../models");
 const { signUser } = require("../../middleware/auth");
 const { roles } = require("../../config/constants");
 const { Op } = require("sequelize");
@@ -15,7 +15,11 @@ const toUser = (user) => ({
   email: user.email,
   roles: [],
   roleNames: user.role === roles.admin ? "admin" : "shopper",
+  // SHOPPER-ийн дэлгүүр (include: store-оор ачаалсан үед)
+  store: user.store ? { id: user.store.id, name: user.store.name } : null,
 });
+
+const withStore = [{ model: stores, as: "store", attributes: ["id", "name"], required: false, where: { status: "active" } }];
 
 // { phone, password }
 module.exports.login = handle("login", async (req, res) => {
@@ -27,7 +31,7 @@ module.exports.login = handle("login", async (req, res) => {
 });
 
 module.exports.getUserData = handle("getUserData", async (req, res) => {
-  const user = await users.findOne({ where: { id: req.loggedUser.id, shop_id: req.shopId, status: "active" } });
+  const user = await users.findOne({ where: { id: req.loggedUser.id, shop_id: req.shopId, status: "active" }, include: withStore });
   if (!user) return res.status(401).json({ success: false, errorType: "authentication", message: "Хэрэглэгч олдсонгүй" });
   return ok(res, { user: toUser(user), menuPermission: null, customActionPermission: null, objectPermission: null });
 });

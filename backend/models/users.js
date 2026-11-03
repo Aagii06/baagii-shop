@@ -3,6 +3,10 @@ const { auditFields } = require("../utils/modelFields");
 
 module.exports = (sequelize, DataTypes) => {
   class users extends Sequelize.Model {
+    static associate({ stores }) {
+      this.belongsTo(stores, { as: "store", foreignKey: "store_id" });
+    }
+
     toJSON() {
       const values = Object.assign({}, this.get());
       delete values.password;
@@ -14,6 +18,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       shop_id: { type: DataTypes.INTEGER },
+      // SHOPPER-ийн дэлгүүр (stores); ADMIN-д null
+      store_id: { type: DataTypes.INTEGER },
       username: { type: DataTypes.STRING },
       password: { type: DataTypes.STRING },
       name: { type: DataTypes.STRING },
