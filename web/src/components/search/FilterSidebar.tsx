@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
-import { subtreeIds, type Category } from "@/lib/categories";
+import { categoryPath, subtreeIds, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import PriceRangeSlider from "./PriceRangeSlider";
 
@@ -82,7 +82,18 @@ export function FilterPanelContent({
     {}
   );
 
+  // A group's default open state follows its selection (see renderCategory),
+  // so toggling something inside it could collapse it under the cursor. Pin
+  // every ancestor open first.
+  const keepAncestorsOpen = (id: number) =>
+    setOpenCategories((prev) => {
+      const next = { ...prev };
+      for (const c of categoryPath(categories, id).slice(0, -1)) next[c.id] = true;
+      return next;
+    });
+
   const toggleCategory = (id: number) => {
+    keepAncestorsOpen(id);
     const next = filters.categories.includes(id)
       ? filters.categories.filter((c) => c !== id)
       : [...filters.categories, id];
@@ -92,6 +103,7 @@ export function FilterPanelContent({
   // Selecting a group selects every leaf beneath it; if they are all selected
   // already, it clears them instead.
   const toggleGroup = (category: Category) => {
+    keepAncestorsOpen(category.id);
     const ids = subtreeIds(category);
     const allSelected = ids.every((id) => filters.categories.includes(id));
     const next = allSelected
@@ -100,17 +112,14 @@ export function FilterPanelContent({
     onChange({ ...filters, categories: next });
   };
 
-  const toggleOpen = (id: number) =>
-    setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleOpen = (id: number, isOpen: boolean) =>
+    setOpenCategories((prev) => ({ ...prev, [id]: !isOpen }));
 
   // The tree can be several levels deep. A parent filters on itself plus
   // everything beneath it; its count is the sum over that subtree.
   const countOf = (category: Category): number =>
     (counts.category[category.id] ?? 0) +
     category.children.reduce((sum, child) => sum + countOf(child), 0);
-
-  const hasSelected = (category: Category): boolean =>
-    subtreeIds(category).some((id) => filters.categories.includes(id));
 
   const renderCategory = (category: Category) => {
     if (category.children.length === 0) {
@@ -125,18 +134,23 @@ export function FilterPanelContent({
       );
     }
 
-    const isOpen = openCategories[category.id] ?? hasSelected(category);
     const ids = subtreeIds(category);
     const selectedCount = ids.filter((id) =>
       filters.categories.includes(id)
     ).length;
+    // Fully selected (e.g. arriving from a /search?category= link) stays
+    // collapsed — the checked parent already says it all. Only a partial
+    // selection opens by default, to show which children are picked.
+    const isOpen =
+      openCategories[category.id] ??
+      (selectedCount > 0 && selectedCount < ids.length);
 
     return (
       <div key={category.id}>
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => toggleOpen(category.id)}
+            onClick={() => toggleOpen(category.id, isOpen)}
             aria-expanded={isOpen}
             aria-label={category.name}
             className="shrink-0 p-1"
