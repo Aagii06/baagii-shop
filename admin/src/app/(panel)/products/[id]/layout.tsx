@@ -9,7 +9,8 @@ import { flattenCategories, getCategoryTree } from "@/lib/api/categories";
 import { getPost } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
 import { PackageX } from "lucide-react";
-import { useParams, useSelectedLayoutSegment } from "next/navigation";
+import { useRouteId } from "@/lib/useRouteId";
+import { useSelectedLayoutSegment } from "next/navigation";
 
 async function loadEditor(id: number) {
   if (!Number.isInteger(id) || id <= 0) return { post: null, categories: [], catalogue: [] };
@@ -19,7 +20,7 @@ async function loadEditor(id: number) {
 
 // Shared by the form and its variants page so the draft survives moving between them.
 export default function EditProductLayout({ children }: { children: React.ReactNode }) {
-  const { id } = useParams<{ id: string }>();
+  const id = useRouteId("id", 1);
   const { t } = useLanguage();
   const { data, error, reload } = useApi(() => loadEditor(Number(id)), id);
   const onVariants = useSelectedLayoutSegment() === "variants";

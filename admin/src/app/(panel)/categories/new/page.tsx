@@ -7,20 +7,25 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { getAttrs } from "@/lib/api/attrs";
 import { canNestUnder, flattenCategories, getCategoryTree } from "@/lib/api/categories";
 import { useApi } from "@/lib/useApi";
-import { use } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 async function loadForm() {
   const [tree, catalogue] = await Promise.all([getCategoryTree(), getAttrs()]);
   return { categories: flattenCategories(tree), catalogue };
 }
 
-export default function NewCategoryPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export default function NewCategoryPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <NewCategoryForm />
+    </Suspense>
+  );
+}
+
+function NewCategoryForm() {
   // `?parentId=` from a row's "add subcategory" button.
-  const { parentId } = use(searchParams);
+  const parentId = useSearchParams().get("parentId");
   const { t } = useLanguage();
   const { data, error, reload } = useApi(loadForm);
 

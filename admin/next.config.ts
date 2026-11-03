@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Production build = plain files in out/ served by nginx (no Node process).
+  // `next dev` stays normal so any id works locally.
+  output: process.env.NODE_ENV === "production" ? "export" : undefined,
+  images: { unoptimized: true },
   // Pin the Turbopack root to this folder so a stray lockfile higher up
   // (e.g. in ~/) isn't picked as the workspace root.
   turbopack: {

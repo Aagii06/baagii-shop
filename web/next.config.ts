@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Production build = plain files in out/ served by nginx (no Node process).
+  // `next dev` stays normal so any id works locally.
+  output: process.env.NODE_ENV === "production" ? "export" : undefined,
   // Pin the Turbopack project root to this folder. A stray package-lock.json
   // in ~/ was making Turbopack pick /Users/admin as the root, so its file
   // watcher covered the whole home dir and edits stopped hot-reloading.
@@ -13,6 +16,7 @@ const nextConfig: NextConfig = {
   // NEXT_DIST_DIR; `next dev` falls back to the default `.next`.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
