@@ -1,17 +1,19 @@
 "use client";
 
 import PaymentForm from "@/components/checkout/PaymentForm";
+import QpayPanel from "@/components/checkout/QpayPanel";
+import { getPaymentMethods, type PaymentMethods } from "@/lib/api/payment";
 import { Button } from "@/components/ui/button";
 import { payOrder } from "@/lib/api/orders";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { useOrderStore } from "@/store/orderStore";
 import PageLoader from "@/components/ui/page-loader";
-import type { PaymentMethod } from "@/types/order";
+import type { Order, PaymentMethod } from "@/types/order";
 import Link from "next/link";
 import { useRouteId } from "@/lib/useRouteId";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function PayOrderPage() {
   const { t } = useLanguage();
@@ -20,6 +22,22 @@ export default function PayOrderPage() {
   const replaceOrder = useOrderStore((s) => s.replaceOrder);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [methods, setMethods] = useState<PaymentMethods | null>(null);
+  const [qpayOpen, setQpayOpen] = useState(false);
+
+  useEffect(() => {
+    getPaymentMethods()
+      .then(setMethods)
+      .catch(() => setMethods({ bank: null, qpay: false }));
+  }, []);
+
+  const handleQpayPaid = useCallback(
+    (paid: Order) => {
+      replaceOrder(paid);
+      router.push(`/orders/${paid.id}`);
+    },
+    [replaceOrder, router]
+  );
 
   const ordersLoaded = useOrderStore((s) => s.loaded);
   const order = useOrderStore((s) =>
@@ -28,6 +46,7 @@ export default function PayOrderPage() {
 
   const handlePay = async (method: PaymentMethod) => {
     if (!order) return;
+    if (method === "qpay") return setQpayOpen(true);
 
     setIsSubmitting(true);
     setError(null);
@@ -40,7 +59,7 @@ export default function PayOrderPage() {
     }
   };
 
-  if (!ordersLoaded) {
+  if (!ordersLoaded || (order && !methods)) {
     return <PageLoader />;
   }
 
@@ -79,12 +98,21 @@ export default function PayOrderPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
         <div className="lg:col-span-2">
-          <PaymentForm
-            total={order.total}
-            shippingInfo={order.shippingInfo}
-            onSubmit={handlePay}
-            isSubmitting={isSubmitting}
-          />
+          {qpayOpen ? (
+            <QpayPanel
+              orderId={order.id}
+              onPaid={handleQpayPaid}
+              onBack={() => setQpayOpen(false)}
+            />
+          ) : (
+            <PaymentForm
+              total={order.total}
+              shippingInfo={order.shippingInfo}
+              methods={methods!}
+              onSubmit={handlePay}
+              isSubmitting={isSubmitting}
+            />
+          )}
           {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
         </div>
 

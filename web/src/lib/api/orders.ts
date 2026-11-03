@@ -54,11 +54,18 @@ export async function placeOrder(input: {
   return toOrder(res.data);
 }
 
-// No payment provider yet: the backend records the method as paid.
+// Bank transfer: records the method; the order counts as paid once the shop
+// confirms it. QPay is paid through `createQpayInvoice` / `checkQpay`.
 export async function payOrder(id: string, paymentMethod: PaymentMethod): Promise<Order> {
   const res = await apiFetch<ApiItemResponse<ApiOrder>>(`/order/${id}/pay`, {
     method: "POST",
     body: { paymentMethod },
   });
+  return toOrder(res.data);
+}
+
+/** Asks QPay whether the order's invoice was paid; comes back paid if so. */
+export async function checkQpay(id: string): Promise<Order> {
+  const res = await apiFetch<ApiItemResponse<ApiOrder>>(`/order/${id}/qpay`);
   return toOrder(res.data);
 }

@@ -5,7 +5,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, Handshake, LayoutGrid, LogOut, NotebookPen, Pencil, SlidersHorizontal, Store, Users, type LucideIcon } from "lucide-react";
+import { ChevronRight, CreditCard, Handshake, LayoutGrid, LogOut, NotebookPen, Pencil, SlidersHorizontal, Store, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon }[] = [
@@ -32,6 +32,12 @@ const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon 
     labelKey: "attrs.title",
     descKey: "profile.attrs",
     icon: SlidersHorizontal,
+  },
+  {
+    href: "/payment",
+    labelKey: "pay.title",
+    descKey: "profile.payment",
+    icon: CreditCard,
   },
   {
     href: "/delivery-notes",

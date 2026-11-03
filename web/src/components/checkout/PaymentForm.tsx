@@ -2,6 +2,7 @@
 
 import qpayLogo from "@/assets/qpay.png";
 import { Button } from "@/components/ui/button";
+import type { PaymentMethods } from "@/lib/api/payment";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn, formatMNT } from "@/lib/utils";
 import type { PaymentMethod, ShippingInfo } from "@/types/order";
@@ -25,39 +26,35 @@ import { CreditCard } from "lucide-react";
 interface PaymentFormProps {
   total: number;
   shippingInfo: ShippingInfo;
+  /** What the shop takes, from its admin settings. */
+  methods: PaymentMethods;
   onSubmit: (method: PaymentMethod) => void;
   isSubmitting: boolean;
 }
 
-// Demo account the shopper transfers to — sample values, not a real account.
-const BANK_DETAILS = {
-  accountName: "GOLDEN UVS ХХК",
-  bankName: "Худалдаа хөгжлийн банк",
-  accountNumber: "499 123 4567",
-  iban: "MN23 0004 9912 3456 7890",
-};
-
 export default function PaymentForm({
   total,
   shippingInfo,
+  methods: available,
   onSubmit,
   isSubmitting,
 }: PaymentFormProps) {
   const { t } = useLanguage();
 
+  const bank = available.bank;
   const methods: {
     id: PaymentMethod;
     labelKey: string;
     icon: typeof Landmark | StaticImageData;
   }[] = [
-    { id: "bank", labelKey: "checkout.payment.bank", icon: Landmark },
-    { id: "qpay", labelKey: "checkout.payment.qpay", icon: qpayLogo },
+    ...(bank ? [{ id: "bank" as const, labelKey: "checkout.payment.bank", icon: Landmark }] : []),
+    ...(available.qpay ? [{ id: "qpay" as const, labelKey: "checkout.payment.qpay", icon: qpayLogo }] : []),
     // Картаар болон бэлнээр төлөх түр хаалттай — дараа сэргээнэ:
     // { id: "card", labelKey: "checkout.payment.card", icon: CreditCard },
     // { id: "cash", labelKey: "checkout.payment.cash", icon: Landmark },
   ];
 
-  const [method, setMethod] = useState<PaymentMethod>("bank");
+  const [method, setMethod] = useState<PaymentMethod | undefined>(methods[0]?.id);
 
   /* --- Картаар төлөх түр хаалттай ---------------------------------------
   const [cardNumber, setCardNumber] = useState("");
@@ -81,7 +78,7 @@ export default function PaymentForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(method);
+    if (method) onSubmit(method);
   };
 
   const deliveryLabel = t("orders.delivery.standard");
@@ -92,6 +89,11 @@ export default function PaymentForm({
         <h2 className="text-lg font-semibold text-foreground mb-4">
           {t("checkout.payment.methodsTitle")}
         </h2>
+        {methods.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            {t("checkout.payment.noMethods")}
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-3 mb-5">
           {methods.map((m) => (
             <button
@@ -121,27 +123,29 @@ export default function PaymentForm({
           ))}
         </div>
 
-        {method === "bank" && (
+        {method === "bank" && bank && (
           <div className="space-y-3">
             <div className="rounded-xl border border-border divide-y divide-border">
               {[
                 {
                   label: t("checkout.payment.bank.accountName"),
-                  value: BANK_DETAILS.accountName,
+                  value: bank.accountName,
                 },
                 {
                   label: t("checkout.payment.bank.bankName"),
-                  value: BANK_DETAILS.bankName,
+                  value: bank.bankName,
                 },
                 {
                   label: t("checkout.payment.bank.accountNumber"),
-                  value: BANK_DETAILS.accountNumber,
+                  value: bank.accountNumber,
                 },
                 {
                   label: t("checkout.payment.bank.iban"),
-                  value: BANK_DETAILS.iban,
+                  value: bank.iban,
                 },
-              ].map((row) => (
+              ]
+                .filter((row) => row.value)
+                .map((row) => (
                 <div
                   key={row.label}
                   className="flex items-center justify-between gap-3 px-4 py-2.5"
@@ -163,9 +167,7 @@ export default function PaymentForm({
 
         {method === "qpay" && (
           <p className="text-sm text-muted-foreground">
-            {t("checkout.payment.redirectNote", {
-              method: t(methods.find((m) => m.id === method)?.labelKey ?? ""),
-            })}
+            {t("checkout.payment.qpay.note")}
           </p>
         )}
 
@@ -289,11 +291,13 @@ export default function PaymentForm({
         type="submit"
         size="lg"
         className="w-full brand-gradient text-white"
-        disabled={isSubmitting}
+        disabled={isSubmitting || !method}
       >
         {isSubmitting
           ? t("checkout.summary.processing")
-          : t("checkout.payment.pay", { amount: formatMNT(total) })}
+          : method === "bank"
+            ? t("checkout.payment.bank.done", { amount: formatMNT(total) })
+            : t("checkout.payment.pay", { amount: formatMNT(total) })}
       </Button>
     </form>
   );
