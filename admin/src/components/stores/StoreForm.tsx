@@ -3,13 +3,13 @@
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import Field from "@/components/common/Field";
 import Thumb from "@/components/common/Thumb";
+import ContactList from "@/components/stores/ContactList";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { uploadFile } from "@/lib/api/files";
-import { createStore, updateStore, type Store } from "@/lib/api/stores";
+import { createStore, MAX_STORE_CONTACTS, updateStore, type Store } from "@/lib/api/stores";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
@@ -17,29 +17,33 @@ import { useEffect, useId, useRef, useState } from "react";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Register or edit a seller store: its name and contact details (phone,
- * email, address) and a logo. Shoppers are assigned to it from the partner
+ * Register or edit a seller store: its name, contact details (up to
+ * `MAX_STORE_CONTACTS` phones, emails and addresses, the first of each the
+ * main one) and a logo. Shoppers are assigned to it from the partner
  * requests; products from the product form.
  */
+/** The filled rows, trimmed. */
+const filled = (items: string[]) => items.map((v) => v.trim()).filter(Boolean);
+const hasDuplicates = (items: string[]) => new Set(items).size !== items.length;
+
+/** A list shown with one empty row to type into when there's nothing saved. */
+const rowsOf = (items: string[] | undefined) => (items?.length ? items : [""]);
+
 export default function StoreForm({ store }: { store: Store | null }) {
   const router = useRouter();
   const { t } = useLanguage();
   const { run } = useToast();
   const nameErrorId = useId();
-  const phoneErrorId = useId();
-  const emailErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
-  const phoneRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(store?.name ?? "");
-  const [phone, setPhone] = useState(store?.phone ?? "");
-  const [email, setEmail] = useState(store?.email ?? "");
-  const [address, setAddress] = useState(store?.address ?? "");
+  const [phones, setPhones] = useState(() => rowsOf(store?.phones));
+  const [emails, setEmails] = useState(() => rowsOf(store?.emails));
+  const [addresses, setAddresses] = useState(() => rowsOf(store?.addresses));
   // A saved file id, or a `blob:` preview of `logoFile` until it's uploaded.
   const [logo, setLogo] = useState<string | null>(store?.logo ?? null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [touched, setTouched] = useState({ name: false, phone: false, email: false });
+  const [nameTouched, setNameTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
@@ -47,10 +51,26 @@ export default function StoreForm({ store }: { store: Store | null }) {
     return () => URL.revokeObjectURL(logo);
   }, [logo]);
 
-  const show = (field: keyof typeof touched) => touched[field] || submitted;
-  const nameError = show("name") && !name.trim() ? t("st.nameRequired") : undefined;
-  const phoneError = show("phone") && phone.length < 8 ? t("checkout.phoneInvalid") : undefined;
-  const emailError = show("email") && email.trim() && !EMAIL_RE.test(email.trim()) ? t("st.emailInvalid") : undefined;
+  const nameError = (nameTouched || submitted) && !name.trim() ? t("st.nameRequired") : undefined;
+  // The lists are checked once "save" is pressed.
+  const phoneList = filled(phones);
+  const emailList = filled(emails).map((v) => v.toLowerCase());
+  const addressList = filled(addresses);
+  const phoneProblem =
+    phoneList.length === 0 || phoneList.some((p) => p.length !== 8)
+      ? t("checkout.phoneInvalid")
+      : hasDuplicates(phoneList)
+        ? t("st.duplicate")
+        : undefined;
+  const emailProblem = emailList.some((m) => !EMAIL_RE.test(m))
+    ? t("st.emailInvalid")
+    : hasDuplicates(emailList)
+      ? t("st.duplicate")
+      : undefined;
+  const addressProblem = hasDuplicates(addressList) ? t("st.duplicate") : undefined;
+  const phoneError = submitted ? phoneProblem : undefined;
+  const emailError = submitted ? emailProblem : undefined;
+  const addressError = submitted ? addressProblem : undefined;
 
   function onPickLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -69,15 +89,14 @@ export default function StoreForm({ store }: { store: Store | null }) {
     e.preventDefault();
     setSubmitted(true);
     if (!name.trim()) return nameRef.current?.focus();
-    if (phone.length < 8) return phoneRef.current?.focus();
-    if (email.trim() && !EMAIL_RE.test(email.trim())) return emailRef.current?.focus();
+    if (phoneProblem || emailProblem || addressProblem) return;
 
     const saved = await run(async () => {
       const input = {
         name: name.trim(),
-        phone,
-        email: email.trim(),
-        address: address.trim(),
+        phones: phoneList,
+        emails: emailList,
+        addresses: addressList,
         logo: logoFile ? await uploadFile(logoFile) : logo,
       };
       await (store ? updateStore(store.id, input) : createStore(input));
@@ -123,46 +142,63 @@ export default function StoreForm({ store }: { store: Store | null }) {
             ref={nameRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
+            onBlur={() => setNameTouched(true)}
             aria-invalid={Boolean(nameError)}
             aria-describedby={nameError ? nameErrorId : undefined}
             required
           />
         </Field>
 
-        <Field label={t("st.phone")} error={phoneError} errorId={phoneErrorId}>
-          <Input
-            ref={phoneRef}
-            type="tel"
-            inputMode="numeric"
-            maxLength={8}
-            className="font-mono"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-            onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
-            aria-invalid={Boolean(phoneError)}
-            aria-describedby={phoneError ? phoneErrorId : undefined}
-            required
-          />
-        </Field>
+        <ContactList
+          title={t("st.phone")}
+          addLabel={t("st.addPhone")}
+          items={phones}
+          onChange={setPhones}
+          max={MAX_STORE_CONTACTS}
+          error={phoneError}
+          input={({ onChange, ...props }) => (
+            <Input
+              {...props}
+              type="tel"
+              inputMode="numeric"
+              maxLength={8}
+              placeholder="00000000"
+              className="font-mono"
+              onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+            />
+          )}
+        />
 
-        <Field label={t("st.email")} error={emailError} errorId={emailErrorId}>
-          <Input
-            ref={emailRef}
-            type="email"
-            inputMode="email"
-            autoComplete="off"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
-            aria-invalid={Boolean(emailError)}
-            aria-describedby={emailError ? emailErrorId : undefined}
-          />
-        </Field>
+        <ContactList
+          title={t("st.email")}
+          addLabel={t("st.addEmail")}
+          items={emails}
+          onChange={setEmails}
+          max={MAX_STORE_CONTACTS}
+          error={emailError}
+          input={({ onChange, ...props }) => (
+            <Input
+              {...props}
+              type="email"
+              inputMode="email"
+              autoComplete="off"
+              placeholder="name@example.com"
+              onChange={(e) => onChange(e.target.value)}
+            />
+          )}
+        />
 
-        <Field label={t("st.address")}>
-          <Textarea rows={3} className="min-h-24" value={address} onChange={(e) => setAddress(e.target.value)} />
-        </Field>
+        <ContactList
+          title={t("st.address")}
+          addLabel={t("st.addAddress")}
+          items={addresses}
+          onChange={setAddresses}
+          max={MAX_STORE_CONTACTS}
+          error={addressError}
+          input={({ onChange, ...props }) => (
+            <Input {...props} maxLength={255} onChange={(e) => onChange(e.target.value)} />
+          )}
+        />
       </div>
     </form>
   );

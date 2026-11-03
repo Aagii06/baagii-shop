@@ -9,12 +9,19 @@ import { apiFetch, type ApiItemResponse, type ApiListResponse } from "./client";
 //   PUT    /store/{id}  StoreInput        (admin)
 //   DELETE /store/{id}                    (admin; refused while it has products or shoppers)
 
+/** Phones, emails and addresses a store can have, each. */
+export const MAX_STORE_CONTACTS = 5;
+
 export interface Store {
   id: number;
   name: string;
+  /** The main (first) of `phones`; likewise `email`, `address`. */
   phone: string | null;
+  phones: string[];
   email: string | null;
+  emails: string[];
   address: string | null;
+  addresses: string[];
   /** Logo file id. */
   logo: string | null;
   /** Active products; only on the list. */
@@ -24,9 +31,10 @@ export interface Store {
 
 export interface StoreInput {
   name: string;
-  phone: string;
-  email: string;
-  address: string;
+  /** At least one; the first is the main. */
+  phones: string[];
+  emails: string[];
+  addresses: string[];
   logo: string | null;
 }
 
