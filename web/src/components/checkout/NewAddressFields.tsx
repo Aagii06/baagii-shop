@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_CITY_CODE } from "@/lib/api/config";
 import {
   getAddressTypes,
   getCities,
@@ -14,6 +15,7 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -140,6 +142,15 @@ export default function NewAddressFields({
         : { ...v, addressType: availableTypes[0] ?? null }
     );
   }, [types.items, availableTypes, onChange]);
+
+  // Preselect the shop's own aimag once, so a cleared city stays cleared.
+  const cityDefaulted = useRef(false);
+  useEffect(() => {
+    if (cityDefaulted.current || cities.items.length === 0) return;
+    cityDefaulted.current = true;
+    const city = cities.items.find((c) => c.code === DEFAULT_CITY_CODE);
+    if (city) onChange((v) => (v.city ? v : { ...v, city }));
+  }, [cities.items, onChange]);
 
   return (
     <div className="space-y-4">
