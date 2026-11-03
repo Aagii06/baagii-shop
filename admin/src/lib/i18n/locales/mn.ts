@@ -242,6 +242,7 @@ export const mn: Dict = {
   "pr.status.approved": "Баталсан",
   "pr.status.rejected": "Татгалзсан",
   "pr.sampleNotice": "Хүсэлтийн API холбогдоогүй тул жишээ хүсэлт харуулж байна.",
+  "pr.empty": "Хүсэлт алга",
   "pr.noneInStatus": "“{status}” хүсэлт алга",
   "pr.approve": "Батлах",
   "pr.reject": "Татгалзах",

@@ -50,9 +50,9 @@ export default function PartnerRequestsPage() {
   const { t } = useLanguage();
   const { data, error, reload } = useApi(getPartnerRequests);
   const { run } = useToast();
-  const [status, setStatus] = useState<PartnerRequestStatus>("pending");
+  const [status, setStatus] = useState<PartnerRequestStatus | "all">("all");
 
-  const rows = data?.filter((request) => request.status === status) ?? [];
+  const rows = data?.filter((request) => status === "all" || request.status === status) ?? [];
   const pendingCount = data?.filter((request) => request.status === "pending").length ?? 0;
 
   async function decide(action: () => Promise<void>, success: string) {
@@ -78,14 +78,17 @@ export default function PartnerRequestsPage() {
           label={t("orders.status")}
           value={status}
           onChange={setStatus}
-          options={TABS.map((s) => ({
-            value: s,
-            label: partnerStatusLabel(s),
-            count: s === "pending" ? pendingCount : undefined,
-            idleClassName: TONE[s].soft,
-            activeClassName: TONE[s].solid,
-            badgeClassName: "bg-warning text-white",
-          }))}
+          options={[
+            { value: "all" as const, label: t("common.all") },
+            ...TABS.map((s) => ({
+              value: s,
+              label: partnerStatusLabel(s),
+              count: s === "pending" ? pendingCount : undefined,
+              idleClassName: TONE[s].soft,
+              activeClassName: TONE[s].solid,
+              badgeClassName: "bg-warning text-white",
+            })),
+          ]}
         />
       </div>
 
@@ -113,7 +116,11 @@ export default function PartnerRequestsPage() {
         <div className="pt-4">
           <EmptyState
             icon={Handshake}
-            title={t("pr.noneInStatus", { status: partnerStatusLabel(status) })}
+            title={
+              status === "all"
+                ? t("pr.empty")
+                : t("pr.noneInStatus", { status: partnerStatusLabel(status) })
+            }
           />
         </div>
       ) : (

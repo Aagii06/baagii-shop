@@ -242,6 +242,7 @@ export const en: Dict = {
   "pr.status.approved": "Approved",
   "pr.status.rejected": "Rejected",
   "pr.sampleNotice": "The requests API isn't connected, so sample requests are shown.",
+  "pr.empty": "No requests yet",
   "pr.noneInStatus": "No “{status}” requests",
   "pr.approve": "Approve",
   "pr.reject": "Reject",

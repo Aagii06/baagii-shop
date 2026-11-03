@@ -242,6 +242,7 @@ export const ru: Dict = {
   "pr.status.approved": "Одобрена",
   "pr.status.rejected": "Отклонена",
   "pr.sampleNotice": "API заявок не подключён, поэтому показаны примеры заявок.",
+  "pr.empty": "Заявок пока нет",
   "pr.noneInStatus": "Нет заявок со статусом «{status}»",
   "pr.approve": "Одобрить",
   "pr.reject": "Отклонить",
