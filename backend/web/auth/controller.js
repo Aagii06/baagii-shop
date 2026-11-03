@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const { customers, partnerRequests, sequelize } = require("../../models");
 const { partnerStatuses } = require("../../config/constants");
-const { signWeb } = require("../../middleware/auth");
+const { signWeb, readToken } = require("../../middleware/auth");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
 const { mergeGuestCart } = require("../../helper/cartHelper");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
@@ -56,11 +56,48 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
   return ok(res, toCustomer(customer));
 });
 
+const PARTNER_OTP = "partner";
+
+// Хүсэлтийн өмнө давхардлыг шалгаж, дараа нь код илгээнэ — хүлээгдэж буй дугаарт код дэмий явахгүй
+const partnerBlocked = async (shopId, phone) => {
+  const existing = await partnerRequests.findOne({ where: { shop_id: shopId, phone }, order: [["id", "desc"]] });
+  if (existing?.status === partnerStatuses.pending) return "Таны хүсэлт хүлээгдэж байна. Бид удахгүй холбогдоно";
+  if (existing?.status === partnerStatuses.approved) return "Энэ дугаар аль хэдийн бүртгэлтэй байна";
+  return null;
+};
+
+module.exports.sendRegisterOtp = handle("sendRegisterOtp", async (req, res) => {
+  const phone = phoneDigits(req.body.phone);
+  const blocked = await partnerBlocked(req.shopId, phone);
+  if (blocked) return fail(res, blocked);
+  const result = await sendPhoneOtp(req.shopId, phone, PARTNER_OTP);
+  return res.status(200).json({ ...result, data: null });
+});
+
+// { userName (утас), code, storeName, name, email?, address? }. Тухайн дугаараар нэвтэрсэн
+// худалдан авагчийн токентой бол утас нь баталгаажсан тул код шаардахгүй.
 module.exports.register = handle("register", async (req, res) => {
   const phone = phoneDigits(req.body.userName);
-  const existing = await partnerRequests.findOne({ where: { shop_id: req.shopId, phone }, order: [["id", "desc"]] });
-  if (existing?.status === partnerStatuses.pending) return fail(res, "Таны хүсэлт хүлээгдэж байна. Бид удахгүй холбогдоно");
-  if (existing?.status === partnerStatuses.approved) return fail(res, "Энэ дугаар аль хэдийн бүртгэлтэй байна");
-  await partnerRequests.create({ shop_id: req.shopId, phone, status: partnerStatuses.pending, created_at: now() });
+  const blocked = await partnerBlocked(req.shopId, phone);
+  if (blocked) return fail(res, blocked);
+
+  const customerId = readToken(req)?.customerId;
+  const customer = customerId ? await customers.findOne({ where: { id: customerId, shop_id: req.shopId, status: "active" } }) : null;
+  if (customer?.phone !== phone) {
+    const result = await verifyPhoneOtp(req.shopId, phone, req.body.code ?? "", PARTNER_OTP);
+    if (!result.success) return fail(res, result.message);
+  }
+
+  const { storeName, name, email, address } = req.body;
+  await partnerRequests.create({
+    shop_id: req.shopId,
+    phone,
+    store_name: storeName.trim(),
+    name: name.trim(),
+    email: email?.trim() || null,
+    address: address?.trim() || null,
+    status: partnerStatuses.pending,
+    created_at: now(),
+  });
   return ok(res, null, "Хүсэлтийг хүлээн авлаа");
 });

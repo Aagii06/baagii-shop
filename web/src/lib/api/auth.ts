@@ -126,13 +126,34 @@ export async function signOut(): Promise<void> {
   await ensureGuestToken();
 }
 
-// Seller sign-up request: `POST /auth/register` files a partner request for
-// the phone number (`userName`), which an admin approves in the admin panel.
-export async function registerSeller(phone: string): Promise<void> {
-  await apiFetch<ApiItemResponse<null>>("/auth/register", {
+export interface SellerRequest {
+  phone: string;
+  storeName: string;
+  /** The applicant's own name. */
+  name: string;
+  email?: string;
+  address?: string;
+  /** SMS code from `sendSellerOtp`; not needed when signed in with this phone. */
+  code?: string;
+}
+
+/** Texts a code for the seller request (`POST /auth/register/sendOtp`). */
+export async function sendSellerOtp(phone: string): Promise<void> {
+  await apiFetch<ApiItemResponse<null>>("/auth/register/sendOtp", {
     method: "POST",
     auth: false,
-    body: { userName: phone },
+    body: { phone },
+  });
+}
+
+// Seller sign-up request: `POST /auth/register` files a partner request with
+// the store's details; approving it in the admin panel opens the store and
+// its shopper account. Sent with the session token so a shopper signed in
+// with this phone needn't confirm it again.
+export async function registerSeller({ phone, ...details }: SellerRequest): Promise<void> {
+  await apiFetch<ApiItemResponse<null>>("/auth/register", {
+    method: "POST",
+    body: { userName: phone, ...details },
   });
 }
 
