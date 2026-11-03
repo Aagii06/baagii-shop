@@ -191,7 +191,17 @@ export default function StoreForm({ store }: { store: Store | null }) {
           check={() => undefined}
           emptyError={t("st.addressIncomplete")}
           error={addressError}
-          input={(props) => <AddressPicker {...props} />}
+          stacked
+          // No `onKeyDown`: Enter makes a new line in the detail field, not an add.
+          input={(props) => (
+            <AddressPicker
+              value={props.value}
+              onChange={props.onChange}
+              aria-label={props["aria-label"]}
+              aria-invalid={props["aria-invalid"]}
+              aria-describedby={props["aria-describedby"]}
+            />
+          )}
         />
       </div>
     </form>

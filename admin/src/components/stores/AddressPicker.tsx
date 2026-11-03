@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { getCities, getDistricts, getSubDistricts, type Area } from "@/lib/api/locations";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -92,13 +92,10 @@ function AreaSelect({
 export default function AddressPicker({
   value,
   onChange,
-  onKeyDown,
   ...aria
 }: {
   value: string;
   onChange: (value: string) => void;
-  /** On the detail field. */
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   "aria-label"?: string;
   "aria-invalid"?: boolean;
   "aria-describedby"?: string;
@@ -163,7 +160,7 @@ export default function AddressPicker({
 
   return (
     <div role="group" aria-label={aria["aria-label"]} className="space-y-2">
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="space-y-2">
         <AreaSelect label={t("st.city")} areas={cities} value={cityId} onChange={pickCity} />
         <AreaSelect
           label={t("st.district")}
@@ -180,10 +177,11 @@ export default function AddressPicker({
           disabled={!districtId || subDistricts.length === 0}
         />
       </div>
-      <Input
+      <Textarea
+        rows={3}
+        className="min-h-24"
         value={detail}
         onChange={(e) => setPicked((p) => ({ ...p, detail: e.target.value }))}
-        onKeyDown={onKeyDown}
         maxLength={200}
         placeholder={t("st.addressDetail")}
         aria-label={t("st.addressDetail")}

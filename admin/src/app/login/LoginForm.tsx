@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { LoadingState } from "@/components/common/States";
 import BrandMark from "@/components/layout/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,10 @@ export default function LoginForm() {
       setSubmitting(false);
     }
   }
+
+  // A saved token is checked first: the form shows only once there's none
+  // (or it's no good), and a valid one goes straight on to the panel.
+  if (status !== "anonymous") return <LoadingState className="min-h-screen w-full" />;
 
   return (
     <div className="w-full max-w-sm">
@@ -114,11 +119,7 @@ export default function LoginForm() {
             </p>
           )}
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={submitting || status === "loading"}
-          >
+          <Button type="submit" className="w-full" disabled={submitting}>
             {submitting && <Loader2 className="animate-spin" />}
             {t("login.title")}
           </Button>

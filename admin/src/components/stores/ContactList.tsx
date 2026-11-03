@@ -23,6 +23,7 @@ export default function ContactList({
   emptyError,
   error,
   mono = false,
+  stacked = false,
   input,
 }: {
   title: string;
@@ -42,6 +43,8 @@ export default function ContactList({
   error?: string;
   /** Show the values in the mono font (phone numbers). */
   mono?: boolean;
+  /** A tall input (the address picker): its buttons go on a full row under it. */
+  stacked?: boolean;
   input: (props: {
     value: string;
     onChange: (value: string) => void;
@@ -58,6 +61,7 @@ export default function ContactList({
   const [rowError, setRowError] = useState<string>();
   const shownError = rowError ?? error;
   const full = items.length >= max && editing == null;
+  const commitLabel = editing != null ? t("common.save") : t("common.add");
 
   function commit() {
     const value = normalize(draft);
@@ -87,7 +91,7 @@ export default function ContactList({
       </div>
 
       {!full && (
-        <div className="flex items-end gap-2">
+        <div className={stacked ? "space-y-2" : "flex items-end gap-2"}>
           <div className="min-w-0 flex-1">
             {input({
               value: draft,
@@ -106,21 +110,31 @@ export default function ContactList({
               "aria-describedby": shownError ? errorId : undefined,
             })}
           </div>
-          {editing != null && (
-            <Button type="button" variant="outline" size="icon" className="size-12 shrink-0" aria-label={t("common.cancel")} title={t("common.cancel")} onClick={cancelEdit}>
-              <X />
-            </Button>
+          {stacked ? (
+            <div className="flex gap-2">
+              {editing != null && (
+                <Button type="button" variant="outline" className="h-12 flex-1" onClick={cancelEdit}>
+                  <X />
+                  {t("common.cancel")}
+                </Button>
+              )}
+              <Button type="button" className="h-12 flex-1" onClick={commit}>
+                {editing != null ? <Check /> : <Plus />}
+                {commitLabel}
+              </Button>
+            </div>
+          ) : (
+            <>
+              {editing != null && (
+                <Button type="button" variant="outline" size="icon" className="size-12 shrink-0" aria-label={t("common.cancel")} title={t("common.cancel")} onClick={cancelEdit}>
+                  <X />
+                </Button>
+              )}
+              <Button type="button" size="icon" className="size-12 shrink-0" aria-label={commitLabel} title={commitLabel} onClick={commit}>
+                {editing != null ? <Check /> : <Plus />}
+              </Button>
+            </>
           )}
-          <Button
-            type="button"
-            size="icon"
-            className="size-12 shrink-0"
-            aria-label={editing != null ? t("common.save") : t("common.add")}
-            title={editing != null ? t("common.save") : t("common.add")}
-            onClick={commit}
-          >
-            {editing != null ? <Check /> : <Plus />}
-          </Button>
         </div>
       )}
 
