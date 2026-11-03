@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { categoryPath, subtreeIds, type Category } from "@/lib/categories";
@@ -19,52 +19,37 @@ interface FilterSidebarProps {
   onChange: (filters: SearchFilters) => void;
   priceBounds: [number, number];
   counts: {
-    category: Record<number, number>;
     brand: Record<string, number>;
   };
 }
 
-function Checkbox({
-  checked,
-  onChange,
+/** One row of the category / store lists: a name, picked or not. */
+function PickRow({
   label,
-  count,
-  indeterminate = false,
+  picked,
+  onClick,
+  sub = false,
 }: {
-  checked: boolean;
-  indeterminate?: boolean;
-  onChange: () => void;
   label: string;
-  count: number;
+  picked: boolean;
+  onClick: () => void;
+  /** Inside an opened category: smaller and tighter. */
+  sub?: boolean;
 }) {
   return (
-    <label className="flex items-center gap-2.5 py-1.5 cursor-pointer group">
-      <span
-        className={cn(
-          "flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded border transition-colors",
-          checked || indeterminate
-            ? "bg-primary border-primary"
-            : "border-input group-hover:border-primary/50"
-        )}
-      >
-        {checked && (
-          <svg viewBox="0 0 12 12" className="h-3 w-3 fill-none stroke-white stroke-2">
-            <path d="M2 6l3 3 5-6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-        {!checked && indeterminate && (
-          <span className="h-0.5 w-2 rounded bg-white" />
-        )}
-      </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="sr-only"
-      />
-      <span className="flex-1 text-sm text-foreground">{label}</span>
-      <span className="text-xs text-muted-foreground">{count}</span>
-    </label>
+    <button
+      type="button"
+      aria-pressed={picked}
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-center gap-2 text-left transition-colors",
+        sub ? "py-2 text-sm" : "py-3 text-[15px]",
+        picked ? "font-semibold text-primary" : "text-foreground hover:text-primary"
+      )}
+    >
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {picked && <Check className="h-4 w-4 shrink-0" strokeWidth={2.5} />}
+    </button>
   );
 }
 
@@ -113,21 +98,18 @@ export function FilterPanelContent({
   const toggleOpen = (id: number, isOpen: boolean) =>
     setOpenCategories((prev) => ({ ...prev, [id]: !isOpen }));
 
-  // The tree can be several levels deep. A parent filters on itself plus
-  // everything beneath it; its count is the sum over that subtree.
-  const countOf = (category: Category): number =>
-    (counts.category[category.id] ?? 0) +
-    category.children.reduce((sum, child) => sum + countOf(child), 0);
-
-  const renderCategory = (category: Category) => {
+  // A category with subcategories opens on tap; its first row ("Бүгд")
+  // picks the whole group, the rest pick one subcategory each.
+  const renderCategory = (category: Category, depth = 0) => {
+    const sub = depth > 0;
     if (category.children.length === 0) {
       return (
-        <Checkbox
+        <PickRow
           key={category.id}
-          checked={filters.categories.includes(category.id)}
-          onChange={() => toggleCategory(category.id)}
           label={category.name}
-          count={countOf(category)}
+          picked={filters.categories.includes(category.id)}
+          onClick={() => toggleCategory(category.id)}
+          sub={sub}
         />
       );
     }
@@ -136,61 +118,89 @@ export function FilterPanelContent({
     const selectedCount = ids.filter((id) =>
       filters.categories.includes(id)
     ).length;
-    // Fully selected (e.g. arriving from a /search?category= link) stays
-    // collapsed — the checked parent already says it all. Only a partial
-    // selection opens by default, to show which children are picked.
+    // A partial selection opens by default, to show which children are picked.
     const isOpen =
       openCategories[category.id] ??
       (selectedCount > 0 && selectedCount < ids.length);
 
     return (
       <div key={category.id}>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => toggleOpen(category.id, isOpen)}
-            aria-expanded={isOpen}
-            aria-label={category.name}
-            className="shrink-0 p-1"
-          >
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 text-muted-foreground transition-transform",
-                isOpen && "rotate-180"
-              )}
-            />
-          </button>
-          <div className="flex-1">
-            <Checkbox
-              checked={selectedCount === ids.length}
-              indeterminate={selectedCount > 0 && selectedCount < ids.length}
-              onChange={() => toggleGroup(category)}
-              label={category.name}
-              count={countOf(category)}
-            />
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => toggleOpen(category.id, isOpen)}
+          aria-expanded={isOpen}
+          className={cn(
+            "flex w-full items-center gap-2 text-left transition-colors hover:text-primary",
+            sub ? "py-2 text-sm" : "py-3 text-[15px]",
+            selectedCount > 0 ? "font-semibold text-primary" : "text-foreground"
+          )}
+        >
+          <span className="min-w-0 flex-1 truncate">{category.name}</span>
+          <ChevronDown
+            className={cn(
+              "shrink-0 text-foreground/70 transition-transform",
+              sub ? "h-4 w-4" : "h-5 w-5",
+              isOpen && "rotate-180"
+            )}
+          />
+        </button>
 
         {isOpen && (
-          <div className="ml-4 border-l border-border pl-2">
-            {category.children.map(renderCategory)}
+          <div className="mb-2 ml-1 border-l-2 border-border pl-4">
+            <PickRow
+              label={t("search.filters.allOf")}
+              picked={selectedCount === ids.length}
+              onClick={() => toggleGroup(category)}
+              sub
+            />
+            {category.children.map((child) => renderCategory(child, depth + 1))}
           </div>
         )}
       </div>
     );
   };
 
+  // The stores selling what was found, most products first.
+  const stores = Object.entries(counts.brand)
+    .sort(([a, x], [b, y]) => y - x || a.localeCompare(b))
+    .map(([name]) => name);
+
+  const toggleStore = (store: string) =>
+    onChange({
+      ...filters,
+      brands: filters.brands.includes(store)
+        ? filters.brands.filter((b) => b !== store)
+        : [...filters.brands, store],
+    });
+
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <h3 className="font-semibold text-sm text-foreground mb-2">
+      <div className="rounded-2xl border border-border bg-card px-5 py-4">
+        <h3 className="mb-1 text-lg font-bold text-foreground">
           {t("search.filters.category")}
         </h3>
         {categories.map((category) => renderCategory(category))}
+
+        {stores.length > 0 && (
+          <>
+            <div className="my-3 border-t border-border" />
+            <h3 className="mb-1 text-lg font-bold text-foreground">
+              {t("search.filters.stores")}
+            </h3>
+            {stores.map((store) => (
+              <PickRow
+                key={store}
+                label={store}
+                picked={filters.brands.includes(store)}
+                onClick={() => toggleStore(store)}
+              />
+            ))}
+          </>
+        )}
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <h3 className="font-semibold text-sm text-foreground mb-1">
+      <div className="rounded-2xl border border-border bg-card px-5 py-4">
+        <h3 className="mb-1 text-lg font-bold text-foreground">
           {t("search.filters.priceRange")}
         </h3>
         <PriceRangeSlider

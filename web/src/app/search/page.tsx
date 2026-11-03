@@ -14,7 +14,6 @@ import { useCategories } from "@/lib/categories/CategoriesProvider";
 import {
   findCategory,
   findCategoryById,
-  flattenCategories,
   subtreeIds,
 } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
@@ -72,7 +71,6 @@ function SearchContent() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categoryCounts, setCategoryCounts] = useState<Record<number, number>>({});
 
   // A comma-joined, sorted list of the category ids currently in play. A
   // primitive key keeps the fetch effect from re-firing on array identity
@@ -99,7 +97,7 @@ function SearchContent() {
   }, [resolvedInitialKey, initialSale, query]);
 
   // Category and text search are filtered server-side by the product API;
-  // everything else (brand, price, delivery, sort) is applied client-side
+  // everything else (store, price, sort) is applied client-side
   // below. The API filters by one category at a time, so multiple selected
   // categories mean one request each, merged and de-duplicated.
   useEffect(() => {
@@ -147,25 +145,6 @@ function SearchContent() {
     };
   }, [activeCategoryKey, query]);
 
-  // Per-category counts need a dedicated call each since the API only
-  // filters by a single category at a time. The sidebar sums them up
-  // for parent groups.
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all(
-      flattenCategories(categories).map((c) =>
-        getProducts({ categoryId: c.id, search: query || undefined })
-          .then((list): [number, number] => [c.id, list.length])
-          .catch((): [number, number] => [c.id, 0])
-      )
-    ).then((entries) => {
-      if (!cancelled) setCategoryCounts(Object.fromEntries(entries));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [query, categories]);
-
   const priceBounds = useMemo(() => computePriceBounds(products), [products]);
 
   const counts = useMemo(() => {
@@ -173,8 +152,8 @@ function SearchContent() {
     for (const p of products) {
       if (p.brand) brand[p.brand] = (brand[p.brand] ?? 0) + 1;
     }
-    return { category: categoryCounts, brand };
-  }, [products, categoryCounts]);
+    return { brand };
+  }, [products]);
 
   const filtered = useMemo(() => {
     let result = products.slice();

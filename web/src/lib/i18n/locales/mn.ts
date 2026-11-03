@@ -114,6 +114,7 @@ export const mn: Dict = {
   "search.filters.brand": "Брэнд",
   "search.filters.stores": "Дэлгүүрүүд",
   "search.storeCount": "{name} — {count} бараа",
+  "search.filters.allOf": "Бүгд",
   "search.filters.priceRange": "Үнийн хязгаар",
   "search.filters.button": "Шүүлтүүр",
   "search.filters.title": "Шүүлтүүр",
