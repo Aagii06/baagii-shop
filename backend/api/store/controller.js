@@ -50,7 +50,7 @@ module.exports.update = handle("storeUpdate", async (req, res) => {
   return ok(res, toStore(row));
 });
 
-// Бараа эсвэл борлуулагч холбогдсон дэлгүүрийг устгахгүй — эхлээд тэднийг шилжүүлнэ
+// Бараа эсвэл хэрэглэгч холбогдсон дэлгүүрийг устгахгүй — эхлээд тэднийг шилжүүлнэ
 module.exports.destroy = handle("storeDestroy", async (req, res) => {
   const { by, at } = req.body;
   const row = await findStore(req.shopId, req.params.id);
@@ -58,7 +58,7 @@ module.exports.destroy = handle("storeDestroy", async (req, res) => {
   if (await products.count({ where: { shop_id: req.shopId, store_id: row.id, status: "active" } }))
     return fail(res, "Дэлгүүрт бараа бүртгэлтэй тул устгах боломжгүй");
   if (await users.count({ where: { shop_id: req.shopId, store_id: row.id, status: "active" } }))
-    return fail(res, "Дэлгүүрт борлуулагч бүртгэлтэй тул устгах боломжгүй");
+    return fail(res, "Дэлгүүрт хэрэглэгч бүртгэлтэй тул устгах боломжгүй");
   await row.update({ status: "deleted", deleted_by: by, deleted_at: at });
   await saveLog({ shop_id: req.shopId, object_name: "stores", object_id: row.id, log_action: "deleted", created_by: by, created_at: at });
   return ok(res, null);

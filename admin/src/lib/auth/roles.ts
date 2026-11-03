@@ -3,12 +3,11 @@ import type { LoginUser } from "@/lib/api/auth";
 export type Role = "admin" | "shopper";
 
 /**
- * Until the backend has shopper users, every signed-in user is an admin.
- * Flip to `ROLES_ENABLED = true` to tell them apart: `roleNames` (from
- * `/auth/getUserData`) containing "admin" makes an admin, anyone else is a
- * shopper. Adjust the pattern if the backend's role names differ.
+ * `roleNames` (from `/auth/getUserData`) containing "admin" makes an admin;
+ * anyone else is a shopper, who works on their own store's products only.
+ * Set `ROLES_ENABLED = false` to treat every signed-in user as an admin.
  */
-const ROLES_ENABLED = false;
+const ROLES_ENABLED = true;
 
 export function getRole(user: LoginUser | null): Role {
   if (!ROLES_ENABLED) return "admin";

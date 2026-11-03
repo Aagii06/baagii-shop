@@ -4,7 +4,7 @@ const { byAndAt } = require("../../middleware/timeStamp");
 const controller = require("./controller");
 
 router.use(isAdmin);
-router.route("/").get(controller.list).post(byAndAt, controller.create);
+router.get("/", controller.list);
 router.post("/:id/approve", byAndAt, controller.approve);
 router.post("/:id/reject", byAndAt, controller.reject);
 

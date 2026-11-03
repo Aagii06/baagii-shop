@@ -5,10 +5,16 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, Store, type LucideIcon } from "lucide-react";
+import { ChevronRight, Handshake, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, Store, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon }[] = [
+  {
+    href: "/stores",
+    labelKey: "st.title",
+    descKey: "profile.stores",
+    icon: Store,
+  },
   {
     href: "/categories",
     labelKey: "common.category",
@@ -52,6 +58,11 @@ export default function ProfilePage() {
                 {user.userName}
               </span>
             )}
+            {role === "shopper" && (
+              <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                {user?.store ? user.store.name : t("profile.noStore")}
+              </span>
+            )}
           </span>
         </Card>
 
@@ -85,7 +96,7 @@ export default function ProfilePage() {
             className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 transition-colors hover:bg-muted/60"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground/80">
-              <Store className="size-5" />
+              <Handshake className="size-5" />
             </span>
             <span className="min-w-0 grow">
               <span className="block truncate text-[15px] font-bold">{t("profile.partner")}</span>

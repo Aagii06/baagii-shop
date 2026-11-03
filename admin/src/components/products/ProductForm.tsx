@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import { Switch } from "@/components/ui/switch";
 import { RichTextEditor } from "@/components/common/RichTextEditor";
+import StoreSelect from "@/components/stores/StoreSelect";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { deletePost, savePost } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
@@ -45,6 +47,7 @@ export default function ProductForm() {
   const router = useRouter();
   const { t } = useLanguage();
   const { run } = useToast();
+  const { role } = useAuth();
   const confirm = useConfirm();
   // const publishLabelId = useId();
   const nameErrorId = useId();
@@ -143,6 +146,13 @@ export default function ProductForm() {
             />
           </Field>
         </div>
+
+        {/* A shopper's products always go to their own store (set by the backend). */}
+        {role === "admin" && (
+          <Field label={t("pf.store")} hint={t("pf.storeHint")}>
+            <StoreSelect value={form.storeId} onChange={(id) => set("storeId", id)} placeholder={t("pf.ownStore")} />
+          </Field>
+        )}
 
         <CategoryPicker
           categories={categories}

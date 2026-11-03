@@ -15,6 +15,8 @@ export interface LoginUser {
   /** Filled from `/auth/getUserData`, not by login. */
   roles?: number[];
   roleNames?: string | null;
+  /** A shopper's seller store; from `/auth/getUserData`. */
+  store?: { id: number; name: string } | null;
 }
 
 export interface ObjectPermission {

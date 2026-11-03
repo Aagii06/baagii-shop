@@ -183,7 +183,9 @@ export default function ProductsPage() {
           <ul className="divide-y divide-border border-b border-border">
             {rows.map((post) => {
               const stock = stockLine(post);
-              const category = post.categoryId != null ? categories.name.get(post.categoryId) : undefined;
+              const category = [post.categoryId != null ? categories.name.get(post.categoryId) : undefined, post.storeName]
+                .filter(Boolean)
+                .join(" · ");
               return (
                 <li key={post.id}>
                   <Link

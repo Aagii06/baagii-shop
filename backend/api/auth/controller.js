@@ -24,7 +24,7 @@ const withStore = [{ model: stores, as: "store", attributes: ["id", "name"], req
 // { phone, password }
 module.exports.login = handle("login", async (req, res) => {
   const { phone, password } = req.body;
-  const user = await users.findOne({ where: { shop_id: req.shopId, phone: phoneDigits(phone), status: "active" } });
+  const user = await users.findOne({ where: { shop_id: req.shopId, phone: phoneDigits(phone), status: "active" }, include: withStore });
   const matches = user?.password && (await bcrypt.compare(password, user.password));
   if (!matches) return fail(res, "Утасны дугаар эсвэл нууц үг буруу байна");
   return ok(res, { token: signUser(user), user: toUser(user) });
