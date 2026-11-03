@@ -20,6 +20,7 @@ export default function ContactList({
   onDraftChange,
   check,
   normalize = (value) => value.trim(),
+  emptyError,
   error,
   mono = false,
   input,
@@ -35,6 +36,8 @@ export default function ContactList({
   check: (value: string) => string | undefined;
   /** How a value is stored, e.g. lower-cased emails. */
   normalize?: (value: string) => string;
+  /** Said when "+" is pressed with nothing to add; otherwise it does nothing. */
+  emptyError?: string;
   /** From the form's save; shown when the row has nothing of its own to say. */
   error?: string;
   /** Show the values in the mono font (phone numbers). */
@@ -58,7 +61,7 @@ export default function ContactList({
 
   function commit() {
     const value = normalize(draft);
-    if (!value) return;
+    if (!value) return setRowError(emptyError);
     const others = items.filter((_, i) => i !== editing);
     const problem = others.includes(value) ? t("st.duplicate") : check(value);
     if (problem) return setRowError(problem);
@@ -84,7 +87,7 @@ export default function ContactList({
       </div>
 
       {!full && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-end gap-2">
           <div className="min-w-0 flex-1">
             {input({
               value: draft,

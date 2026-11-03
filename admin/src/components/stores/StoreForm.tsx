@@ -3,6 +3,7 @@
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import Field from "@/components/common/Field";
 import Thumb from "@/components/common/Thumb";
+import AddressPicker from "@/components/stores/AddressPicker";
 import ContactList from "@/components/stores/ContactList";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -188,10 +189,9 @@ export default function StoreForm({ store }: { store: Store | null }) {
           draft={addressDraft}
           onDraftChange={setAddressDraft}
           check={() => undefined}
+          emptyError={t("st.addressIncomplete")}
           error={addressError}
-          input={({ onChange, ...props }) => (
-            <Input {...props} maxLength={255} placeholder={t("st.addressPlaceholder")} onChange={(e) => onChange(e.target.value)} />
-          )}
+          input={(props) => <AddressPicker {...props} />}
         />
       </div>
     </form>
