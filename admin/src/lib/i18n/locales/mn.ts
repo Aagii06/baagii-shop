@@ -292,7 +292,7 @@ export const mn: Dict = {
   "cat.moveTitle": "Категори шилжүүлэх үү?",
   "cat.moveClearsAttrs": "“{name}” дэд категоритой болох тул түүний сонголтууд (өнгө, хэмжээ…) устна.",
   "cat.move": "Шилжүүлэх",
-  "cf.parent": "Эх категори",
+  "cf.parent": "Эцэг категори",
   "cf.topLevel": "Дээд түвшин",
   "cat.expandAria": "“{name}” дэд категориудыг дэлгэх",
   "cat.collapseAria": "“{name}” дэд категориудыг хураах",

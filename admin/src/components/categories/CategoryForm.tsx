@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Attr } from "@/lib/api/attrs";
 import {
-  canMoveUnder,
-  canNestUnder,
   createCategory,
   releaseParentAttrs,
   updateCategory,
@@ -17,7 +15,7 @@ import {
 } from "@/lib/api/categories";
 import { MAX_ATTRS } from "@/lib/attributes";
 import { cn } from "@/lib/utils";
-import { Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
@@ -31,7 +29,8 @@ function valuesPreview(attr: Attr) {
 /**
  * Create or edit a category, and choose from the attribute catalogue what
  * its products vary by — the product form then asks for exactly those.
- * Where a category sits is set when it's created and never shown here.
+ * A new category goes at the top level, or under the row whose "add
+ * subcategory" button opened the form; its parent is shown but never changed here.
  */
 export default function CategoryForm({
   category,
@@ -47,7 +46,7 @@ export default function CategoryForm({
    */
   parentId?: number | null;
   catalogue: Attr[];
-  /** Every category, flattened — the places this one can go. */
+  /** Every category, flattened — names the parent. */
   categories: (Category & { depth: number })[];
 }) {
   const router = useRouter();
@@ -58,9 +57,8 @@ export default function CategoryForm({
 
   const [name, setName] = useState(category?.name ?? "");
   const [nameTouched, setNameTouched] = useState(false);
-  const [parentId, setParentId] = useState<number | null>(category ? category.parentId : newParentId);
-  // Where it may sit: not inside itself, and within the depth limit.
-  const parentOptions = categories.filter((c) => (category ? canMoveUnder(category, c) : canNestUnder(c)));
+  const parentId = category ? category.parentId : newParentId;
+  const parent = categories.find((c) => c.id === parentId);
   // Only the last level picks what products vary by; a category with
   // subcategories leaves it to them.
   const isLeaf = !category || category.children.length === 0;
@@ -93,9 +91,12 @@ export default function CategoryForm({
     };
     const saved = await run(
       async () => {
-        if (!category) return createCategory(input);
+        if (!category) {
+          await createCategory(input);
+          await releaseParentAttrs(parent);
+          return;
+        }
         await updateCategory(category, input);
-        if (parentId !== category.parentId) await releaseParentAttrs(categories.find((c) => c.id === parentId));
       },
       category ? t("common.saved") : t("cf.added")
     );
@@ -127,27 +128,12 @@ export default function CategoryForm({
           />
         </Field>
 
-        <Field label={t("cf.parent")}>
-          <div className="relative">
-            <select
-              value={parentId ?? ""}
-              onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : null)}
-              className="h-12 w-full appearance-none rounded-full border border-input bg-white px-5 pr-12 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
-            >
-              <option value="">{t("cf.topLevel")}</option>
-              {parentOptions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {"— ".repeat(c.depth)}
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              aria-hidden="true"
-              className="pointer-events-none absolute right-5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-          </div>
-        </Field>
+        {/* A plain new category is always top-level — nothing to show. */}
+        {(category || parent) && (
+          <Field label={t("cf.parent")}>
+            <Input value={parent?.name ?? t("cf.topLevel")} disabled />
+          </Field>
+        )}
 
         <section className="space-y-3 rounded-2xl border border-border bg-white p-4">
           <div>

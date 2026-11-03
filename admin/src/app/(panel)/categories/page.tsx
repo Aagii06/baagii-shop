@@ -24,8 +24,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 // Drag & drop moving is switched off for now — set to `true` to bring the
-// grip handle (and the drag logic in `CategoriesPage`) back. Moving still
-// works from the "Эх категори" field on the edit form.
+// grip handle (and the drag logic in `CategoriesPage`) back.
 const DRAG_AND_DROP = false;
 
 function CategoryRow({
