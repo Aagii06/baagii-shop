@@ -68,7 +68,9 @@ module.exports.setStatus = handle("orderStatus", async (req, res) => {
         await item.update({ returned_qty: item.qty }, { transaction: t });
       }
     }
-    await order.update({ status, [stampOf[status]]: at, updated_by: by, updated_at: at }, { transaction: t });
+    // Баталгаажуулах нь төлбөр орсныг (дансаар шилжүүлсэн гэх мэт) хүлээн зөвшөөрнө
+    const paid = status === orderStatuses.confirmed && !order.paid_at ? { paid_at: at } : {};
+    await order.update({ status, [stampOf[status]]: at, ...paid, updated_by: by, updated_at: at }, { transaction: t });
     await saveLog({ shop_id: req.shopId, object_name: "orders", object_id: order.id, log_action: status, created_by: by, created_at: at }, t);
     await t.commit();
     return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));

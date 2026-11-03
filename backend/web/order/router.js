@@ -1,8 +1,10 @@
 const router = require("express").Router();
 const { cartDetails, orders, sequelize } = require("../../models");
-const { shopSettings, paymentMethods } = require("../../config/constants");
+const { shopSettings } = require("../../config/constants");
 const { findCart, detailInclude, isSellable } = require("../../helper/cartHelper");
 const { placeOrder, findOrder, toWebOrder, itemsInclude } = require("../../helper/orderHelper");
+const { createInvoice, checkOrder, toWebInvoice } = require("../../helper/qpayHelper");
+const { paymentSettings } = require("../../models");
 const { ok, fail, handle, now, phoneDigits, isPhone, toNumber } = require("../../helper/helper");
 
 // Утсаар нэвтэрсэн худалдан авагчийн захиалгууд (web/routes.js: requireCustomer)
@@ -81,16 +83,39 @@ router.post(
   }),
 );
 
-// Төлбөр: одоохондоо төлбөрийн сервисгүй тул сонгосон аргаар төлсөн гэж тэмдэглэнэ
+// Дансаар шилжүүлэх: худалдан авагч шилжүүлснээ мэдэгдэнэ. Мөнгө орсныг админ шалгаж
+// захиалгыг баталгаажуулахад (api/order setStatus → confirmed) төлөгдсөн болно.
 router.post(
   "/:id/pay",
   handle("payOrder", async (req, res) => {
-    const { paymentMethod } = req.body;
-    if (!paymentMethods.includes(paymentMethod)) return fail(res, "Төлбөрийн хэлбэр сонгоно уу");
+    if (req.body.paymentMethod !== "bank") return fail(res, "Төлбөрийн хэлбэр сонгоно уу");
+    const s = await paymentSettings.findOne({ where: { shop_id: req.shopId } });
+    if (!s?.bank_enabled) return fail(res, "Дансаар шилжүүлэх боломжгүй байна");
     const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
-    if (!order.paid_at) await order.update({ payment_method: paymentMethod, paid_at: now(), updated_at: now() });
+    if (!order.paid_at) await order.update({ payment_method: "bank", updated_at: now() });
     return ok(res, toWebOrder(order));
+  }),
+);
+
+// QPay: нэхэмжлэх үүсгэж QR, банкны апп-ын холбоосыг буцаана
+router.post(
+  "/:id/qpay",
+  handle("qpayInvoice", async (req, res) => {
+    const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
+    if (!order) return fail(res, "Захиалга олдсонгүй");
+    if (order.paid_at) return fail(res, "Захиалга төлөгдсөн байна");
+    return ok(res, toWebInvoice(await createInvoice(req.shopId, order)));
+  }),
+);
+
+// QPay: төлөгдсөн эсэхийг шалгана (вэб хэдэн секунд тутам дуудна)
+router.get(
+  "/:id/qpay",
+  handle("qpayCheck", async (req, res) => {
+    const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
+    if (!order) return fail(res, "Захиалга олдсонгүй");
+    return ok(res, toWebOrder(order.paid_at ? order : await checkOrder(req.shopId, order.id)));
   }),
 );
 

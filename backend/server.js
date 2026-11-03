@@ -16,6 +16,8 @@ const swaggerUi = require("swagger-ui-express");
 app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(require("./docs/openapi"), { customSiteTitle: "UVS shop API" }));
 // Admin самбар (../admin) ба дэлгүүр (../web) — аль дэлгүүрийнх нь X-Shop-Id толгойгоор
 app.use("/api", resolveShop, require("./api/routes"));
+// QPay-ийн callback нь X-Shop-Id илгээдэггүй тул дэлгүүр шүүхээс өмнө
+app.all("/web/qpay/callback/:no", require("./web/payment/callback"));
 app.use("/web", resolveShop, require("./web/routes"));
 // Барааны зураг
 app.use("/file", require("./file/router"));
