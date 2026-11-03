@@ -53,7 +53,13 @@ export default function EditProfilePage() {
   const nameError = submitted && !name.trim() ? t("profile.nameRequired") : undefined;
   const phoneError = submitted && phone.length < 8 ? t("checkout.phoneInvalid") : undefined;
   const codeError =
-    submitted && phoneChanged && phone.length === 8 && (!codeSent ? t("profile.codeFirst") : !code.trim() ? t("profile.codeRequired") : undefined);
+    !submitted || !phoneChanged || phone.length < 8
+      ? undefined
+      : !codeSent
+        ? t("profile.codeFirst")
+        : !code.trim()
+          ? t("profile.codeRequired")
+          : undefined;
   const emailError = submitted && email.trim() && !EMAIL_RE.test(email.trim()) ? t("st.emailInvalid") : undefined;
   const newPasswordError = submitted && newPassword && newPassword.length < 6 ? t("profile.passwordShort") : undefined;
   const passwordError = submitted && newPassword && !password ? t("profile.passwordRequired") : undefined;

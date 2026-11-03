@@ -5,7 +5,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, Handshake, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, Store, Users, type LucideIcon } from "lucide-react";
+import { ChevronRight, Handshake, LayoutGrid, LogOut, NotebookPen, Pencil, SlidersHorizontal, Store, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon }[] = [
@@ -57,7 +57,7 @@ export default function ProfilePage() {
           <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-xl font-bold text-secondary-foreground">
             {displayName.charAt(0).toUpperCase()}
           </span>
-          <span className="min-w-0">
+          <span className="min-w-0 grow">
             <span className="block truncate text-[17px] font-bold">{displayName}</span>
             {user?.userName && (
               <span className="mt-0.5 block truncate font-mono text-sm text-muted-foreground">
@@ -70,6 +70,11 @@ export default function ProfilePage() {
               </span>
             )}
           </span>
+          <Button asChild variant="outline" size="icon-sm" className="shrink-0">
+            <Link href="/profile/edit" aria-label={t("profile.edit")}>
+              <Pencil />
+            </Link>
+          </Button>
         </Card>
 
         {role === "admin" && (
