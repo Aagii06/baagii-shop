@@ -61,7 +61,6 @@ function SearchContent() {
   const [filters, setFilters] = useState<SearchFilters>({
     categories: [],
     brands: [],
-    freeDeliveryOnly: false,
     priceRange: DEFAULT_PRICE_BOUNDS,
   });
   const [saleOnly, setSaleOnly] = useState(initialSale);
@@ -170,12 +169,10 @@ function SearchContent() {
 
   const counts = useMemo(() => {
     const brand: Record<string, number> = {};
-    let freeDelivery = 0;
     for (const p of products) {
       if (p.brand) brand[p.brand] = (brand[p.brand] ?? 0) + 1;
-      if (p.freeDelivery) freeDelivery += 1;
     }
-    return { category: categoryCounts, brand, freeDelivery };
+    return { category: categoryCounts, brand };
   }, [products, categoryCounts]);
 
   const filtered = useMemo(() => {
@@ -188,9 +185,6 @@ function SearchContent() {
     }
     if (filters.brands.length > 0) {
       result = result.filter((p) => p.brand && filters.brands.includes(p.brand));
-    }
-    if (filters.freeDeliveryOnly) {
-      result = result.filter((p) => p.freeDelivery);
     }
     result = result.filter(
       (p) =>
@@ -212,7 +206,7 @@ function SearchContent() {
     }
 
     return result;
-  }, [products, saleOnly, filters.brands, filters.freeDeliveryOnly, filters.priceRange, sort]);
+  }, [products, saleOnly, filters.brands, filters.priceRange, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -248,16 +242,6 @@ function SearchContent() {
           brands: f.brands.filter((b) => b !== brand),
         })),
     })),
-    ...(filters.freeDeliveryOnly
-      ? [
-          {
-            key: "free-delivery",
-            label: t("search.filters.freeDelivery"),
-            onRemove: () =>
-              setFilters((f) => ({ ...f, freeDeliveryOnly: false })),
-          },
-        ]
-      : []),
     ...(priceChanged
       ? [
           {

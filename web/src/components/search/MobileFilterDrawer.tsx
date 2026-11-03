@@ -12,7 +12,6 @@ interface MobileFilterDrawerProps {
   counts: {
     category: Record<number, number>;
     brand: Record<string, number>;
-    freeDelivery: number;
   };
   activeCount: number;
 }
