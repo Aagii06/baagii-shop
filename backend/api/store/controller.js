@@ -26,13 +26,24 @@ module.exports.show = handle("storeShow", async (req, res) => {
   return ok(res, row ? toStore(row) : null);
 });
 
-const fields = (body) => ({
-  name: body.name.trim(),
-  phone: phoneDigits(body.phone),
-  email: body.email?.trim() || null,
-  address: body.address?.trim() || null,
-  logo: body.logo || null,
-});
+// phones / emails / addresses: эхнийх нь үндсэн тул phone / email / address-д мөн хадгална
+const cleanList = (list, clean) => [...new Set((Array.isArray(list) ? list : []).map(clean).filter(Boolean))];
+
+const fields = (body) => {
+  const phones = cleanList(body.phones, phoneDigits);
+  const emails = cleanList(body.emails, (v) => String(v ?? "").trim().toLowerCase());
+  const addresses = cleanList(body.addresses, (v) => String(v ?? "").trim());
+  return {
+    name: body.name.trim(),
+    phone: phones[0] ?? null,
+    phones: JSON.stringify(phones),
+    email: emails[0] ?? null,
+    emails: JSON.stringify(emails),
+    address: addresses[0] ?? null,
+    addresses: JSON.stringify(addresses),
+    logo: body.logo || null,
+  };
+};
 
 module.exports.create = handle("storeCreate", async (req, res) => {
   const { by, at, ...body } = req.body;

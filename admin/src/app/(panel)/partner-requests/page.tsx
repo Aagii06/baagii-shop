@@ -26,19 +26,23 @@ import { useId, useState } from "react";
 
 const TABS: PartnerRequestStatus[] = ["pending", "approved", "rejected"];
 
-/** Number colour per status on the summary tiles. */
-const STAT_TONE: Record<PartnerRequestStatus, string> = {
-  pending: "text-warning",
-  approved: "text-success",
-  rejected: "text-destructive",
+/** Dot colour per status on the summary strip. */
+const STAT_DOT: Record<PartnerRequestStatus, string> = {
+  pending: "bg-warning",
+  approved: "bg-success",
+  rejected: "bg-destructive",
 };
 
-function StatTile({ label, value, className }: { label: string; value: number; className?: string }) {
+/** One cell of the summary strip: a small count over its label. */
+function Stat({ label, value, dot }: { label: string; value: number; dot?: string }) {
   return (
-    <Card className="p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={cn("mt-2 font-mono text-2xl font-bold leading-none", className)}>{value}</p>
-    </Card>
+    <div className="min-w-0 px-2 py-2.5 text-center">
+      <p className="font-mono text-lg font-bold leading-none">{value}</p>
+      <p className="mt-1.5 flex items-center justify-center gap-1 truncate text-[11px] font-medium text-muted-foreground">
+        <span className={cn("size-1.5 shrink-0 rounded-full", dot ?? "bg-foreground/40")} aria-hidden />
+        <span className="truncate">{label}</span>
+      </p>
+    </div>
   );
 }
 
@@ -183,17 +187,17 @@ export default function PartnerRequestsPage() {
       </div>
 
       {data && (
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <StatTile label={t("pr.total")} value={data.length} />
+        <Card className="mt-4 grid grid-cols-4 divide-x divide-border p-0">
+          <Stat label={t("pr.total")} value={data.length} />
           {TABS.map((s) => (
-            <StatTile
+            <Stat
               key={s}
               label={partnerStatusLabel(s)}
               value={data.filter((request) => request.status === s).length}
-              className={STAT_TONE[s]}
+              dot={STAT_DOT[s]}
             />
           ))}
-        </div>
+        </Card>
       )}
 
       {error && !data ? (
