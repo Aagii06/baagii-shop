@@ -22,13 +22,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * main one) and a logo. Shoppers are assigned to it from the partner
  * requests; products from the product form.
  */
-/** The filled rows, trimmed. */
-const filled = (items: string[]) => items.map((v) => v.trim()).filter(Boolean);
-const hasDuplicates = (items: string[]) => new Set(items).size !== items.length;
-
-/** A list shown with one empty row to type into when there's nothing saved. */
-const rowsOf = (items: string[] | undefined) => (items?.length ? items : [""]);
-
 export default function StoreForm({ store }: { store: Store | null }) {
   const router = useRouter();
   const { t } = useLanguage();
@@ -37,9 +30,13 @@ export default function StoreForm({ store }: { store: Store | null }) {
   const nameRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(store?.name ?? "");
-  const [phones, setPhones] = useState(() => rowsOf(store?.phones));
-  const [emails, setEmails] = useState(() => rowsOf(store?.emails));
-  const [addresses, setAddresses] = useState(() => rowsOf(store?.addresses));
+  const [phones, setPhones] = useState(store?.phones ?? []);
+  const [emails, setEmails] = useState(store?.emails ?? []);
+  const [addresses, setAddresses] = useState(store?.addresses ?? []);
+  // Typed in but not added with "+" yet.
+  const [phoneDraft, setPhoneDraft] = useState("");
+  const [emailDraft, setEmailDraft] = useState("");
+  const [addressDraft, setAddressDraft] = useState("");
   // A saved file id, or a `blob:` preview of `logoFile` until it's uploaded.
   const [logo, setLogo] = useState<string | null>(store?.logo ?? null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -52,22 +49,11 @@ export default function StoreForm({ store }: { store: Store | null }) {
   }, [logo]);
 
   const nameError = (nameTouched || submitted) && !name.trim() ? t("st.nameRequired") : undefined;
-  // The lists are checked once "save" is pressed.
-  const phoneList = filled(phones);
-  const emailList = filled(emails).map((v) => v.toLowerCase());
-  const addressList = filled(addresses);
-  const phoneProblem =
-    phoneList.length === 0 || phoneList.some((p) => p.length !== 8)
-      ? t("checkout.phoneInvalid")
-      : hasDuplicates(phoneList)
-        ? t("st.duplicate")
-        : undefined;
-  const emailProblem = emailList.some((m) => !EMAIL_RE.test(m))
-    ? t("st.emailInvalid")
-    : hasDuplicates(emailList)
-      ? t("st.duplicate")
-      : undefined;
-  const addressProblem = hasDuplicates(addressList) ? t("st.duplicate") : undefined;
+  // A value left in an input would be lost on save — it must be added first.
+  const unadded = (draft: string) => (draft.trim() ? t("st.unadded") : undefined);
+  const phoneProblem = unadded(phoneDraft) ?? (phones.length === 0 ? t("st.phoneRequired") : undefined);
+  const emailProblem = unadded(emailDraft);
+  const addressProblem = unadded(addressDraft);
   const phoneError = submitted ? phoneProblem : undefined;
   const emailError = submitted ? emailProblem : undefined;
   const addressError = submitted ? addressProblem : undefined;
@@ -94,9 +80,9 @@ export default function StoreForm({ store }: { store: Store | null }) {
     const saved = await run(async () => {
       const input = {
         name: name.trim(),
-        phones: phoneList,
-        emails: emailList,
-        addresses: addressList,
+        phones,
+        emails,
+        addresses,
         logo: logoFile ? await uploadFile(logoFile) : logo,
       };
       await (store ? updateStore(store.id, input) : createStore(input));
@@ -151,18 +137,21 @@ export default function StoreForm({ store }: { store: Store | null }) {
 
         <ContactList
           title={t("st.phone")}
-          addLabel={t("st.addPhone")}
           items={phones}
           onChange={setPhones}
           max={MAX_STORE_CONTACTS}
+          draft={phoneDraft}
+          onDraftChange={setPhoneDraft}
+          check={(v) => (v.length === 8 ? undefined : t("checkout.phoneInvalid"))}
           error={phoneError}
+          mono
           input={({ onChange, ...props }) => (
             <Input
               {...props}
               type="tel"
               inputMode="numeric"
               maxLength={8}
-              placeholder="00000000"
+              placeholder={t("st.phonePlaceholder")}
               className="font-mono"
               onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
             />
@@ -171,10 +160,13 @@ export default function StoreForm({ store }: { store: Store | null }) {
 
         <ContactList
           title={t("st.email")}
-          addLabel={t("st.addEmail")}
           items={emails}
           onChange={setEmails}
           max={MAX_STORE_CONTACTS}
+          draft={emailDraft}
+          onDraftChange={setEmailDraft}
+          check={(v) => (EMAIL_RE.test(v) ? undefined : t("st.emailInvalid"))}
+          normalize={(v) => v.trim().toLowerCase()}
           error={emailError}
           input={({ onChange, ...props }) => (
             <Input
@@ -182,7 +174,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
               type="email"
               inputMode="email"
               autoComplete="off"
-              placeholder="name@example.com"
+              placeholder={t("st.emailPlaceholder")}
               onChange={(e) => onChange(e.target.value)}
             />
           )}
@@ -190,13 +182,15 @@ export default function StoreForm({ store }: { store: Store | null }) {
 
         <ContactList
           title={t("st.address")}
-          addLabel={t("st.addAddress")}
           items={addresses}
           onChange={setAddresses}
           max={MAX_STORE_CONTACTS}
+          draft={addressDraft}
+          onDraftChange={setAddressDraft}
+          check={() => undefined}
           error={addressError}
           input={({ onChange, ...props }) => (
-            <Input {...props} maxLength={255} onChange={(e) => onChange(e.target.value)} />
+            <Input {...props} maxLength={255} placeholder={t("st.addressPlaceholder")} onChange={(e) => onChange(e.target.value)} />
           )}
         />
       </div>
