@@ -5,7 +5,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, Handshake, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, Store, type LucideIcon } from "lucide-react";
+import { ChevronRight, Handshake, LayoutGrid, LogOut, NotebookPen, SlidersHorizontal, Store, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon }[] = [
@@ -14,6 +14,12 @@ const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon 
     labelKey: "st.title",
     descKey: "profile.stores",
     icon: Store,
+  },
+  {
+    href: "/users",
+    labelKey: "us.title",
+    descKey: "profile.users",
+    icon: Users,
   },
   {
     href: "/categories",

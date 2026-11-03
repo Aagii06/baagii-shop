@@ -65,3 +65,25 @@ export async function getUserData() {
   );
   return res.data ?? {};
 }
+
+export interface ProfileInput {
+  name: string;
+  phone: string;
+  email: string;
+  /** SMS code sent to a new `phone` by `sendPhoneOtp`. */
+  code?: string;
+  /** Current password; required with `newPassword`. */
+  password?: string;
+  newPassword?: string;
+}
+
+// Texts a code to the new number before `updateMe` switches to it.
+export async function sendPhoneOtp(phone: string) {
+  await apiFetch<ApiItemResponse<null>>("/auth/me/sendOtp", { method: "POST", body: { phone } });
+}
+
+/** Saves the signed-in admin's own details; a new phone needs its SMS `code`. */
+export async function updateMe(input: ProfileInput) {
+  const res = await apiFetch<ApiItemResponse<LoginUser>>("/auth/me", { method: "PUT", body: input });
+  return res.data;
+}

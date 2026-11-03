@@ -26,6 +26,8 @@ interface AuthContextValue {
   role: Role;
   login: (phone: string, password: string) => Promise<void>;
   logout: () => void;
+  /** Replaces the signed-in user after they edit their own details. */
+  setUser: (user: LoginUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -84,6 +86,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus("authenticated");
   }, []);
 
+  const updateUser = useCallback((next: LoginUser) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...next };
+      const token = getAuthToken();
+      if (token) setSession(token, merged);
+      return merged;
+    });
+  }, []);
+
   const logout = useCallback(() => {
     clearSession();
     setUser(null);
@@ -91,8 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, role: getRole(user), login, logout }),
-    [status, user, login, logout]
+    () => ({ status, user, role: getRole(user), login, logout, setUser: updateUser }),
+    [status, user, login, logout, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

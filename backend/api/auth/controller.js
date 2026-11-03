@@ -4,6 +4,9 @@ const { signUser } = require("../../middleware/auth");
 const { roles } = require("../../config/constants");
 const { Op } = require("sequelize");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
+const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
+
+const PHONE_CHANGE_OTP = "adminPhone";
 
 // admin/src/lib/api/auth.ts-ийн LoginUser / UserData.user
 const toUser = (user) => ({
@@ -36,20 +39,42 @@ module.exports.getUserData = handle("getUserData", async (req, res) => {
   return ok(res, { user: toUser(user), menuPermission: null, customActionPermission: null, objectPermission: null });
 });
 
-// { name, phone, email?, password?, newPassword? }
+const findMe = (req) => users.findOne({ where: { id: req.loggedUser.id, shop_id: req.shopId, status: "active" } });
+const notFound = (res) => res.status(401).json({ success: false, errorType: "authentication", message: "Хэрэглэгч олдсонгүй" });
+const phoneTaken = (shopId, phone, userId) =>
+  users.findOne({ where: { shop_id: shopId, phone, status: "active", id: { [Op.ne]: userId } } });
+
+// { phone } — шинэ дугаар руу код илгээнэ; updateMe-д code-оор баталгаажуулна
+module.exports.sendPhoneOtp = handle("sendPhoneOtp", async (req, res) => {
+  const user = await findMe(req);
+  if (!user) return notFound(res);
+  const phone = phoneDigits(req.body.phone);
+  if (phone === user.phone) return fail(res, "Энэ таны одоогийн дугаар байна");
+  if (await phoneTaken(req.shopId, phone, user.id)) return fail(res, "Энэ утасны дугаар өөр хэрэглэгчид бүртгэлтэй байна");
+  const result = await sendPhoneOtp(req.shopId, phone, PHONE_CHANGE_OTP);
+  return res.status(200).json({ ...result, data: null });
+});
+
+// { name, phone, code?, email?, password?, newPassword? }. Утас солиход шинэ дугаарт ирсэн code шаардана
 module.exports.updateMe = handle("updateMe", async (req, res) => {
-  const user = await users.findOne({ where: { id: req.loggedUser.id, shop_id: req.shopId, status: "active" } });
-  if (!user) return res.status(401).json({ success: false, errorType: "authentication", message: "Хэрэглэгч олдсонгүй" });
+  const user = await findMe(req);
+  if (!user) return notFound(res);
 
   const phone = phoneDigits(req.body.phone);
-  const taken = await users.findOne({ where: { shop_id: req.shopId, phone, status: "active", id: { [Op.ne]: user.id } } });
-  if (taken) return fail(res, "Энэ утасны дугаар өөр хэрэглэгчид бүртгэлтэй байна");
+  if (phone !== user.phone && (await phoneTaken(req.shopId, phone, user.id))) {
+    return fail(res, "Энэ утасны дугаар өөр хэрэглэгчид бүртгэлтэй байна");
+  }
 
   const changes = { name: req.body.name.trim(), phone, email: req.body.email?.trim() || null, updated_by: user.id, updated_at: now() };
   if (req.body.newPassword) {
     const matches = user.password && (await bcrypt.compare(req.body.password ?? "", user.password));
     if (!matches) return fail(res, "Одоогийн нууц үг буруу байна");
     changes.password = await bcrypt.hash(req.body.newPassword, 10);
+  }
+  // Бусад шалгалт давсны дараа кодыг зарцуулна — нууц үг буруу бол код дахин ашиглагдана
+  if (phone !== user.phone) {
+    const result = await verifyPhoneOtp(req.shopId, phone, req.body.code ?? "", PHONE_CHANGE_OTP);
+    if (!result.success) return fail(res, result.message);
   }
   await user.update(changes);
   return ok(res, toUser(user));
