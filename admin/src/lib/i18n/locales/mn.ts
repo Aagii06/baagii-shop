@@ -187,6 +187,7 @@ export const mn: Dict = {
   "orders.title": "Захиалга",
   "orders.count": "{count} захиалга",
   "orders.status": "Төлөв",
+  "orders.empty": "Захиалга алга",
   "orders.noneInStatus": "“{status}” захиалга алга",
   "orders.itemsCount": "{count} бараа",
   "orders.confirm": "Батлах",

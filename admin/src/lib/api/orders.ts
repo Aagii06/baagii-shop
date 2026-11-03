@@ -101,6 +101,27 @@ export async function getOrders(): Promise<Order[]> {
   return res.data?.rows ?? [];
 }
 
+/**
+ * One page of orders, pending ones first and then newest first. `status`
+ * narrows to one state; `pending` counts waiting orders whatever the filter.
+ */
+export async function getOrdersPage({
+  skip,
+  take,
+  status,
+}: {
+  skip: number;
+  take: number;
+  status?: OrderStatus;
+}): Promise<{ rows: Order[]; count: number; pending: number }> {
+  const params = new URLSearchParams({ skip: String(skip), take: String(take) });
+  if (status) params.set("status", status);
+  const res = await apiFetch<ApiItemResponse<{ rows: Order[]; count: number; pending: number }>>(
+    `/order?${params}`
+  );
+  return { rows: res.data?.rows ?? [], count: res.data?.count ?? 0, pending: res.data?.pending ?? 0 };
+}
+
 export async function getOrder(id: number): Promise<Order | null> {
   const res = await apiFetch<ApiItemResponse<Order | null>>(`/order/${id}`);
   return res.data;

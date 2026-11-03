@@ -187,6 +187,7 @@ export const ru: Dict = {
   "orders.title": "Заказы",
   "orders.count": "Заказов: {count}",
   "orders.status": "Статус",
+  "orders.empty": "Заказов пока нет",
   "orders.noneInStatus": "Нет заказов со статусом «{status}»",
   "orders.itemsCount": "Товаров: {count}",
   "orders.confirm": "Подтвердить",

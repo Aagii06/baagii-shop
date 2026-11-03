@@ -187,6 +187,7 @@ export const en: Dict = {
   "orders.title": "Orders",
   "orders.count": "{count} orders",
   "orders.status": "Status",
+  "orders.empty": "No orders yet",
   "orders.noneInStatus": "No “{status}” orders",
   "orders.itemsCount": "{count} items",
   "orders.confirm": "Confirm",

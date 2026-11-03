@@ -9,28 +9,102 @@ import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import { ORDER_TONE } from "@/components/orders/orderTone";
 import { Button } from "@/components/ui/button";
 import {
-  getOrders,
+  getOrdersPage,
   ORDER_STATUS_LABEL,
   orderTotal,
   setOrderStatus,
+  type Order,
   type OrderStatus,
 } from "@/lib/api/orders";
-import { useApi } from "@/lib/useApi";
 import { cn, formatMNT, formatWhen } from "@/lib/utils";
-import { Plus, ReceiptText } from "lucide-react";
+import { Loader2, Plus, ReceiptText } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const TABS: OrderStatus[] = ["pending", "confirmed", "delivered", "returned"];
+const PAGE_SIZE = 20;
+
+type Page = { key: string; rows: Order[]; count: number; pending: number; error?: Error };
 
 export default function OrdersPage() {
   const { t } = useLanguage();
-  const { data, error, reload } = useApi(getOrders);
   const { run } = useToast();
-  const [status, setStatus] = useState<OrderStatus>("pending");
+  const [status, setStatus] = useState<OrderStatus | "all">("all");
 
-  const rows = data?.filter((order) => order.status === status) ?? [];
-  const pendingCount = data?.filter((order) => order.status === "pending").length ?? 0;
+  // Pages load as the list is scrolled, pending orders first (the backend
+  // sorts them). `key` ties the loaded rows to the tab they were fetched
+  // for, so a stale page is treated as "loading" until the new one lands.
+  const key = status;
+  const filter = status === "all" ? undefined : status;
+  const [page, setPage] = useState<Page | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [moreFailed, setMoreFailed] = useState(false);
+  const [version, setVersion] = useState(0);
+  const sentinel = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getOrdersPage({ skip: 0, take: PAGE_SIZE, status: filter }).then(
+      (result) => {
+        if (cancelled) return;
+        setMoreFailed(false);
+        setPage({ key, ...result });
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        setPage({
+          key,
+          rows: [],
+          count: 0,
+          pending: 0,
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [key, version, filter]);
+
+  const ready = page?.key === key;
+  const rows = ready ? page.rows : [];
+  const hasMore = ready && !page.error && page.rows.length < page.count;
+  const reload = () => setVersion((v) => v + 1);
+
+  const loadMore = useCallback(async () => {
+    if (!page || page.key !== key || loadingMore || page.rows.length >= page.count) return;
+    setLoadingMore(true);
+    setMoreFailed(false);
+    try {
+      const result = await getOrdersPage({ skip: page.rows.length, take: PAGE_SIZE, status: filter });
+      setPage((prev) =>
+        prev && prev.key === key
+          ? {
+              ...prev,
+              count: result.count,
+              pending: result.pending,
+              rows: [...prev.rows, ...result.rows.filter((r) => !prev.rows.some((o) => o.id === r.id))],
+            }
+          : prev
+      );
+    } catch {
+      setMoreFailed(true);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [page, key, loadingMore, filter]);
+
+  // Loads the next page once the bottom of the list nears the screen. A
+  // failed page stops the loop; "try again" retries it.
+  useEffect(() => {
+    const node = sentinel.current;
+    if (!node || !hasMore || moreFailed) return;
+    const observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
+      rootMargin: "600px 0px",
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, moreFailed, loadMore]);
 
   async function changeStatus(id: number, to: OrderStatus, success: string) {
     if (await run(() => setOrderStatus(id, to), success)) reload();
@@ -42,9 +116,9 @@ export default function OrdersPage() {
         title={t("orders.title")}
         aside={
           <div className="flex items-center gap-3">
-            {data && (
+            {ready && !page.error && (
               <span className="shrink-0 font-mono text-sm text-muted-foreground">
-                {t("orders.count", { count: rows.length })}
+                {t("orders.count", { count: page.count })}
               </span>
             )}
             <Button asChild size="sm" className="px-4">
@@ -60,70 +134,96 @@ export default function OrdersPage() {
           label={t("orders.status")}
           value={status}
           onChange={setStatus}
-          options={TABS.map((s) => ({
-            value: s,
-            label: ORDER_STATUS_LABEL[s],
-            count: s === "pending" ? pendingCount : undefined,
-            idleClassName: ORDER_TONE[s].soft,
-            activeClassName: ORDER_TONE[s].solid,
-            badgeClassName: "bg-warning text-white",
-          }))}
+          options={[
+            { value: "all" as const, label: t("common.all") },
+            ...TABS.map((s) => ({
+              value: s,
+              label: ORDER_STATUS_LABEL[s],
+              count: s === "pending" ? page?.pending : undefined,
+              idleClassName: ORDER_TONE[s].soft,
+              activeClassName: ORDER_TONE[s].solid,
+              badgeClassName: "bg-warning text-white",
+            })),
+          ]}
         />
       </PageHeader>
 
-      {error && !data ? (
-        <div className="pt-4">
-          <ErrorState error={error} onRetry={reload} />
-        </div>
-      ) : !data ? (
+      {!ready ? (
         <LoadingState />
+      ) : page.error ? (
+        <div className="pt-4">
+          <ErrorState error={page.error} onRetry={reload} />
+        </div>
       ) : rows.length === 0 ? (
         <div className="pt-4">
-          <EmptyState icon={ReceiptText} title={t("orders.noneInStatus", { status: ORDER_STATUS_LABEL[status] })} />
+          <EmptyState
+            icon={ReceiptText}
+            title={
+              status === "all"
+                ? t("orders.empty")
+                : t("orders.noneInStatus", { status: ORDER_STATUS_LABEL[status] })
+            }
+          />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
-          {rows.map((order) => (
-            <li key={order.id} className="py-4">
-              <Link href={`/orders/${order.id}`} className="flex items-start justify-between gap-3">
-                <span className="min-w-0">
-                  <span className="flex items-center gap-2">
-                    <span className="font-mono text-sm text-muted-foreground">#{order.id}</span>
-                    <OrderStatusBadge status={order.status} />
+        <>
+          <ul className="divide-y divide-border border-b border-border">
+            {rows.map((order) => (
+              <li key={order.id} className="py-4">
+                <Link href={`/orders/${order.id}`} className="flex items-start justify-between gap-3">
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono text-sm text-muted-foreground">#{order.id}</span>
+                      <OrderStatusBadge status={order.status} />
+                    </span>
+                    <span className="mt-1.5 block truncate text-[15px] font-bold">
+                      {order.customer.name}
+                    </span>
+                    <span className="mt-0.5 block text-sm text-muted-foreground">
+                      {formatWhen(order.createdAt)} · {t("orders.itemsCount", { count: order.items.length })}
+                    </span>
                   </span>
-                  <span className="mt-1.5 block truncate text-[15px] font-bold">
-                    {order.customer.name}
+                  <span className="shrink-0 font-mono text-[15px] font-bold">
+                    {formatMNT(orderTotal(order))}
                   </span>
-                  <span className="mt-0.5 block text-sm text-muted-foreground">
-                    {formatWhen(order.createdAt)} · {t("orders.itemsCount", { count: order.items.length })}
-                  </span>
-                </span>
-                <span className="shrink-0 font-mono text-[15px] font-bold">
-                  {formatMNT(orderTotal(order))}
-                </span>
-              </Link>
+                </Link>
 
-              {order.status === "pending" && (
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <Button
-                    variant="ghost"
-                    className={cn("h-10", ORDER_TONE.confirmed.solid)}
-                    onClick={() => changeStatus(order.id, "confirmed", t("orders.confirmed"))}
-                  >
-                    {t("orders.confirm")}
-                  </Button>
-                  <Button
-                    variant="danger"
-                    className="h-10"
-                    onClick={() => changeStatus(order.id, "returned", t("orders.returned"))}
-                  >
-                    {t("orders.return")}
-                  </Button>
+                {order.status === "pending" && (
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <Button
+                      variant="ghost"
+                      className={cn("h-10", ORDER_TONE.confirmed.solid)}
+                      onClick={() => changeStatus(order.id, "confirmed", t("orders.confirmed"))}
+                    >
+                      {t("orders.confirm")}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      className="h-10"
+                      onClick={() => changeStatus(order.id, "returned", t("orders.returned"))}
+                    >
+                      {t("orders.return")}
+                    </Button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {hasMore && (
+            <div ref={sentinel}>
+              {moreFailed ? (
+                <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
+                  {t("common.retry")}
+                </Button>
+              ) : (
+                <div className="flex justify-center py-6" aria-label={t("common.loading")}>
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
                 </div>
               )}
-            </li>
-          ))}
-        </ul>
+            </div>
+          )}
+        </>
       )}
     </>
   );

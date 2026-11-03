@@ -5,10 +5,24 @@ const { itemsInclude, toAdminOrder, placeOrder, restock, findOrder, revenueOf } 
 const { saveLog } = require("../../utils/logHelper");
 const { ok, fail, handle, toNumber, phoneDigits, isPhone, FORMAT } = require("../../helper/helper");
 
-// Бүх захиалга, шинэ нь эхэндээ
+// Захиалгууд: хүлээгдэж буй нь эхэндээ, дараа нь шинэ нь эхэндээ.
+// ?status= - зөвхөн тухайн төлөв, ?skip=&take= - хуудаслана (take-гүй бол бүгд).
+// pending - хүлээгдэж буй захиалгын тоо (шүүлтээс үл хамааран)
 module.exports.list = handle("orderList", async (req, res) => {
-  const rows = await orders.findAll({ where: { shop_id: req.shopId }, include: itemsInclude, order: [["id", "desc"]] });
-  return ok(res, { rows: rows.map(toAdminOrder), count: rows.length, summary: [] });
+  const where = { shop_id: req.shopId };
+  if (orderStatuses[req.query.status]) where.status = req.query.status;
+  const take = Number(req.query.take) || undefined;
+  const skip = take ? Math.max(Number(req.query.skip) || 0, 0) : undefined;
+  const { rows, count } = await orders.findAndCountAll({
+    where,
+    include: itemsInclude,
+    distinct: true,
+    limit: take,
+    offset: skip,
+    order: [[sequelize.literal(`\`orders\`.\`status\` = '${orderStatuses.pending}'`), "desc"], ["id", "desc"]],
+  });
+  const pending = await orders.count({ where: { shop_id: req.shopId, status: orderStatuses.pending } });
+  return ok(res, { rows: rows.map(toAdminOrder), count, pending, summary: [] });
 });
 
 module.exports.show = handle("orderShow", async (req, res) => {
