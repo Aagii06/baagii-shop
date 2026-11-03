@@ -108,7 +108,7 @@ module.exports.toWebPost = (product, detail = false) => {
     category: product.category ? { id: product.category.id, name: product.category.name, image: product.category.image } : undefined,
     images: product.images ?? [],
     // Вэб үүнийг брэнд болгон харуулж, шүүлтүүрт ашиглана
-    company: product.store ? { id: product.store.id, name: product.store.name } : undefined,
+    company: product.store ? { id: product.store.id, name: product.store.name, logo: product.store.logo } : undefined,
     createdAt: toIso(product.created_at),
   };
   if (!detail) return post;

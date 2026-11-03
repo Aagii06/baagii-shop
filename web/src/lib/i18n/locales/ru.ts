@@ -113,6 +113,7 @@ export const ru: Dict = {
   "search.filters.category": "Категория",
   "search.filters.brand": "Бренд",
   "search.filters.stores": "Магазины",
+  "search.storeCount": "{name} — {count} товаров",
   "search.filters.priceRange": "Диапазон цен",
   "search.filters.button": "Фильтр",
   "search.filters.title": "Фильтр",

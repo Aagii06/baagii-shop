@@ -30,7 +30,7 @@ interface ApiProduct {
   categoryId?: number;
   category?: { id: number; name: string; image?: string | null };
   images?: string[];
-  company?: { id: number; name: string };
+  company?: { id: number; name: string; logo?: string | null };
 }
 
 interface ApiListResponse<T> {
@@ -113,6 +113,7 @@ function mapApiProduct(p: ApiProduct): Product {
     description: p.note ?? undefined,
     categoryId: p.categoryId ?? p.category?.id,
     brand: p.company?.name,
+    brandLogo: p.company?.logo ?? undefined,
     stock: p.remain !== undefined ? Number(p.remain) : undefined,
   };
 }

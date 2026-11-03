@@ -180,10 +180,6 @@ export function FilterPanelContent({
     );
   };
 
-  const stores = Object.entries(counts.brand).sort(
-    ([a, x], [b, y]) => y - x || a.localeCompare(b)
-  );
-
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-border bg-card p-4">
@@ -204,31 +200,6 @@ export function FilterPanelContent({
           onChange={(priceRange) => onChange({ ...filters, priceRange })}
         />
       </div>
-
-      {/* The stores selling what was found, most products first. */}
-      {stores.length > 0 && (
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <h3 className="font-semibold text-sm text-foreground mb-2">
-            {t("search.filters.stores")}
-          </h3>
-          {stores.map(([store, count]) => (
-            <Checkbox
-              key={store}
-              checked={filters.brands.includes(store)}
-              onChange={() =>
-                onChange({
-                  ...filters,
-                  brands: filters.brands.includes(store)
-                    ? filters.brands.filter((b) => b !== store)
-                    : [...filters.brands, store],
-                })
-              }
-              label={store}
-              count={count}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

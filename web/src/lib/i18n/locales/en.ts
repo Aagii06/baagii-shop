@@ -113,6 +113,7 @@ export const en: Dict = {
   "search.filters.category": "Category",
   "search.filters.brand": "Brand",
   "search.filters.stores": "Stores",
+  "search.storeCount": "{name} — {count} products",
   "search.filters.priceRange": "Price range",
   "search.filters.button": "Filter",
   "search.filters.title": "Filter",

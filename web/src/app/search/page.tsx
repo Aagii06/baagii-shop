@@ -2,6 +2,7 @@
 
 import ProductList from "@/components/home/ProductList";
 import ProductListSkeleton from "@/components/home/ProductListSkeleton";
+import StoreTiles from "@/components/search/StoreTiles";
 import FilterSidebar, {
   type SearchFilters,
 } from "@/components/search/FilterSidebar";
@@ -287,6 +288,13 @@ function SearchContent() {
         />
 
         <div className="flex-1 min-w-0 space-y-5">
+          <StoreTiles
+            products={products}
+            selected={filters.brands.length === 1 ? filters.brands[0] : undefined}
+            onSelect={(store) =>
+              setFilters((f) => ({ ...f, brands: store ? [store] : [] }))
+            }
+          />
           <div className="flex items-center gap-3 justify-end">
             <SortTabs value={sort} onChange={setSort} />
             <MobileFilterDrawer

@@ -14,7 +14,9 @@ export interface Product {
   description?: string;
   category?: string;
   categoryId?: number;
+  /** The seller store's name; `brandLogo` is its logo file id. */
   brand?: string;
+  brandLogo?: string;
   rating?: number;
   reviewCount?: number;
   soldCount?: number;
