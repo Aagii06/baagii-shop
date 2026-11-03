@@ -14,5 +14,7 @@ Router.use("/partnerRequest", protect, require("./partnerRequest/router"));
 Router.use("/blog", protect, require("./blog/router"));
 Router.use("/store", protect, require("./store/router"));
 Router.use("/user", protect, require("./user/router"));
+// Аймаг/Нийслэл → Сум/Дүүрэг → Баг/Хороо (дэлгүүрийн хаяг сонгоход) — вэбийнхтэй ижил
+Router.use("/location", protect, require("../web/customerAddress/router"));
 
 module.exports = Router;
