@@ -8,7 +8,7 @@ export default function ProductList({ products }: { products: Product[] }) {
   const { t } = useLanguage();
 
   return (
-    <div className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid gap-3 sm:gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {products.length > 0 ? (
         products.map((product) => (
           <ProductCard key={product.id} product={product} />

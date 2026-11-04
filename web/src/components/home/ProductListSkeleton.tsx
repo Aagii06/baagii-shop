@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 // Mirrors ProductCard's layout so the grid doesn't shift once products load.
 function ProductCardSkeleton() {
   return (
-    <Card className="overflow-hidden bg-card border-border py-0 gap-0">
+    <Card className="overflow-hidden rounded-lg bg-card border-border py-0 gap-0 shadow-none">
       {/* The gray "no image" logo (see SafeImage), so the skeleton stays colorless. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -30,7 +30,7 @@ export default function ProductListSkeleton({ count = 10 }: { count?: number }) 
   return (
     <div
       aria-busy="true"
-      className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      className="grid gap-3 sm:gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
     >
       {Array.from({ length: count }, (_, i) => (
         <ProductCardSkeleton key={i} />
