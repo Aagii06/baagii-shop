@@ -3,6 +3,9 @@
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductNotFound from "@/components/product/ProductNotFound";
 import RelatedProducts from "@/components/product/RelatedProducts";
+import RichDescription, {
+  isEmptyDescription,
+} from "@/components/product/RichDescription";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -359,10 +362,11 @@ export default function ProductPage() {
             </div>
           ))}
 
-          {product.description && (
-            <p className="text-muted-foreground leading-relaxed">
-              {product.description}
-            </p>
+          {!isEmptyDescription(product.description) && (
+            <RichDescription
+              value={product.description!}
+              className="text-muted-foreground leading-relaxed"
+            />
           )}
 
           <Separator />
