@@ -46,21 +46,21 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <>
-      <Card className="group relative overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 py-0 gap-0">
+      <Card className="group relative overflow-hidden rounded-lg border-border bg-card py-0 gap-0 shadow-none transition-shadow duration-300 hover:shadow-md">
         <button
           type="button"
           onClick={() => setQuickViewOpen(true)}
           aria-label={product.name}
-          className="block w-full text-left relative"
+          className="block w-full cursor-pointer text-left relative"
         >
-          <div className="relative aspect-square overflow-hidden">
+          <div className="relative aspect-square overflow-hidden border-b border-border bg-white p-3">
             <SafeImage
               src={product.thumbnail || product.image}
               alt={product.name}
-              className="w-full h-full object-cover bg-muted transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full rounded-md object-contain bg-white transition-transform duration-300 group-hover:scale-105"
             />
             {discount > 0 && (
-              <span className="absolute top-3 left-3 bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded-md">
+              <span className="absolute top-2 left-2 rounded-md bg-[#ffe3e3] px-2 py-0.5 text-xs font-semibold text-[#eb001b]">
                 -{discount}%
               </span>
             )}
@@ -72,33 +72,34 @@ export default function ProductCard({ product }: { product: Product }) {
           onClick={handleToggleSaved}
           aria-label={t(isSaved ? "saved.removeAria" : "saved.saveAria")}
           aria-pressed={isSaved}
-          className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-background/90 shadow-sm transition-colors hover:bg-background"
+          className="absolute right-2 top-2 z-10 grid h-9 w-9 cursor-pointer place-items-center rounded-md border border-border bg-white shadow-sm transition-colors hover:border-primary"
         >
           <Heart
             className={cn(
               "h-4 w-4 transition-colors",
               isSaved
                 ? "fill-destructive text-destructive"
-                : "text-muted-foreground"
+                : "text-primary"
             )}
           />
         </button>
 
-        <CardContent className="p-4 space-y-2">
-          <button
-            type="button"
-            onClick={() => setQuickViewOpen(true)}
-            className="block w-full text-left"
-          >
-            <h3 className="font-medium text-sm text-foreground line-clamp-2 hover:text-primary transition-colors min-h-10">
-              {product.name}
-            </h3>
-          </button>
+        <CardContent className="p-3 sm:p-4 space-y-1.5">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-base font-semibold text-foreground sm:text-lg">
+              {formatMNT(product.price)}
+            </span>
+            {discount > 0 && (
+              <span className="text-sm text-muted-foreground line-through">
+                {formatMNT(product.originalPrice!)}
+              </span>
+            )}
+          </div>
 
           {product.rating && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              <span className="font-medium text-foreground">
+              <Star className="h-3.5 w-3.5 fill-[#ff9017] text-[#ff9017]" />
+              <span className="font-medium text-[#ff9017]">
                 {product.rating.toFixed(1)}
               </span>
               <span>
@@ -107,15 +108,21 @@ export default function ProductCard({ product }: { product: Product }) {
             </div>
           )}
 
-          <div className="flex items-end justify-between pt-1">
-            <span className="text-base font-bold text-foreground">
-              {formatMNT(product.price)}
-            </span>
+          <div className="flex items-start justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setQuickViewOpen(true)}
+              className="block min-w-0 flex-1 cursor-pointer text-left"
+            >
+              <h3 className="line-clamp-2 min-h-10 text-sm text-muted-foreground transition-colors hover:text-primary">
+                {product.name}
+              </h3>
+            </button>
             <button
               type="button"
               onClick={() => setQuickViewOpen(true)}
               aria-label={t("product.quickView.open")}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-accent"
+              className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border text-primary transition-colors hover:bg-accent"
             >
               <MoreHorizontal className="h-4 w-4" />
             </button>
