@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import {
   calculatePricing,
-  FREE_SHIPPING_THRESHOLD,
   VALID_COUPONS,
 } from "@/lib/pricing";
 import { formatMNT } from "@/lib/utils";
@@ -135,14 +134,6 @@ export default function OrderSummary() {
           {formatMNT(total)}
         </span>
       </div>
-
-      {shipping > 0 && (
-        <p className="text-xs text-muted-foreground">
-          {t("cart.summary.freeShipHint", {
-            amount: formatMNT(FREE_SHIPPING_THRESHOLD - subtotal),
-          })}
-        </p>
-      )}
 
       <Button size="lg" className="w-full brand-gradient text-white" asChild>
         <Link href="/checkout">{t("cart.summary.checkout")}</Link>

@@ -3,8 +3,8 @@ interface PricedItem {
   quantity: number;
 }
 
-export const FREE_SHIPPING_THRESHOLD = 50000;
-/** Flat nationwide delivery fee — no separate city/region rate. */
+/** Flat delivery fee within Uvs aimag; there is no free-delivery threshold
+ * (backend shopSettings[1].delivery.standard.freeAbove is null). */
 export const SHIPPING_FEE = 6000;
 
 export interface Coupon {
@@ -24,9 +24,7 @@ export function calculatePricing(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const shippingFee =
-    options?.shippingFee ??
-    (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE);
+  const shippingFee = options?.shippingFee ?? SHIPPING_FEE;
   const couponAmount = options?.couponAmount ?? 0;
   const total = Math.max(0, subtotal + shippingFee - couponAmount);
 
