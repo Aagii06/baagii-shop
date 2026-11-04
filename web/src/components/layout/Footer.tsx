@@ -1,9 +1,11 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { Store } from "lucide-react";
+import logo from "@/assets/logo.png";
+import { Phone } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import TrustBadges from "./TrustBadges";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Footer() {
   const { t } = useLanguage();
@@ -38,44 +40,38 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-background border-t border-border mt-16">
+    <footer className="mt-12 border-t border-border bg-card">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* <div className="py-8 border-b border-border">
-          <TrustBadges />
-        </div> */}
-
-        <div className="py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
-          <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2.5 mb-4">
-              <span className="brand-gradient flex h-9 w-9 items-center justify-center rounded-xl text-white">
-                <Store className="h-5 w-5" />
-              </span>
-              <span className="text-lg font-bold tracking-tight text-foreground">
-                {t("header.brand.name")} {t("header.brand.tagline")}
+        <div className="grid grid-cols-2 gap-8 py-10 sm:grid-cols-3 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
+            <Link href="/" className="mb-3 flex items-center gap-2">
+              <Image src={logo} alt="" className="h-10 w-10 object-contain" />
+              <span className="text-lg font-bold tracking-tight text-primary">
+                {t("header.brand.name")}
               </span>
             </Link>
-            <p className="text-sm text-muted-foreground max-w-xs mb-4">
+            <p className="mb-4 max-w-xs text-sm text-muted-foreground">
               {t("footer.tagline")}
             </p>
             <a
               href="tel:70451234"
-              className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+              className="inline-flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
-              ☎ 7045-1234
+              <Phone className="h-4 w-4" /> 7045-1234
             </a>
           </div>
 
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h4 className="text-xs font-semibold text-foreground mb-4 tracking-wider">
+              <h4 className="mb-3 text-base font-medium text-foreground">
                 {section.title}
               </h4>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {section.links.map((link, i) => (
                   <li key={`${section.title}-${i}`}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-block"
+                      className="inline-block text-sm text-muted-foreground transition-colors hover:text-primary"
                     >
                       {link.label}
                     </Link>
@@ -85,8 +81,10 @@ export default function Footer() {
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="py-6 border-t border-border text-center sm:text-left">
+      <div className="border-t border-border bg-muted">
+        <div className="container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-5 sm:flex-row sm:px-6 lg:px-8">
           <p className="text-sm text-muted-foreground">
             {t("footer.copyrightPrefix")}{" "}
             <span className="uppercase text-foreground">
@@ -94,6 +92,7 @@ export default function Footer() {
             </span>
             {t("footer.copyrightSuffix")}
           </p>
+          <LanguageSwitcher />
         </div>
       </div>
     </footer>

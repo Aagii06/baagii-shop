@@ -60,7 +60,7 @@ export default function ProductCard({ product }: { product: Product }) {
               className="w-full h-full rounded-md object-contain bg-white transition-transform duration-300 group-hover:scale-105"
             />
             {discount > 0 && (
-              <span className="absolute top-2 left-2 rounded-md bg-[#ffe3e3] px-2 py-0.5 text-xs font-semibold text-[#eb001b]">
+              <span className="absolute top-2 left-2 rounded-md bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground">
                 -{discount}%
               </span>
             )}
@@ -98,8 +98,8 @@ export default function ProductCard({ product }: { product: Product }) {
 
           {product.rating && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Star className="h-3.5 w-3.5 fill-[#ff9017] text-[#ff9017]" />
-              <span className="font-medium text-[#ff9017]">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              <span className="font-medium text-foreground">
                 {product.rating.toFixed(1)}
               </span>
               <span>

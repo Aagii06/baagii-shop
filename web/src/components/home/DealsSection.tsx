@@ -60,7 +60,7 @@ export default function DealsSection({ products }: { products: Product[] }) {
             {units.map((unit) => (
               <span
                 key={unit.label}
-                className="flex w-12 flex-col items-center rounded-md bg-[#606060] py-1.5 text-white"
+                className="flex w-12 flex-col items-center rounded-md bg-primary py-1.5 text-primary-foreground"
               >
                 <span className="text-base font-bold leading-tight tabular-nums">
                   {left === null ? "--" : String(unit.value).padStart(2, "0")}
@@ -87,7 +87,7 @@ export default function DealsSection({ products }: { products: Product[] }) {
               <span className="line-clamp-1 text-sm text-foreground">
                 {product.name}
               </span>
-              <span className="rounded-full bg-[#ffe3e3] px-3 py-1 text-sm font-medium text-[#eb001b]">
+              <span className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
                 -{discount}%
               </span>
             </Link>

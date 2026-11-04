@@ -48,7 +48,9 @@ export default function HomeHero() {
           </ul>
         </nav>
 
-        <div className="relative min-h-[200px] overflow-hidden rounded-md bg-gradient-to-r from-[#c3e6ff] via-[#d9efff] to-[#a5d8ff] px-6 py-8 sm:min-h-[300px] sm:px-10 sm:py-12">
+        <div className="relative min-h-[200px] overflow-hidden rounded-md brand-gradient px-6 py-8 sm:min-h-[300px] sm:px-10 sm:py-12">
+          <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-amber-400/40 blur-2xl" />
+          <div className="absolute right-16 bottom-0 h-40 w-40 rounded-full bg-emerald-400/30 blur-xl" />
           <Image
             src={logo}
             alt=""
@@ -56,15 +58,15 @@ export default function HomeHero() {
             priority
           />
           <div className="relative z-10 max-w-xs sm:max-w-sm">
-            <p className="text-xl font-normal text-foreground sm:text-[28px]">
+            <p className="text-xl font-normal text-white/85 sm:text-[28px]">
               {t("home.hero.eyebrow")}
             </p>
-            <h1 className="mt-1 text-2xl font-bold leading-tight text-foreground sm:text-[32px]">
+            <h1 className="mt-1 text-2xl font-bold leading-tight text-white sm:text-[32px]">
               {t("home.hero.title")}
             </h1>
             <Link
               href="/search"
-              className="mt-6 inline-flex items-center rounded-md bg-white px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-white/80"
+              className="mt-6 inline-flex items-center rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-primary shadow-sm transition-colors hover:bg-white/90"
             >
               {t("home.hero.cta")}
             </Link>
@@ -74,7 +76,7 @@ export default function HomeHero() {
         <div className="hidden flex-col gap-3 lg:flex">
           <div className="rounded-md bg-accent p-3">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#c7e1ff] text-white">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                 <User className="h-6 w-6" />
               </span>
               <p className="text-sm leading-snug text-foreground">
@@ -111,18 +113,18 @@ export default function HomeHero() {
           </div>
           <Link
             href="/search"
-            className="flex-1 rounded-md bg-[#f38332] p-4 text-sm text-white transition-opacity hover:opacity-90"
+            className="flex-1 rounded-md border border-emerald-100 bg-emerald-50 p-4 text-sm text-foreground transition-colors hover:bg-emerald-100/70"
           >
-            <span className="block text-xs font-semibold uppercase tracking-wide text-white/80">
+            <span className="block text-xs font-semibold uppercase tracking-wide text-emerald-600">
               {t("home.promo.freeShipBadge")}
             </span>
             {t("home.promo.freeShipTitle")} · {t("home.promo.freeShipDesc")}
           </Link>
           <Link
             href="/search?sale=1"
-            className="flex-1 rounded-md bg-[#55bdc3] p-4 text-sm text-white transition-opacity hover:opacity-90"
+            className="flex-1 rounded-md border border-violet-100 bg-violet-50 p-4 text-sm text-foreground transition-colors hover:bg-violet-100/70"
           >
-            <span className="block text-xs font-semibold uppercase tracking-wide text-white/80">
+            <span className="block text-xs font-semibold uppercase tracking-wide text-violet-600">
               {t("home.promo.newBadge")}
             </span>
             {t("home.promo.newTitle")} · {t("home.promo.newDesc")}

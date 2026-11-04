@@ -10,9 +10,9 @@ import Link from "next/link";
 
 // Soft backgrounds for the banner tile, picked by the block's position.
 const TILE_BACKGROUNDS = [
-  "from-[#fff3e0] to-[#ffe0b2]",
-  "from-[#e3f2fd] to-[#bbdefb]",
-  "from-[#e8f5e9] to-[#c8e6c9]",
+  "from-accent to-violet-100",
+  "from-violet-50 to-violet-100",
+  "from-emerald-50 to-emerald-100",
 ];
 
 function CategoryBlock({
