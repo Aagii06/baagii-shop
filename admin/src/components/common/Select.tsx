@@ -34,7 +34,7 @@ function readOptions(children: React.ReactNode): OptionItem[] {
 
 /**
  * Stands in for `<select>`: same `<option>` children, but picking happens in
- * a modal — a bottom sheet on a phone, a centred box on a wider screen.
+ * a bottom sheet, at most 70% of the screen high.
  * `onChange` gets the picked option's value.
  */
 export default function Select({
@@ -158,12 +158,12 @@ function OptionSheet({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="mx-auto mb-0 mt-auto w-full max-w-md overflow-hidden rounded-t-3xl bg-white p-0 text-foreground shadow-soft outline-none transition duration-200 ease-out backdrop:bg-black/40 starting:open:translate-y-8 starting:open:opacity-0 sm:m-auto sm:w-[calc(100%-2rem)] sm:rounded-3xl"
+      className="inset-x-0 bottom-0 top-auto mx-auto mb-0 mt-auto max-h-[70dvh] w-full max-w-md overflow-hidden rounded-t-3xl bg-white p-0 text-foreground shadow-soft outline-none transition duration-200 ease-out backdrop:bg-black/40 starting:open:translate-y-8 starting:open:opacity-0"
     >
-      <div className="flex max-h-[75dvh] flex-col">
+      <div className="flex max-h-[70dvh] flex-col">
         <div className="shrink-0 px-5 pt-3">
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border sm:hidden" />
-          <h2 id={titleId} className="truncate text-lg font-bold sm:pt-3">
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
+          <h2 id={titleId} className="truncate text-lg font-bold">
             {title}
           </h2>
           {options.length >= SEARCH_FROM && (
