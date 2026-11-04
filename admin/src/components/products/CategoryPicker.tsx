@@ -2,7 +2,8 @@
 
 import { type Category } from "@/lib/api/categories";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { ChevronDown, CircleCheck, Loader2 } from "lucide-react";
+import Select from "@/components/common/Select";
+import { CircleCheck, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type Flat = Category & { depth: number };
@@ -22,24 +23,14 @@ function LevelSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-12 w-full appearance-none rounded-full border border-input bg-white px-5 pr-12 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-      <ChevronDown
-        aria-hidden="true"
-        className="pointer-events-none absolute right-5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-      />
-    </div>
+    <Select title={placeholder} value={value} onChange={onChange}>
+      <option value="">{placeholder}</option>
+      {options.map((c) => (
+        <option key={c.id} value={c.id}>
+          {c.name}
+        </option>
+      ))}
+    </Select>
   );
 }
 

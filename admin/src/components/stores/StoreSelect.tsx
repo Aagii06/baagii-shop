@@ -2,7 +2,7 @@
 
 import { getStores } from "@/lib/api/stores";
 import { useApi } from "@/lib/useApi";
-import { ChevronDown } from "lucide-react";
+import Select from "@/components/common/Select";
 
 /**
  * Picks a seller store from `/store`. `placeholder` is the empty choice —
@@ -27,28 +27,22 @@ export default function StoreSelect({
   const { data } = useApi(getStores);
 
   return (
-    <div className="relative">
-      <select
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={invalid}
-        aria-describedby={describedBy}
-        className="h-12 w-full appearance-none rounded-full border border-input bg-white px-5 pr-12 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 aria-invalid:border-destructive"
-      >
-        <option value="">{placeholder}</option>
-        {/* The saved store stays listed while the list loads. */}
-        {!data && value && <option value={value}>…</option>}
-        {data?.map((store) => (
-          <option key={store.id} value={store.id}>
-            {store.name}
-          </option>
-        ))}
-      </select>
-      <ChevronDown
-        aria-hidden="true"
-        className="pointer-events-none absolute right-5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-      />
-    </div>
+    <Select
+      id={id}
+      title={placeholder}
+      value={value}
+      onChange={onChange}
+      aria-invalid={invalid}
+      aria-describedby={describedBy}
+    >
+      <option value="">{placeholder}</option>
+      {/* The saved store stays listed while the list loads. */}
+      {!data && value && <option value={value}>…</option>}
+      {data?.map((store) => (
+        <option key={store.id} value={store.id}>
+          {store.name}
+        </option>
+      ))}
+    </Select>
   );
 }

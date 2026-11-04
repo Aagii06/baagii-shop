@@ -1,16 +1,13 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import Select from "@/components/common/Select";
 import { Textarea } from "@/components/ui/textarea";
 import { getCities, getDistricts, getSubDistricts, type Area } from "@/lib/api/locations";
-import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 /** Between the parts of a saved address: "Улаанбаатар, Баянзүрх, 1-р хороо, 5-р байр 12 тоот". */
 const SEP = ", ";
-
-const selectClass =
-  "h-12 w-full appearance-none truncate rounded-full border border-input bg-white px-5 pr-11 text-[15px] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-70";
 
 interface Picked {
   cityId: number | null;
@@ -61,33 +58,27 @@ function AreaSelect({
   disabled?: boolean;
 }) {
   return (
-    <div className="relative min-w-0">
-      <select
-        aria-label={label}
-        value={value ?? ""}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
-        className={selectClass}
-      >
-        <option value="">{label}</option>
-        {areas.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.name}
-          </option>
-        ))}
-      </select>
-      <ChevronDown
-        aria-hidden="true"
-        className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-      />
-    </div>
+    <Select
+      title={label}
+      aria-label={label}
+      value={value ?? ""}
+      disabled={disabled}
+      onChange={(v) => onChange(v ? Number(v) : null)}
+    >
+      <option value="">{label}</option>
+      {areas.map((a) => (
+        <option key={a.id} value={a.id}>
+          {a.name}
+        </option>
+      ))}
+    </Select>
   );
 }
 
 /**
  * An address picked from the location tree — Аймаг/Нийслэл → Сум/Дүүрэг →
  * Баг/Хороо — with the rest typed in under it. `value` is the address as
- * one line, and `onChange` gets `""` until every part is filled.
+ * one line, and `onChange` gets `""` until at least the city is picked.
  */
 export default function AddressPicker({
   value,
@@ -117,9 +108,8 @@ export default function AddressPicker({
   const cityName = name(cities, cityId);
   const districtName = name(districts, districtId);
   const subName = name(subDistricts, subDistrictId);
-  // A district without khoroos/bags is complete without one.
-  const complete = Boolean(cityName && districtName && (subName || subDistricts.length === 0) && detail.trim());
-  const line = complete ? [cityName, districtName, subName, detail.trim()].filter(Boolean).join(SEP) : "";
+  // The city alone is enough; the parts below it are optional.
+  const line = cityName ? [cityName, districtName, subName, detail.trim()].filter(Boolean).join(SEP) : "";
 
   useEffect(() => {
     getCities().then(setCities, () => setCities([]));
