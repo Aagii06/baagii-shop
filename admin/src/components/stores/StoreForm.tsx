@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { uploadFile } from "@/lib/api/files";
 import { createStore, MAX_STORE_CONTACTS, updateStore, type Store } from "@/lib/api/stores";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -39,6 +39,8 @@ export default function StoreForm({ store }: { store: Store | null }) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [nameTouched, setNameTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // From the first tap until the save fails or the page leaves.
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!logo?.startsWith("blob:")) return;
@@ -64,10 +66,12 @@ export default function StoreForm({ store }: { store: Store | null }) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (saving) return;
     setSubmitted(true);
     if (!name.trim()) return nameRef.current?.focus();
     if (phoneProblem) return;
 
+    setSaving(true);
     const saved = await run(async () => {
       const input = {
         name: name.trim(),
@@ -79,6 +83,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
       await (store ? updateStore(store.id, input) : createStore(input));
     }, store ? t("common.saved") : t("st.added"));
     if (saved) router.replace("/stores");
+    else setSaving(false);
   }
 
   return (
@@ -87,7 +92,8 @@ export default function StoreForm({ store }: { store: Store | null }) {
         backHref="/stores"
         title={store ? t("st.edit") : t("st.add")}
         aside={
-          <Button type="submit" className="h-10 px-5">
+          <Button type="submit" className="h-10 px-5" disabled={saving}>
+            {saving && <Loader2 className="animate-spin" />}
             {t("common.save")}
           </Button>
         }
