@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { cartDetails, orders, sequelize } = require("../../models");
-const { shopSettings } = require("../../config/constants");
+const { shopSettings, orderStatuses } = require("../../config/constants");
 const { findCart, detailInclude, isSellable } = require("../../helper/cartHelper");
 const { placeOrder, findOrder, toWebOrder, itemsInclude } = require("../../helper/orderHelper");
 const { createInvoice, checkOrder, toWebInvoice } = require("../../helper/qpayHelper");
@@ -93,6 +93,7 @@ router.post(
     if (!s?.bank_enabled) return fail(res, "Дансаар шилжүүлэх боломжгүй байна");
     const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
+    if (order.status === orderStatuses.cancelled) return fail(res, "Захиалга цуцлагдсан байна");
     if (!order.paid_at) await order.update({ payment_method: "bank", updated_at: now() });
     return ok(res, toWebOrder(order));
   }),
@@ -105,6 +106,7 @@ router.post(
     const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
     if (order.paid_at) return fail(res, "Захиалга төлөгдсөн байна");
+    if (order.status === orderStatuses.cancelled) return fail(res, "Захиалга цуцлагдсан байна");
     return ok(res, toWebInvoice(await createInvoice(req.shopId, order)));
   }),
 );

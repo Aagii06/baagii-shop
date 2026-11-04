@@ -5,7 +5,7 @@ import { apiFetch, type ApiItemResponse, type ApiListResponse } from "./client";
 // ones an admin enters here. Placing one takes its lines' stock; sending
 // items back returns it.
 
-export type OrderStatus = "pending" | "confirmed" | "delivered" | "returned";
+export type OrderStatus = "pending" | "confirmed" | "delivered" | "returned" | "cancelled";
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   get pending() {
@@ -19,6 +19,9 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   },
   get returned() {
     return tr("os.returned");
+  },
+  get cancelled() {
+    return tr("os.cancelled");
   },
 };
 
@@ -35,6 +38,9 @@ export const ORDER_STEP_LABEL: Record<OrderStatus, string> = {
   },
   get returned() {
     return tr("os.step.returned");
+  },
+  get cancelled() {
+    return tr("os.step.cancelled");
   },
 };
 
@@ -54,6 +60,7 @@ export const NEXT_ORDER_ACTION: Record<OrderStatus, { label: string; to: OrderSt
   },
   delivered: null,
   returned: null,
+  cancelled: null,
 };
 
 export interface OrderItem {
@@ -75,6 +82,9 @@ export interface Order {
   deliveryFee: number;
   /** When the order reached each step; steps not reached yet are absent. */
   timeline: Partial<Record<OrderStatus, string>>;
+  paidAt: string | null;
+  /** Pending and unpaid for too long — an admin is warned and may cancel it. */
+  overdue: boolean;
 }
 
 /** Units of the line still in the order. */
@@ -130,6 +140,11 @@ export async function getOrder(id: number): Promise<Order | null> {
 /** `returned` sends back every unit still in the order. */
 export async function setOrderStatus(id: number, status: OrderStatus): Promise<void> {
   await apiFetch(`/order/${id}/status`, { method: "PUT", body: { status } });
+}
+
+/** Cancels an overdue unpaid order (admins only); every unit goes back to stock. */
+export async function cancelOrder(id: number): Promise<void> {
+  await apiFetch(`/order/${id}/cancel`, { method: "POST" });
 }
 
 /** Sends back `qty` units of one line, e.g. 1 of the 2 ordered. */

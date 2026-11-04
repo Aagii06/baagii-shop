@@ -1,7 +1,7 @@
 const moment = require("moment");
 const { orders, orderItems, sequelize, op } = require("../../models");
-const { orderStatuses, orderTransitions } = require("../../config/constants");
-const { itemsInclude, toAdminOrder, placeOrder, restock, findOrder, revenueOf } = require("../../helper/orderHelper");
+const { orderStatuses, orderTransitions, unpaidCancelHours } = require("../../config/constants");
+const { itemsInclude, toAdminOrder, placeOrder, restock, findOrder, revenueOf, isOverdue } = require("../../helper/orderHelper");
 const { saveLog } = require("../../utils/logHelper");
 const { ok, fail, handle, toNumber, phoneDigits, isPhone, FORMAT } = require("../../helper/helper");
 
@@ -80,6 +80,29 @@ module.exports.setStatus = handle("orderStatus", async (req, res) => {
   }
 });
 
+// ADMIN: unpaidCancelHours-аас удаан төлөгдөөгүй pending захиалгыг цуцална (бүх бараа үлдэгдэлд буцна)
+module.exports.cancel = handle("orderCancel", async (req, res) => {
+  const { by, at } = req.body;
+  const t = await sequelize.transaction();
+  try {
+    const order = await findOrder({ id: req.params.id, shop_id: req.shopId }, t);
+    if (!order) throw "Захиалга олдсонгүй";
+    if (!isOverdue(order)) throw `Зөвхөн ${unpaidCancelHours} цагаас удаан төлөгдөөгүй захиалгыг цуцална`;
+
+    for (const item of order.items) {
+      await restock(item.variant_id, item.qty - item.returned_qty, t);
+      await item.update({ returned_qty: item.qty }, { transaction: t });
+    }
+    await order.update({ status: orderStatuses.cancelled, cancelled_at: at, updated_by: by, updated_at: at }, { transaction: t });
+    await saveLog({ shop_id: req.shopId, object_name: "orders", object_id: order.id, log_action: "cancelled", created_by: by, created_at: at }, t);
+    await t.commit();
+    return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
+});
+
 // Нэг мөрөөс qty ширхгийг буцаана. Бүх мөр бүрэн буцвал захиалга returned болно.
 module.exports.returnItem = handle("orderReturn", async (req, res) => {
   const { itemId, qty, by, at } = req.body;
@@ -89,6 +112,7 @@ module.exports.returnItem = handle("orderReturn", async (req, res) => {
     const order = await findOrder({ id: req.params.id, shop_id: req.shopId }, t);
     if (!order) throw "Захиалга олдсонгүй";
     if (order.status === orderStatuses.returned) throw "Захиалга бүхэлдээ буцаагдсан байна";
+    if (order.status === orderStatuses.cancelled) throw "Захиалга цуцлагдсан байна";
     const item = order.items.find((i) => i.id === Number(itemId));
     if (!item) throw "Захиалгын бараа олдсонгүй";
     if (count <= 0 || count > item.qty - item.returned_qty) throw "Буцаах тоо буруу байна";
@@ -129,7 +153,7 @@ module.exports.sales = handle("orderSales", async (req, res) => {
     where: {
       shop_id: req.shopId,
       created_at: { [op.gte]: prevStart.format(FORMAT), [op.lt]: end.format(FORMAT) },
-      status: { [op.ne]: orderStatuses.returned },
+      status: { [op.notIn]: [orderStatuses.returned, orderStatuses.cancelled] },
     },
     include: itemsInclude,
   });

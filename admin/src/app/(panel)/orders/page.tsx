@@ -6,6 +6,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/common/States
 import { useToast } from "@/components/common/Toast";
 import PageHeader from "@/components/layout/PageHeader";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
+import OverdueNotice from "@/components/orders/OverdueNotice";
 import { ORDER_TONE } from "@/components/orders/orderTone";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +22,7 @@ import { Loader2, Plus, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const TABS: OrderStatus[] = ["pending", "confirmed", "delivered", "returned"];
+const TABS: OrderStatus[] = ["pending", "confirmed", "delivered", "returned", "cancelled"];
 const PAGE_SIZE = 20;
 
 type Page = { key: string; rows: Order[]; count: number; pending: number; error?: Error };
@@ -187,6 +188,8 @@ export default function OrdersPage() {
                     {formatMNT(orderTotal(order))}
                   </span>
                 </Link>
+
+                <OverdueNotice order={order} onCancelled={reload} className="mt-3" />
 
                 {order.status === "pending" && (
                   <div className="mt-3 grid grid-cols-2 gap-3">

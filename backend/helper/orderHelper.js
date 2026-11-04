@@ -1,6 +1,7 @@
 const { orders, orderItems, products, productVariants, sequelize } = require("../models");
-const { orderStatuses } = require("../config/constants");
-const { toIso, toNumber, now } = require("./helper");
+const moment = require("moment");
+const { orderStatuses, unpaidCancelHours } = require("../config/constants");
+const { toIso, toNumber, now, parseAt } = require("./helper");
 const { variantImage } = require("./productHelper");
 const { saveLog } = require("../utils/logHelper");
 
@@ -9,7 +10,15 @@ module.exports.itemsInclude = [{ model: orderItems, as: "items" }];
 const kept = (item) => item.qty - (item.returned_qty || 0);
 const subtotalOf = (order) => (order.items ?? []).reduce((sum, item) => sum + kept(item) * toNumber(item.price), 0);
 module.exports.revenueOf = (order) =>
-  order.status === orderStatuses.returned ? 0 : subtotalOf(order) + toNumber(order.delivery_fee) - toNumber(order.coupon_amount);
+  [orderStatuses.returned, orderStatuses.cancelled].includes(order.status)
+    ? 0
+    : subtotalOf(order) + toNumber(order.delivery_fee) - toNumber(order.coupon_amount);
+
+// Хүлээгдэж буй, төлөгдөөгүй, unpaidCancelHours-аас удсан — admin анхааруулж, цуцалж болно
+module.exports.isOverdue = (order) =>
+  order.status === orderStatuses.pending &&
+  !order.paid_at &&
+  moment().diff(parseAt(order.created_at), "hours", true) >= unpaidCancelHours;
 
 // admin/src/lib/api/orders.ts-ийн Order
 module.exports.toAdminOrder = (order) => ({
@@ -34,12 +43,14 @@ module.exports.toAdminOrder = (order) => ({
       ["confirmed", order.confirmed_at],
       ["delivered", order.delivered_at],
       ["returned", order.returned_at],
+      ["cancelled", order.cancelled_at],
     ]
       .filter(([, at]) => at)
       .map(([status, at]) => [status, toIso(at)]),
   ),
   paymentMethod: order.payment_method,
   paidAt: toIso(order.paid_at),
+  overdue: module.exports.isOverdue(order),
 });
 
 // Вэбийн захиалга (web/src/types/order.ts). Зургийг вэб өөрөө URL болгоно.

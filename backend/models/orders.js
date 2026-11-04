@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
       confirmed_at: { type: DataTypes.STRING },
       delivered_at: { type: DataTypes.STRING },
       returned_at: { type: DataTypes.STRING },
+      cancelled_at: { type: DataTypes.STRING },
       created_by: { type: DataTypes.INTEGER },
       updated_by: { type: DataTypes.INTEGER },
       created_at: { type: DataTypes.STRING },

@@ -158,7 +158,7 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
   const { show } = useToast();
   const [returning, setReturning] = useState<OrderItem | null>(null);
 
-  const canReturn = order.status !== "returned";
+  const canReturn = order.status !== "returned" && order.status !== "cancelled";
   const returnedAmount = orderReturnedAmount(order);
 
   return (

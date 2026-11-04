@@ -6,6 +6,7 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import OrderItemsCard from "@/components/orders/OrderItemsCard";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
+import OverdueNotice from "@/components/orders/OverdueNotice";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -22,8 +23,9 @@ import { cn, formatDate, formatPhone, formatTime } from "@/lib/utils";
 import { ReceiptText } from "lucide-react";
 import { useRouteId } from "@/lib/useRouteId";
 
-/** The happy path, plus "returned" only for orders that were sent back. */
+/** The happy path, plus "returned" or "cancelled" only for orders that ended so. */
 function timelineSteps(order: Order): OrderStatus[] {
+  if (order.timeline.cancelled) return ["pending", "cancelled"];
   const steps: OrderStatus[] = ["pending", "confirmed", "delivered"];
   return order.timeline.returned ? [...steps, "returned"] : steps;
 }
@@ -65,6 +67,8 @@ export default function OrderDetailPage() {
       />
 
       <div className="space-y-3">
+        <OverdueNotice order={order} onCancelled={reload} />
+
         <Card className="p-4">
           <p className="text-[15px] font-bold">{order.customer.name}</p>
           <a

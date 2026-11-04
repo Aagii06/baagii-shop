@@ -6,12 +6,14 @@ const constant = {
     shopper: "SHOPPER",
   },
 
-  // Захиалгын төлөв: pending → confirmed → delivered, эсвэл бүгдийг буцаавал returned
+  // Захиалгын төлөв: pending → confirmed → delivered, эсвэл бүгдийг буцаавал returned.
+  // Удаан төлөгдөөгүй pending захиалгыг ADMIN цуцалбал cancelled (api/order cancel)
   orderStatuses: {
     pending: "pending",
     confirmed: "confirmed",
     delivered: "delivered",
     returned: "returned",
+    cancelled: "cancelled",
   },
   // Админ шилжүүлж болох төлөв (одоогийн → дараагийн)
   orderTransitions: {
@@ -19,7 +21,10 @@ const constant = {
     confirmed: ["delivered", "returned"],
     delivered: ["returned"],
     returned: [],
+    cancelled: [],
   },
+  // Төлөгдөөгүй pending захиалга энэ хэдэн цагаас хойш admin-д анхааруулга болж, цуцлах боломжтой болно
+  unpaidCancelHours: 24,
   // Дэлгүүр бүрийн (shops.id) хүргэлтийн сонголт, хөнгөлөлтийн код — вэбийн
   // web/src/lib/pricing.ts (DELIVERY_OPTIONS / SHIPPING_FEE, VALID_COUPONS)-тэй ижил байна.
   // freeAbove: дэд дүн үүнээс их бол тухайн хүргэлт үнэгүй
