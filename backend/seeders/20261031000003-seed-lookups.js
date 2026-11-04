@@ -1,6 +1,7 @@
 "use strict";
 
-// Хаягийн төрөл (бүх дэлгүүрт нийтлэг); дэлгүүр бүрт хүргэлтийн бэлэн тэмдэглэл, барааны сонголтын анхны каталог
+// Хаягийн төрөл (бүх дэлгүүрт нийтлэг); дэлгүүр бүрт хүргэлтийн бэлэн тэмдэглэл.
+// Барааны үзүүлэлтийн анхны каталог зөвхөн UVS-т — бусад дэлгүүр өөрийнхөө үзүүлэлтийг admin-аас оруулна.
 const at = "2026-10-31 00:00:00";
 
 const addressTypes = [
@@ -42,11 +43,11 @@ module.exports = {
       )[0][0].cnt;
 
     if (!(await count("addressTypes"))) await queryInterface.bulkInsert("addressTypes", json(addressTypes, ["style"]));
-    const [shops] = await queryInterface.sequelize.query("SELECT id FROM shops");
-    for (const { id: shop_id } of shops) {
+    const [shops] = await queryInterface.sequelize.query("SELECT id, code FROM shops");
+    for (const { id: shop_id, code } of shops) {
       if (!(await count("doNotes", shop_id)))
         await queryInterface.bulkInsert("doNotes", doNotes.map((n) => ({ ...n, shop_id, status: "active", created_at: at })));
-      if (await count("attrs", shop_id)) continue;
+      if (code !== "uvs" || (await count("attrs", shop_id))) continue;
       for (const attr of attrs) {
         await queryInterface.bulkInsert("attrs", [{ shop_id, name: attr.name, value_type: "select", status: "active", created_at: at }]);
         const [[{ id }]] = await queryInterface.sequelize.query("SELECT MAX(id) AS id FROM attrs");

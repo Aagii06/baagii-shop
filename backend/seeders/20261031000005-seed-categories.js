@@ -1,17 +1,14 @@
 "use strict";
 
-// Дэлгүүр бүрийн анхны категориуд (2 түвшин). attrs нь тухайн категорийн бараанд сонгох
+// UVS-ийн анхны категориуд (2 түвшин). attrs нь тухайн категорийн бараанд сонгох
 // сонголтууд (seed-lookups-ийн attrs-ийн нэрээр, дээд тал нь 3).
-// Ajrug зөвхөн хүүхдийн хувцас зардаг тул насаар нь хэмжээтэй сонголт нэмнэ.
+// Бусад дэлгүүр (Ajrug г.м.) категориа admin-аас өөрсдөө оруулна.
 const at = "2026-10-31 00:00:00";
 
 const COLOR = "Өнгө";
 const SIZE = "Хувцасны хэмжээ (үсэг)";
 const SHOE = "Гутлын хэмжээ";
 const STORAGE = "Багтаамж";
-const KIDS = "Хүүхдийн хэмжээ (нас)";
-
-const kidsSizes = ["0-3 сар", "3-6 сар", "6-12 сар", "1-2 нас", "2-3 нас", "3-4 нас", "4-5 нас", "5-6 нас", "7-8 нас", "9-10 нас", "11-12 нас"];
 
 const trees = {
   uvs: [
@@ -48,21 +45,6 @@ const trees = {
       children: [{ name: "Спорт хувцас", attrs: [COLOR, SIZE] }, "Спорт хэрэгсэл", "Аяллын хэрэгсэл"],
     },
   ],
-  ajrug: [
-    {
-      code: "baby",
-      name: "Нярайн хувцас",
-      attrs: [COLOR, KIDS],
-      children: ["Боди", "Комбинезон", "Нярайн иж бүрдэл", "Малгай, бээлий"],
-    },
-    { code: "girls", name: "Охины хувцас", attrs: [COLOR, KIDS], children: ["Даашинз", "Цамц", "Өмд, юбка", "Иж бүрдэл"] },
-    { code: "boys", name: "Хүүгийн хувцас", attrs: [COLOR, KIDS], children: ["Цамц", "Өмд", "Иж бүрдэл"] },
-    { code: "outerwear", name: "Гадуур хувцас", attrs: [COLOR, KIDS], children: ["Куртик", "Өвлийн комбинезон", "Ноосон цамц"] },
-    { code: "sleepwear", name: "Унтлагын хувцас", attrs: [COLOR, KIDS], children: ["Унтлагын иж бүрдэл", "Халат"] },
-    { code: "school", name: "Сургуулийн хувцас", attrs: [COLOR, KIDS], children: ["Дүрэмт хувцас", "Цамц", "Өмд, юбка"] },
-    { code: "underwear", name: "Дотуур хувцас, оймс", attrs: [COLOR, KIDS], children: ["Дотуур хувцас", "Оймс", "Колготк"] },
-    { code: "kids-sport", name: "Спорт хувцас", attrs: [COLOR, KIDS], children: [] },
-  ],
 };
 
 /** @type {import('sequelize-cli').Migration} */
@@ -77,18 +59,6 @@ module.exports = {
       const shop_id = shop.id;
       const [[{ cnt }]] = await query("SELECT COUNT(*) AS cnt FROM categories WHERE shop_id = ? AND status = 'active'", [shop_id]);
       if (cnt > 0) continue;
-
-      if (code === "ajrug") {
-        const [[kids]] = await query("SELECT id FROM attrs WHERE shop_id = ? AND name = ? AND status = 'active'", [shop_id, KIDS]);
-        if (!kids) {
-          await queryInterface.bulkInsert("attrs", [{ shop_id, name: KIDS, value_type: "select", status: "active", created_at: at }]);
-          const id = await lastId("attrs");
-          await queryInterface.bulkInsert(
-            "attrValues",
-            kidsSizes.map((name, i) => ({ attr_id: id, name, order_number: i, status: "active", created_at: at })),
-          );
-        }
-      }
 
       const [attrRows] = await query("SELECT id, name FROM attrs WHERE shop_id = ? AND status = 'active'", [shop_id]);
       const attrId = new Map(attrRows.map((a) => [a.name, a.id]));
