@@ -16,15 +16,18 @@ const deliver = async (phone, code) => {
   if (process.env.NODE_ENV !== "production") console.log(`OTP ${phone}: ${code}`);
 };
 
-// Код нь дэлгүүр бүрт тусдаа (нэг дугаар хоёр дэлгүүрт өөр өөр хэрэглэгч)
-module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login") => {
+// Код нь дэлгүүр бүрт тусдаа (нэг дугаар хоёр дэлгүүрт өөр өөр хэрэглэгч).
+// send(code) өгвөл (жишээ нь имэйл) санамсаргүй 6 оронтой кодыг түүгээр илгээнэ; false буцаавал алдаа
+module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login", send) => {
   const where = { shop_id: shopId, phone, purpose };
   const existing = await phoneOtps.findOne({ where });
   const wait = OTP_RESEND_SECONDS - secondsSince(existing?.sent_at);
   if (wait > 0) return { success: false, message: `${wait} секундын дараа дахин код авна уу` };
 
-  const code = process.env.OTP_DEV_CODE || "2222";
-  await deliver(phone, code);
+  const code = send ? String(crypto.randomInt(100000, 1000000)) : process.env.OTP_DEV_CODE || "2222";
+  if (send) {
+    if (!(await send(code))) return { success: false, message: "Код илгээж чадсангүй. Дахин оролдоно уу" };
+  } else await deliver(phone, code);
   const at = now();
   const values = {
     otp_hash: hashOtp(phone, code),

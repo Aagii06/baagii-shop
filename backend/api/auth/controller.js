@@ -5,6 +5,7 @@ const { roles } = require("../../config/constants");
 const { Op } = require("sequelize");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
+const { sendMail } = require("../../helper/mailHelper");
 
 const PHONE_CHANGE_OTP = "adminPhone";
 // Имэйлийн кодыг phoneOtps-д имэйл хаягаар нь (phone баганад) хадгална
@@ -90,13 +91,22 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
   return ok(res, toUser(user));
 });
 
+const sendEmailCode = (shopId, email, code) =>
+  sendMail(shopId, email, {
+    subject: `Баталгаажуулах код: ${code}`,
+    text: `Таны имэйл солих баталгаажуулах код: ${code}\nКод 10 минут хүчинтэй.`,
+    html: `<p>Таны имэйл солих баталгаажуулах код:</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p><p style="color:#666">Код 10 минут хүчинтэй. Та энэ хүсэлтийг илгээгээгүй бол үл тоомсорлоно уу.</p>`,
+  });
+
 // { email } — шинэ имэйл рүү код илгээнэ; changeEmail-д code-оор баталгаажуулна
 module.exports.sendEmailOtp = handle("sendEmailOtp", async (req, res) => {
   const user = await findMe(req);
   if (!user) return notFound(res);
   const email = emailOf(req.body.email);
   if (email === emailOf(user.email)) return fail(res, "Энэ таны одоогийн имэйл байна");
-  const result = await sendPhoneOtp(req.shopId, email, EMAIL_CHANGE_OTP);
+  // Имэйл тохируулаагүй бол SMS-тэй адил OTP_DEV_CODE ажиллана
+  const send = process.env.MAIL_USER_NAME && process.env.MAIL_USER_PASS ? (code) => sendEmailCode(req.shopId, email, code) : undefined;
+  const result = await sendPhoneOtp(req.shopId, email, EMAIL_CHANGE_OTP, send);
   return res.status(200).json({ ...result, data: null });
 });
 

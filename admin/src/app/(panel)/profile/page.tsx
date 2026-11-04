@@ -4,6 +4,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Thumb from "@/components/common/Thumb";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { ChevronRight, CreditCard, Handshake, LayoutGrid, LogOut, NotebookPen, Pencil, SlidersHorizontal, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -73,9 +74,13 @@ export default function ProfilePage() {
 
       <div className="space-y-3 pt-4">
         <Card className="flex items-center gap-4 p-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-xl font-bold text-secondary-foreground">
-            {displayName.charAt(0).toUpperCase()}
-          </span>
+          {user?.logo ? (
+            <Thumb id={user.logo} alt="" size={56} className="rounded-full" />
+          ) : (
+            <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-xl font-bold text-secondary-foreground">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
+          )}
           <span className="min-w-0 grow">
             <span className="block truncate text-[17px] font-bold">{displayName}</span>
             {user?.userName && (
