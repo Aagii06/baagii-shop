@@ -16,6 +16,7 @@ const toUser = (user) => ({
   userName: user.phone,
   phone: user.phone,
   email: user.email,
+  logo: user.logo ?? null,
   roles: [],
   roleNames: user.role === roles.admin ? "admin" : "shopper",
   // SHOPPER-ийн дэлгүүр (include: store-оор ачаалсан үед)
@@ -55,7 +56,7 @@ module.exports.sendPhoneOtp = handle("sendPhoneOtp", async (req, res) => {
   return res.status(200).json({ ...result, data: null });
 });
 
-// { name, phone, code?, email?, password?, newPassword? }. Утас солиход шинэ дугаарт ирсэн code шаардана
+// { name, phone, code?, email?, logo?, password?, newPassword? }. Утас солиход шинэ дугаарт ирсэн code шаардана
 module.exports.updateMe = handle("updateMe", async (req, res) => {
   const user = await findMe(req);
   if (!user) return notFound(res);
@@ -66,6 +67,8 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
   }
 
   const changes = { name: req.body.name.trim(), phone, email: req.body.email?.trim() || null, updated_by: user.id, updated_at: now() };
+  // logo илгээгээгүй бол хэвээр; null бол устгана
+  if (req.body.logo !== undefined) changes.logo = req.body.logo || null;
   if (req.body.newPassword) {
     const matches = user.password && (await bcrypt.compare(req.body.password ?? "", user.password));
     if (!matches) return fail(res, "Одоогийн нууц үг буруу байна");

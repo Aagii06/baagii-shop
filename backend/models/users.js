@@ -25,6 +25,8 @@ module.exports = (sequelize, DataTypes) => {
       name: { type: DataTypes.STRING },
       phone: { type: DataTypes.STRING },
       email: { type: DataTypes.STRING },
+      // Профайлын лого (файлын id)
+      logo: { type: DataTypes.STRING },
       role: { type: DataTypes.STRING },
       ...auditFields(DataTypes),
     },

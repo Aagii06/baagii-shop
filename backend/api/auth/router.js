@@ -24,6 +24,7 @@ router.put(
     body("name").trim().notEmpty().withMessage("Нэр оруулна уу"),
     body("phone").custom((v) => isPhone(v)).withMessage("Утасны дугаар 8 оронтой байна"),
     body("email").optional({ checkFalsy: true }).trim().isEmail().withMessage("Имэйл буруу байна"),
+    body("logo").optional({ nullable: true }).isString().withMessage("Лого буруу байна"),
     body("newPassword").optional({ checkFalsy: true }).isLength({ min: 6 }).withMessage("Нууц үг 6-аас дээш тэмдэгттэй байна"),
   ]),
   updateMe,
