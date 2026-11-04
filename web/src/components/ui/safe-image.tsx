@@ -3,28 +3,38 @@
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 
-export const DEFAULT_IMAGE = "/images/NoImage.jpg";
+// The shop logo in gray, at a resolution to suit where it is shown.
+export const DEFAULT_IMAGES = {
+  sm: "/images/no-image-sm.png",
+  md: "/images/no-image-md.png",
+  lg: "/images/no-image-lg.png",
+} as const;
+
+export type FallbackSize = keyof typeof DEFAULT_IMAGES;
 
 type SafeImageProps = Omit<
   React.ImgHTMLAttributes<HTMLImageElement>,
   "src"
 > & {
   src?: string | null;
+  /** Size of the "no image" logo: sm for thumbnails, lg for the main gallery. */
+  fallback?: FallbackSize;
 };
 
-// <img> that falls back to the default "no image" picture when the src is
-// missing or fails to load. Shows a striped placeholder until it loads.
+// <img> that falls back to the gray shop logo when the src is missing or
+// fails to load. Shows a striped placeholder until it loads.
 export default function SafeImage({
   src,
   alt = "",
   className,
+  fallback = "md",
   onError,
   onLoad,
   ...rest
 }: SafeImageProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const useDefault = !src || failedSrc === src;
-  const shown = useDefault ? DEFAULT_IMAGE : src;
+  const shown = useDefault ? DEFAULT_IMAGES[fallback] : src;
   // The src that finished loading, so a new one shows the placeholder again.
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const ref = useRef<HTMLImageElement>(null);
@@ -43,7 +53,14 @@ export default function SafeImage({
       ref={ref}
       src={shown}
       alt={alt}
-      className={cn("bg-muted", loadedSrc !== shown && "img-placeholder", className)}
+      className={cn(
+        "bg-muted",
+        loadedSrc !== shown && "img-placeholder",
+        className,
+        // The logo sits centered with some room, whatever the caller's fit.
+        useDefault && "!object-contain",
+        useDefault && (fallback === "sm" ? "p-[12%]" : fallback === "md" ? "p-[18%]" : "p-[24%]")
+      )}
       onLoad={(e) => {
         setLoadedSrc(shown);
         onLoad?.(e);
