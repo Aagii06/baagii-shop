@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { LoadingState } from "@/components/common/States";
+import { FullScreenLoader } from "@/components/common/States";
 import BrandMark from "@/components/layout/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,7 @@ export default function LoginForm() {
 
   // A saved token is checked first: the form shows only once there's none
   // (or it's no good), and a valid one goes straight on to the panel.
-  if (status !== "anonymous") return <LoadingState className="min-h-screen w-full" />;
+  if (status !== "anonymous") return <FullScreenLoader />;
 
   return (
     <div className="w-full max-w-sm">

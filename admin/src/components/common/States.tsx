@@ -3,7 +3,9 @@
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 import { AlertTriangle, Inbox, Loader2, RotateCw } from "lucide-react";
+import Image from "next/image";
 
 export function LoadingState({ className }: { className?: string }) {
   const { t } = useLanguage();
@@ -16,6 +18,37 @@ export function LoadingState({ className }: { className?: string }) {
     >
       <Loader2 className="size-4 animate-spin" />
       {t("common.loading")}
+    </div>
+  );
+}
+
+// Whole-screen boot loader: the logo with a spinning arc running round it.
+export function FullScreenLoader() {
+  const { t } = useLanguage();
+  return (
+    <div
+      role="status"
+      aria-label={t("common.loading")}
+      className="flex min-h-screen w-full items-center justify-center bg-background"
+    >
+      <div className="relative grid size-28 place-items-center">
+        <svg className="absolute inset-0 size-full animate-spin [animation-duration:1.1s]" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="46" fill="none" strokeWidth="4" className="stroke-muted" />
+          <circle
+            cx="50"
+            cy="50"
+            r="46"
+            fill="none"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray="72 217"
+            className="stroke-primary"
+          />
+        </svg>
+        <span className="relative size-20 overflow-hidden rounded-full bg-white shadow-sm">
+          <Image src={logo} alt="" fill sizes="80px" className="object-contain" priority />
+        </span>
+      </div>
     </div>
   );
 }

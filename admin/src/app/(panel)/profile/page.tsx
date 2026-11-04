@@ -8,48 +8,55 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { ChevronRight, CreditCard, Handshake, LayoutGrid, LogOut, NotebookPen, Pencil, SlidersHorizontal, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
-const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon }[] = [
+const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon; tone: string }[] = [
   {
     href: "/stores",
     labelKey: "st.title",
     descKey: "profile.stores",
     icon: Store,
+    tone: "bg-sky-100 text-sky-600 ring-sky-200",
   },
   {
     href: "/users",
     labelKey: "us.title",
     descKey: "profile.users",
     icon: Users,
+    tone: "bg-violet-100 text-violet-600 ring-violet-200",
   },
   {
     href: "/customers",
     labelKey: "cu.title",
     descKey: "profile.customers",
     icon: UserRound,
+    tone: "bg-emerald-100 text-emerald-600 ring-emerald-200",
   },
   {
     href: "/categories",
     labelKey: "common.category",
     descKey: "profile.categories",
     icon: LayoutGrid,
+    tone: "bg-amber-100 text-amber-600 ring-amber-200",
   },
   {
     href: "/attrs",
     labelKey: "attrs.title",
     descKey: "profile.attrs",
     icon: SlidersHorizontal,
+    tone: "bg-pink-100 text-pink-600 ring-pink-200",
   },
   {
     href: "/payment",
     labelKey: "pay.title",
     descKey: "profile.payment",
     icon: CreditCard,
+    tone: "bg-teal-100 text-teal-600 ring-teal-200",
   },
   {
     href: "/delivery-notes",
     labelKey: "profile.notes",
     descKey: "profile.notesDesc",
     icon: NotebookPen,
+    tone: "bg-indigo-100 text-indigo-600 ring-indigo-200",
   },
 ];
 
@@ -92,20 +99,22 @@ export default function ProfilePage() {
         {role === "admin" && (
         <Card className="overflow-hidden">
           <ul className="divide-y divide-border">
-            {MENU.map(({ href, labelKey, descKey, icon: Icon }) => (
+            {MENU.map(({ href, labelKey, descKey, icon: Icon, tone }) => (
               <li key={href}>
                 <Link
                   href={href}
-                  className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
+                  className="group flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60 active:bg-muted"
                 >
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground/80">
+                  <span
+                    className={`grid size-11 shrink-0 place-items-center rounded-2xl ring-1 ring-inset transition-transform group-hover:scale-105 ${tone}`}
+                  >
                     <Icon className="size-5" />
                   </span>
                   <span className="min-w-0 grow">
                     <span className="block truncate text-[15px] font-bold">{t(labelKey)}</span>
                     <span className="block truncate text-sm text-muted-foreground">{t(descKey)}</span>
                   </span>
-                  <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+                  <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </li>
             ))}
@@ -116,9 +125,9 @@ export default function ProfilePage() {
         {role === "admin" && (
           <Link
             href="/partner-requests"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 transition-colors hover:bg-muted/60"
+            className="group flex items-center gap-3 rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-3.5 transition-colors hover:from-orange-100 hover:to-amber-100"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground/80">
+            <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-sm transition-transform group-hover:scale-105">
               <Handshake className="size-5" />
             </span>
             <span className="min-w-0 grow">
@@ -127,7 +136,7 @@ export default function ProfilePage() {
                 {t("profile.partnerDesc")}
               </span>
             </span>
-            <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+            <ChevronRight className="size-5 shrink-0 text-orange-400 transition-transform group-hover:translate-x-0.5" />
           </Link>
         )}
 

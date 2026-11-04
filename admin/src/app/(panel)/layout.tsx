@@ -1,6 +1,6 @@
 "use client";
 
-import { LoadingState } from "@/components/common/States";
+import { FullScreenLoader } from "@/components/common/States";
 import PanelShell from "@/components/layout/PanelShell";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { canAccess } from "@/lib/auth/roles";
@@ -29,7 +29,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   }, [status, allowed, router]);
 
   if (status !== "authenticated" || !allowed) {
-    return <LoadingState className="min-h-screen" />;
+    return <FullScreenLoader />;
   }
 
   return <PanelShell>{children}</PanelShell>;
