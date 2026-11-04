@@ -34,10 +34,6 @@ export default function StoreForm({ store }: { store: Store | null }) {
   const [phones, setPhones] = useState(store?.phones ?? []);
   const [emails, setEmails] = useState(store?.emails ?? []);
   const [addresses, setAddresses] = useState(store?.addresses ?? []);
-  // Typed in but not added with "+" yet.
-  const [phoneDraft, setPhoneDraft] = useState("");
-  const [emailDraft, setEmailDraft] = useState("");
-  const [addressDraft, setAddressDraft] = useState("");
   // A saved file id, or a `blob:` preview of `logoFile` until it's uploaded.
   const [logo, setLogo] = useState<string | null>(store?.logo ?? null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -50,14 +46,8 @@ export default function StoreForm({ store }: { store: Store | null }) {
   }, [logo]);
 
   const nameError = (nameTouched || submitted) && !name.trim() ? t("st.nameRequired") : undefined;
-  // A value left in an input would be lost on save — it must be added first.
-  const unadded = (draft: string) => (draft.trim() ? t("st.unadded") : undefined);
-  const phoneProblem = unadded(phoneDraft) ?? (phones.length === 0 ? t("st.phoneRequired") : undefined);
-  const emailProblem = unadded(emailDraft);
-  const addressProblem = unadded(addressDraft);
+  const phoneProblem = phones.length === 0 ? t("st.phoneRequired") : undefined;
   const phoneError = submitted ? phoneProblem : undefined;
-  const emailError = submitted ? emailProblem : undefined;
-  const addressError = submitted ? addressProblem : undefined;
 
   function onPickLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -76,7 +66,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
     e.preventDefault();
     setSubmitted(true);
     if (!name.trim()) return nameRef.current?.focus();
-    if (phoneProblem || emailProblem || addressProblem) return;
+    if (phoneProblem) return;
 
     const saved = await run(async () => {
       const input = {
@@ -138,11 +128,12 @@ export default function StoreForm({ store }: { store: Store | null }) {
 
         <ContactList
           title={t("st.phone")}
+          hint={t("st.phoneHint", { max: MAX_STORE_CONTACTS })}
+          empty={t("st.phoneEmpty")}
+          addLabel={t("st.addPhone")}
           items={phones}
           onChange={setPhones}
           max={MAX_STORE_CONTACTS}
-          draft={phoneDraft}
-          onDraftChange={setPhoneDraft}
           check={(v) => (v.length === 8 ? undefined : t("checkout.phoneInvalid"))}
           error={phoneError}
           mono
@@ -161,14 +152,14 @@ export default function StoreForm({ store }: { store: Store | null }) {
 
         <ContactList
           title={t("st.email")}
+          hint={t("st.emailHint", { max: MAX_STORE_CONTACTS })}
+          empty={t("st.emailEmpty")}
+          addLabel={t("st.addEmail")}
           items={emails}
           onChange={setEmails}
           max={MAX_STORE_CONTACTS}
-          draft={emailDraft}
-          onDraftChange={setEmailDraft}
           check={(v) => (EMAIL_RE.test(v) ? undefined : t("st.emailInvalid"))}
           normalize={(v) => v.trim().toLowerCase()}
-          error={emailError}
           input={({ onChange, ...props }) => (
             <Input
               {...props}
@@ -183,25 +174,14 @@ export default function StoreForm({ store }: { store: Store | null }) {
 
         <ContactList
           title={t("st.address")}
+          hint={t("st.addressHint", { max: MAX_STORE_CONTACTS })}
+          empty={t("st.addressEmpty")}
+          addLabel={t("st.addAddress")}
           items={addresses}
           onChange={setAddresses}
           max={MAX_STORE_CONTACTS}
-          draft={addressDraft}
-          onDraftChange={setAddressDraft}
           check={() => undefined}
-          emptyError={t("st.addressIncomplete")}
-          error={addressError}
-          stacked
-          // No `onKeyDown`: Enter makes a new line in the detail field, not an add.
-          input={(props) => (
-            <AddressPicker
-              value={props.value}
-              onChange={props.onChange}
-              aria-label={props["aria-label"]}
-              aria-invalid={props["aria-invalid"]}
-              aria-describedby={props["aria-describedby"]}
-            />
-          )}
+          input={(props) => <AddressPicker value={props.value} onChange={props.onChange} aria-label={props["aria-label"]} />}
         />
       </div>
     </form>
