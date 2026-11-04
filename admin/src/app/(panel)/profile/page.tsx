@@ -5,7 +5,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, CreditCard, Handshake, LayoutGrid, LogOut, NotebookPen, Pencil, SlidersHorizontal, Store, Users, type LucideIcon } from "lucide-react";
+import { ChevronRight, CreditCard, Handshake, LayoutGrid, LogOut, NotebookPen, Pencil, SlidersHorizontal, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon }[] = [
@@ -20,6 +20,12 @@ const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon 
     labelKey: "us.title",
     descKey: "profile.users",
     icon: Users,
+  },
+  {
+    href: "/customers",
+    labelKey: "cu.title",
+    descKey: "profile.customers",
+    icon: UserRound,
   },
   {
     href: "/categories",

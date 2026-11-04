@@ -14,6 +14,8 @@ Router.use("/partnerRequest", protect, require("./partnerRequest/router"));
 Router.use("/blog", protect, require("./blog/router"));
 Router.use("/store", protect, require("./store/router"));
 Router.use("/user", protect, require("./user/router"));
+// Вэбээр нэвтэрсэн худалдан авагчид (ADMIN, зөвхөн харах)
+Router.use("/customer", protect, require("./customer/router"));
 // Дансаар шилжүүлэх, QPay-ийн тохиргоо (ADMIN)
 Router.use("/paymentSetting", protect, require("./paymentSetting/router"));
 // Аймаг/Нийслэл → Сум/Дүүрэг → Баг/Хороо (дэлгүүрийн хаяг сонгоход) — вэбийнхтэй ижил
