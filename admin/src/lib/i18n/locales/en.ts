@@ -401,7 +401,7 @@ export const en: Dict = {
   "pf.store": "Store",
   "pf.storeHint": "Which store sells it — shown as the brand on the website",
   "pf.pickStore": "Pick a store",
-  "pf.storeRequired": "Pick a store",
+  "pf.shopOwn": "The shop's own (none)",
   "pf.storeOwnHint": "Products you add go to your own store",
   "pf.noStore": "No store assigned — ask an admin",
   "profile.edit": "Edit details",

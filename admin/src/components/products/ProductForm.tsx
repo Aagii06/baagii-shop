@@ -53,7 +53,6 @@ export default function ProductForm() {
   const nameErrorId = useId();
   const priceErrorId = useId();
   const storeId = useId();
-  const storeErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant, toPostInput } =
@@ -63,21 +62,17 @@ export default function ProductForm() {
   const picked = attrs.some((attr) => attr.values.length > 0);
 
   // A field's error shows once it has been left, or on a save attempt.
-  const [touched, setTouched] = useState({ name: false, price: false, store: false });
+  const [touched, setTouched] = useState({ name: false, price: false });
   const errors = productErrors(form);
   const nameError = touched.name ? errors.name : undefined;
   const priceError = touched.price ? errors.price : undefined;
-  // An admin says which store sells it; a shopper's always goes to their own.
-  const storeMissing = role === "admin" && !form.storeId;
-  const storeError = touched.store && storeMissing ? t("pf.storeRequired") : undefined;
 
   /** Reveals every error and focuses the first bad field; `true` when there are none. */
   function validate() {
-    setTouched({ name: true, price: true, store: true });
+    setTouched({ name: true, price: true });
     if (errors.name) nameRef.current?.focus();
     else if (errors.price) priceRef.current?.focus();
-    else if (storeMissing) document.getElementById(storeId)?.focus();
-    return !errors.name && !errors.price && !storeMissing;
+    return !errors.name && !errors.price;
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -154,17 +149,13 @@ export default function ProductForm() {
         </div>
 
         {role === "admin" ? (
-          <Field label={t("pf.store")} hint={t("pf.storeHint")} error={storeError} errorId={storeErrorId}>
+          // Optional: left empty, it's the shop's own product.
+          <Field label={t("pf.store")} hint={t("pf.storeHint")}>
             <StoreSelect
               id={storeId}
               value={form.storeId}
-              onChange={(id) => {
-                set("storeId", id);
-                setTouched((prev) => ({ ...prev, store: true }));
-              }}
-              placeholder={t("pf.pickStore")}
-              invalid={Boolean(storeError)}
-              describedBy={storeError ? storeErrorId : undefined}
+              onChange={(id) => set("storeId", id)}
+              placeholder={t("pf.shopOwn")}
             />
           </Field>
         ) : (

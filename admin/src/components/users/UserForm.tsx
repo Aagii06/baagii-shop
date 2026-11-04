@@ -29,6 +29,7 @@ export default function UserForm({ user }: { user: User | null }) {
   const nameErrorId = useId();
   const phoneErrorId = useId();
   const emailErrorId = useId();
+  const storeSelectId = useId();
   const storeErrorId = useId();
   const passwordErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
@@ -59,7 +60,7 @@ export default function UserForm({ user }: { user: User | null }) {
     if (!name.trim()) return nameRef.current?.focus();
     if (phone.length < 8) return phoneRef.current?.focus();
     if (email.trim() && !EMAIL_RE.test(email.trim())) return emailRef.current?.focus();
-    if (role === "shopper" && !storeId) return;
+    if (role === "shopper" && !storeId) return document.getElementById(storeSelectId)?.focus();
     if (passwordShort) return passwordRef.current?.focus();
 
     const input = {
@@ -111,6 +112,7 @@ export default function UserForm({ user }: { user: User | null }) {
           <div>
             <Field label={t("pr.store")} error={storeError} errorId={storeErrorId}>
               <StoreSelect
+                id={storeSelectId}
                 value={storeId}
                 onChange={setStoreId}
                 placeholder={t("pr.pickStore")}
