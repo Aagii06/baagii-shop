@@ -7,7 +7,6 @@ import { useCartStore } from "@/store/cartStore";
 import { useSavedStore } from "@/store/savedStore";
 import logo from "@/assets/logo.png";
 import {
-  ChevronDown,
   Heart,
   Menu,
   Package,
@@ -17,11 +16,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { categoryHref, categoryKey } from "@/lib/categories";
-import { cn } from "@/lib/utils";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 /** Icon over a small label, as in the header's action row. */
@@ -68,7 +66,6 @@ export default function Header() {
   const [searchCategory, setSearchCategory] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
@@ -102,16 +99,6 @@ export default function Header() {
     if (searchCategory) params.set("category", searchCategory);
     const query = params.toString();
     router.push(query ? `/search?${query}` : "/search");
-  };
-
-  const activeCategory = searchParams.get("category");
-  const activeSale = searchParams.get("sale");
-
-  const isTabActive = (href: string) => {
-    if (pathname !== "/search") return false;
-    if (href.includes("sale=1")) return activeSale === "1";
-    const cat = href.split("category=")[1];
-    return cat ? activeCategory === decodeURIComponent(cat) : false;
   };
 
   const searchForm = (
@@ -190,6 +177,9 @@ export default function Header() {
             <div className="hidden md:flex flex-1 max-w-3xl">{searchForm}</div>
 
             <div className="ml-auto flex items-center shrink-0">
+              <div className="mr-2 hidden lg:block">
+                <LanguageSwitcher />
+              </div>
               {/* Saved items, orders and the profile belong to a real
                   account; a guest session has none, so hide them until the
                   user signs in. */}
@@ -235,71 +225,6 @@ export default function Header() {
           <div className="mt-3 md:hidden">{searchForm}</div>
         </div>
       </div>
-
-      <nav
-        className="hidden lg:block border-b border-border"
-        role="navigation"
-        aria-label={t("header.tabs.all")}
-      >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-1">
-            {/* Every top-level category, opened on hover or keyboard focus. */}
-            <div className="group relative">
-              <Link
-                href="/search"
-                className="flex items-center gap-2 py-3 pr-4 text-sm font-medium text-foreground transition-colors hover:text-primary"
-              >
-                <Menu className="h-5 w-5" />
-                {t("header.tabs.all")}
-              </Link>
-              {topCategories.length > 0 && (
-                <div className="invisible absolute left-0 top-full z-50 w-64 rounded-lg border border-border bg-white py-2 opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                  {topCategories.map((category) => (
-                    <Link
-                      key={category.id}
-                      href={categoryHref(category)}
-                      className="block px-4 py-2 text-sm text-foreground transition-colors hover:bg-accent hover:text-primary"
-                    >
-                      {category.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto no-scrollbar">
-              {categoryTabs.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={cn(
-                    "whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                    isTabActive(href)
-                      ? "bg-accent text-primary"
-                      : "text-foreground hover:bg-muted"
-                  )}
-                >
-                  {label}
-                </Link>
-              ))}
-              <Link
-                href="/contact"
-                className="flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                {t("header.topbar.help")}
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </Link>
-            </div>
-
-            <div className="flex items-center gap-4 pl-4 text-sm">
-              <span className="text-muted-foreground">
-                {t("header.topbar.delivery")}
-              </span>
-              <LanguageSwitcher />
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {isMobileOpen && (
         <nav
