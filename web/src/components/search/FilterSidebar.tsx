@@ -175,7 +175,7 @@ export function FilterPanelContent({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-border bg-card px-5 py-4">
+      <div className="bg-card px-5 py-4 shadow-sm">
         <h3 className="mb-1 text-lg font-bold text-foreground">
           {t("search.filters.category")}
         </h3>
@@ -199,7 +199,7 @@ export function FilterPanelContent({
         )}
       </div>
 
-      <div className="rounded-2xl border border-border bg-card px-5 py-4">
+      <div className="bg-card px-5 py-4 shadow-sm">
         <h3 className="mb-1 text-lg font-bold text-foreground">
           {t("search.filters.priceRange")}
         </h3>
