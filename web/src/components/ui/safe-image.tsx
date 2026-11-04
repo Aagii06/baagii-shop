@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const DEFAULT_IMAGE = "/images/NoImage.jpg";
 
@@ -27,11 +27,20 @@ export default function SafeImage({
   const shown = useDefault ? DEFAULT_IMAGE : src;
   // The src that finished loading, so a new one shows the placeholder again.
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const ref = useRef<HTMLImageElement>(null);
+
+  // A server-rendered <img> can fail before hydration, when onError isn't
+  // attached yet; catch that case here.
+  useEffect(() => {
+    const img = ref.current;
+    if (img?.complete && img.naturalWidth === 0 && !useDefault) setFailedSrc(src);
+  }, [src, useDefault]);
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       {...rest}
+      ref={ref}
       src={shown}
       alt={alt}
       className={cn("bg-muted", loadedSrc !== shown && "img-placeholder", className)}

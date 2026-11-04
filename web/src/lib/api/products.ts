@@ -98,7 +98,8 @@ function mapApiProduct(p: ApiProduct): Product {
   const price = Number(p.price);
   const mainPrice = Number(p.mainPrice);
 
-  const imageId = p.images?.[0] ?? p.category?.image ?? null;
+  // No product image → the "no image" picture (SafeImage), not the category's.
+  const imageId = p.images?.find((id) => fileUrl(id)) ?? null;
 
   return {
     id: p.id,

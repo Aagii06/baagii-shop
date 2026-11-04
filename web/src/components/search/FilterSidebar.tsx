@@ -42,7 +42,7 @@ function PickRow({
       aria-pressed={picked}
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-2 text-left transition-colors",
+        "flex w-full cursor-pointer items-center gap-2 text-left transition-colors",
         sub ? "py-2 text-sm" : "py-3 text-[15px]",
         picked ? "font-semibold text-primary" : "text-foreground hover:text-primary"
       )}
@@ -130,7 +130,7 @@ export function FilterPanelContent({
           onClick={() => toggleOpen(category.id, isOpen)}
           aria-expanded={isOpen}
           className={cn(
-            "flex w-full items-center gap-2 text-left transition-colors hover:text-primary",
+            "flex w-full cursor-pointer items-center gap-2 text-left transition-colors hover:text-primary",
             sub ? "py-2 text-sm" : "py-3 text-[15px]",
             selectedCount > 0 ? "font-semibold text-primary" : "text-foreground"
           )}
