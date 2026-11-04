@@ -7,6 +7,8 @@ const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
 
 const PHONE_CHANGE_OTP = "adminPhone";
+// Имэйлийн кодыг phoneOtps-д имэйл хаягаар нь (phone баганад) хадгална
+const EMAIL_CHANGE_OTP = "adminEmail";
 
 // admin/src/lib/api/auth.ts-ийн LoginUser / UserData.user
 const toUser = (user) => ({
@@ -40,7 +42,8 @@ module.exports.getUserData = handle("getUserData", async (req, res) => {
   return ok(res, { user: toUser(user), menuPermission: null, customActionPermission: null, objectPermission: null });
 });
 
-const findMe = (req) => users.findOne({ where: { id: req.loggedUser.id, shop_id: req.shopId, status: "active" } });
+const findMe = (req) => users.findOne({ where: { id: req.loggedUser.id, shop_id: req.shopId, status: "active" }, include: withStore });
+const emailOf = (value) => value?.trim().toLowerCase() || null;
 const notFound = (res) => res.status(401).json({ success: false, errorType: "authentication", message: "Хэрэглэгч олдсонгүй" });
 const phoneTaken = (shopId, phone, userId) =>
   users.findOne({ where: { shop_id: shopId, phone, status: "active", id: { [Op.ne]: userId } } });
@@ -56,7 +59,7 @@ module.exports.sendPhoneOtp = handle("sendPhoneOtp", async (req, res) => {
   return res.status(200).json({ ...result, data: null });
 });
 
-// { name, phone, code?, email?, logo?, password?, newPassword? }. Утас солиход шинэ дугаарт ирсэн code шаардана
+// { name, phone, code?, email?, logo?, password?, newPassword? }. Утас солиход шинэ дугаарт ирсэн code шаардана, имэйлийг changeEmail-ээр
 module.exports.updateMe = handle("updateMe", async (req, res) => {
   const user = await findMe(req);
   if (!user) return notFound(res);
@@ -66,7 +69,11 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
     return fail(res, "Энэ утасны дугаар өөр хэрэглэгчид бүртгэлтэй байна");
   }
 
-  const changes = { name: req.body.name.trim(), phone, email: req.body.email?.trim() || null, updated_by: user.id, updated_at: now() };
+  // Шинэ имэйлийг зөвхөн /me/email (кодоор) солино; энд хасах л боломжтой
+  const email = emailOf(req.body.email);
+  if (email && email !== emailOf(user.email)) return fail(res, "Шинэ имэйлээ кодоор баталгаажуулна уу");
+
+  const changes = { name: req.body.name.trim(), phone, email: email ? user.email : null, updated_by: user.id, updated_at: now() };
   // logo илгээгээгүй бол хэвээр; null бол устгана
   if (req.body.logo !== undefined) changes.logo = req.body.logo || null;
   if (req.body.newPassword) {
@@ -80,5 +87,26 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
     if (!result.success) return fail(res, result.message);
   }
   await user.update(changes);
+  return ok(res, toUser(user));
+});
+
+// { email } — шинэ имэйл рүү код илгээнэ; changeEmail-д code-оор баталгаажуулна
+module.exports.sendEmailOtp = handle("sendEmailOtp", async (req, res) => {
+  const user = await findMe(req);
+  if (!user) return notFound(res);
+  const email = emailOf(req.body.email);
+  if (email === emailOf(user.email)) return fail(res, "Энэ таны одоогийн имэйл байна");
+  const result = await sendPhoneOtp(req.shopId, email, EMAIL_CHANGE_OTP);
+  return res.status(200).json({ ...result, data: null });
+});
+
+// { email, code } — кодоо зөв оруулбал имэйлийг шууд солино
+module.exports.changeEmail = handle("changeEmail", async (req, res) => {
+  const user = await findMe(req);
+  if (!user) return notFound(res);
+  const email = emailOf(req.body.email);
+  const result = await verifyPhoneOtp(req.shopId, email, req.body.code ?? "", EMAIL_CHANGE_OTP);
+  if (!result.success) return fail(res, result.message);
+  await user.update({ email, updated_by: user.id, updated_at: now() });
   return ok(res, toUser(user));
 });

@@ -3,7 +3,7 @@ const { body } = require("express-validator");
 const { protect } = require("../../middleware/auth");
 const { validate } = require("../../utils/validationHelper");
 const { isPhone } = require("../../helper/helper");
-const { login, getUserData, sendPhoneOtp, updateMe } = require("./controller");
+const { login, getUserData, sendPhoneOtp, updateMe, sendEmailOtp, changeEmail } = require("./controller");
 
 router.post(
   "/login",
@@ -29,5 +29,9 @@ router.put(
   ]),
   updateMe,
 );
+// Имэйл солихын өмнө шинэ имэйл рүү код илгээж, кодоор нь солино
+const isEmail = body("email").trim().isEmail().withMessage("Имэйл буруу байна");
+router.post("/me/email/sendOtp", protect, validate([isEmail]), sendEmailOtp);
+router.put("/me/email", protect, validate([isEmail, body("code").trim().notEmpty().withMessage("Код оруулна уу")]), changeEmail);
 
 module.exports = router;
