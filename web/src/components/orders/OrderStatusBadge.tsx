@@ -7,6 +7,14 @@ import type { OrderStatus } from "@/types/order";
 export default function OrderStatusBadge({ status }: { status: OrderStatus }) {
   const { t } = useLanguage();
 
+  if (status === "cancelled") {
+    return (
+      <Badge className="bg-muted text-muted-foreground hover:bg-muted border-transparent">
+        {t("orders.status.cancelledBadge")}
+      </Badge>
+    );
+  }
+
   if (status === "confirmed") {
     return (
       <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-transparent">

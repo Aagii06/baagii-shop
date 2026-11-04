@@ -17,7 +17,7 @@ interface ApiListResponse<T> {
 // Orders of the phone-signed-in shopper (../backend `/order`). Checkout turns
 // the server cart into an order; prices, delivery and the coupon are worked
 // out by the backend, which also takes the stock.
-export type BackendOrderStatus = "pending" | "confirmed" | "delivered" | "returned";
+export type BackendOrderStatus = "pending" | "confirmed" | "delivered" | "returned" | "cancelled";
 
 interface ApiOrder extends Omit<Order, "status" | "confirmedAt" | "paymentMethod"> {
   /** Where the shop has it — confirmed and delivered by the shop's staff. */
@@ -26,12 +26,13 @@ interface ApiOrder extends Omit<Order, "status" | "confirmedAt" | "paymentMethod
   paidAt: string | null;
 }
 
-// The shop's own `status` is about payment: "confirmed" once paid.
+// The shop's own `status` is about payment: "confirmed" once paid, or
+// "cancelled" when the shop cancelled it for going unpaid too long.
 function toOrder(o: ApiOrder): Order {
   return {
     ...o,
     items: o.items.map((item) => ({ ...item, image: fileThumbnailUrl(item.image) ?? "" })),
-    status: o.paidAt ? "confirmed" : "pending",
+    status: o.status === "cancelled" ? "cancelled" : o.paidAt ? "confirmed" : "pending",
     paymentMethod: o.paymentMethod ?? undefined,
     confirmedAt: o.paidAt ?? undefined,
   };

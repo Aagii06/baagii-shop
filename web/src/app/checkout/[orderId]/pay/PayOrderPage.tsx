@@ -76,6 +76,24 @@ export default function PayOrderPage() {
     );
   }
 
+  if (order.status === "cancelled") {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <h1 className="text-2xl font-bold text-foreground mb-2">
+          {t("checkout.payment.cancelled.title")}
+        </h1>
+        <p className="text-muted-foreground mb-6">
+          {t("checkout.payment.cancelled.desc", { id: order.id })}
+        </p>
+        <Button asChild>
+          <Link href={`/orders/${order.id}`}>
+            {t("checkout.payment.alreadyPaid.cta")}
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
   if (order.status === "confirmed") {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">

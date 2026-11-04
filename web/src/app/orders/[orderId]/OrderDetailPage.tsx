@@ -71,9 +71,7 @@ export default function OrderDetailPage() {
         <OrderProgress
           status={order.status}
           caption={
-            order.status === "confirmed"
-              ? t("orders.caption.confirmed")
-              : t("orders.caption.pending")
+            t(`orders.caption.${order.status}`)
           }
         />
       </div>

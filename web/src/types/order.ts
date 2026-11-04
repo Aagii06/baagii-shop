@@ -28,7 +28,7 @@ export interface ShippingInfo {
   deliveryFee: number;
 }
 
-export type OrderStatus = "pending" | "confirmed";
+export type OrderStatus = "pending" | "confirmed" | "cancelled";
 
 // "card" and "cash" are temporarily disabled in the checkout UI but kept
 // in the type so existing orders still parse and re-enabling is a one-liner.

@@ -35,7 +35,7 @@ export default function OrdersPage() {
       ? order.status === "pending"
       : tab === "delivered"
       ? order.status === "confirmed"
-      : false
+      : order.status === "cancelled"
   );
 
   if (!ordersLoaded) {
@@ -124,9 +124,7 @@ export default function OrdersPage() {
                     <OrderProgress
                       status={order.status}
                       caption={
-                        order.status === "confirmed"
-                          ? t("orders.caption.confirmed")
-                          : t("orders.caption.pending")
+                        t(`orders.caption.${order.status}`)
                       }
                     />
                     <div className="flex gap-2 shrink-0">
@@ -145,7 +143,7 @@ export default function OrdersPage() {
                             {t("orders.pay")}
                           </Link>
                         </Button>
-                      ) : (
+                      ) : order.status === "confirmed" ? (
                         <Button
                           size="sm"
                           className="brand-gradient text-white"
@@ -155,7 +153,7 @@ export default function OrdersPage() {
                             {t("orders.track")}
                           </Link>
                         </Button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>
