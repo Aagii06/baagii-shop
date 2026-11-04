@@ -9,6 +9,8 @@ export interface LoginUser {
   firstName?: string | null;
   phone?: string | null;
   email?: string | null;
+  /** File id of the user's own profile logo. */
+  logo?: string | null;
   /** The phone number the user signs in with. */
   userName: string;
   customerId?: number | null;
@@ -69,7 +71,10 @@ export async function getUserData() {
 export interface ProfileInput {
   name: string;
   phone: string;
+  /** Only the current email or "" — a new one goes through `changeEmail`. */
   email: string;
+  /** File id; `null` removes the logo. */
+  logo?: string | null;
   /** SMS code sent to a new `phone` by `sendPhoneOtp`. */
   code?: string;
   /** Current password; required with `newPassword`. */
@@ -85,5 +90,16 @@ export async function sendPhoneOtp(phone: string) {
 /** Saves the signed-in admin's own details; a new phone needs its SMS `code`. */
 export async function updateMe(input: ProfileInput) {
   const res = await apiFetch<ApiItemResponse<LoginUser>>("/auth/me", { method: "PUT", body: input });
+  return res.data;
+}
+
+// Sends a code to the new address before `changeEmail` switches to it.
+export async function sendEmailOtp(email: string) {
+  await apiFetch<ApiItemResponse<null>>("/auth/me/email/sendOtp", { method: "POST", body: { email } });
+}
+
+/** Switches the signed-in user's email once its `code` checks out. */
+export async function changeEmail(email: string, code: string) {
+  const res = await apiFetch<ApiItemResponse<LoginUser>>("/auth/me/email", { method: "PUT", body: { email, code } });
   return res.data;
 }
