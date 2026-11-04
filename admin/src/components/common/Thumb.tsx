@@ -2,14 +2,13 @@
 
 import { fileUrl } from "@/lib/api/files";
 import { cn } from "@/lib/utils";
-import { ImageOff } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
 // Image from the file service, square by default. Pass `size` for a fixed
 // pixel box, or omit it and size the box with `className`. `unoptimized`
 // serves the file-service URL as-is, so no remotePatterns entry is needed.
-// With no image, or one that fails to load, an image icon stands in.
+// With no image, or one that fails to load, the shop logo in gray stands in.
 export default function Thumb({
   id,
   alt = "",
@@ -42,7 +41,15 @@ export default function Thumb({
       style={size ? { width: size, height: size } : undefined}
     >
       {missing ? (
-        <ImageOff aria-hidden className="size-2/5 max-h-12 max-w-12 text-muted-foreground/60" strokeWidth={1.5} />
+        // Small fixed boxes get the small logo file, everything else the medium one.
+        <Image
+          src={size && size <= 96 ? "/images/no-image-sm.png" : "/images/no-image-md.png"}
+          alt=""
+          fill
+          sizes={size ? `${size}px` : "(min-width: 28rem) 28rem, 100vw"}
+          className="object-contain p-[14%]"
+          unoptimized
+        />
       ) : (
         <Image
           src={src}

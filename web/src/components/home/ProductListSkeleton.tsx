@@ -1,18 +1,16 @@
-import logo from "@/assets/logo.png";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
 
 // Mirrors ProductCard's layout so the grid doesn't shift once products load.
 function ProductCardSkeleton() {
   return (
     <Card className="overflow-hidden bg-card border-border py-0 gap-0">
-      <div className="aspect-square img-placeholder grid place-items-center">
-        <Image
-          src={logo}
-          alt=""
-          className="w-1/3 h-auto object-contain opacity-40 animate-pulse"
-        />
-      </div>
+      {/* The gray "no image" logo (see SafeImage), so the skeleton stays colorless. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/no-image-md.png"
+        alt=""
+        className="aspect-square w-full bg-muted object-contain p-[18%] animate-pulse"
+      />
       <CardContent className="p-4 space-y-2">
         <div className="min-h-10 space-y-2">
           <div className="h-3.5 w-full rounded bg-muted animate-pulse" />

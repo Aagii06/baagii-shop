@@ -203,13 +203,14 @@ export default function ProductPage() {
                   <SafeImage
                     key={i}
                     src={src}
+                    fallback="lg"
                     alt={product.name}
                     className="w-full shrink-0 snap-center aspect-square object-cover bg-muted"
                   />
                 ))}
               </div>
             ) : (
-              <SafeImage alt={product.name} className="w-full aspect-square object-cover" />
+              <SafeImage alt={product.name} fallback="lg" className="w-full aspect-square object-cover" />
             )}
             {discount > 0 && (
               <span className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm font-bold px-2.5 py-1 rounded-md">
@@ -266,6 +267,7 @@ export default function ProductPage() {
                 >
                   <SafeImage
                     src={src}
+                    fallback="sm"
                     alt=""
                     className="h-full w-full object-cover bg-muted"
                   />
@@ -335,6 +337,7 @@ export default function ProductPage() {
                         {val.image && (
                           <SafeImage
                             src={val.image}
+                            fallback="sm"
                             alt={val.value}
                             className="h-full w-full object-cover"
                           />

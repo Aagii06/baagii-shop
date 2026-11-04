@@ -232,6 +232,7 @@ export default function QuickViewModal({
             <div className="p-4 sm:p-5">
               <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
                 <SafeImage
+                  fallback="lg"
                   src={images[Math.min(activeImage, images.length - 1)]}
                   alt={name}
                   className="h-full w-full object-cover"
@@ -256,6 +257,7 @@ export default function QuickViewModal({
                     >
                       <SafeImage
                         src={src}
+                        fallback="sm"
                         alt=""
                         className="h-full w-full object-cover bg-muted"
                       />
@@ -332,6 +334,7 @@ export default function QuickViewModal({
                                 {val.image && (
                                   <SafeImage
                                     src={val.image}
+                                    fallback="sm"
                                     alt={val.value}
                                     className="h-full w-full object-cover"
                                   />

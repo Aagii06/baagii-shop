@@ -47,6 +47,7 @@ export default function CartItem({ item }: CartItemProps) {
     <div className="flex items-start gap-4 py-4 border-b border-border last:border-b-0">
       <SafeImage
         src={item.image}
+        fallback="sm"
         alt={item.name}
         className="w-20 h-20 rounded-xl shrink-0 object-cover bg-muted"
       />

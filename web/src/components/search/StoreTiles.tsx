@@ -3,6 +3,7 @@
 import { fileThumbnailUrl } from "@/lib/api/files";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
+import SafeImage from "@/components/ui/safe-image";
 import type { Product } from "@/types/product";
 import { useMemo } from "react";
 
@@ -62,21 +63,17 @@ export default function StoreTiles({
               )}
             >
               <span className="grid size-14 place-items-center overflow-hidden rounded-xl bg-muted sm:size-16">
-                {logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={logo}
-                    alt=""
-                    loading="lazy"
-                    className={cn(
-                      "size-full object-contain transition",
-                      active ? "" : "opacity-85 grayscale group-hover:opacity-100 group-hover:grayscale-0"
-                    )}
-                  />
-                ) : (
-                  // No logo: the store's first letter.
-                  <span className="text-xl font-bold text-muted-foreground">{store.name.charAt(0).toUpperCase()}</span>
-                )}
+                {/* No logo, or it fails to load: the gray "no image" logo. */}
+                <SafeImage
+                  src={logo}
+                  alt=""
+                  loading="lazy"
+                  fallback="sm"
+                  className={cn(
+                    "size-full object-contain transition",
+                    active ? "" : "opacity-85 grayscale group-hover:opacity-100 group-hover:grayscale-0"
+                  )}
+                />
               </span>
               <span className={cn("w-full truncate text-center text-xs font-semibold", active ? "text-primary" : "text-foreground")}>
                 {store.name}

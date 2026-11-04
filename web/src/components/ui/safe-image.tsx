@@ -58,7 +58,7 @@ export default function SafeImage({
         loadedSrc !== shown && "img-placeholder",
         className,
         // The logo sits centered with some room, whatever the caller's fit.
-        useDefault && "!object-contain",
+        useDefault && "object-contain",
         useDefault && (fallback === "sm" ? "p-[12%]" : fallback === "md" ? "p-[18%]" : "p-[24%]")
       )}
       onLoad={(e) => {

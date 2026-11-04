@@ -23,9 +23,10 @@ export function fileUrl(
   id: string | null | undefined,
   variant: "original" | "thumbnail" = "original"
 ): string | null {
-  if (!id) return null;
-  if (/^(https?:|blob:|data:)/i.test(id)) return id;
-  const trimmed = id.replace(/^\//, "");
+  const value = id?.trim();
+  if (!value || value === "null" || value === "undefined") return null;
+  if (/^(https?:|blob:|data:)/i.test(value)) return value;
+  const trimmed = value.replace(/^\//, "");
   return variant === "thumbnail"
     ? `${FILE_BASE_URL}/thumbnail/${trimmed}`
     : `${FILE_BASE_URL}/${trimmed}`;
