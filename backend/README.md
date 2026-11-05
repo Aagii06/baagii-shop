@@ -68,9 +68,11 @@ migrations/, seeders/
 - **Дэлгүүр**: `POST /web/auth/loginGuest` → зочны токен (`guestId`), сагс
   үүгээр холбогдоно. `POST /web/auth/sendOtp` → `POST /web/auth/verifyOtp`
   (зочны токентой) нь `customers`-д бүртгэж, зочны сагсыг шилжүүлээд
-  худалдан авагчийн токен буцаана. SMS холбогдоогүй тул код нь бүх дугаарт
-  `OTP_DEV_CODE` (анхдагч 2222) — `helper/otpHelper.js`-ийн `deliver()`-д SMS
-  холбоно.
+  худалдан авагчийн токен буцаана. Код (4 оронтой) SMS-ээр очно: Android утсан
+  дээрх gateway app (`BaagiiCar/sms_gateway_app`) `GET /api/sms-gateway/pending`-ээр
+  `sms_outbox`-оос татаж өөрийн SIM-ээр илгээнэ (`helper/smsHelper.js`). App-д
+  серверийн хаяг, `.env`-ийн `SMS_GATEWAY_TOKEN`-ийг оруулна. Token хоосон бол
+  код нь бүх дугаарт `OTP_DEV_CODE` (анхдагч 2222).
 
 ## Захиалга
 

@@ -32,7 +32,7 @@ export default function AllProducts() {
 
   return (
     <>
-      <StoresGrid products={products} loading={loading} />
+      <StoresGrid />
       <DealsSection products={products} loading={loading} />
       <CategoryShowcase products={products} loading={loading} />
 

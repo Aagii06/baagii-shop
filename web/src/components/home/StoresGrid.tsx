@@ -2,45 +2,36 @@
 
 import SafeImage from "@/components/ui/safe-image";
 import { fileThumbnailUrl } from "@/lib/api/files";
+import { getStores, type Store } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import type { Product } from "@/types/product";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 
 const SKELETON_TILES = 10;
-
-interface Store {
-  name: string;
-  logo?: string;
-  count: number;
-}
-
-/** The stores selling the products, most products first. */
-function storesOf(products: Product[]): Store[] {
-  const byName = new Map<string, Store>();
-  for (const p of products) {
-    if (!p.brand) continue;
-    const store = byName.get(p.brand) ?? { name: p.brand, logo: p.brandLogo, count: 0 };
-    store.logo ??= p.brandLogo;
-    store.count += 1;
-    byName.set(p.brand, store);
-  }
-  return [...byName.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-}
 
 const TILE =
   "flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 bg-card p-2 md:size-[72px]";
 
-/** Row of store logo tiles under the hero; each opens search filtered to it. */
-export default function StoresGrid({
-  products,
-  loading,
-}: {
-  products: Product[];
-  loading: boolean;
-}) {
+/**
+ * Row of store logo tiles under the hero, most products first; stores with
+ * no products yet are listed too. Each opens search filtered to it.
+ */
+export default function StoresGrid() {
   const { t } = useLanguage();
-  const stores = useMemo(() => storesOf(products), [products]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    getStores()
+      .then((rows) => !cancelled && setStores(rows))
+      .catch(() => !cancelled && setStores([]))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if (!loading && stores.length === 0) return null;
 
   return (
@@ -63,7 +54,7 @@ export default function StoresGrid({
         {!loading &&
           stores.map((store) => (
             <Link
-              key={store.name}
+              key={store.id}
               href={`/search?store=${encodeURIComponent(store.name)}`}
               aria-label={store.name}
               title={store.name}
