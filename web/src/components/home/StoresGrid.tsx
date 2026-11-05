@@ -45,8 +45,10 @@ export default function StoresGrid({
 
   return (
     <section aria-busy={loading}>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-foreground">{t("home.stores.title")}</h2>
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {t("home.stores.title")}
+        </h2>
         <Link href="/search" className="text-sm font-medium text-primary hover:underline">
           {t("home.allProducts.viewAll")}
         </Link>
