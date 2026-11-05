@@ -3,11 +3,13 @@
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 
-// The shop logo in gray, at a resolution to suit where it is shown.
+// The shop logo in gray, at a resolution to suit where it is shown. The
+// margin around the logo is part of the file: CSS % padding would follow
+// the parent's width and squash the logo inside wide cards.
 export const DEFAULT_IMAGES = {
-  sm: "/images/no-image-sm.png",
-  md: "/images/no-image-md.png",
-  lg: "/images/no-image-lg.png",
+  sm: "/images/no-image-sm-padded.png",
+  md: "/images/no-image-md-padded.png",
+  lg: "/images/no-image-lg-padded.png",
 } as const;
 
 export type FallbackSize = keyof typeof DEFAULT_IMAGES;
@@ -68,9 +70,8 @@ export default function SafeImage({
         "bg-muted",
         loadedSrc !== shown && "img-placeholder",
         className,
-        // The logo sits centered with some room, whatever the caller's fit.
-        useDefault && "object-contain",
-        useDefault && (fallback === "sm" ? "p-[12%]" : fallback === "md" ? "p-[18%]" : "p-[24%]")
+        // The logo sits centered, whatever the caller's fit.
+        useDefault && "object-contain"
       )}
       onLoad={(e) => {
         // A response that decodes to nothing counts as a failure too.

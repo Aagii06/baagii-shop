@@ -58,6 +58,7 @@ function SearchContent() {
   const initialSale = searchParams.get("sale") === "1";
   const initialSort = searchParams.get("sort");
   const query = searchParams.get("q") ?? "";
+  const initialStore = searchParams.get("store") ?? "";
 
   const [filters, setFilters] = useState<SearchFilters>({
     categories: [],
@@ -92,10 +93,11 @@ function SearchContent() {
     setFilters((prev) => ({
       ...prev,
       categories: resolvedInitialKey ? resolvedInitialKey.split(",").map(Number) : [],
+      brands: initialStore ? [initialStore] : [],
     }));
     setSaleOnly(initialSale);
     setPage(1);
-  }, [resolvedInitialKey, initialSale, query]);
+  }, [resolvedInitialKey, initialSale, query, initialStore]);
 
   // Category and text search are filtered server-side by the product API;
   // everything else (store, price, sort) is applied client-side

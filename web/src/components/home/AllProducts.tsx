@@ -10,6 +10,7 @@ import CategoryShowcase from "./CategoryShowcase";
 import DealsSection from "./DealsSection";
 import ProductList from "./ProductList";
 import ProductListSkeleton from "./ProductListSkeleton";
+import StoresGrid from "./StoresGrid";
 
 const HOME_LIST_SIZE = 32;
 
@@ -31,6 +32,7 @@ export default function AllProducts() {
 
   return (
     <>
+      <StoresGrid products={products} loading={loading} />
       {!loading && <DealsSection products={products} />}
       {!loading && <CategoryShowcase products={products} />}
 

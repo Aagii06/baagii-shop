@@ -104,6 +104,7 @@ export const ru: Dict = {
   "home.hero.beauty.text": "Уход за кожей, макияж и парфюмерия.",
   "header.nav.orders": "Заказы",
   "home.deals.title": "Скидки и акции",
+  "home.stores.title": "Наши магазины",
   "home.deals.subtitle": "Лучшие скидки дня",
   "home.deals.days": "Дн",
   "home.deals.hours": "Час",

@@ -104,6 +104,7 @@ export const mn: Dict = {
   "home.hero.beauty.text": "Арьс арчилгаа, нүүр будалт, үнэртэн.",
   "header.nav.orders": "Захиалга",
   "home.deals.title": "Хямдрал, урамшуулал",
+  "home.stores.title": "Манай дэлгүүрүүд",
   "home.deals.subtitle": "Өнөөдрийн онцлох хямдрал",
   "home.deals.days": "Өдөр",
   "home.deals.hours": "Цаг",

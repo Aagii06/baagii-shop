@@ -104,6 +104,7 @@ export const en: Dict = {
   "home.hero.beauty.text": "Skincare, makeup and fragrance.",
   "header.nav.orders": "Orders",
   "home.deals.title": "Deals and offers",
+  "home.stores.title": "Our stores",
   "home.deals.subtitle": "Today's best discounts",
   "home.deals.days": "Days",
   "home.deals.hours": "Hour",
