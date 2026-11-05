@@ -111,6 +111,7 @@ export const en: Dict = {
   "home.deals.sec": "Sec",
   "home.showcase.from": "From",
   "home.recommended.title": "Recommended items",
+  "home.recommended.more": "See more",
 
   "product.addToCartAria": "Add to cart",
   "product.sold": "{count} sold",

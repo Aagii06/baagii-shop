@@ -110,6 +110,8 @@ module.exports.toWebPost = (product, detail = false) => {
     // Вэб үүнийг брэнд болгон харуулж, шүүлтүүрт ашиглана
     company: product.store ? { id: product.store.id, name: product.store.name, logo: product.store.logo } : undefined,
     createdAt: toIso(product.created_at),
+    // Сүүлд зассан огноо (засаагүй бол нэмсэн огноо) — вэбийн "шинэ нь эхэндээ" эрэмбэ
+    updatedAt: toIso(product.updated_at ?? product.created_at),
   };
   if (!detail) return post;
 

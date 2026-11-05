@@ -111,6 +111,7 @@ export const ru: Dict = {
   "home.deals.sec": "Сек",
   "home.showcase.from": "Цена от",
   "home.recommended.title": "Рекомендуем",
+  "home.recommended.more": "Смотреть ещё",
 
   "product.addToCartAria": "Добавить в корзину",
   "product.sold": "продано: {count}",

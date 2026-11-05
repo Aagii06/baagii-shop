@@ -111,6 +111,7 @@ export const mn: Dict = {
   "home.deals.sec": "Сек",
   "home.showcase.from": "Үнэ",
   "home.recommended.title": "Санал болгох бараа",
+  "home.recommended.more": "Цааш үзэх",
 
   "product.addToCartAria": "Сагсанд нэмэх",
   "product.sold": "{count} зарагдсан",

@@ -27,6 +27,8 @@ export interface Product {
   weight?: string;
   origin?: string;
   freeDelivery?: boolean;
+  /** Last edited (or added) time, ISO; drives the "newest first" order. */
+  updatedAt?: string;
 }
 
 export interface ProductVariant {

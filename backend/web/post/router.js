@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { products, categories, op } = require("../../models");
+const { products, categories, op, sequelize } = require("../../models");
 const { productInclude, variantOrder, toWebPost, findProduct } = require("../../helper/productHelper");
 const { ok, fail, handle } = require("../../helper/helper");
 
@@ -19,7 +19,8 @@ router.get(
       distinct: true,
       limit,
       offset: (page - 1) * limit,
-      order: [["id", "desc"], ...variantOrder],
+      // Сүүлд зассан/нэмсэн бараа эхэндээ
+      order: [[sequelize.fn("COALESCE", sequelize.col("products.updated_at"), sequelize.col("products.created_at")), "desc"], ["id", "desc"], ...variantOrder],
     });
     return ok(res, { rows: rows.map((p) => toWebPost(p)), count, summary: [] });
   }),

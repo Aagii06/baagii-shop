@@ -31,6 +31,8 @@ interface ApiProduct {
   category?: { id: number; name: string; image?: string | null };
   images?: string[];
   company?: { id: number; name: string; logo?: string | null };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ApiListResponse<T> {
@@ -116,6 +118,7 @@ function mapApiProduct(p: ApiProduct): Product {
     brand: p.company?.name,
     brandLogo: p.company?.logo ?? undefined,
     stock: p.remain !== undefined ? Number(p.remain) : undefined,
+    updatedAt: p.updatedAt ?? p.createdAt,
   };
 }
 

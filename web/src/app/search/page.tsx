@@ -17,6 +17,7 @@ import {
   subtreeIds,
 } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
+import { byNewest } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -176,7 +177,7 @@ function SearchContent() {
 
     switch (sort) {
       case "new":
-        result.sort((a, b) => b.id - a.id);
+        result.sort(byNewest);
         break;
       case "price-asc":
         result.sort((a, b) => a.price - b.price);

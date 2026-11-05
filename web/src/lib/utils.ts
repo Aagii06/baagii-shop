@@ -42,3 +42,14 @@ export function formatDateTime(dateStr: string, locale: string) {
   }
   return date.toLocaleString(localeTags[locale] ?? "en-US")
 }
+
+/** Sort comparator: most recently edited/added product first. */
+export function byNewest(
+  a: { id: number; updatedAt?: string },
+  b: { id: number; updatedAt?: string }
+) {
+  const diff =
+    (b.updatedAt ? Date.parse(b.updatedAt) : 0) -
+    (a.updatedAt ? Date.parse(a.updatedAt) : 0);
+  return diff || b.id - a.id;
+}
