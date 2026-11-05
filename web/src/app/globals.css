@@ -235,3 +235,10 @@
     animation: none;
   }
 }
+
+/* Colored glow in the brand gradient (e.g. hover:brand-glow on store tiles). */
+@utility brand-glow {
+  box-shadow:
+    0 6px 14px -6px color-mix(in oklch, var(--gradient-from) 50%, transparent),
+    0 3px 8px -4px color-mix(in oklch, var(--gradient-to) 45%, transparent);
+}

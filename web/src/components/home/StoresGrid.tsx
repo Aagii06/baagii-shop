@@ -60,7 +60,7 @@ export default function StoresGrid() {
               href={`/search?store=${encodeURIComponent(store.name)}`}
               aria-label={store.name}
               title={store.name}
-              className={`group ${TILE} border-transparent transition duration-300 ease-out hover:z-10 hover:scale-110 hover:shadow-lg hover:shadow-primary/30 focus-visible:scale-110 focus-visible:shadow-lg focus-visible:shadow-primary/30 focus-visible:outline-none`}
+              className={`group ${TILE} border-transparent transition duration-300 ease-out hover:z-10 hover:scale-110 hover:brand-glow focus-visible:scale-110 focus-visible:brand-glow focus-visible:outline-none`}
             >
               <SafeImage
                 src={fileThumbnailUrl(store.logo)}
