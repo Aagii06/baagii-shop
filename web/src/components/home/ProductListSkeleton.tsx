@@ -22,6 +22,8 @@ function ProductCardSkeleton() {
           <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
         </div>
       </CardContent>
+      {/* The store row under the card's content. */}
+      <div className="mx-4 mb-4 h-8 rounded-full bg-muted animate-pulse" />
     </Card>
   );
 }

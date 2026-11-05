@@ -7,8 +7,41 @@ import type { Product } from "@/types/product";
 import Link from "next/link";
 
 /** One grid of up to 8 product cards, with no category banner. */
-export default function CategoryShowcase({ products }: { products: Product[] }) {
+export default function CategoryShowcase({
+  products,
+  loading = false,
+}: {
+  products: Product[];
+  /** While products load: eight placeholder cells. */
+  loading?: boolean;
+}) {
   const { t } = useLanguage();
+
+  if (loading) {
+    return (
+      <section
+        aria-busy="true"
+        className="overflow-hidden rounded-lg border border-border bg-card"
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-4">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div
+              key={i}
+              aria-hidden
+              className="flex min-h-[127px] justify-between gap-2 border-b border-r border-border p-4"
+            >
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 w-3/4 animate-pulse rounded bg-muted" />
+                <div className="h-3 w-1/3 animate-pulse rounded bg-muted" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+              </div>
+              <div className="h-[72px] w-[72px] shrink-0 self-end animate-pulse rounded-md bg-muted" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   // A half-empty grid looks broken; show a full row (4) or two rows (8).
   if (products.length < 4) return null;

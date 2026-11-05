@@ -33,8 +33,8 @@ export default function AllProducts() {
   return (
     <>
       <StoresGrid products={products} loading={loading} />
-      {!loading && <DealsSection products={products} />}
-      {!loading && <CategoryShowcase products={products} />}
+      <DealsSection products={products} loading={loading} />
+      <CategoryShowcase products={products} loading={loading} />
 
       <section>
         <div className="flex items-center justify-between mb-4">

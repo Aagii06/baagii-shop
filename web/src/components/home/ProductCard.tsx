@@ -6,7 +6,9 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { useSavedStore } from "@/store/savedStore";
 import { cn } from "@/lib/utils";
-import { Heart, MoreHorizontal, Star } from "lucide-react";
+import { fileThumbnailUrl } from "@/lib/api/files";
+import { ChevronRight, Heart, MoreHorizontal, Star } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import SafeImage from "@/components/ui/safe-image";
 
@@ -21,6 +23,9 @@ interface Product {
   rating?: number;
   reviewCount?: number;
   soldCount?: number;
+  /** Seller store's name and logo file id. */
+  brand?: string;
+  brandLogo?: string;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -128,6 +133,28 @@ export default function ProductCard({ product }: { product: Product }) {
             </button>
           </div>
         </CardContent>
+
+        {product.brand && (
+          <Link
+            href={`/search?store=${encodeURIComponent(product.brand)}`}
+            title={product.brand}
+            className="group/store mx-3 mb-3 flex items-center gap-2 rounded-full border border-border bg-muted/40 py-1 pl-1 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent sm:mx-4 sm:mb-4"
+          >
+            <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-border">
+              <SafeImage
+                src={fileThumbnailUrl(product.brandLogo)}
+                alt=""
+                loading="lazy"
+                fallback="sm"
+                className="size-full bg-white object-contain"
+              />
+            </span>
+            <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted-foreground transition-colors group-hover/store:text-primary">
+              {product.brand}
+            </span>
+            <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover/store:translate-x-0.5 group-hover/store:text-primary" />
+          </Link>
+        )}
       </Card>
 
       <QuickViewModal

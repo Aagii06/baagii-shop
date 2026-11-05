@@ -23,7 +23,14 @@ function useEndOfDayCountdown() {
 }
 
 /** Discounted products under a countdown; hidden when nothing is on sale. */
-export default function DealsSection({ products }: { products: Product[] }) {
+export default function DealsSection({
+  products,
+  loading = false,
+}: {
+  products: Product[];
+  /** While products load: placeholder tiles under the live countdown. */
+  loading?: boolean;
+}) {
   const { t } = useLanguage();
   const left = useEndOfDayCountdown();
 
@@ -36,7 +43,7 @@ export default function DealsSection({ products }: { products: Product[] }) {
     .sort((a, b) => b.discount - a.discount)
     .slice(0, 5);
 
-  if (deals.length === 0) return null;
+  if (!loading && deals.length === 0) return null;
 
   const seconds = Math.floor((left ?? 0) / 1000);
   const units = [
@@ -71,7 +78,22 @@ export default function DealsSection({ products }: { products: Product[] }) {
           </div>
         </div>
 
-        <div className="grid flex-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div
+          className="grid flex-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+          aria-busy={loading}
+        >
+          {loading &&
+            Array.from({ length: 5 }, (_, i) => (
+              <div
+                key={i}
+                aria-hidden
+                className="flex flex-col items-center gap-3 border-b border-r border-border p-4 last:border-r-0 lg:border-b-0"
+              >
+                <div className="h-28 w-28 animate-pulse rounded-md bg-muted sm:h-32 sm:w-32" />
+                <div className="h-3.5 w-24 animate-pulse rounded bg-muted" />
+                <div className="h-7 w-14 animate-pulse rounded-full bg-muted" />
+              </div>
+            ))}
           {deals.map(({ product, discount }) => (
             <Link
               key={product.id}
