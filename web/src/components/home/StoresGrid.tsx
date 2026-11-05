@@ -10,7 +10,9 @@ import { useEffect, useState } from "react";
 const SKELETON_TILES = 10;
 
 const TILE =
-  "flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 bg-card p-2 md:size-[72px]";
+  "flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-card p-2 md:size-[72px]";
+// Logo tile with the store's name under it.
+const ITEM = "flex w-16 shrink-0 flex-col items-center gap-2 md:w-[72px]";
 
 /**
  * Row of store logo tiles under the hero, most products first; stores with
@@ -49,8 +51,11 @@ export default function StoresGrid() {
       <div className="no-scrollbar -mx-4 -my-3 flex gap-3 overflow-x-auto px-4 py-3 sm:-mx-3 sm:px-3">
         {loading &&
           Array.from({ length: SKELETON_TILES }, (_, i) => (
-            <div key={i} aria-hidden className={`${TILE} border-transparent`}>
-              <div className="size-full animate-pulse rounded-md bg-muted" />
+            <div key={i} aria-hidden className={ITEM}>
+              <div className={TILE}>
+                <div className="size-full animate-pulse rounded-md bg-muted" />
+              </div>
+              <div className="h-2.5 w-12 animate-pulse rounded-full bg-muted" />
             </div>
           ))}
         {!loading &&
@@ -58,17 +63,23 @@ export default function StoresGrid() {
             <Link
               key={store.id}
               href={`/search?store=${encodeURIComponent(store.name)}`}
-              aria-label={store.name}
               title={store.name}
-              className={`group ${TILE} border-transparent transition duration-300 ease-out hover:z-10 hover:scale-110 hover:brand-glow focus-visible:scale-110 focus-visible:brand-glow focus-visible:outline-none`}
+              className={`group ${ITEM} focus-visible:outline-none`}
             >
-              <SafeImage
-                src={fileThumbnailUrl(store.logo)}
-                alt=""
-                loading="lazy"
-                fallback="sm"
-                className="size-full rounded-md bg-transparent object-contain opacity-80 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
-              />
+              <span
+                className={`${TILE} transition duration-300 ease-out group-hover:scale-110 group-hover:brand-glow group-focus-visible:scale-110 group-focus-visible:brand-glow`}
+              >
+                <SafeImage
+                  src={fileThumbnailUrl(store.logo)}
+                  alt=""
+                  loading="lazy"
+                  fallback="sm"
+                  className="size-full rounded-md bg-transparent object-contain opacity-80 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
+                />
+              </span>
+              <span className="line-clamp-2 w-full text-center text-[11px] font-medium leading-tight text-muted-foreground transition-colors duration-300 group-hover:text-primary group-focus-visible:text-primary">
+                {store.name}
+              </span>
             </Link>
           ))}
       </div>
