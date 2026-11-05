@@ -172,7 +172,6 @@ export default function SellerRequestPage() {
                   <p className="text-xs text-muted-foreground">
                     {t("checkout.auth.codeHint", { phone })}
                   </p>
-                  <p className="text-xs font-medium text-primary">{t("checkout.auth.demoHint")}</p>
                 </div>
                 {error && <p className="text-xs text-destructive">{error}</p>}
                 <Button type="submit" size="lg" disabled={busy} className="w-full brand-gradient text-white">

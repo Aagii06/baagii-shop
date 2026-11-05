@@ -290,7 +290,6 @@ export const ru: Dict = {
   "checkout.auth.sending": "Отправка...",
   "checkout.auth.codeLabel": "Код подтверждения",
   "checkout.auth.codeHint": "Введите 4-значный код, отправленный на {phone}.",
-  "checkout.auth.demoHint": "Тестовый код: 2222",
   "checkout.auth.verify": "Подтвердить",
   "checkout.auth.verifying": "Проверка...",
   "checkout.auth.changePhone": "Изменить номер",

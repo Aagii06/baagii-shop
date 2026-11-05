@@ -109,9 +109,6 @@ export default function PhoneAuthGate() {
             <p className="text-xs text-muted-foreground">
               {t("checkout.auth.codeHint", { phone: phone.trim() })}
             </p>
-            <p className="text-xs font-medium text-primary">
-              {t("checkout.auth.demoHint")}
-            </p>
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}
           <Button

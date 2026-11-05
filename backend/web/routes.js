@@ -5,6 +5,7 @@ const Router = require("express").Router();
 // Каталог, хаягийн жагсаалт нээлттэй; сагс зочны токеноор, захиалга утсаар нэвтэрсэн байхад
 Router.use("/auth", require("./auth/router"));
 Router.use("/category", require("./category/router"));
+Router.use("/store", require("./store/router"));
 Router.use("/post", require("./post/router"));
 Router.use("/customerAddress", require("./customerAddress/router"));
 Router.use("/blog", require("./blog/router"));

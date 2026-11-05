@@ -291,7 +291,6 @@ export const mn: Dict = {
   "checkout.auth.sending": "Илгээж байна...",
   "checkout.auth.codeLabel": "Баталгаажуулах код",
   "checkout.auth.codeHint": "{phone} дугаар руу илгээсэн 4 оронтой кодыг оруулна уу.",
-  "checkout.auth.demoHint": "Туршилтын код: 2222",
   "checkout.auth.verify": "Баталгаажуулах",
   "checkout.auth.verifying": "Шалгаж байна...",
   "checkout.auth.changePhone": "Дугаар солих",

@@ -87,8 +87,7 @@ function loginGuest() {
 
 // Phone sign-in for checkout. `verifyOtp` is sent with the current guest
 // token, so the backend moves the cart built under it to the shopper, and
-// answers with a new token that carries them. Until SMS is hooked up the
-// backend accepts its `OTP_DEV_CODE` (2222) for every number.
+// answers with a new token that carries them. The code arrives by SMS.
 export const phoneOtp = {
   send: async (phone: string): Promise<void> => {
     await apiFetch<ApiItemResponse<null>>("/auth/sendOtp", {

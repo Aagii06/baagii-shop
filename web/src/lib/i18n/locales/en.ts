@@ -290,7 +290,6 @@ export const en: Dict = {
   "checkout.auth.sending": "Sending...",
   "checkout.auth.codeLabel": "Verification code",
   "checkout.auth.codeHint": "Enter the 4-digit code sent to {phone}.",
-  "checkout.auth.demoHint": "Demo code: 2222",
   "checkout.auth.verify": "Verify",
   "checkout.auth.verifying": "Checking...",
   "checkout.auth.changePhone": "Change number",
