@@ -102,6 +102,10 @@ export default function Header() {
     router.push(query ? `/search?${query}` : "/search");
   };
 
+  const searchCategoryLabel =
+    topCategories.find((category) => categoryKey(category) === searchCategory)
+      ?.name ?? t("header.tabs.all");
+
   const searchForm = (
     <form onSubmit={handleSearchSubmit} className="flex w-full">
       <div className="flex w-full overflow-hidden rounded-lg border-2 border-primary bg-white">
@@ -117,7 +121,8 @@ export default function Header() {
           <select
             value={searchCategory}
             onChange={(e) => setSearchCategory(e.target.value)}
-            aria-label={t("header.tabs.all")}
+            aria-label={searchCategoryLabel}
+            title={searchCategoryLabel}
             className="h-full w-full cursor-pointer appearance-none truncate bg-white pl-3 pr-9 text-sm text-foreground focus:outline-none"
           >
             <option value="">{t("header.tabs.all")}</option>
