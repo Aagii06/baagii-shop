@@ -7,6 +7,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useSavedStore } from "@/store/savedStore";
 import logo from "@/assets/logo.png";
 import {
+  ChevronDown,
   Heart,
   Menu,
   Package,
@@ -112,19 +113,25 @@ export default function Header() {
           className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm focus:outline-none"
           aria-label={t("header.search.aria")}
         />
-        <select
-          value={searchCategory}
-          onChange={(e) => setSearchCategory(e.target.value)}
-          aria-label={t("header.tabs.all")}
-          className="hidden w-40 cursor-pointer border-l-2 border-primary bg-white px-3 text-sm text-foreground focus:outline-none sm:block"
-        >
-          <option value="">{t("header.tabs.all")}</option>
-          {topCategories.map((category) => (
-            <option key={category.id} value={categoryKey(category)}>
-              {category.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative hidden w-40 shrink-0 border-l-2 border-primary sm:block">
+          <select
+            value={searchCategory}
+            onChange={(e) => setSearchCategory(e.target.value)}
+            aria-label={t("header.tabs.all")}
+            className="h-full w-full cursor-pointer appearance-none truncate bg-white pl-3 pr-9 text-sm text-foreground focus:outline-none"
+          >
+            <option value="">{t("header.tabs.all")}</option>
+            {topCategories.map((category) => (
+              <option key={category.id} value={categoryKey(category)}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </div>
         <button
           type="submit"
           className="shrink-0 cursor-pointer bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"

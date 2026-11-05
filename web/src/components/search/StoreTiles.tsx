@@ -4,6 +4,7 @@ import { fileThumbnailUrl } from "@/lib/api/files";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import SafeImage from "@/components/ui/safe-image";
+import Tooltip from "@/components/ui/tooltip";
 import type { Product } from "@/types/product";
 import { useMemo } from "react";
 
@@ -51,35 +52,56 @@ export default function StoreTiles({
           const active = store.name === selected;
           const logo = fileThumbnailUrl(store.logo);
           return (
-            <button
+            <Tooltip
               key={store.name}
-              type="button"
-              aria-pressed={active}
-              title={t("search.storeCount", { name: store.name, count: store.count })}
-              onClick={() => onSelect(active ? undefined : store.name)}
-              className={cn(
-                "group flex w-24 shrink-0 flex-col items-center gap-1.5 rounded-2xl border-2 bg-card p-2.5 transition-colors sm:w-28",
-                active ? "border-primary" : "border-border hover:border-primary/40"
-              )}
+              content={
+                <span className="flex items-center gap-2.5">
+                  <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-white">
+                    <SafeImage src={logo} alt="" fallback="sm" className="size-full object-contain" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5">
+                      <span className="truncate text-sm font-bold">{store.name}</span>
+                      <span className="shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-bold text-primary-foreground">
+                        {t("search.storeTip.count", { count: store.count })}
+                      </span>
+                    </span>
+                    <span className="block text-[11px] text-background/65">
+                      {t(active ? "search.storeTip.clear" : "search.storeTip.filter")}
+                    </span>
+                  </span>
+                </span>
+              }
             >
-              <span className="grid size-14 place-items-center overflow-hidden rounded-xl bg-muted sm:size-16">
-                {/* No logo, or it fails to load: the gray "no image" logo. */}
-                <SafeImage
-                  src={logo}
-                  alt=""
-                  loading="lazy"
-                  fallback="sm"
-                  className={cn(
-                    "size-full object-contain transition",
-                    active ? "" : "opacity-85 grayscale group-hover:opacity-100 group-hover:grayscale-0"
-                  )}
-                />
-              </span>
-              <span className={cn("w-full truncate text-center text-xs font-semibold", active ? "text-primary" : "text-foreground")}>
-                {store.name}
-              </span>
-              <span className="-mt-1 text-[11px] text-muted-foreground">{store.count}</span>
-            </button>
+              <button
+                type="button"
+                aria-pressed={active}
+                aria-label={t("search.storeCount", { name: store.name, count: store.count })}
+                onClick={() => onSelect(active ? undefined : store.name)}
+                className={cn(
+                  "group flex w-24 shrink-0 flex-col items-center gap-1.5 rounded-2xl border-2 bg-card p-2.5 transition-colors sm:w-28",
+                  active ? "border-primary" : "border-border hover:border-primary/40"
+                )}
+              >
+                <span className="grid size-14 place-items-center overflow-hidden rounded-xl bg-muted sm:size-16">
+                  {/* No logo, or it fails to load: the gray "no image" logo. */}
+                  <SafeImage
+                    src={logo}
+                    alt=""
+                    loading="lazy"
+                    fallback="sm"
+                    className={cn(
+                      "size-full object-contain transition",
+                      active ? "" : "opacity-85 grayscale group-hover:opacity-100 group-hover:grayscale-0"
+                    )}
+                  />
+                </span>
+                <span className={cn("w-full truncate text-center text-xs font-semibold", active ? "text-primary" : "text-foreground")}>
+                  {store.name}
+                </span>
+                <span className="-mt-1 text-[11px] text-muted-foreground">{store.count}</span>
+              </button>
+            </Tooltip>
           );
         })}
       </div>
