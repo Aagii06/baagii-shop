@@ -110,6 +110,8 @@ export const mn: Dict = {
   "home.deals.hours": "Цаг",
   "home.deals.min": "Мин",
   "home.deals.sec": "Сек",
+  "home.featured.title": "Онцлох бараа",
+  "home.featured.subtitle": "Хамгийн их эрэлттэй бараанууд",
   "home.showcase.from": "Үнэ",
   "home.recommended.title": "Санал болгох бараа",
   "home.recommended.more": "Цааш үзэх",

@@ -2,7 +2,12 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import ChipTabs from "@/components/common/ChipTabs";
-import { ErrorState, LoadingState } from "@/components/common/States";
+import { ErrorState } from "@/components/common/States";
+import {
+  ListCardSkeleton,
+  ListRowsSkeleton,
+  SalesSectionSkeleton,
+} from "@/components/dashboard/DashboardSkeleton";
 import PageHeader from "@/components/layout/PageHeader";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import { Card } from "@/components/ui/card";
@@ -121,7 +126,7 @@ function SalesSection({ range, pending }: { range: SalesRange; pending?: number 
   const sales = useApi(() => getSalesSummary(range), range);
 
   if (sales.error && !sales.data) return <ErrorState error={sales.error} onRetry={sales.reload} />;
-  if (!sales.data) return <LoadingState />;
+  if (!sales.data) return <SalesSectionSkeleton />;
 
   const { data: summary } = sales;
 
@@ -211,7 +216,7 @@ function LowStockCard() {
           <ErrorState error={error} onRetry={reload} />
         </div>
       ) : !data ? (
-        <LoadingState className="py-8" />
+        <ListRowsSkeleton rows={5} />
       ) : lowStock.length === 0 ? (
         <p className="px-4 py-6 text-center text-sm text-muted-foreground">
           {t("dash.stockOk")}
@@ -246,7 +251,7 @@ export default function DashboardPage() {
   const { t } = useLanguage();
   const [range, setRange] = useState<SalesRange>("today");
   // One fetch feeds both the "awaiting confirmation" tile and the recent list.
-  const { data: orders } = useApi(getOrders);
+  const { data: orders, error: ordersError } = useApi(getOrders);
 
   return (
     <>
@@ -267,6 +272,7 @@ export default function DashboardPage() {
           pending={orders?.filter((order) => order.status === "pending").length}
         />
         <LowStockCard />
+        {!orders && !ordersError && <ListCardSkeleton twoLine />}
         {orders && orders.length > 0 && <RecentOrdersCard orders={orders} />}
       </div>
     </>

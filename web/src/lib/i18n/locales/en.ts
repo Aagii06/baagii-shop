@@ -110,6 +110,8 @@ export const en: Dict = {
   "home.deals.hours": "Hour",
   "home.deals.min": "Min",
   "home.deals.sec": "Sec",
+  "home.featured.title": "Featured products",
+  "home.featured.subtitle": "Our most popular picks",
   "home.showcase.from": "From",
   "home.recommended.title": "Recommended items",
   "home.recommended.more": "See more",

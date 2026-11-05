@@ -110,6 +110,8 @@ export const ru: Dict = {
   "home.deals.hours": "Час",
   "home.deals.min": "Мин",
   "home.deals.sec": "Сек",
+  "home.featured.title": "Популярные товары",
+  "home.featured.subtitle": "Самые востребованные товары",
   "home.showcase.from": "Цена от",
   "home.recommended.title": "Рекомендуем",
   "home.recommended.more": "Смотреть ещё",

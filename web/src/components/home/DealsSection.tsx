@@ -2,6 +2,7 @@
 
 import SafeImage from "@/components/ui/safe-image";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { byNewest, formatMNT } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -22,7 +23,21 @@ function useEndOfDayCountdown() {
   return left;
 }
 
-/** Discounted products under a countdown; hidden when nothing is on sale. */
+const TILES = 5;
+
+// Best sellers first, then best rated, then the newest.
+function byFeatured(a: Product, b: Product) {
+  return (
+    (b.soldCount ?? 0) - (a.soldCount ?? 0) ||
+    (b.rating ?? 0) - (a.rating ?? 0) ||
+    byNewest(a, b)
+  );
+}
+
+/**
+ * Discounted products under a countdown. With nothing on sale it shows
+ * featured products instead; a short deals row is topped up with them too.
+ */
 export default function DealsSection({
   products,
   loading = false,
@@ -38,12 +53,23 @@ export default function DealsSection({
     .filter((p) => p.originalPrice && p.originalPrice > p.price)
     .map((p) => ({
       product: p,
-      discount: Math.round(((p.originalPrice! - p.price) / p.originalPrice!) * 100),
+      discount: Math.round(
+        ((p.originalPrice! - p.price) / p.originalPrice!) * 100,
+      ),
     }))
     .sort((a, b) => b.discount - a.discount)
-    .slice(0, 5);
+    .slice(0, TILES);
+  const dealIds = new Set(deals.map((d) => d.product.id));
+  const featured = products
+    .filter((p) => !dealIds.has(p.id))
+    .sort(byFeatured)
+    .slice(0, TILES - deals.length)
+    .map((p) => ({ product: p, discount: 0 }));
+  const tiles = [...deals, ...featured];
+  // Featured mode: nothing on sale, so no countdown either.
+  const featuredOnly = !loading && deals.length === 0;
 
-  if (!loading && deals.length === 0) return null;
+  if (!loading && tiles.length === 0) return null;
 
   const seconds = Math.floor((left ?? 0) / 1000);
   const units = [
@@ -59,23 +85,38 @@ export default function DealsSection({
         <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border p-5 lg:w-[280px] lg:flex-col lg:items-start lg:justify-start lg:border-b-0 lg:border-r">
           <div>
             <h2 className="text-xl font-semibold text-foreground">
-              {t("home.deals.title")}
+              {t(featuredOnly ? "home.featured.title" : "home.deals.title")}
             </h2>
-            <p className="text-muted-foreground">{t("home.deals.subtitle")}</p>
+            <p className="text-muted-foreground">
+              {t(
+                featuredOnly ? "home.featured.subtitle" : "home.deals.subtitle",
+              )}
+            </p>
           </div>
-          <div className="flex gap-1.5" aria-live="off">
-            {units.map((unit) => (
-              <span
-                key={unit.label}
-                className="flex w-12 flex-col items-center rounded-md bg-primary py-1.5 text-primary-foreground"
-              >
-                <span className="text-base font-bold leading-tight tabular-nums">
-                  {left === null ? "--" : String(unit.value).padStart(2, "0")}
+          {featuredOnly ? (
+            <Link
+              href="/search"
+              className="shrink-0 rounded-lg border-2 border-primary px-4 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+            >
+              {t("home.allProducts.viewAll")}
+            </Link>
+          ) : (
+            <div className="flex gap-1.5" aria-live="off">
+              {units.map((unit) => (
+                <span
+                  key={unit.label}
+                  className="flex w-12 flex-col items-center rounded-md bg-primary py-1.5 text-primary-foreground"
+                >
+                  <span className="text-base font-bold leading-tight tabular-nums">
+                    {left === null ? "--" : String(unit.value).padStart(2, "0")}
+                  </span>
+                  <span className="text-[11px] leading-tight">
+                    {unit.label}
+                  </span>
                 </span>
-                <span className="text-[11px] leading-tight">{unit.label}</span>
-              </span>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div
@@ -83,7 +124,7 @@ export default function DealsSection({
           aria-busy={loading}
         >
           {loading &&
-            Array.from({ length: 5 }, (_, i) => (
+            Array.from({ length: TILES }, (_, i) => (
               <div
                 key={i}
                 aria-hidden
@@ -94,7 +135,7 @@ export default function DealsSection({
                 <div className="h-7 w-14 animate-pulse rounded-full bg-muted" />
               </div>
             ))}
-          {deals.map(({ product, discount }) => (
+          {tiles.map(({ product, discount }) => (
             <Link
               key={product.id}
               href={`/product/${product.id}`}
@@ -109,9 +150,15 @@ export default function DealsSection({
               <span className="line-clamp-1 text-sm text-foreground">
                 {product.name}
               </span>
-              <span className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
-                -{discount}%
-              </span>
+              {discount > 0 ? (
+                <span className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
+                  -{discount}%
+                </span>
+              ) : (
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                  {formatMNT(product.price)}
+                </span>
+              )}
             </Link>
           ))}
         </div>
