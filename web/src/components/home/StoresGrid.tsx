@@ -44,7 +44,13 @@ export default function StoresGrid({
   if (!loading && stores.length === 0) return null;
 
   return (
-    <section aria-label={t("home.stores.title")} aria-busy={loading}>
+    <section aria-busy={loading}>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-2xl font-semibold text-foreground">{t("home.stores.title")}</h2>
+        <Link href="/search" className="text-sm font-medium text-primary hover:underline">
+          {t("home.allProducts.viewAll")}
+        </Link>
+      </div>
       <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         {loading &&
           Array.from({ length: SKELETON_TILES }, (_, i) => (
