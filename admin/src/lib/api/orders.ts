@@ -137,6 +137,11 @@ export async function getOrder(id: number): Promise<Order | null> {
   return res.data;
 }
 
+/** Pending, paid (confirmed) and delivered orders can all be sent back whole. */
+export function canReturnOrder(order: Order) {
+  return order.status === "pending" || order.status === "confirmed" || order.status === "delivered";
+}
+
 /** `returned` sends back every unit still in the order. */
 export async function setOrderStatus(id: number, status: OrderStatus): Promise<void> {
   await apiFetch(`/order/${id}/status`, { method: "PUT", body: { status } });

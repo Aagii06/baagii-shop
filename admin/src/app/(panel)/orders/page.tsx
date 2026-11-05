@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useConfirm } from "@/components/common/Confirm";
 import ChipTabs from "@/components/common/ChipTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
@@ -10,6 +11,7 @@ import OverdueNotice from "@/components/orders/OverdueNotice";
 import { ORDER_TONE } from "@/components/orders/orderTone";
 import { Button } from "@/components/ui/button";
 import {
+  canReturnOrder,
   getOrdersPage,
   ORDER_STATUS_LABEL,
   orderTotal,
@@ -30,6 +32,7 @@ type Page = { key: string; rows: Order[]; count: number; pending: number; error?
 export default function OrdersPage() {
   const { t } = useLanguage();
   const { run } = useToast();
+  const confirm = useConfirm();
   const [status, setStatus] = useState<OrderStatus | "all">("all");
 
   // Pages load as the list is scrolled, pending orders first (the backend
@@ -109,6 +112,16 @@ export default function OrdersPage() {
 
   async function changeStatus(id: number, to: OrderStatus, success: string) {
     if (await run(() => setOrderStatus(id, to), success)) reload();
+  }
+
+  async function returnOrder(order: Order) {
+    const ok = await confirm({
+      title: t("orders.returnTitle", { id: order.id }),
+      description: order.paidAt ? t("orders.returnPaidDesc") : t("orders.returnDesc"),
+      confirmLabel: t("orders.return"),
+      tone: "danger",
+    });
+    if (ok) changeStatus(order.id, "returned", t("orders.returned"));
   }
 
   return (
@@ -191,20 +204,27 @@ export default function OrdersPage() {
 
                 <OverdueNotice order={order} onCancelled={reload} className="mt-3" />
 
-                {order.status === "pending" && (
-                  <div className="mt-3 grid grid-cols-2 gap-3">
-                    <Button
-                      variant="ghost"
-                      className={cn("h-10", ORDER_TONE.confirmed.solid)}
-                      onClick={() => changeStatus(order.id, "confirmed", t("orders.confirmed"))}
-                    >
-                      {t("orders.confirm")}
-                    </Button>
-                    <Button
-                      variant="danger"
-                      className="h-10"
-                      onClick={() => changeStatus(order.id, "returned", t("orders.returned"))}
-                    >
+                {canReturnOrder(order) && (
+                  <div className={cn("mt-3 grid gap-3", order.status !== "delivered" && "grid-cols-2")}>
+                    {order.status === "pending" && (
+                      <Button
+                        variant="ghost"
+                        className={cn("h-10", ORDER_TONE.confirmed.solid)}
+                        onClick={() => changeStatus(order.id, "confirmed", t("orders.confirmed"))}
+                      >
+                        {t("orders.confirm")}
+                      </Button>
+                    )}
+                    {order.status === "confirmed" && (
+                      <Button
+                        variant="ghost"
+                        className={cn("h-10", ORDER_TONE.delivered.solid)}
+                        onClick={() => changeStatus(order.id, "delivered", t("orders.statusUpdated"))}
+                      >
+                        {t("orders.deliver")}
+                      </Button>
+                    )}
+                    <Button variant="danger" className="h-10" onClick={() => returnOrder(order)}>
                       {t("orders.return")}
                     </Button>
                   </div>

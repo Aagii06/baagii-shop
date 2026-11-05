@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -10,6 +11,7 @@ import OverdueNotice from "@/components/orders/OverdueNotice";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
+  canReturnOrder,
   getOrder,
   NEXT_ORDER_ACTION,
   ORDER_STEP_LABEL,
@@ -35,6 +37,7 @@ export default function OrderDetailPage() {
   const id = useRouteId("id", 1);
   const { data: order, error, reload } = useApi(() => getOrder(Number(id)), id);
   const { run } = useToast();
+  const confirm = useConfirm();
 
   if (!order) {
     return (
@@ -55,7 +58,24 @@ export default function OrderDetailPage() {
     );
   }
 
+  // Narrowed for the handlers below.
+  const shown = order;
   const action = NEXT_ORDER_ACTION[order.status];
+  const canReturn = canReturnOrder(order);
+
+  async function changeStatus(to: OrderStatus, success: string) {
+    if (await run(() => setOrderStatus(shown.id, to), success)) reload();
+  }
+
+  async function returnOrder() {
+    const ok = await confirm({
+      title: t("orders.returnTitle", { id: shown.id }),
+      description: shown.paidAt ? t("orders.returnPaidDesc") : t("orders.returnDesc"),
+      confirmLabel: t("orders.return"),
+      tone: "danger",
+    });
+    if (ok) changeStatus("returned", t("orders.returned"));
+  }
 
   return (
     <>
@@ -106,24 +126,27 @@ export default function OrderDetailPage() {
         </Card>
       </div>
 
-      {action && (
+      {(action || canReturn) && (
         <>
           {/* Keeps the last card clear of the fixed action bar. */}
           <div aria-hidden className="h-20" />
           <div className="fixed inset-x-0 bottom-0 z-30">
-            <div className="mx-auto max-w-md border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:border-x">
-              <Button
-                size="lg"
-                variant="ghost"
-                className={cn("w-full", ORDER_TONE[action.to].solid)}
-                onClick={async () => {
-                  if (await run(() => setOrderStatus(order.id, action.to), t("orders.statusUpdated"))) {
-                    reload();
-                  }
-                }}
-              >
-                {action.label}
-              </Button>
+            <div className="mx-auto flex max-w-md gap-3 border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:border-x">
+              {canReturn && (
+                <Button size="lg" variant="danger" className={action ? "shrink-0 px-5" : "w-full"} onClick={returnOrder}>
+                  {t("orders.return")}
+                </Button>
+              )}
+              {action && (
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  className={cn("min-w-0 grow", ORDER_TONE[action.to].solid)}
+                  onClick={() => changeStatus(action.to, t("orders.statusUpdated"))}
+                >
+                  {action.label}
+                </Button>
+              )}
             </div>
           </div>
         </>
