@@ -44,7 +44,9 @@ export default function StoresGrid() {
           {t("home.allProducts.viewAll")}
         </Link>
       </div>
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      {/* Extra room (offset by negative margins) so the hover zoom and shadow
+          aren't clipped by the scrolling row. */}
+      <div className="no-scrollbar -mx-4 -my-3 flex gap-3 overflow-x-auto px-4 py-3 sm:-mx-3 sm:px-3">
         {loading &&
           Array.from({ length: SKELETON_TILES }, (_, i) => (
             <div key={i} aria-hidden className={`${TILE} border-transparent`}>
@@ -58,7 +60,7 @@ export default function StoresGrid() {
               href={`/search?store=${encodeURIComponent(store.name)}`}
               aria-label={store.name}
               title={store.name}
-              className={`group ${TILE} border-transparent transition-colors hover:border-border`}
+              className={`group ${TILE} border-transparent transition duration-300 ease-out hover:z-10 hover:scale-110 hover:shadow-lg hover:shadow-primary/30 focus-visible:scale-110 focus-visible:shadow-lg focus-visible:shadow-primary/30 focus-visible:outline-none`}
             >
               <SafeImage
                 src={fileThumbnailUrl(store.logo)}
