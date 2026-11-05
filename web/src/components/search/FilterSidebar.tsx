@@ -6,6 +6,8 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { categoryPath, subtreeIds, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import { fileThumbnailUrl } from "@/lib/api/files";
+import SafeImage from "@/components/ui/safe-image";
 import PriceRangeSlider from "./PriceRangeSlider";
 
 export interface SearchFilters {
@@ -20,6 +22,8 @@ interface FilterSidebarProps {
   priceBounds: [number, number];
   counts: {
     brand: Record<string, number>;
+    /** Each store's logo file id, when it has one. */
+    brandLogo?: Record<string, string | undefined>;
   };
 }
 
@@ -29,8 +33,11 @@ function PickRow({
   picked,
   onClick,
   sub = false,
+  logo,
 }: {
   label: string;
+  /** Store rows: the store's logo (gray "no image" logo when missing). */
+  logo?: string | null;
   picked: boolean;
   onClick: () => void;
   /** Inside an opened category: smaller and tighter. */
@@ -47,6 +54,17 @@ function PickRow({
         picked ? "font-semibold text-primary" : "text-foreground hover:text-primary"
       )}
     >
+      {logo !== undefined && (
+        <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-white">
+          <SafeImage
+            src={logo}
+            alt=""
+            loading="lazy"
+            fallback="sm"
+            className="size-full object-contain"
+          />
+        </span>
+      )}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {picked && <Check className="h-4 w-4 shrink-0" strokeWidth={2.5} />}
     </button>
@@ -191,6 +209,7 @@ export function FilterPanelContent({
               <PickRow
                 key={store}
                 label={store}
+                logo={fileThumbnailUrl(counts.brandLogo?.[store])}
                 picked={filters.brands.includes(store)}
                 onClick={() => toggleStore(store)}
               />

@@ -27,7 +27,7 @@ export default function OrderDetailPage() {
 
   if (!order) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <div className="py-10 text-center">
         <h1 className="text-2xl font-bold text-foreground mb-2">
           {t("orders.detailPage.notFound")}
         </h1>
@@ -41,7 +41,7 @@ export default function OrderDetailPage() {
   const deliveryLabel = t("orders.delivery.standard");
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-3xl">
+    <div className="max-w-3xl">
       <Button
         variant="ghost"
         asChild

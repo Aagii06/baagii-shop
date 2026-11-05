@@ -149,10 +149,13 @@ function SearchContent() {
 
   const counts = useMemo(() => {
     const brand: Record<string, number> = {};
+    const brandLogo: Record<string, string | undefined> = {};
     for (const p of products) {
-      if (p.brand) brand[p.brand] = (brand[p.brand] ?? 0) + 1;
+      if (!p.brand) continue;
+      brand[p.brand] = (brand[p.brand] ?? 0) + 1;
+      brandLogo[p.brand] ??= p.brandLogo;
     }
-    return { brand };
+    return { brand, brandLogo };
   }, [products]);
 
   const filtered = useMemo(() => {
