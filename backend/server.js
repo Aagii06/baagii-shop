@@ -14,6 +14,8 @@ app.use(express.json({ limit: "50mb" }));
 // API-ийн тайлбар (docs/openapi.js) — X-Shop-Id шаардахгүй тул resolveShop-оос өмнө
 const swaggerUi = require("swagger-ui-express");
 app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(require("./docs/openapi"), { customSiteTitle: "UVS shop API" }));
+// Android утсан дээрх SMS gateway app (OTP SMS илгээнэ) — X-Shop-Id-гүй, SMS_GATEWAY_TOKEN-оор
+app.use("/api/sms-gateway", require("./api/smsGateway/router"));
 // Admin самбар (../admin) ба дэлгүүр (../web) — аль дэлгүүрийнх нь X-Shop-Id толгойгоор
 app.use("/api", resolveShop, require("./api/routes"));
 // QPay-ийн callback нь X-Shop-Id илгээдэггүй тул дэлгүүр шүүхээс өмнө

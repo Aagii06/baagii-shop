@@ -1,10 +1,12 @@
 const crypto = require("crypto");
 const moment = require("moment");
-const { phoneOtps } = require("../models");
+const { phoneOtps, shops } = require("../models");
 const { now, parseAt, FORMAT } = require("./helper");
+const { isSmsConfigured, sendSms } = require("./smsHelper");
 
-// Утсаар (SMS) нэг удаагийн код. SMS үйлчилгээ холбогдох хүртэл код нь бүх дугаарт
-// OTP_DEV_CODE (анхдагч 2222) — илгээх хэсгийг deliver()-д холбоно.
+// Утсаар (SMS) нэг удаагийн код. SMS-ийг Android утсан дээрх gateway app илгээнэ
+// (helper/smsHelper.js). SMS_GATEWAY_TOKEN тохируулаагүй үед л код нь бүх дугаарт
+// OTP_DEV_CODE (анхдагч 2222).
 const OTP_TTL_SECONDS = 10 * 60;
 const OTP_RESEND_SECONDS = 30;
 const OTP_MAX_ATTEMPTS = 5;
@@ -12,8 +14,25 @@ const OTP_MAX_ATTEMPTS = 5;
 const hashOtp = (key, code) => crypto.createHmac("sha256", process.env.JWT_SECRET || "otp").update(`${key}:${code}`).digest("hex");
 const secondsSince = (value) => (value ? moment().diff(parseAt(value), "seconds") : Infinity);
 
-const deliver = async (phone, code) => {
-  if (process.env.NODE_ENV !== "production") console.log(`OTP ${phone}: ${code}`);
+const PHONE_OTP_LENGTH = 4;
+const newPhoneOtp = () => String(crypto.randomInt(0, 10 ** PHONE_OTP_LENGTH)).padStart(PHONE_OTP_LENGTH, "0");
+
+const purposeText = { login: "нэвтрэх код", partner: "бүртгэлийн код" };
+
+// SMS-ээр илгээнэ. Gateway (утас) холбогдоогүй бол алдааны мессеж буцаана.
+const deliver = async (shopId, phone, purpose, code) => {
+  if (!isSmsConfigured()) {
+    if (process.env.NODE_ENV !== "production") console.log(`[sms холбогдоогүй] OTP ${phone}: ${code}`);
+    return null;
+  }
+  const shop = await shops.findOne({ where: { id: shopId }, attributes: ["name"], raw: true });
+  const label = purposeText[purpose.split(":")[0]] || "баталгаажуулах код";
+  try {
+    await sendSms(phone, `${shop?.name ? `${shop.name} ` : ""}${label}: ${code}`);
+    return null;
+  } catch (error) {
+    return error.message;
+  }
 };
 
 // Код нь дэлгүүр бүрт тусдаа (нэг дугаар хоёр дэлгүүрт өөр өөр хэрэглэгч).
@@ -24,10 +43,15 @@ module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login", send) => 
   const wait = OTP_RESEND_SECONDS - secondsSince(existing?.sent_at);
   if (wait > 0) return { success: false, message: `${wait} секундын дараа дахин код авна уу` };
 
-  const code = send ? String(crypto.randomInt(100000, 1000000)) : process.env.OTP_DEV_CODE || "2222";
+  let code;
   if (send) {
+    code = String(crypto.randomInt(100000, 1000000));
     if (!(await send(code))) return { success: false, message: "Код илгээж чадсангүй. Дахин оролдоно уу" };
-  } else await deliver(phone, code);
+  } else {
+    code = isSmsConfigured() ? newPhoneOtp() : process.env.OTP_DEV_CODE || "2222";
+    const error = await deliver(shopId, phone, purpose, code);
+    if (error) return { success: false, message: error };
+  }
   const at = now();
   const values = {
     otp_hash: hashOtp(phone, code),
