@@ -79,7 +79,7 @@ export default function DealsSection({ products }: { products: Product[] }) {
               className="group flex flex-col items-center gap-3 border-b border-r border-border p-4 text-center last:border-r-0 lg:border-b-0"
             >
               <SafeImage
-                src={product.thumbnail || product.image}
+                src={[product.thumbnail, product.image]}
                 alt={product.name}
                 fallback="sm"
                 className="h-28 w-28 rounded-md bg-transparent object-contain transition-transform group-hover:scale-105 sm:h-32 sm:w-32"

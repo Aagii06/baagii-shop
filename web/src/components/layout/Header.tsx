@@ -7,7 +7,6 @@ import { useCartStore } from "@/store/cartStore";
 import { useSavedStore } from "@/store/savedStore";
 import logo from "@/assets/logo.png";
 import {
-  ChevronDown,
   Heart,
   Menu,
   Package,
@@ -22,6 +21,17 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { categoryHref, categoryKey } from "@/lib/categories";
 import LanguageSwitcher from "./LanguageSwitcher";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Radix Select can't use "" as an item value, so "all" gets a sentinel.
+const ALL_CATEGORIES = "__all__";
 
 /** Icon over a small label, as in the header's action row. */
 function HeaderAction({
@@ -93,13 +103,24 @@ export default function Header() {
     setIsMobileOpen((prev) => !prev);
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const goToSearch = (category: string) => {
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);
-    if (searchCategory) params.set("category", searchCategory);
+    if (category) params.set("category", category);
     const query = params.toString();
     router.push(query ? `/search?${query}` : "/search");
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    goToSearch(searchCategory);
+  };
+
+  // Picking a category searches right away (with any typed query).
+  const handleSearchCategoryChange = (value: string) => {
+    const category = value === ALL_CATEGORIES ? "" : value;
+    setSearchCategory(category);
+    goToSearch(category);
   };
 
   const searchCategoryLabel =
@@ -117,25 +138,41 @@ export default function Header() {
           className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm focus:outline-none"
           aria-label={t("header.search.aria")}
         />
-        <div className="relative hidden w-40 shrink-0 border-l-2 border-primary sm:block">
-          <select
-            value={searchCategory}
-            onChange={(e) => setSearchCategory(e.target.value)}
-            aria-label={searchCategoryLabel}
-            title={searchCategoryLabel}
-            className="h-full w-full cursor-pointer appearance-none truncate bg-white pl-3 pr-9 text-sm text-foreground focus:outline-none"
+        <div className="hidden w-40 shrink-0 border-l-2 border-primary sm:block">
+          <Select
+            value={searchCategory || ALL_CATEGORIES}
+            onValueChange={handleSearchCategoryChange}
           >
-            <option value="">{t("header.tabs.all")}</option>
-            {topCategories.map((category) => (
-              <option key={category.id} value={categoryKey(category)}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
+            <SelectTrigger
+              aria-label={searchCategoryLabel}
+              title={searchCategoryLabel}
+              className="h-full cursor-pointer rounded-none border-0 bg-white pl-3 pr-3 text-sm text-foreground shadow-none focus:ring-0 data-[state=open]:bg-accent/60 [&>svg]:text-muted-foreground [&>svg]:opacity-100 [&>svg]:transition-transform data-[state=open]:[&>svg]:rotate-180"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent
+              align="end"
+              sideOffset={6}
+              className="max-h-80 w-56 rounded-lg border-border p-1 shadow-lg"
+            >
+              <SelectItem
+                value={ALL_CATEGORIES}
+                className="cursor-pointer rounded-md py-2 pl-3 text-sm focus:bg-accent data-[state=checked]:font-medium data-[state=checked]:text-primary"
+              >
+                {t("header.tabs.all")}
+              </SelectItem>
+              {topCategories.length > 0 && <SelectSeparator />}
+              {topCategories.map((category) => (
+                <SelectItem
+                  key={category.id}
+                  value={categoryKey(category)}
+                  className="cursor-pointer rounded-md py-2 pl-3 text-sm focus:bg-accent data-[state=checked]:font-medium data-[state=checked]:text-primary"
+                >
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <button
           type="submit"

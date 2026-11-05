@@ -34,7 +34,7 @@ export default function CategoryShowcase({ products }: { products: Product[] }) 
               </span>
             </span>
             <SafeImage
-              src={product.thumbnail || product.image}
+              src={[product.thumbnail, product.image]}
               alt=""
               fallback="sm"
               className="h-[72px] w-[72px] shrink-0 self-end rounded-md bg-transparent object-contain transition-transform group-hover:scale-105"

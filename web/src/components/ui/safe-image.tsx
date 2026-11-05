@@ -16,13 +16,14 @@ type SafeImageProps = Omit<
   React.ImgHTMLAttributes<HTMLImageElement>,
   "src"
 > & {
-  src?: string | null;
+  /** One URL, or several to try in order (e.g. thumbnail, then original). */
+  src?: string | null | (string | null | undefined)[];
   /** Size of the "no image" logo: sm for thumbnails, lg for the main gallery. */
   fallback?: FallbackSize;
 };
 
-// <img> that falls back to the gray shop logo when the src is missing or
-// fails to load. Shows a striped placeholder until it loads.
+// <img> that tries each src in turn and falls back to the gray shop logo
+// when they are all missing or fail to load. Shows a striped placeholder until it loads.
 export default function SafeImage({
   src,
   alt = "",
@@ -32,9 +33,17 @@ export default function SafeImage({
   onLoad,
   ...rest
 }: SafeImageProps) {
-  const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const useDefault = !src || failedSrc === src;
-  const shown = useDefault ? DEFAULT_IMAGES[fallback] : src;
+  const candidates = (Array.isArray(src) ? src : [src]).filter(
+    (s): s is string => !!s && !!s.trim()
+  );
+  // URLs that failed to load (or loaded as an empty image).
+  const [failed, setFailed] = useState<string[]>([]);
+  const current = candidates.find((s) => !failed.includes(s)) ?? null;
+  const useDefault = current === null;
+  const shown = current ?? DEFAULT_IMAGES[fallback];
+  const markFailed = (url: string | null) => {
+    if (url) setFailed((prev) => (prev.includes(url) ? prev : [...prev, url]));
+  };
   // The src that finished loading, so a new one shows the placeholder again.
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const ref = useRef<HTMLImageElement>(null);
@@ -43,8 +52,10 @@ export default function SafeImage({
   // attached yet; catch that case here.
   useEffect(() => {
     const img = ref.current;
-    if (img?.complete && img.naturalWidth === 0 && !useDefault) setFailedSrc(src);
-  }, [src, useDefault]);
+    if (img?.complete && img.naturalWidth === 0 && current) {
+      setFailed((prev) => (prev.includes(current) ? prev : [...prev, current]));
+    }
+  }, [current]);
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -62,11 +73,16 @@ export default function SafeImage({
         useDefault && (fallback === "sm" ? "p-[12%]" : fallback === "md" ? "p-[18%]" : "p-[24%]")
       )}
       onLoad={(e) => {
+        // A response that decodes to nothing counts as a failure too.
+        if (!useDefault && e.currentTarget.naturalWidth === 0) {
+          markFailed(current);
+          return;
+        }
         setLoadedSrc(shown);
         onLoad?.(e);
       }}
       onError={(e) => {
-        if (!useDefault) setFailedSrc(src);
+        if (!useDefault) markFailed(current);
         onError?.(e);
       }}
     />

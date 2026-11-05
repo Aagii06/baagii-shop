@@ -55,7 +55,7 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           <div className="relative aspect-square overflow-hidden border-b border-border bg-white p-3">
             <SafeImage
-              src={product.thumbnail || product.image}
+              src={[product.thumbnail, product.image]}
               alt={product.name}
               className="w-full h-full rounded-md object-contain bg-white transition-transform duration-300 group-hover:scale-105"
             />
