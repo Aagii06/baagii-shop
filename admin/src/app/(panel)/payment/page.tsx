@@ -1,9 +1,10 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { ErrorState, LoadingState } from "@/components/common/States";
+import { ErrorState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
 import PaymentSettingsForm from "@/components/payment/PaymentSettingsForm";
+import PaymentSettingsSkeleton from "@/components/payment/PaymentSettingsSkeleton";
 import { getPaymentSettings } from "@/lib/api/paymentSettings";
 import { useApi } from "@/lib/useApi";
 
@@ -16,7 +17,7 @@ export default function PaymentSettingsPage() {
   return (
     <>
       <DetailHeader backHref="/profile" title={t("pay.title")} />
-      {error ? <ErrorState error={error} onRetry={reload} /> : <LoadingState />}
+      {error ? <ErrorState error={error} onRetry={reload} /> : <PaymentSettingsSkeleton />}
     </>
   );
 }

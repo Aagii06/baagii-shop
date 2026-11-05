@@ -3,9 +3,10 @@
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useConfirm } from "@/components/common/Confirm";
 import ChipTabs from "@/components/common/ChipTabs";
-import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import { EmptyState, ErrorState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import PageHeader from "@/components/layout/PageHeader";
+import OrderListSkeleton from "@/components/orders/OrderListSkeleton";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import OverdueNotice from "@/components/orders/OverdueNotice";
 import { ORDER_TONE } from "@/components/orders/orderTone";
@@ -163,7 +164,7 @@ export default function OrdersPage() {
       </PageHeader>
 
       {!ready ? (
-        <LoadingState />
+        <OrderListSkeleton />
       ) : page.error ? (
         <div className="pt-4">
           <ErrorState error={page.error} onRetry={reload} />

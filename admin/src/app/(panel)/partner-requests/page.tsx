@@ -1,10 +1,11 @@
 "use client";
 
 import ChipTabs from "@/components/common/ChipTabs";
-import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import { EmptyState, ErrorState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { ORDER_TONE } from "@/components/orders/orderTone";
+import PartnerRequestsSkeleton from "@/components/partners/PartnerRequestsSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Field from "@/components/common/Field";
@@ -205,7 +206,7 @@ export default function PartnerRequestsPage() {
           <ErrorState error={error} onRetry={reload} />
         </div>
       ) : !data ? (
-        <LoadingState />
+        <PartnerRequestsSkeleton />
       ) : rows.length === 0 ? (
         <div className="pt-4">
           <EmptyState
