@@ -391,6 +391,7 @@ export const en: Dict = {
   "cu.viewOrders": "View orders",
   "cu.viewOrdersAria": "Orders of {name}",
   "orders.phoneClear": "Clear phone filter",
+  "orders.phoneSearch": "Search by phone",
   "orders.noneForPhone": "No orders for {phone}",
   "us.title": "Users",
   "us.add": "Add user",

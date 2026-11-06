@@ -391,6 +391,7 @@ export const mn: Dict = {
   "cu.viewOrders": "Захиалга харах",
   "cu.viewOrdersAria": "{name}-ийн захиалгууд",
   "orders.phoneClear": "Утасны шүүлтүүрийг арилгах",
+  "orders.phoneSearch": "Утасны дугаараар хайх",
   "orders.noneForPhone": "{phone} дугаартай захиалга алга",
   "us.title": "Хэрэглэгчид",
   "us.add": "Хэрэглэгч нэмэх",

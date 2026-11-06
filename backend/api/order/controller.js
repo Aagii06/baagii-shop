@@ -6,7 +6,7 @@ const { saveLog } = require("../../utils/logHelper");
 const { ok, fail, handle, toNumber, phoneDigits, isPhone, FORMAT } = require("../../helper/helper");
 
 // Захиалгууд: хүлээгдэж буй нь эхэндээ, дараа нь шинэ нь эхэндээ.
-// ?status= - зөвхөн тухайн төлөв, ?phone= - тэр дугаартай (хүлээн авагчийн утас эсвэл
+// ?status= - зөвхөн тухайн төлөв, ?phone= - дугаарын хэсгийг агуулсан (хүлээн авагчийн утас эсвэл
 // тэр дугаараар нэвтэрсэн худалдан авагчийн), ?skip=&take= - хуудаслана (take-гүй бол бүгд).
 // pending - хүлээгдэж буй захиалгын тоо (шүүлтээс үл хамааран)
 module.exports.list = handle("orderList", async (req, res) => {
@@ -14,8 +14,9 @@ module.exports.list = handle("orderList", async (req, res) => {
   if (orderStatuses[req.query.status]) where.status = req.query.status;
   const phone = phoneDigits(req.query.phone);
   if (phone) {
-    const owners = await customers.findAll({ where: { shop_id: req.shopId, phone }, attributes: ["id"], raw: true });
-    where[op.or] = [{ phone }, ...(owners.length ? [{ customer_id: owners.map((c) => c.id) }] : [])];
+    const like = { [op.like]: `%${phone}%` };
+    const owners = await customers.findAll({ where: { shop_id: req.shopId, phone: like }, attributes: ["id"], raw: true });
+    where[op.or] = [{ phone: like }, ...(owners.length ? [{ customer_id: owners.map((c) => c.id) }] : [])];
   }
   const take = Number(req.query.take) || undefined;
   const skip = take ? Math.max(Number(req.query.skip) || 0, 0) : undefined;

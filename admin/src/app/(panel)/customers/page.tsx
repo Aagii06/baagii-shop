@@ -4,12 +4,11 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import AttrListSkeleton from "@/components/attrs/AttrListSkeleton";
 import { EmptyState, ErrorState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCustomers, type Customer } from "@/lib/api/customers";
 import { useApi } from "@/lib/useApi";
 import { formatDate, formatPhone } from "@/lib/utils";
-import { ReceiptText, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -31,15 +30,13 @@ function CustomerRow({ customer }: { customer: Customer }) {
           <span className="block text-xs text-muted-foreground">{formatDate(customer.lastOrderAt)}</span>
         )}
       </span>
-      <Button asChild variant="outline" size="sm" className="shrink-0 px-3">
-        <Link
-          href={`/orders?phone=${customer.phone}`}
-          aria-label={t("cu.viewOrdersAria", { name: customer.name || formatPhone(customer.phone) })}
-        >
-          <ReceiptText />
-          {t("cu.viewOrders")}
-        </Link>
-      </Button>
+      <Link
+        href={`/orders?phone=${customer.phone}`}
+        aria-label={t("cu.viewOrdersAria", { name: customer.name || formatPhone(customer.phone) })}
+        className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary-ink transition-colors hover:bg-primary/20"
+      >
+        {t("cu.viewOrders")}
+      </Link>
     </li>
   );
 }

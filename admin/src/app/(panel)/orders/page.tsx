@@ -11,6 +11,7 @@ import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import OverdueNotice from "@/components/orders/OverdueNotice";
 import { ORDER_TONE } from "@/components/orders/orderTone";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   canReturnOrder,
   getOrdersPage,
@@ -21,7 +22,7 @@ import {
   type OrderStatus,
 } from "@/lib/api/orders";
 import { cn, formatMNT, formatPhone, formatWhen } from "@/lib/utils";
-import { Loader2, Phone, Plus, ReceiptText, X } from "lucide-react";
+import { Loader2, Phone, Plus, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -43,8 +44,22 @@ export default function OrdersPage() {
 function OrdersList() {
   const { t } = useLanguage();
   const router = useRouter();
-  // ?phone= — opened from a customer's "Захиалга харах" (Худалдан авагчид).
+  // ?phone= — typed in the search box, or opened from a customer's
+  // "Захиалга харах" (Худалдан авагчид); any part of the number matches.
   const phone = (useSearchParams().get("phone") ?? "").replace(/\D/g, "");
+  const [query, setQuery] = useState(phone);
+  // Follows the URL when it changes from outside (back/forward, a new link).
+  const [urlPhone, setUrlPhone] = useState(phone);
+  if (urlPhone !== phone) {
+    setUrlPhone(phone);
+    setQuery(phone);
+  }
+  // Typing updates the URL (and so the list) once the user pauses.
+  useEffect(() => {
+    if (query === phone) return;
+    const timer = setTimeout(() => router.replace(query ? `/orders?phone=${query}` : "/orders"), 300);
+    return () => clearTimeout(timer);
+  }, [query, phone, router]);
   const { run } = useToast();
   const confirm = useConfirm();
   const [status, setStatus] = useState<OrderStatus | "all">("all");
@@ -179,23 +194,22 @@ function OrdersList() {
             })),
           ]}
         />
-        {phone && (
-          <div className="mt-3 flex items-center gap-2">
-            <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-secondary py-1 pl-3 pr-1 text-sm font-semibold text-secondary-foreground">
-              <Phone className="size-3.5 shrink-0" aria-hidden />
-              <span className="truncate font-mono">{formatPhone(phone)}</span>
-              <button
-                type="button"
-                onClick={() => router.replace("/orders")}
-                aria-label={t("orders.phoneClear")}
-                title={t("orders.phoneClear")}
-                className="grid size-6 shrink-0 place-items-center rounded-full hover:bg-foreground/10"
-              >
-                <X className="size-3.5" />
-              </button>
-            </span>
-          </div>
-        )}
+        <div className="relative mt-3">
+          <Phone
+            className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <Input
+            type="search"
+            inputMode="numeric"
+            maxLength={8}
+            className="pl-11 font-mono"
+            value={query}
+            onChange={(e) => setQuery(e.target.value.replace(/\D/g, ""))}
+            placeholder={t("orders.phoneSearch")}
+            aria-label={t("orders.phoneSearch")}
+          />
+        </div>
       </PageHeader>
 
       {!ready ? (

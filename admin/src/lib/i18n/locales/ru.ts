@@ -391,6 +391,7 @@ export const ru: Dict = {
   "cu.viewOrders": "Заказы",
   "cu.viewOrdersAria": "Заказы: {name}",
   "orders.phoneClear": "Сбросить фильтр по телефону",
+  "orders.phoneSearch": "Поиск по телефону",
   "orders.noneForPhone": "Нет заказов для {phone}",
   "us.title": "Пользователи",
   "us.add": "Добавить пользователя",
