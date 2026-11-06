@@ -126,6 +126,8 @@ export const ru: Dict = {
   "search.breadcrumb.allProducts": "Все товары",
   "search.breadcrumb.sale": "Скидки",
   "search.resultsCount": "Найдено товаров: {count}",
+  "search.loadMore": "Показать ещё",
+  "search.shown": "Показано {shown} из {total}",
   "search.page": "Страница {page} из {total}",
   "search.prevAria": "Предыдущая страница",
   "search.nextAria": "Следующая страница",

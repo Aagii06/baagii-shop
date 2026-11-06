@@ -7,7 +7,6 @@ import FilterSidebar, {
   type SearchFilters,
 } from "@/components/search/FilterSidebar";
 import MobileFilterDrawer from "@/components/search/MobileFilterDrawer";
-import Pagination from "@/components/search/Pagination";
 import SortTabs, { type SortOption } from "@/components/search/SortTabs";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
@@ -20,9 +19,13 @@ import { getProducts } from "@/lib/api/products";
 import { byNewest } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 20;
+// Scrolling to the end loads the next PAGE_SIZE on its own this many times;
+// past that a "Цааш үзэх" button takes over so the footer stays reachable.
+const AUTO_PAGES = 3;
 const DEFAULT_PRICE_BOUNDS: [number, number] = [0, 10_000_000];
 
 // The product API filters by exact category id, so a category with
@@ -194,8 +197,30 @@ function SearchContent() {
     return result;
   }, [products, saleOnly, filters.brands, filters.priceRange, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // Start over from the first PAGE_SIZE whenever the list itself changes.
+  useEffect(() => {
+    setPage(1);
+  }, [saleOnly, filters.brands, filters.priceRange, sort]);
+
+  const visible = filtered.slice(0, page * PAGE_SIZE);
+  const hasMore = visible.length < filtered.length;
+  const autoLoad = hasMore && page < AUTO_PAGES;
+
+  // Infinite scroll: a marker under the list loads the next page once it
+  // comes within 400px of the viewport.
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || loading || !autoLoad) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setPage((p) => p + 1);
+      },
+      { rootMargin: "400px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, autoLoad, page]);
 
   const activeCategory =
     findCategory(categories, initialCategory ?? undefined) ??
@@ -261,7 +286,6 @@ function SearchContent() {
             </span>
           </h1>
         </div>
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -294,12 +318,25 @@ function SearchContent() {
           {loading ? (
             <ProductListSkeleton count={PAGE_SIZE} />
           ) : (
-            <ProductList products={paged} />
+            <ProductList products={visible} />
           )}
 
-          <div className="flex justify-center pt-4">
-            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
-          </div>
+          {!loading && autoLoad && <div ref={sentinelRef} aria-hidden className="h-px" />}
+          {!loading && hasMore && !autoLoad && (
+            <div className="flex flex-col items-center gap-2 pt-4">
+              <p className="text-sm text-muted-foreground">
+                {t("search.shown", { shown: visible.length, total: filtered.length })}
+              </p>
+              <Button
+                variant="outline"
+                size="lg"
+                className="min-w-48"
+                onClick={() => setPage((p) => p + 1)}
+              >
+                {t("search.loadMore")}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

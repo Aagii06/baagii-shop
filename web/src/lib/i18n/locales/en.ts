@@ -126,6 +126,8 @@ export const en: Dict = {
   "search.breadcrumb.allProducts": "All products",
   "search.breadcrumb.sale": "Sale",
   "search.resultsCount": "{count} products found",
+  "search.loadMore": "Show more",
+  "search.shown": "Showing {shown} of {total}",
   "search.page": "Page {page} of {total}",
   "search.prevAria": "Previous page",
   "search.nextAria": "Next page",

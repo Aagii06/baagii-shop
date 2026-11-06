@@ -126,6 +126,8 @@ export const mn: Dict = {
   "search.breadcrumb.allProducts": "Бүх бараа",
   "search.breadcrumb.sale": "Хямдрал",
   "search.resultsCount": "{count} бараа олдлоо",
+  "search.loadMore": "Цааш үзэх",
+  "search.shown": "{total}-аас {shown} бараа харуулж байна",
   "search.page": "Хуудас {page} / {total}",
   "search.prevAria": "Өмнөх хуудас",
   "search.nextAria": "Дараагийн хуудас",
