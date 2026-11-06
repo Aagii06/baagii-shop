@@ -157,12 +157,14 @@ function CustomerRow({ customer, onDelete }: { customer: Customer; onDelete: () 
       >
         {t("cu.viewOrders")}
       </Link>
+      {/* A customer with orders can't be deleted (the backend refuses too). */}
       <Button
         variant="danger"
         size="icon-sm"
         className="shrink-0"
+        disabled={customer.orderCount > 0}
         aria-label={t("cu.deleteAria", { name: customer.name || formatPhone(customer.phone) })}
-        title={t("common.delete")}
+        title={customer.orderCount > 0 ? t("cu.hasOrders") : t("common.delete")}
         onClick={onDelete}
       >
         <Trash2 />

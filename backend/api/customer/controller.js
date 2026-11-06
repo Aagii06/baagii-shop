@@ -29,7 +29,7 @@ module.exports.list = handle("customerList", async (req, res) => {
   return ok(res, { rows: data, count: data.length, summary: [] });
 });
 
-// Худалдан авагчийг устгана (status = deleted). Захиалгууд нь түүх болж хэвээр үлдэнэ.
+// Захиалга үүсгээгүй худалдан авагчийг устгана (status = deleted); захиалгатай бол болохгүй.
 // Тэр утсаар дахин нэвтэрвэл шинэ "Зочин" бүртгэл үүснэ. Нэвтэрсэн admin нууц үгээ
 // дахин оруулж баталгаажуулна.
 module.exports.destroy = handle("customerDestroy", async (req, res) => {
@@ -40,6 +40,8 @@ module.exports.destroy = handle("customerDestroy", async (req, res) => {
 
   const customer = await customers.findOne({ where: { id: req.params.id, shop_id: req.shopId, status: "active" } });
   if (!customer) return fail(res, "Худалдан авагч олдсонгүй");
+  const orderCount = await orders.count({ where: { shop_id: req.shopId, customer_id: customer.id } });
+  if (orderCount > 0) return fail(res, `Энэ худалдан авагч ${orderCount} захиалгатай тул устгах боломжгүй`);
   await customer.update({ status: "deleted", deleted_by: by, deleted_at: at });
   await saveLog({ shop_id: req.shopId, object_name: "customers", object_id: customer.id, log_action: "deleted", created_by: by, created_at: at });
   return ok(res, null);
