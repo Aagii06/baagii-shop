@@ -10,7 +10,7 @@ import { sendFeedback } from "@/lib/api/feedback";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import {
   CheckCircle,
-  Clock,
+  // Clock, // "Ажиллах цаг"-ийг буцааж нээхэд
   Headset,
   Mail,
   MapPin,
@@ -84,12 +84,13 @@ export default function Contact() {
       details: [t("contact.info.address.line1"), t("contact.info.address.line2")],
       description: t("contact.info.address.desc"),
     },
-    {
-      icon: Clock,
-      title: t("contact.info.hours.title"),
-      details: [t("contact.info.hours.line1"), t("contact.info.hours.line2")],
-      description: t("contact.info.hours.desc"),
-    },
+    // TODO: түр нуусан — "Ажиллах цаг"
+    // {
+    //   icon: Clock,
+    //   title: t("contact.info.hours.title"),
+    //   details: [t("contact.info.hours.line1"), t("contact.info.hours.line2")],
+    //   description: t("contact.info.hours.desc"),
+    // },
   ];
 
   const features = [
