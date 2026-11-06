@@ -31,6 +31,16 @@ import {
   toNumber,
 } from "@/lib/utils";
 import Link from "next/link";
+import {
+  ArrowRight,
+  Clock,
+  Receipt,
+  ShoppingBag,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 const RANGES: { value: SalesRange; labelKey: string }[] = [
@@ -49,32 +59,94 @@ function CardTitleRow({ title, aside }: { title: string; aside?: React.ReactNode
   );
 }
 
+type Tone = "brand" | "blue" | "mint" | "peach";
+
+const TONES: Record<Tone, { card: string; icon: string; label: string; blob: string }> = {
+  // Brand gradient: the headline number (revenue).
+  brand: {
+    card: "brand-gradient text-white border-transparent",
+    icon: "bg-white/20 text-white",
+    label: "text-white/80",
+    blob: "bg-white/15",
+  },
+  blue: {
+    card: "bg-tint-blue border-tint-blue-ink/15 text-tint-blue-ink",
+    icon: "bg-white text-tint-blue-ink",
+    label: "text-tint-blue-ink/80",
+    blob: "bg-tint-blue-ink/10",
+  },
+  mint: {
+    card: "bg-tint-mint border-tint-mint-ink/15 text-tint-mint-ink",
+    icon: "bg-white text-tint-mint-ink",
+    label: "text-tint-mint-ink/80",
+    blob: "bg-tint-mint-ink/10",
+  },
+  peach: {
+    card: "bg-tint-peach border-tint-peach-ink/20 text-tint-peach-ink",
+    icon: "bg-white text-tint-peach-ink",
+    label: "text-tint-peach-ink/85",
+    blob: "bg-tint-peach-ink/10",
+  },
+};
+
 function StatTile({
   label,
   value,
+  icon: Icon,
+  tone,
   delta,
+  footer,
+  href,
 }: {
   label: string;
   value: string;
+  icon: LucideIcon;
+  tone: Tone;
   delta?: SalesSummary["ordersDelta"];
+  footer?: React.ReactNode;
+  href?: string;
 }) {
-  return (
-    <Card className="p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2.5 truncate font-mono text-2xl font-bold leading-none tracking-tight">
-        {value}
-      </p>
+  const c = TONES[tone];
+  const body = (
+    <>
+      <span aria-hidden className={cn("pointer-events-none absolute -right-6 -top-6 size-24 rounded-full", c.blob)} />
+      <span aria-hidden className={cn("pointer-events-none absolute -bottom-8 right-6 size-14 rounded-full", c.blob)} />
+      <div className="relative flex items-start justify-between gap-2">
+        <p className={cn("text-sm font-medium", c.label)}>{label}</p>
+        <span className={cn("grid size-8 shrink-0 place-items-center rounded-xl shadow-sm", c.icon)}>
+          <Icon className="size-4" strokeWidth={2.25} />
+        </span>
+      </div>
+      <p className="relative mt-3 truncate font-mono text-2xl font-bold leading-none tracking-tight">{value}</p>
       {delta && (
-        <p
+        <span
           className={cn(
-            "mt-2.5 truncate text-xs font-semibold",
-            delta.positive ? "text-success" : "text-destructive"
+            "relative mt-3 inline-flex max-w-full items-center gap-1 truncate rounded-full px-2 py-0.5 text-[11px] font-semibold",
+            tone === "brand"
+              ? "bg-white/20 text-white"
+              : delta.positive
+                ? "bg-white/70 text-success"
+                : "bg-white/70 text-destructive"
           )}
         >
+          {delta.positive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
           {delta.text}
-        </p>
+        </span>
       )}
-    </Card>
+      {footer && <div className="relative mt-3 text-xs font-semibold">{footer}</div>}
+    </>
+  );
+  const cls = cn(
+    "relative block overflow-hidden rounded-2xl border p-4 shadow-[var(--shadow-card)]",
+    c.card,
+    href && "transition-transform hover:-translate-y-0.5 active:translate-y-0"
+  );
+  return href ? (
+    <Link href={href} className={cls}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls}>{body}</div>
   );
 }
 
@@ -133,24 +205,38 @@ function SalesSection({ range, pending }: { range: SalesRange; pending?: number 
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
-        <StatTile label={t("dash.orders")} value={formatQty(summary.orders)} delta={summary.ordersDelta} />
         <StatTile
+          tone="blue"
+          icon={ShoppingBag}
+          label={t("dash.orders")}
+          value={formatQty(summary.orders)}
+          delta={summary.ordersDelta}
+        />
+        <StatTile
+          tone="brand"
+          icon={Wallet}
           label={t("dash.revenue")}
           value={formatMNTCompact(summary.revenue)}
           delta={summary.revenueDelta}
         />
         <StatTile
+          tone="mint"
+          icon={Receipt}
           label={t("dash.avg")}
           value={formatMNTCompact(summary.orders ? summary.revenue / summary.orders : 0)}
         />
-        <Link
+        <StatTile
+          tone="peach"
+          icon={Clock}
           href="/orders"
-          className="rounded-2xl border border-primary/25 bg-primary-soft/60 p-4 text-primary-ink transition-colors hover:bg-primary-soft"
-        >
-          <p className="text-sm">{t("dash.pending")}</p>
-          <p className="mt-2.5 font-mono text-2xl font-bold leading-none">{pending ?? "—"}</p>
-          <p className="mt-2.5 text-xs font-semibold">{t("dash.view")}</p>
-        </Link>
+          label={t("dash.pending")}
+          value={pending == null ? "—" : String(pending)}
+          footer={
+            <span className="inline-flex items-center gap-1">
+              {t("dash.view")} <ArrowRight className="size-3.5" />
+            </span>
+          }
+        />
       </div>
 
       <SalesChart summary={summary} />
