@@ -63,7 +63,8 @@ const MIN_PASSWORD = 6;
 
 /**
  * One request with the store details it came with. Approving asks for the
- * new shopper's password first — it opens the store and their account.
+ * store's name (the one sent with the request, editable) and the new
+ * shopper's password first — it opens the store and their account.
  */
 function RequestRow({
   request,
@@ -72,23 +73,26 @@ function RequestRow({
   onRevert,
 }: {
   request: PartnerRequest;
-  onApprove: (password: string) => Promise<boolean>;
+  onApprove: (storeName: string, password: string) => Promise<boolean>;
   onReject: () => void;
   onRevert: () => void;
 }) {
   const { t } = useLanguage();
   const passwordErrorId = useId();
+  const storeNameErrorId = useId();
   const [approving, setApproving] = useState(false);
+  const [storeName, setStoreName] = useState(request.storeName ?? "");
   const [password, setPassword] = useState("");
   const [tried, setTried] = useState(false);
+  const storeNameError = tried && !storeName.trim() ? t("pr.storeNameRequired") : undefined;
   const passwordError =
     tried && password.length < MIN_PASSWORD ? t("pr.passwordShort", { min: MIN_PASSWORD }) : undefined;
 
   async function onConfirm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setTried(true);
-    if (password.length < MIN_PASSWORD) return;
-    if (await onApprove(password)) setApproving(false);
+    if (!storeName.trim() || password.length < MIN_PASSWORD) return;
+    if (await onApprove(storeName.trim(), password)) setApproving(false);
   }
 
   const contact = [request.name, request.email].filter(Boolean).join(" · ");
@@ -144,11 +148,19 @@ function RequestRow({
       {request.status === "pending" &&
         (approving ? (
           <form onSubmit={onConfirm} noValidate className="mt-3 space-y-3">
+            <Field label={t("pr.storeName")} error={storeNameError} errorId={storeNameErrorId}>
+              <Input
+                autoFocus
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                aria-invalid={Boolean(storeNameError)}
+                aria-describedby={storeNameError ? storeNameErrorId : undefined}
+              />
+            </Field>
             <Field label={t("pr.password")} hint={t("pr.passwordHint")} error={passwordError} errorId={passwordErrorId}>
               <Input
                 type="password"
                 autoComplete="new-password"
-                autoFocus
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 aria-invalid={Boolean(passwordError)}
@@ -264,13 +276,13 @@ export default function PartnerRequestsPage() {
     return Boolean(done);
   }
 
-  async function approve(request: PartnerRequest, password: string) {
+  async function approve(request: PartnerRequest, storeName: string, password: string) {
     const ok = await confirm({
       title: t("pr.approveTitle", { id: request.id }),
       description: t("pr.approveDesc", { phone: formatPhone(request.phone) }),
       confirmLabel: t("pr.approve"),
     });
-    return ok ? decide(() => approvePartnerRequest(request.id, password), t("pr.approved")) : false;
+    return ok ? decide(() => approvePartnerRequest(request.id, password, storeName), t("pr.approved")) : false;
   }
 
   async function reject(request: PartnerRequest) {
@@ -351,7 +363,7 @@ export default function PartnerRequestsPage() {
               <RequestRow
                 key={request.id}
                 request={request}
-                onApprove={(password) => approve(request, password)}
+                onApprove={(storeName, password) => approve(request, storeName, password)}
                 onReject={() => reject(request)}
                 onRevert={() => revert(request)}
               />

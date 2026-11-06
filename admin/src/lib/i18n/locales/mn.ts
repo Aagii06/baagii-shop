@@ -423,6 +423,8 @@ export const mn: Dict = {
   "us.empty": "Хэрэглэгч алга",
   "us.notFound": "Хэрэглэгч олдсонгүй",
   "pr.store": "Дэлгүүр",
+  "pr.storeName": "Дэлгүүрийн нэр",
+  "pr.storeNameRequired": "Дэлгүүрийн нэр оруулна уу",
   "pr.pickStore": "Дэлгүүр сонгох",
   "pr.storeRequired": "Дэлгүүр сонгоно уу",
   "pr.newStore": "+ Шинэ дэлгүүр бүртгэх",

@@ -39,7 +39,8 @@ module.exports.list = handle("partnerList", async (req, res) => {
   return ok(res, { rows: rows.map(toRecord), count, stats, summary: [] });
 });
 
-// { password } — шинэ SHOPPER хэрэглэгчийн нэвтрэх нууц үг (6+ тэмдэгт)
+// { password, storeName? } — шинэ SHOPPER хэрэглэгчийн нэвтрэх нууц үг (6+ тэмдэгт), дэлгүүрийн нэр
+// (хүсэлтээр ирснийг admin засаж болно; илгээгээгүй бол хүсэлтийнх)
 module.exports.approve = handle("partnerApprove", async (req, res) => {
   const { by, at, password } = req.body;
   const t = await sequelize.transaction();
@@ -48,9 +49,9 @@ module.exports.approve = handle("partnerApprove", async (req, res) => {
     if (!row) throw "Хүсэлт олдсонгүй";
     if (row.status !== partnerStatuses.pending) throw "Хүсэлтийг аль хэдийн шийдвэрлэсэн байна";
     if (String(password ?? "").length < 6) throw "Нууц үг 6-аас дээш тэмдэгттэй байна";
-    // Батлахад дэлгүүр (stores) үүсгэнэ — нэргүй хүсэлтээр нэргүй дэлгүүр үүсгэхгүй
-    const storeName = String(row.store_name ?? "").trim();
-    if (!storeName) throw "Хүсэлтэд дэлгүүрийн нэр байхгүй байна";
+    // Батлахад дэлгүүр (stores) үүсгэнэ — нэргүй дэлгүүр үүсгэхгүй
+    const storeName = String(req.body.storeName ?? row.store_name ?? "").trim();
+    if (!storeName) throw "Дэлгүүрийн нэр оруулна уу";
     if (await users.count({ where: { shop_id: req.shopId, phone: row.phone, status: "active" }, transaction: t }))
       throw "Энэ утасны дугаар хэрэглэгчид бүртгэлтэй байна";
 
@@ -74,7 +75,7 @@ module.exports.approve = handle("partnerApprove", async (req, res) => {
       { transaction: t },
     );
     await row.update(
-      { status: partnerStatuses.approved, store_id: store.id, user_id: user.id, decided_by: by, decided_at: at, updated_at: at },
+      { status: partnerStatuses.approved, store_name: storeName, store_id: store.id, user_id: user.id, decided_by: by, decided_at: at, updated_at: at },
       { transaction: t },
     );
     await saveLog({ shop_id: req.shopId, object_name: "partnerRequests", object_id: row.id, log_action: partnerStatuses.approved, created_by: by, created_at: at }, t);

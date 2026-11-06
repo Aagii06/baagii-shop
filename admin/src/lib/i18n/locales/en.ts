@@ -423,6 +423,8 @@ export const en: Dict = {
   "us.empty": "No users",
   "us.notFound": "User not found",
   "pr.store": "Store",
+  "pr.storeName": "Store name",
+  "pr.storeNameRequired": "Enter the store name",
   "pr.pickStore": "Pick a store",
   "pr.storeRequired": "Pick a store",
   "pr.newStore": "+ Register a new store",

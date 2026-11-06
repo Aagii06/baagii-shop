@@ -423,6 +423,8 @@ export const ru: Dict = {
   "us.empty": "Пользователей нет",
   "us.notFound": "Пользователь не найден",
   "pr.store": "Магазин",
+  "pr.storeName": "Название магазина",
+  "pr.storeNameRequired": "Введите название магазина",
   "pr.pickStore": "Выберите магазин",
   "pr.storeRequired": "Выберите магазин",
   "pr.newStore": "+ Добавить новый магазин",

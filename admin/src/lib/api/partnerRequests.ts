@@ -66,9 +66,12 @@ export async function getPartnerRequestsPage({
   };
 }
 
-/** `password` is what the new shopper signs in to the admin with. */
-export async function approvePartnerRequest(id: number, password: string): Promise<void> {
-  await apiFetch(`/partnerRequest/${id}/approve`, { method: "POST", body: { password } });
+/**
+ * `password` is what the new shopper signs in to the admin with; `storeName`
+ * names the new store (the request's own, possibly edited).
+ */
+export async function approvePartnerRequest(id: number, password: string, storeName: string): Promise<void> {
+  await apiFetch(`/partnerRequest/${id}/approve`, { method: "POST", body: { password, storeName } });
 }
 
 /** Undoes an approval; refused while the store still has products. */
