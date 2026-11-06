@@ -16,6 +16,11 @@ router.put("/me", protectWeb, requireCustomer, validate([body("name").trim().not
 // Хамтран ажиллах хүсэлт (вэбийн /seller): утсаа OTP-оор баталгаажуулж, дэлгүүрийн мэдээллээ илгээнэ
 router.post("/register/sendOtp", validate([phone("phone")]), controller.sendRegisterOtp);
 router.post(
+  "/register/verifyOtp",
+  validate([phone("phone"), body("code").trim().notEmpty().withMessage("Код оруулна уу")]),
+  controller.verifyRegisterOtp,
+);
+router.post(
   "/register",
   validate([
     phone("userName"),

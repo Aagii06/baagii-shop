@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const { customers, partnerRequests, sequelize } = require("../../models");
 const { partnerStatuses } = require("../../config/constants");
-const { signWeb } = require("../../middleware/auth");
+const { signWeb, signPhoneProof, readPhoneProof } = require("../../middleware/auth");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
 const { mergeGuestCart } = require("../../helper/cartHelper");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
@@ -74,15 +74,25 @@ module.exports.sendRegisterOtp = handle("sendRegisterOtp", async (req, res) => {
   return res.status(200).json({ ...result, data: null });
 });
 
-// { userName (утас), code, storeName, name, email?, address? }. Утсыг үргэлж SMS кодоор
-// (register/sendOtp) баталгаажуулна — нэвтэрсэн худалдан авагч ч гэсэн.
-module.exports.register = handle("register", async (req, res) => {
-  const phone = phoneDigits(req.body.userName);
+// { phone, code } — кодыг шалгаад phoneToken буцаана; register-т кодын оронд үүнийг илгээнэ.
+// Утас эхлээд баталгаажсаны дараа л вэб дэлгүүрийн мэдээллийг асууна.
+module.exports.verifyRegisterOtp = handle("verifyRegisterOtp", async (req, res) => {
+  const phone = phoneDigits(req.body.phone);
   const blocked = await partnerBlocked(req.shopId, phone);
   if (blocked) return fail(res, blocked);
-
   const result = await verifyPhoneOtp(req.shopId, phone, req.body.code ?? "", PARTNER_OTP);
   if (!result.success) return fail(res, result.message);
+  return ok(res, { phoneToken: signPhoneProof({ shopId: req.shopId, phone, purpose: PARTNER_OTP }) });
+});
+
+// { userName (утас), phoneToken, storeName, name, email?, address? }. Утсыг үргэлж SMS кодоор
+// баталгаажуулна (register/sendOtp → register/verifyOtp) — нэвтэрсэн худалдан авагч ч гэсэн.
+module.exports.register = handle("register", async (req, res) => {
+  const phone = phoneDigits(req.body.userName);
+  if (readPhoneProof(req.body.phoneToken, req.shopId, PARTNER_OTP) !== phone)
+    return fail(res, "Утасны дугаараа кодоор дахин баталгаажуулна уу");
+  const blocked = await partnerBlocked(req.shopId, phone);
+  if (blocked) return fail(res, blocked);
 
   const { storeName, name, email, address } = req.body;
   await partnerRequests.create({

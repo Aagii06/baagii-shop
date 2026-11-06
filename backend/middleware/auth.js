@@ -12,6 +12,20 @@ module.exports.signUser = (user) => sign({ shopId: user.shop_id, user: { id: use
 module.exports.signWeb = ({ shopId, guestId, customerId = null }) =>
   sign({ shopId, guestId, customerId }, customerId ? "30d" : "2d");
 
+// SMS кодоор баталгаажсан утас: дараагийн алхам (жишээ нь хамтран ажиллах хүсэлт) кодыг
+// дахин шаардахгүйгээр энэ токеноор утсыг нотолно. 30 минут хүчинтэй.
+module.exports.signPhoneProof = ({ shopId, phone, purpose }) => sign({ shopId, phoneProof: { phone, purpose } }, "30m");
+
+// Хүчинтэй бол баталгаажсан утас, үгүй бол null
+module.exports.readPhoneProof = (token, shopId, purpose) => {
+  try {
+    const payload = jwt.verify(String(token ?? ""), process.env.JWT_SECRET);
+    return payload.shopId === shopId && payload.phoneProof?.purpose === purpose ? payload.phoneProof.phone : null;
+  } catch (error) {
+    return null;
+  }
+};
+
 // Токеноос payload-ийг уншина; байхгүй / буруу / хугацаа дууссан / өөр дэлгүүрийнх бол null
 const readToken = (req) => {
   const token = req.headers.authorization?.split(" ")[1];

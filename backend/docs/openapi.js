@@ -248,7 +248,18 @@ module.exports = {
       }),
     },
     "/web/auth/me": { put: op("Web: Нэвтрэх", "Нэрээ солих", { security: web, requestBody: json({ name: str("Бат") }, ["name"]) }) },
-    "/web/auth/register": { post: op("Web: Нэвтрэх", "Хамтран ажиллах хүсэлт илгээх (/seller)", { requestBody: json({ userName: str("95001122", "Утасны дугаар") }, ["userName"]) }) },
+    "/web/auth/register/sendOtp": { post: op("Web: Нэвтрэх", "Хамтран ажиллах: утас руу код илгээх", { requestBody: json({ phone: str("95001122") }, ["phone"]) }) },
+    "/web/auth/register/verifyOtp": {
+      post: op("Web: Нэвтрэх", "Хамтран ажиллах: кодыг шалгаж phoneToken авах (30 мин)", { requestBody: json({ phone: str("95001122"), code: str("1234") }, ["phone", "code"]) }),
+    },
+    "/web/auth/register": {
+      post: op("Web: Нэвтрэх", "Хамтран ажиллах хүсэлт илгээх (/seller)", {
+        requestBody: json(
+          { userName: str("95001122", "Утасны дугаар"), phoneToken: str("eyJ...", "register/verifyOtp-оос"), storeName: str("Бат дэлгүүр"), name: str("Бат") },
+          ["userName", "phoneToken", "storeName", "name"],
+        ),
+      }),
+    },
 
     "/web/feedback": {
       post: op("Web: Санал хүсэлт", "\"Бидэнд бичнэ үү\" маягт илгээх (/contact)", {
