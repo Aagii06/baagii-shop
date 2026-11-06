@@ -13,21 +13,24 @@ import Field from "@/components/common/Field";
 import { Input } from "@/components/ui/input";
 import {
   approvePartnerRequest,
-  getPartnerRequests,
+  getPartnerRequestsPage,
   partnerStatusLabel,
   rejectPartnerRequest,
   revertPartnerRequest,
   type PartnerRequest,
+  type PartnerRequestsPage,
   type PartnerRequestStatus,
 } from "@/lib/api/partnerRequests";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { useApi } from "@/lib/useApi";
 import { cn, formatPhone, formatWhen } from "@/lib/utils";
-import { Handshake } from "lucide-react";
+import { Handshake, Loader2, Undo2 } from "lucide-react";
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 const TABS: PartnerRequestStatus[] = ["pending", "approved", "rejected"];
+const PAGE_SIZE = 20;
+
+type Page = PartnerRequestsPage & { key: string; error?: Error };
 
 /** Dot colour per status on the summary strip. */
 const STAT_DOT: Record<PartnerRequestStatus, string> = {
@@ -91,7 +94,7 @@ function RequestRow({
   const contact = [request.name, request.email].filter(Boolean).join(" · ");
 
   return (
-    <li className="py-4">
+    <li className="rounded-2xl border border-border bg-white p-4">
       <span className="flex items-center gap-2">
         <span className="font-mono text-sm text-muted-foreground">#{request.id}</span>
         <span
@@ -102,6 +105,17 @@ function RequestRow({
         >
           {partnerStatusLabel(request.status)}
         </span>
+        {request.status === "approved" && (
+          <button
+            type="button"
+            onClick={onRevert}
+            aria-label={t("pr.revert")}
+            title={t("pr.revert")}
+            className="-my-1 ml-auto grid size-9 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Undo2 className="size-4" />
+          </button>
+        )}
       </span>
       {request.storeName && <span className="mt-1.5 block text-[15px] font-bold">{request.storeName}</span>}
       <span className="mt-0.5 block font-mono text-sm font-semibold">{formatPhone(request.phone)}</span>
@@ -150,25 +164,89 @@ function RequestRow({
             </Button>
           </div>
         ))}
-
-      {request.status === "approved" && (
-        <Button variant="outline" className="mt-3 h-10 w-full" onClick={onRevert}>
-          {t("pr.revert")}
-        </Button>
-      )}
     </li>
   );
 }
 
 export default function PartnerRequestsPage() {
   const { t } = useLanguage();
-  const { data, error, reload } = useApi(getPartnerRequests);
   const { run } = useToast();
   const confirm = useConfirm();
   const [status, setStatus] = useState<PartnerRequestStatus | "all">("all");
 
-  const rows = data?.filter((request) => status === "all" || request.status === status) ?? [];
-  const pendingCount = data?.filter((request) => request.status === "pending").length ?? 0;
+  // Pages load as the list is scrolled. `key` ties the loaded rows to the tab
+  // they were fetched for, so a stale page counts as "loading".
+  const filter = status === "all" ? undefined : status;
+  const key = status;
+  const [page, setPage] = useState<Page | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [moreFailed, setMoreFailed] = useState(false);
+  const [version, setVersion] = useState(0);
+  const sentinel = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPartnerRequestsPage({ skip: 0, take: PAGE_SIZE, status: filter }).then(
+      (result) => {
+        if (cancelled) return;
+        setMoreFailed(false);
+        setPage({ key, ...result });
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        setPage((prev) => ({
+          key,
+          rows: [],
+          count: 0,
+          stats: prev?.stats ?? { pending: 0, approved: 0, rejected: 0 },
+          error: error instanceof Error ? error : new Error(String(error)),
+        }));
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [key, version, filter]);
+
+  const ready = page?.key === key;
+  const rows = ready ? page.rows : [];
+  const hasMore = ready && !page.error && page.rows.length < page.count;
+  const reload = () => setVersion((v) => v + 1);
+
+  const loadMore = useCallback(async () => {
+    if (!page || page.key !== key || loadingMore || page.rows.length >= page.count) return;
+    setLoadingMore(true);
+    setMoreFailed(false);
+    try {
+      const result = await getPartnerRequestsPage({ skip: page.rows.length, take: PAGE_SIZE, status: filter });
+      setPage((prev) =>
+        prev && prev.key === key
+          ? {
+              ...prev,
+              count: result.count,
+              stats: result.stats,
+              rows: [...prev.rows, ...result.rows.filter((r) => !prev.rows.some((o) => o.id === r.id))],
+            }
+          : prev
+      );
+    } catch {
+      setMoreFailed(true);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [page, key, loadingMore, filter]);
+
+  // Loads the next page once the bottom of the list nears the screen. A
+  // failed page stops the loop; "try again" retries it.
+  useEffect(() => {
+    const node = sentinel.current;
+    if (!node || !hasMore || moreFailed) return;
+    const observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
+      rootMargin: "600px 0px",
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, moreFailed, loadMore]);
 
   async function decide(action: () => Promise<void>, success: string) {
     const done = await run(action, success);
@@ -186,6 +264,9 @@ export default function PartnerRequestsPage() {
     if (ok) decide(() => revertPartnerRequest(request.id), t("pr.reverted"));
   }
 
+  const stats = page?.stats;
+  const total = stats ? TABS.reduce((sum, s) => sum + stats[s], 0) : 0;
+
   return (
     <>
       <DetailHeader backHref="/profile" title={t("pr.title")} />
@@ -199,7 +280,7 @@ export default function PartnerRequestsPage() {
             ...TABS.map((s) => ({
               value: s,
               label: partnerStatusLabel(s),
-              count: s === "pending" ? pendingCount : undefined,
+              count: s === "pending" ? stats?.pending : undefined,
               idleClassName: TONE[s].soft,
               activeClassName: TONE[s].solid,
               badgeClassName: "bg-warning text-white",
@@ -208,26 +289,21 @@ export default function PartnerRequestsPage() {
         />
       </div>
 
-      {data && (
+      {stats && (
         <Card className="mt-4 grid grid-cols-4 divide-x divide-border p-0">
-          <Stat label={t("pr.total")} value={data.length} />
+          <Stat label={t("pr.total")} value={total} />
           {TABS.map((s) => (
-            <Stat
-              key={s}
-              label={partnerStatusLabel(s)}
-              value={data.filter((request) => request.status === s).length}
-              dot={STAT_DOT[s]}
-            />
+            <Stat key={s} label={partnerStatusLabel(s)} value={stats[s]} dot={STAT_DOT[s]} />
           ))}
         </Card>
       )}
 
-      {error && !data ? (
+      {!ready ? (
+        <PartnerRequestsSkeleton stats={!stats} />
+      ) : page.error ? (
         <div className="pt-4">
-          <ErrorState error={error} onRetry={reload} />
+          <ErrorState error={page.error} onRetry={reload} />
         </div>
-      ) : !data ? (
-        <PartnerRequestsSkeleton />
       ) : rows.length === 0 ? (
         <div className="pt-4">
           <EmptyState
@@ -240,17 +316,33 @@ export default function PartnerRequestsPage() {
           />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
-          {rows.map((request) => (
-            <RequestRow
-              key={request.id}
-              request={request}
-              onApprove={(password) => decide(() => approvePartnerRequest(request.id, password), t("pr.approved"))}
-              onReject={() => decide(() => rejectPartnerRequest(request.id), t("pr.rejected"))}
-              onRevert={() => revert(request)}
-            />
-          ))}
-        </ul>
+        <>
+          <ul className="mt-4 space-y-3">
+            {rows.map((request) => (
+              <RequestRow
+                key={request.id}
+                request={request}
+                onApprove={(password) => decide(() => approvePartnerRequest(request.id, password), t("pr.approved"))}
+                onReject={() => decide(() => rejectPartnerRequest(request.id), t("pr.rejected"))}
+                onRevert={() => revert(request)}
+              />
+            ))}
+          </ul>
+
+          {hasMore && (
+            <div ref={sentinel}>
+              {moreFailed ? (
+                <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
+                  {t("common.retry")}
+                </Button>
+              ) : (
+                <div className="flex justify-center py-6" aria-label={t("common.loading")}>
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </>
   );

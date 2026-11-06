@@ -2,22 +2,27 @@ import { Card } from "@/components/ui/card";
 
 const bar = "block rounded-md bg-muted";
 
-/** Placeholder shaped like the partner-requests summary strip and list, shown while it loads. */
-export default function PartnerRequestsSkeleton({ rows = 5 }: { rows?: number }) {
+/**
+ * Placeholder shaped like the partner-requests summary strip and list, shown
+ * while it loads. `stats` off leaves out the strip (already shown, e.g. on a tab switch).
+ */
+export default function PartnerRequestsSkeleton({ rows = 5, stats = true }: { rows?: number; stats?: boolean }) {
   return (
     <div aria-hidden className="animate-pulse">
-      <Card className="mt-4 grid grid-cols-4 divide-x divide-border p-0">
-        {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="flex flex-col items-center px-2 py-2.5">
-            <span className={`${bar} h-[18px] w-6`} />
-            <span className={`${bar} mt-1.5 h-3 w-12`} />
-          </div>
-        ))}
-      </Card>
+      {stats && (
+        <Card className="mt-4 grid grid-cols-4 divide-x divide-border p-0">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="flex flex-col items-center px-2 py-2.5">
+              <span className={`${bar} h-[18px] w-6`} />
+              <span className={`${bar} mt-1.5 h-3 w-12`} />
+            </div>
+          ))}
+        </Card>
+      )}
 
-      <ul className="divide-y divide-border border-b border-border">
+      <ul className="mt-4 space-y-3">
         {Array.from({ length: rows }, (_, i) => (
-          <li key={i} className="py-4">
+          <li key={i} className="rounded-2xl border border-border bg-white p-4">
             <span className="flex items-center gap-2">
               <span className={`${bar} h-4 w-10`} />
               <span className="block h-5 w-20 rounded-full bg-muted" />

@@ -19,6 +19,7 @@ const toRecord = (row) => ({
   createdAt: toIso(row.created_at),
 });
 
+// Хүлээгдэж буй нь эхэндээ, дараа нь шинэ нь эхэндээ.
 // ?status= - зөвхөн тухайн төлөв, ?skip=&take= - хуудаслана (take-гүй бол бүгд).
 // stats - төлөв бүрийн тоо (шүүлтээс үл хамааран)
 module.exports.list = handle("partnerList", async (req, res) => {
@@ -26,7 +27,7 @@ module.exports.list = handle("partnerList", async (req, res) => {
   if (partnerStatuses[req.query.status]) where.status = req.query.status;
   const take = Number(req.query.take) || undefined;
   const skip = take ? Math.max(Number(req.query.skip) || 0, 0) : undefined;
-  const { rows, count } = await partnerRequests.findAndCountAll({ where, order: [["id", "desc"]], limit: take, offset: skip, raw: true });
+  const { rows, count } = await partnerRequests.findAndCountAll({ where, order: [[sequelize.literal(`\`status\` = '${partnerStatuses.pending}'`), "desc"], ["id", "desc"]], limit: take, offset: skip, raw: true });
   const grouped = await partnerRequests.findAll({
     where: { shop_id: req.shopId },
     attributes: ["status", [sequelize.fn("COUNT", sequelize.col("id")), "n"]],
