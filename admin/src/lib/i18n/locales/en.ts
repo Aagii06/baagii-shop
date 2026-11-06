@@ -449,6 +449,8 @@ export const en: Dict = {
   "profile.passwordShort": "Password must be at least 6 characters",
   "profile.payment": "Bank transfer and QPay settings",
   "pay.title": "Payment settings",
+  "pay.delivery": "Delivery fee",
+  "pay.deliveryDesc": "Adds a delivery fee to orders added here. Off means free delivery",
   "pay.required": "Required",
   "pay.bank": "Bank transfer",
   "pay.bankDesc": "Shoppers see the account. The order counts as paid once you confirm it after the money arrives",

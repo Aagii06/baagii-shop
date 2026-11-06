@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { savePaymentSettings, type BankSettings, type PaymentSettings } from "@/lib/api/paymentSettings";
+import { toNumber } from "@/lib/utils";
 import { useState } from "react";
 
 /**
@@ -21,6 +22,8 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
   const { t } = useLanguage();
   const { run } = useToast();
 
+  const [deliveryEnabled, setDeliveryEnabled] = useState(settings.delivery.enabled);
+  const [deliveryFee, setDeliveryFee] = useState(String(settings.delivery.fee));
   const [bank, setBank] = useState<BankSettings>(settings.bank);
   const [qpay, setQpay] = useState({ ...settings.qpay, password: "" });
   const [hasPassword, setHasPassword] = useState(settings.qpay.hasPassword);
@@ -44,10 +47,15 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
     const blank = (on: boolean, values: string[]) => on && values.some((v) => !v.trim());
     if (blank(bank.enabled, [bank.bankName, bank.accountName, bank.accountNumber])) return;
     if (blank(qpay.enabled, [qpay.username, qpay.invoiceCode, hasPassword ? "x" : qpay.password])) return;
+    if (deliveryEnabled && !deliveryFee) return;
 
     await run(async () => {
       const { enabled, sandbox, username, password, invoiceCode } = qpay;
-      const saved = await savePaymentSettings({ bank, qpay: { enabled, sandbox, username, password, invoiceCode } });
+      const saved = await savePaymentSettings({
+        delivery: { enabled: deliveryEnabled, fee: toNumber(deliveryFee) },
+        bank,
+        qpay: { enabled, sandbox, username, password, invoiceCode },
+      });
       setHasPassword(saved.qpay.hasPassword);
       setQpay((q) => ({ ...q, password: "" }));
     }, t("common.saved"));
@@ -76,6 +84,26 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
       />
 
       <div className="space-y-4">
+        <Card className="space-y-4 p-4">
+          <Toggle
+            title={t("pay.delivery")}
+            desc={t("pay.deliveryDesc")}
+            checked={deliveryEnabled}
+            onChange={setDeliveryEnabled}
+          />
+          {deliveryEnabled && (
+            <Field label={t("on.deliveryFee")} error={submitted && !deliveryFee ? t("pay.required") : undefined}>
+              <Input
+                inputMode="numeric"
+                className="font-mono"
+                value={deliveryFee}
+                onFocus={(e) => e.currentTarget.select()}
+                onChange={(e) => setDeliveryFee(e.target.value.replace(/\D/g, ""))}
+              />
+            </Field>
+          )}
+        </Card>
+
         <Card className="space-y-4 p-4">
           <Toggle
             title={t("pay.bank")}

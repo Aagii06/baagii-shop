@@ -1,5 +1,5 @@
 const moment = require("moment");
-const { orders, orderItems, customers, sequelize, op } = require("../../models");
+const { orders, orderItems, customers, paymentSettings, sequelize, op } = require("../../models");
 const { orderStatuses, orderTransitions, unpaidCancelHours } = require("../../config/constants");
 const { itemsInclude, toAdminOrder, placeOrder, restock, findOrder, revenueOf, isOverdue } = require("../../helper/orderHelper");
 const { saveLog } = require("../../utils/logHelper");
@@ -42,6 +42,9 @@ module.exports.create = handle("orderCreate", async (req, res) => {
   const { customer = {}, items = [], deliveryFee = 0, by } = req.body;
   if (!isPhone(customer.phone)) return fail(res, "Утасны дугаар 8 оронтой байна");
   if (!String(customer.address ?? "").trim()) return fail(res, "Хүргэлтийн хаяг оруулна уу");
+  // Тохиргоонд хүргэлтийн төлбөр унтраалттай бол төлбөр авахгүй
+  const setting = await paymentSettings.findOne({ where: { shop_id: req.shopId }, attributes: ["delivery_enabled"], raw: true });
+  const chargeDelivery = setting ? Boolean(setting.delivery_enabled) : true;
   const id = await placeOrder({
     shopId: req.shopId,
     lines: items.map((item) => ({ variantId: item.variantId, qty: item.qty, price: item.price })),
@@ -50,7 +53,7 @@ module.exports.create = handle("orderCreate", async (req, res) => {
       customer_name: customer.name ?? null,
       phone: phoneDigits(customer.phone),
       address: customer.address.trim(),
-      delivery_fee: Math.max(0, toNumber(deliveryFee)),
+      delivery_fee: chargeDelivery ? Math.max(0, toNumber(deliveryFee)) : 0,
     },
     by,
   });

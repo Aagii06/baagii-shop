@@ -10,13 +10,13 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder } from "@/lib/api/orders";
+import { getDeliverySettings } from "@/lib/api/paymentSettings";
+import { useApi } from "@/lib/useApi";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT, toNumber } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
-const DEFAULT_DELIVERY_FEE = "6000";
 
 export default function NewOrderPage() {
   const router = useRouter();
@@ -25,13 +25,17 @@ export default function NewOrderPage() {
 
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [deliveryFee, setDeliveryFee] = useState(DEFAULT_DELIVERY_FEE);
+  // Тохиргоо (Төлбөрийн тохиргоо): хүргэлтийн төлбөр авах эсэх, анхдагч үнэ.
+  const { data: delivery } = useApi(getDeliverySettings);
+  const [deliveryFee, setDeliveryFee] = useState<string | null>(null);
+  const chargeDelivery = delivery?.enabled ?? false;
+  const fee = chargeDelivery ? toNumber(deliveryFee ?? String(delivery?.fee ?? 0)) : 0;
   const [lines, setLines] = useState<OrderLine[]>([]);
   const [picking, setPicking] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const subtotal = lines.reduce((sum, line) => sum + line.qty * line.price, 0);
-  const total = subtotal + toNumber(deliveryFee);
+  const total = subtotal + fee;
 
   const errors = {
     phone: phone.length < 8 ? t("checkout.phoneInvalid") : undefined,
@@ -59,7 +63,7 @@ export default function NewOrderPage() {
         createOrder({
           customer: { phone, address: address.trim() },
           items: lines.map((line) => ({ variantId: line.variantId, name: line.name, qty: line.qty, price: line.price })),
-          deliveryFee: toNumber(deliveryFee),
+          deliveryFee: fee,
         }),
       t("on.created")
     );
@@ -137,24 +141,28 @@ export default function NewOrderPage() {
         </section>
 
         <section className="space-y-3">
-          <Field label={t("on.deliveryFee")}>
-            <Input
-              inputMode="numeric"
-              className="font-mono"
-              value={deliveryFee}
-              onFocus={(e) => e.currentTarget.select()}
-              onChange={(e) => setDeliveryFee(e.target.value.replace(/\D/g, ""))}
-            />
-          </Field>
+          {chargeDelivery && (
+            <Field label={t("on.deliveryFee")}>
+              <Input
+                inputMode="numeric"
+                className="font-mono"
+                value={deliveryFee ?? String(delivery?.fee ?? 0)}
+                onFocus={(e) => e.currentTarget.select()}
+                onChange={(e) => setDeliveryFee(e.target.value.replace(/\D/g, ""))}
+              />
+            </Field>
+          )}
           <dl className="space-y-1 rounded-2xl bg-muted/60 px-4 py-3 text-[15px]">
             <div className="flex items-center justify-between text-muted-foreground">
               <dt>{t("oi.subtotal")}</dt>
               <dd className="font-mono">{formatMNT(subtotal)}</dd>
             </div>
-            <div className="flex items-center justify-between text-muted-foreground">
-              <dt>{t("oi.delivery")}</dt>
-              <dd className="font-mono">{formatMNT(toNumber(deliveryFee))}</dd>
-            </div>
+            {chargeDelivery && (
+              <div className="flex items-center justify-between text-muted-foreground">
+                <dt>{t("oi.delivery")}</dt>
+                <dd className="font-mono">{formatMNT(fee)}</dd>
+              </div>
+            )}
             <div className="flex items-center justify-between pt-1 text-base font-extrabold">
               <dt>{t("oi.total")}</dt>
               <dd className="font-mono">{formatMNT(total)}</dd>

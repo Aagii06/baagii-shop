@@ -18,6 +18,9 @@ module.exports = (sequelize, DataTypes) => {
       qpay_username: { type: DataTypes.STRING },
       qpay_password: { type: DataTypes.STRING },
       qpay_invoice_code: { type: DataTypes.STRING },
+      // Admin-аас захиалга үүсгэхэд хүргэлтийн төлбөр авах эсэх, анхдагч үнэ
+      delivery_enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+      delivery_fee: { type: DataTypes.DECIMAL(14, 2), defaultValue: 6000 },
       updated_by: { type: DataTypes.INTEGER },
       created_at: { type: DataTypes.STRING },
       updated_at: { type: DataTypes.STRING },

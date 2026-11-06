@@ -5,11 +5,19 @@ const { isAdmin } = require("../../middleware/auth");
 const { byAndAt } = require("../../middleware/timeStamp");
 const { validate } = require("../../utils/validationHelper");
 const { testQpay } = require("../../helper/qpayHelper");
-const { ok, fail, handle } = require("../../helper/helper");
+const { ok, fail, handle, toNumber } = require("../../helper/helper");
+
+// Хүргэлтийн төлбөр (admin-аас захиалга үүсгэхэд). Мөр байхгүй бол асаалттай, 6000₮
+const DEFAULT_DELIVERY_FEE = 6000;
+const toDelivery = (s) => ({
+  enabled: s ? Boolean(s.delivery_enabled) : true,
+  fee: s ? toNumber(s.delivery_fee) : DEFAULT_DELIVERY_FEE,
+});
 
 // Дэлгүүрийн төлбөрийн тохиргоо (зөвхөн ADMIN). QPay-ийн нууц үгийг буцаахгүй —
 // хоосон илгээвэл хуучнаараа үлдэнэ.
 const toAdmin = (s) => ({
+  delivery: toDelivery(s),
   bank: {
     enabled: Boolean(s?.bank_enabled),
     bankName: s?.bank_name ?? "",
@@ -32,9 +40,17 @@ const saveValidation = validate([
   body("bank.enabled").isBoolean(),
   body("qpay.enabled").isBoolean(),
   body("qpay.sandbox").isBoolean(),
+  body("delivery.enabled").optional().isBoolean(),
+  body("delivery.fee").optional().isInt({ min: 0 }).withMessage("Хүргэлтийн үнэ 0-ээс багагүй бүхэл тоо байна"),
   body("bank").custom((b) => !b.enabled || (str(b.bankName) && str(b.accountName) && str(b.accountNumber)))
     .withMessage("Банк, хүлээн авагч, дансны дугаарыг оруулна уу"),
 ]);
+
+// Захиалга үүсгэх хуудсанд — бүх нэвтэрсэн ажилтанд
+router.get(
+  "/delivery",
+  handle("deliverySetting", async (req, res) => ok(res, toDelivery(await paymentSettings.findOne({ where: { shop_id: req.shopId } })))),
+);
 
 router.use(isAdmin);
 
@@ -48,7 +64,7 @@ router.put(
   saveValidation,
   byAndAt,
   handle("savePaymentSetting", async (req, res) => {
-    const { bank, qpay, by, at } = req.body;
+    const { bank, qpay, delivery, by, at } = req.body;
     const existing = await paymentSettings.findOne({ where: { shop_id: req.shopId } });
     const values = {
       bank_enabled: bank.enabled,
@@ -61,6 +77,7 @@ router.put(
       qpay_username: str(qpay.username) || null,
       qpay_password: str(qpay.password) || existing?.qpay_password || null,
       qpay_invoice_code: str(qpay.invoiceCode) || null,
+      ...(delivery && { delivery_enabled: Boolean(delivery.enabled), delivery_fee: toNumber(delivery.fee) }),
       updated_by: by,
       updated_at: at,
     };
