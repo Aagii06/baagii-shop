@@ -62,7 +62,7 @@ export default function Contact() {
     {
       icon: Phone,
       title: t("contact.info.phone.title"),
-      details: ["7045-1234", "+976 8811 2345"],
+      details: ["9110-1256"],
       description: t("contact.info.phone.desc"),
     },
     {
@@ -320,9 +320,11 @@ export default function Contact() {
               {t("contact.cta.desc")}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90">
-                <Phone className="h-4 w-4 mr-2" />
-                {t("contact.cta.call")}
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
+                <a href="tel:91101256">
+                  <Phone className="h-4 w-4 mr-2" />
+                  {t("contact.cta.call")}
+                </a>
               </Button>
               <Button
                 size="lg"

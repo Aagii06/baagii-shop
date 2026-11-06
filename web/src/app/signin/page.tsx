@@ -11,9 +11,14 @@ export default function SignInPage() {
   const authLoading = useAuthStore((s) => s.loading);
   const isAuthed = useAuthStore((s) => s.user != null || s.phone != null);
 
-  // Already signed in (or just verified the phone) — nothing to do here.
+  // Already signed in (or just verified the phone) — go back to the page that
+  // sent us here (?next=/orders), or to the profile by default.
   useEffect(() => {
-    if (!authLoading && isAuthed) router.replace("/profile");
+    if (authLoading || !isAuthed) return;
+    const next = new URLSearchParams(window.location.search).get("next");
+    const safeNext =
+      next && next.startsWith("/") && !next.startsWith("//") ? next : "/profile";
+    router.replace(safeNext);
   }, [authLoading, isAuthed, router]);
 
   if (authLoading || isAuthed) {

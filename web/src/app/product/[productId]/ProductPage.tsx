@@ -479,10 +479,6 @@ export default function ProductPage() {
             </div>
             <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
               <CircleCheck className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
-              <span>{t("product.trust.returns")}</span>
-            </div>
-            <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
-              <CircleCheck className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
               <span>{t("product.trust.payment")}</span>
             </div>
           </div>

@@ -54,10 +54,10 @@ export default function Footer() {
               {t("footer.tagline")}
             </p>
             <a
-              href="tel:70451234"
+              href="tel:91101256"
               className="inline-flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
-              <Phone className="h-4 w-4" /> 7045-1234
+              <Phone className="h-4 w-4" /> 9110-1256
             </a>
           </div>
 
