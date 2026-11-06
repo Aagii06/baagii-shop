@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Thumb from "@/components/common/Thumb";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, CreditCard, Handshake, LayoutGrid, LogOut, MessageSquareText, NotebookPen, Pencil, SlidersHorizontal, Store, UserRound, Users, type LucideIcon } from "lucide-react";
+import { ChevronRight, CreditCard, Handshake, KeyRound, LayoutGrid, LogOut, MessageSquareText, NotebookPen, Pencil, SlidersHorizontal, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon; tone: string }[] = [
@@ -104,6 +104,11 @@ export default function ProfilePage() {
           <Button asChild variant="outline" size="icon-sm" className="shrink-0">
             <Link href="/profile/edit" aria-label={t("profile.edit")}>
               <Pencil />
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="icon-sm" className="shrink-0">
+            <Link href="/profile/password" aria-label={t("pw.title")}>
+              <KeyRound />
             </Link>
           </Button>
         </Card>

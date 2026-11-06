@@ -77,9 +77,6 @@ export interface ProfileInput {
   logo?: string | null;
   /** SMS code sent to a new `phone` by `sendPhoneOtp`. */
   code?: string;
-  /** Current password; required with `newPassword`. */
-  password?: string;
-  newPassword?: string;
 }
 
 // Texts a code to the new number before `updateMe` switches to it.
@@ -91,6 +88,25 @@ export async function sendPhoneOtp(phone: string) {
 export async function updateMe(input: ProfileInput) {
   const res = await apiFetch<ApiItemResponse<LoginUser>>("/auth/me", { method: "PUT", body: input });
   return res.data;
+}
+
+// Changing the password: `sendPasswordOtp` checks the current password and
+// mails a code to the user's (already confirmed) email; `changePassword`
+// switches to `newPassword` with that code.
+export async function sendPasswordOtp(password: string, newPassword: string) {
+  const res = await apiFetch<ApiItemResponse<{ email: string } | null>>("/auth/me/password/sendOtp", {
+    method: "POST",
+    body: { password, newPassword },
+  });
+  /** Masked, e.g. "b***a@gmail.com". */
+  return res.data?.email ?? "";
+}
+
+export async function changePassword(password: string, newPassword: string, code: string) {
+  await apiFetch<ApiItemResponse<null>>("/auth/me/password", {
+    method: "PUT",
+    body: { password, newPassword, code },
+  });
 }
 
 // Sends a code to the new address before `changeEmail` switches to it.

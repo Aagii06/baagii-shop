@@ -19,7 +19,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_SECONDS = 60;
 
 /**
- * The signed-in user's own logo, name, phone, email and password. A new phone
+ * The signed-in user's own logo, name, phone and email (the password has its
+ * own page, /profile/password). A new phone
  * number is only saved with the SMS code sent to it; a new email is switched
  * on its own, from a modal, with the code sent to it.
  */
@@ -32,14 +33,10 @@ export default function EditProfilePage() {
   const phoneErrorId = useId();
   const codeErrorId = useId();
   const emailErrorId = useId();
-  const passwordErrorId = useId();
-  const newPasswordErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const codeRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const newPasswordRef = useRef<HTMLInputElement>(null);
   const emailDialogRef = useRef<HTMLDialogElement>(null);
   const emailCodeRef = useRef<HTMLInputElement>(null);
   const emailDialogTitleId = useId();
@@ -63,8 +60,6 @@ export default function EditProfilePage() {
   const [logo, setLogo] = useState<string | null>(user?.logo ?? null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const phoneChanged = phone !== currentPhone;
@@ -106,8 +101,6 @@ export default function EditProfilePage() {
         ? t("profile.emailCodeFirst")
         : undefined;
   const emailCodeError = emailCodeSubmitted && !emailCode.trim() ? t("profile.codeRequired") : undefined;
-  const newPasswordError = submitted && newPassword && newPassword.length < 6 ? t("profile.passwordShort") : undefined;
-  const passwordError = submitted && newPassword && !password ? t("profile.passwordRequired") : undefined;
 
   async function onSendCode() {
     if (phone.length < 8) {
@@ -187,8 +180,6 @@ export default function EditProfilePage() {
     if (phoneChanged && !code.trim()) return codeRef.current?.focus();
     if (email.trim() && !EMAIL_RE.test(email.trim())) return emailRef.current?.focus();
     if (emailChanged) return emailRef.current?.focus();
-    if (newPassword && newPassword.length < 6) return newPasswordRef.current?.focus();
-    if (newPassword && !password) return passwordRef.current?.focus();
 
     if (saving) return;
     setSaving(true);
@@ -199,7 +190,6 @@ export default function EditProfilePage() {
         email: email.trim() ? currentEmail : "",
         logo: logoFile ? await uploadFile(logoFile) : logo,
         ...(phoneChanged && { code: code.trim() }),
-        ...(newPassword && { password, newPassword }),
       });
       setUser(next);
     }, t("common.saved"));
@@ -248,9 +238,6 @@ export default function EditProfilePage() {
                 </button>
               )}
             </div>
-            <span className="text-sm font-semibold text-muted-foreground">
-              {logo ? t("profile.changePhoto") : t("profile.addPhoto")}
-            </span>
           </div>
 
           <Field label={t("common.name")} error={nameError} errorId={nameErrorId}>
@@ -341,36 +328,6 @@ export default function EditProfilePage() {
             </div>
           </Field>
 
-          <Field
-            label={t("profile.newPassword")}
-            error={newPasswordError}
-            errorId={newPasswordErrorId}
-            hint={t("profile.newPasswordHint")}
-          >
-            <Input
-              ref={newPasswordRef}
-              type="password"
-              autoComplete="new-password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              aria-invalid={Boolean(newPasswordError)}
-              aria-describedby={newPasswordError ? newPasswordErrorId : undefined}
-            />
-          </Field>
-
-          {newPassword && (
-            <Field label={t("profile.currentPassword")} error={passwordError} errorId={passwordErrorId}>
-              <Input
-                ref={passwordRef}
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                aria-invalid={Boolean(passwordError)}
-                aria-describedby={passwordError ? passwordErrorId : undefined}
-              />
-            </Field>
-          )}
         </div>
       </form>
 

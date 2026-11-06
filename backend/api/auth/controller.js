@@ -10,6 +10,8 @@ const { sendCodeMail } = require("../../helper/mailHelper");
 const PHONE_CHANGE_OTP = "adminPhone";
 // Имэйлийн кодыг phoneOtps-д имэйл хаягаар нь (phone баганад) хадгална
 const EMAIL_CHANGE_OTP = "adminEmail";
+// Нууц үг солих код — хэрэглэгчийн бүртгэлтэй имэйл рүү (имэйл хаягаар нь хадгална)
+const PASSWORD_CHANGE_OTP = "adminPassword";
 
 // admin/src/lib/api/auth.ts-ийн LoginUser / UserData.user
 const toUser = (user) => ({
@@ -60,7 +62,8 @@ module.exports.sendPhoneOtp = handle("sendPhoneOtp", async (req, res) => {
   return res.status(200).json({ ...result, data: null });
 });
 
-// { name, phone, code?, email?, logo?, password?, newPassword? }. Утас солиход шинэ дугаарт ирсэн code шаардана, имэйлийг changeEmail-ээр
+// { name, phone, code?, email?, logo? }. Утас солиход шинэ дугаарт ирсэн code шаардана, имэйлийг changeEmail-ээр,
+// нууц үгийг changePassword-оор
 module.exports.updateMe = handle("updateMe", async (req, res) => {
   const user = await findMe(req);
   if (!user) return notFound(res);
@@ -77,12 +80,7 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
   const changes = { name: req.body.name.trim(), phone, email: email ? user.email : null, updated_by: user.id, updated_at: now() };
   // logo илгээгээгүй бол хэвээр; null бол устгана
   if (req.body.logo !== undefined) changes.logo = req.body.logo || null;
-  if (req.body.newPassword) {
-    const matches = user.password && (await bcrypt.compare(req.body.password ?? "", user.password));
-    if (!matches) return fail(res, "Одоогийн нууц үг буруу байна");
-    changes.password = await bcrypt.hash(req.body.newPassword, 10);
-  }
-  // Бусад шалгалт давсны дараа кодыг зарцуулна — нууц үг буруу бол код дахин ашиглагдана
+  // Бусад шалгалт давсны дараа кодыг зарцуулна
   if (phone !== user.phone) {
     const result = await verifyPhoneOtp(req.shopId, phone, req.body.code ?? "", PHONE_CHANGE_OTP);
     if (!result.success) return fail(res, result.message);
@@ -90,6 +88,53 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
   await user.update(changes);
   return ok(res, toUser(user));
 });
+
+// Нууц үг солих: одоогийн нууц үг зөв, шинэ нь өөр, имэйл бүртгэлтэй эсэхийг шалгана. Алдааг string-ээр шиднэ.
+const checkPasswordChange = async (user, { password, newPassword }) => {
+  if (!user.email) throw "Эхлээд профайлдаа имэйл хаягаа баталгаажуулж нэмнэ үү";
+  const matches = user.password && (await bcrypt.compare(String(password ?? ""), user.password));
+  if (!matches) throw "Одоогийн нууц үг буруу байна";
+  if (await bcrypt.compare(String(newPassword), user.password)) throw "Шинэ нууц үг одоогийнхоос өөр байна";
+};
+
+// { password, newPassword } — шалгаад бүртгэлтэй имэйл рүү код илгээнэ; changePassword-д code-оор солино
+module.exports.sendPasswordOtp = handle("sendPasswordOtp", async (req, res) => {
+  const user = await findMe(req);
+  if (!user) return notFound(res);
+  await checkPasswordChange(user, req.body);
+  const mailReady = Boolean(process.env.MAIL_USER_NAME && process.env.MAIL_USER_PASS);
+  if (!mailReady && process.env.NODE_ENV === "production") return fail(res, "Имэйл илгээх тохиргоо хийгдээгүй байна");
+  const email = emailOf(user.email);
+  const send = mailReady
+    ? (code) =>
+        sendCodeMail(req.shopId, email, {
+          title: "Нууц үг солих код",
+          intro: "Таны бүртгэлийн нууц үгийг солих хүсэлт ирлээ. Доорх кодыг оруулж баталгаажуулна уу. Хэрэв та хүсэлт гаргаагүй бол нууц үгээ даруй солино уу.",
+          code,
+        })
+    : null;
+  const result = await sendPhoneOtp(req.shopId, email, PASSWORD_CHANGE_OTP, send);
+  // Аль хаяг руу явсныг харуулахад (жишээ нь b***@gmail.com)
+  return res.status(200).json({ ...result, data: result.success ? { email: maskEmail(email) } : null });
+});
+
+// { password, newPassword, code } — имэйлд ирсэн кодоор баталгаажуулж нууц үгийг солино
+module.exports.changePassword = handle("changePassword", async (req, res) => {
+  const user = await findMe(req);
+  if (!user) return notFound(res);
+  await checkPasswordChange(user, req.body);
+  const result = await verifyPhoneOtp(req.shopId, emailOf(user.email), req.body.code ?? "", PASSWORD_CHANGE_OTP);
+  if (!result.success) return fail(res, result.message);
+  await user.update({ password: await bcrypt.hash(String(req.body.newPassword), 10), updated_by: user.id, updated_at: now() });
+  return ok(res, null, "Нууц үг солигдлоо");
+});
+
+// "bataa@gmail.com" → "b***a@gmail.com"
+const maskEmail = (email) => {
+  const [local, domain] = String(email).split("@");
+  if (!domain) return email;
+  return `${local.length <= 2 ? local[0] : local[0] + "***" + local.slice(-1)}@${domain}`;
+};
 
 const sendEmailCode = (shopId, email, code) =>
   sendCodeMail(shopId, email, {

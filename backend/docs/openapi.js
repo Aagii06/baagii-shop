@@ -120,6 +120,18 @@ module.exports = {
       }),
     },
     "/api/auth/getUserData": { get: op("Admin: Нэвтрэх", "Нэвтэрсэн хэрэглэгчийн мэдээлэл", { security: admin }) },
+    "/api/auth/me/password/sendOtp": {
+      post: op("Admin: Нэвтрэх", "Нууц үг солих код бүртгэлтэй имэйл рүү илгээх (одоогийн нууц үгийг шалгана)", {
+        security: admin,
+        requestBody: json({ password: str("******", "Одоогийн нууц үг"), newPassword: str("******", "Шинэ нууц үг (6+ тэмдэгт)") }, ["password", "newPassword"]),
+      }),
+    },
+    "/api/auth/me/password": {
+      put: op("Admin: Нэвтрэх", "Имэйлд ирсэн кодоор нууц үг солих", {
+        security: admin,
+        requestBody: json({ password: str("******"), newPassword: str("******"), code: str("123456") }, ["password", "newPassword", "code"]),
+      }),
+    },
 
     "/api/product": {
       get: op("Admin: Бараа", "Барааны жагсаалт", { security: admin, parameters: listQuery, responses: reply("Жагсаалт", listData()) }),

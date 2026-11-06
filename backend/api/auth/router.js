@@ -3,7 +3,7 @@ const { body } = require("express-validator");
 const { protect } = require("../../middleware/auth");
 const { validate } = require("../../utils/validationHelper");
 const { isPhone } = require("../../helper/helper");
-const { login, getUserData, sendPhoneOtp, updateMe, sendEmailOtp, changeEmail } = require("./controller");
+const { login, getUserData, sendPhoneOtp, updateMe, sendPasswordOtp, changePassword, sendEmailOtp, changeEmail } = require("./controller");
 
 router.post(
   "/login",
@@ -16,7 +16,7 @@ router.post(
 router.get("/getUserData", protect, getUserData);
 // Утас солихын өмнө шинэ дугаар руу код илгээнэ
 router.post("/me/sendOtp", protect, validate([body("phone").custom((v) => isPhone(v)).withMessage("Утасны дугаар 8 оронтой байна")]), sendPhoneOtp);
-// Нэвтэрсэн админ өөрийн мэдээллээ засна; newPassword өгвөл password (одоогийн нууц үг), утас солибол code шаардана
+// Нэвтэрсэн админ өөрийн мэдээллээ засна; утас солибол code шаардана
 router.put(
   "/me",
   protect,
@@ -25,10 +25,17 @@ router.put(
     body("phone").custom((v) => isPhone(v)).withMessage("Утасны дугаар 8 оронтой байна"),
     body("email").optional({ checkFalsy: true }).trim().isEmail().withMessage("Имэйл буруу байна"),
     body("logo").optional({ nullable: true }).isString().withMessage("Лого буруу байна"),
-    body("newPassword").optional({ checkFalsy: true }).isLength({ min: 6 }).withMessage("Нууц үг 6-аас дээш тэмдэгттэй байна"),
   ]),
   updateMe,
 );
+// Нууц үг солих: одоогийн password, шинэ newPassword (6+ тэмдэгт) шалгаад бүртгэлтэй имэйл рүү код
+// илгээнэ (/me/password/sendOtp), тэр кодоор солино (/me/password)
+const passwordRules = [
+  body("password").notEmpty().withMessage("Одоогийн нууц үгээ оруулна уу"),
+  body("newPassword").isLength({ min: 6 }).withMessage("Нууц үг 6-аас дээш тэмдэгттэй байна"),
+];
+router.post("/me/password/sendOtp", protect, validate(passwordRules), sendPasswordOtp);
+router.put("/me/password", protect, validate([...passwordRules, body("code").trim().notEmpty().withMessage("Код оруулна уу")]), changePassword);
 // Имэйл солихын өмнө шинэ имэйл рүү код илгээж, кодоор нь солино
 const isEmail = body("email").trim().isEmail().withMessage("Имэйл буруу байна");
 router.post("/me/email/sendOtp", protect, validate([isEmail]), sendEmailOtp);
