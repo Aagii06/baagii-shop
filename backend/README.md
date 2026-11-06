@@ -1,6 +1,6 @@
 # UVS shop backend
 
-Олон дэлгүүрийн нэг backend: GOLDEN UVS (`../admin`, `../web`) болон Ajrug
+Олон дэлгүүрийн нэг backend: UVS SHOP (`../admin`, `../web`) болон Ajrug
 (`../../AjrugShop/admin`, `web`) бүгд үүнийг ашиглана. Бүтэц нь
 `BaagiiCar/backend`-тэй ижил: Express + Sequelize (MySQL), migration / seeder нь
 sequelize-cli.
@@ -13,7 +13,7 @@ Frontend бүр `.env`-ийн `NEXT_PUBLIC_SHOP_ID`-аа хүсэлт бүрий
 
 | id | Дэлгүүр    |
 | -- | ---------- |
-| 1  | GOLDEN UVS |
+| 1  | UVS SHOP |
 | 2  | Ajrug      |
 
 - Бараа, категори, сонголт (attr), захиалга, сагс, худалдан авагч, admin

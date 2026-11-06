@@ -1,6 +1,6 @@
-# GOLDEN UVS Admin
+# UVS SHOP Admin
 
-GOLDEN UVS дэлгүүрийн удирдлагын хэсэг. Дэлгүүртэй (`../web`) ижил backend
+UVS SHOP дэлгүүрийн удирдлагын хэсэг. Дэлгүүртэй (`../web`) ижил backend
 (`../backend`, admin-ийн API нь `/api`) ашигладаг Next.js 16 апп. Хуучин
 eshop-service-ийн хаяг `.env`-д коммент хэлбэрээр үлдсэн. Ажруг admin-ы бүтэц дээр суурилсан,
 харин өнгө, лого, фонт нь дэлгүүрийн брэндийнх (`src/app/globals.css`).

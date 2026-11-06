@@ -213,11 +213,12 @@ export default function Header() {
                 className="h-10 w-10 sm:h-11 sm:w-11 object-contain"
                 priority
               />
-              <span className="hidden sm:flex flex-col leading-none">
-                <span className="text-lg font-bold tracking-tight text-primary">
+              {/* Mobile: the name alone, small; from sm up with the tagline. */}
+              <span className="flex flex-col leading-none">
+                <span className="text-sm sm:text-lg font-bold tracking-tight text-primary">
                   {t("header.brand.name")}
                 </span>
-                <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                <span className="hidden sm:block text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
                   {t("header.brand.tagline")}
                 </span>
               </span>

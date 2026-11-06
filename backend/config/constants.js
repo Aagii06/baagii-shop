@@ -50,6 +50,9 @@ const constant = {
     rejected: "rejected",
   },
 
+  // Сагсанд нэмсэн бараа бүр энэ хугацааны дараа сагснаас автоматаар хасагдана
+  cartLineTtlMinutes: 60,
+
   // Вэбийн "Бидэнд бичнэ үү" санал хүсэлт
   feedbackStatuses: {
     new: "new",

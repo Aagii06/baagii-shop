@@ -20,8 +20,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "GOLDEN UVS Admin",
-    template: "%s · GOLDEN UVS Admin",
+    default: "UVS SHOP Admin",
+    template: "%s · UVS SHOP Admin",
   },
   robots: { index: false, follow: false },
   icons: {

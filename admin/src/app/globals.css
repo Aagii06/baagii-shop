@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   GOLDEN UVS brand tokens. The values are the shop's oklch tokens
+   UVS SHOP brand tokens. The values are the shop's oklch tokens
    (../web/src/app/globals.css) converted to hex, so the admin reads as the
    same brand: purple primary, purple → blue gradient, cool greys.
    Light theme only.

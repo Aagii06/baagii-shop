@@ -1,4 +1,4 @@
-# GoldenUvsOnlineShop - Free Next.js Tailwind CSS E-Commerce Template
+# UvsShop - Free Next.js Tailwind CSS E-Commerce Template
 
 #### Preview
 

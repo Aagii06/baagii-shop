@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { cartDetails, orders, sequelize } = require("../../models");
 const { shopSettings, orderStatuses } = require("../../config/constants");
-const { findCart, detailInclude, isSellable } = require("../../helper/cartHelper");
+const { findCart, detailInclude, isActiveLine } = require("../../helper/cartHelper");
 const { placeOrder, findOrder, toWebOrder, itemsInclude } = require("../../helper/orderHelper");
 const { createInvoice, checkOrder, toWebInvoice } = require("../../helper/qpayHelper");
 const { paymentSettings } = require("../../models");
@@ -43,7 +43,7 @@ router.post(
     const t = await sequelize.transaction();
     try {
       const cart = await findCart(req.session, t);
-      const lines = cart ? (await cartDetails.findAll({ where: { cart_id: cart.id }, include: detailInclude, transaction: t })).filter(isSellable) : [];
+      const lines = cart ? (await cartDetails.findAll({ where: { cart_id: cart.id }, include: detailInclude, transaction: t })).filter(isActiveLine) : [];
       if (lines.length === 0) throw "Сагс хоосон байна";
       const subtotal = lines.reduce((sum, l) => sum + toNumber(l.variant.price) * l.qty, 0);
       const { fee, freeAbove } = delivery[method];

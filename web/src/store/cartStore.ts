@@ -21,6 +21,8 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  /** `Date.now()`-based time the backend drops this line (1 h after adding). */
+  expiresAt?: number;
 }
 
 interface LineRef {
@@ -89,6 +91,7 @@ function mapCartDetail(cd: ApiCartDetail): CartItem {
     price: Number(cd.price),
     image: fileThumbnailUrl(cd.image) ?? "",
     quantity: Number(cd.qty),
+    expiresAt: cd.expiresIn != null ? Date.now() + cd.expiresIn * 1000 : undefined,
   };
 }
 

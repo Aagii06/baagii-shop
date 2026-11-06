@@ -1,16 +1,16 @@
 const router = require("express").Router();
 const { carts, cartDetails, productVariants, products, sequelize } = require("../../models");
-const { findCart, getOrCreateCart, detailInclude, toCartDetail, isSellable } = require("../../helper/cartHelper");
+const { findCart, getOrCreateCart, detailInclude, toCartDetail, isActiveLine, isExpired } = require("../../helper/cartHelper");
 const { ok, fail, handle, now, toNumber } = require("../../helper/helper");
 
-// Идэвхтэй сагс (вэб нэгийг нь ашиглана). Зарагдахаа больсон барааг автоматаар хасна.
+// Идэвхтэй сагс (вэб нэгийг нь ашиглана). Зарагдахаа больсон, 1 цагийн хугацаа нь дууссан барааг автоматаар хасна.
 const activeCarts = async (session) => {
   const cart = await findCart(session);
   if (!cart) return [];
   const details = await cartDetails.findAll({ where: { cart_id: cart.id }, include: detailInclude, order: [["id", "asc"]] });
   const sellable = [];
   for (const d of details) {
-    if (isSellable(d)) sellable.push(d);
+    if (isActiveLine(d)) sellable.push(d);
     else await d.destroy();
   }
   const lines = sellable.map(toCartDetail);
@@ -54,7 +54,12 @@ router.post(
     const t = await sequelize.transaction();
     try {
       const cart = await getOrCreateCart(req.session, t);
-      const line = await cartDetails.findOne({ where: { cart_id: cart.id, variant_id: variantId }, transaction: t });
+      let line = await cartDetails.findOne({ where: { cart_id: cart.id, variant_id: variantId }, transaction: t });
+      // Хугацаа нь дууссан мөрийг хасаад шинээр (шинэ 1 цагтай) нэмнэ
+      if (line && isExpired(line)) {
+        await line.destroy({ transaction: t });
+        line = null;
+      }
       if (qty === 0) {
         if (line) await line.destroy({ transaction: t });
         await t.commit();

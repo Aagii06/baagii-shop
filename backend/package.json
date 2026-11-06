@@ -1,7 +1,7 @@
 {
   "name": "uvs-shop-backend",
   "version": "1.0.0",
-  "description": "GOLDEN UVS дэлгүүрийн backend (admin + web)",
+  "description": "UVS SHOP дэлгүүрийн backend (admin + web)",
   "main": "server.js",
   "license": "MIT",
   "private": true,

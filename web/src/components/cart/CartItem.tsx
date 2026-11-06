@@ -5,6 +5,7 @@ import { formatMNT } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
 import { Minus, Plus, X } from "lucide-react";
 import SafeImage from "@/components/ui/safe-image";
+import CartLineTimer from "./CartLineTimer";
 
 interface CartItemProps {
   item: {
@@ -17,6 +18,7 @@ interface CartItemProps {
     price: number;
     image: string;
     quantity: number;
+    expiresAt?: number;
   };
 }
 
@@ -61,6 +63,7 @@ export default function CartItem({ item }: CartItemProps) {
             <p className="text-xs font-medium text-emerald-600 mt-1">
               {t("cart.inStock")}
             </p>
+            {item.expiresAt != null && <CartLineTimer expiresAt={item.expiresAt} />}
           </div>
 
           <button

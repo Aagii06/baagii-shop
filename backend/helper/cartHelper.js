@@ -1,6 +1,6 @@
 const { carts, cartDetails, productVariants, products, op } = require("../models");
-const { defaultBranch } = require("../config/constants");
-const { toNumber, now } = require("./helper");
+const { defaultBranch, cartLineTtlMinutes } = require("../config/constants");
+const { toNumber, now, parseAt } = require("./helper");
 const { variantImage } = require("./productHelper");
 
 // Сагс: утсаар нэвтэрсэн бол customer_id-аар, үгүй бол зочны guest_id-аар хайна (дэлгүүр бүрт тусдаа)
@@ -18,6 +18,15 @@ const detailInclude = [
   { model: productVariants, as: "variant", include: [{ model: products, as: "product" }] },
 ];
 module.exports.detailInclude = detailInclude;
+
+// Сагсны мөр нэмэгдсэнээс (created_at) хойш cartLineTtlMinutes болоход хугацаа нь дуусна.
+// Тоо ширхгийг өөрчлөхөд хугацаа шинэчлэгдэхгүй.
+const TTL_MS = cartLineTtlMinutes * 60 * 1000;
+const expiresInSec = (detail) => {
+  if (!detail.created_at) return Math.round(TTL_MS / 1000);
+  return Math.max(0, Math.floor((parseAt(detail.created_at).valueOf() + TTL_MS - Date.now()) / 1000));
+};
+module.exports.isExpired = (detail) => expiresInSec(detail) <= 0;
 
 // web/src/lib/api/cart.ts-ийн ApiCartDetail. Үнэ нь барааны одоогийн үнэ.
 module.exports.toCartDetail = (detail) => {
@@ -40,12 +49,17 @@ module.exports.toCartDetail = (detail) => {
     price: price.toFixed(2),
     qty: String(detail.qty),
     amount: (price * detail.qty).toFixed(2),
+    // Хэдэн секундын дараа сагснаас хасагдах (вэб тоолуур харуулна)
+    expiresIn: expiresInSec(detail),
   };
 };
 
 // Зарагдахгүй болсон (устгасан / нуусан) барааг сагснаас хасна
 module.exports.isSellable = (detail) =>
   detail.variant?.status === "active" && detail.variant.product?.status === "active" && detail.variant.product.is_active;
+
+// Сагсанд үлдэх мөр: зарагдаж буй, хугацаа нь дуусаагүй
+module.exports.isActiveLine = (detail) => module.exports.isSellable(detail) && !module.exports.isExpired(detail);
 
 // Утсаар нэвтрэхэд зочны сагсыг худалдан авагчийнх руу нийлүүлнэ
 module.exports.mergeGuestCart = async (shopId, guestId, customerId, t) => {

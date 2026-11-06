@@ -46,6 +46,11 @@ export interface ApiCartDetail {
   price: string;
   qty: string;
   amount: string;
+  /**
+   * Seconds until the backend drops this line from the cart (each line lives
+   * one hour from when it was added). Relative, so client clock skew is moot.
+   */
+  expiresIn?: number;
 }
 
 export interface ApiActiveCart {

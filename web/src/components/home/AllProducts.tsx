@@ -12,7 +12,7 @@ import ProductList from "./ProductList";
 import ProductListSkeleton from "./ProductListSkeleton";
 import StoresGrid from "./StoresGrid";
 
-const HOME_LIST_SIZE = 32;
+const HOME_LIST_SIZE = 40;
 
 // Everything on the home page below the hero, from one product fetch.
 export default function AllProducts() {
@@ -27,7 +27,7 @@ export default function AllProducts() {
       .finally(() => setLoading(false));
   }, []);
 
-  // The home list: the 32 most recently edited/added products.
+  // The home list: the 40 most recently edited/added products.
   const newest = useMemo(() => [...products].sort(byNewest).slice(0, HOME_LIST_SIZE), [products]);
 
   return (
