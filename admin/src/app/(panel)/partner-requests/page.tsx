@@ -1,6 +1,7 @@
 "use client";
 
 import ChipTabs from "@/components/common/ChipTabs";
+import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -15,6 +16,7 @@ import {
   getPartnerRequests,
   partnerStatusLabel,
   rejectPartnerRequest,
+  revertPartnerRequest,
   type PartnerRequest,
   type PartnerRequestStatus,
 } from "@/lib/api/partnerRequests";
@@ -64,10 +66,12 @@ function RequestRow({
   request,
   onApprove,
   onReject,
+  onRevert,
 }: {
   request: PartnerRequest;
   onApprove: (password: string) => Promise<boolean>;
   onReject: () => void;
+  onRevert: () => void;
 }) {
   const { t } = useLanguage();
   const passwordErrorId = useId();
@@ -146,6 +150,12 @@ function RequestRow({
             </Button>
           </div>
         ))}
+
+      {request.status === "approved" && (
+        <Button variant="outline" className="mt-3 h-10 w-full" onClick={onRevert}>
+          {t("pr.revert")}
+        </Button>
+      )}
     </li>
   );
 }
@@ -154,6 +164,7 @@ export default function PartnerRequestsPage() {
   const { t } = useLanguage();
   const { data, error, reload } = useApi(getPartnerRequests);
   const { run } = useToast();
+  const confirm = useConfirm();
   const [status, setStatus] = useState<PartnerRequestStatus | "all">("all");
 
   const rows = data?.filter((request) => status === "all" || request.status === status) ?? [];
@@ -163,6 +174,16 @@ export default function PartnerRequestsPage() {
     const done = await run(action, success);
     if (done) reload();
     return Boolean(done);
+  }
+
+  async function revert(request: PartnerRequest) {
+    const ok = await confirm({
+      title: t("pr.revertTitle", { id: request.id }),
+      description: t("pr.revertDesc"),
+      confirmLabel: t("pr.revert"),
+      tone: "danger",
+    });
+    if (ok) decide(() => revertPartnerRequest(request.id), t("pr.reverted"));
   }
 
   return (
@@ -226,6 +247,7 @@ export default function PartnerRequestsPage() {
               request={request}
               onApprove={(password) => decide(() => approvePartnerRequest(request.id, password), t("pr.approved"))}
               onReject={() => decide(() => rejectPartnerRequest(request.id), t("pr.rejected"))}
+              onRevert={() => revert(request)}
             />
           ))}
         </ul>

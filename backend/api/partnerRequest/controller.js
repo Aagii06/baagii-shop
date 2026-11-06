@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { partnerRequests, stores, users, sequelize } = require("../../models");
+const { partnerRequests, products, stores, users, sequelize } = require("../../models");
 const { roles, partnerStatuses } = require("../../config/constants");
 const { saveLog } = require("../../utils/logHelper");
 const { ok, handle, toIso } = require("../../helper/helper");
@@ -19,9 +19,23 @@ const toRecord = (row) => ({
   createdAt: toIso(row.created_at),
 });
 
+// ?status= - зөвхөн тухайн төлөв, ?skip=&take= - хуудаслана (take-гүй бол бүгд).
+// stats - төлөв бүрийн тоо (шүүлтээс үл хамааран)
 module.exports.list = handle("partnerList", async (req, res) => {
-  const rows = await partnerRequests.findAll({ where: { shop_id: req.shopId }, order: [["id", "desc"]], raw: true });
-  return ok(res, { rows: rows.map(toRecord), count: rows.length, summary: [] });
+  const where = { shop_id: req.shopId };
+  if (partnerStatuses[req.query.status]) where.status = req.query.status;
+  const take = Number(req.query.take) || undefined;
+  const skip = take ? Math.max(Number(req.query.skip) || 0, 0) : undefined;
+  const { rows, count } = await partnerRequests.findAndCountAll({ where, order: [["id", "desc"]], limit: take, offset: skip, raw: true });
+  const grouped = await partnerRequests.findAll({
+    where: { shop_id: req.shopId },
+    attributes: ["status", [sequelize.fn("COUNT", sequelize.col("id")), "n"]],
+    group: ["status"],
+    raw: true,
+  });
+  const stats = Object.fromEntries(Object.values(partnerStatuses).map((s) => [s, 0]));
+  for (const g of grouped) if (g.status in stats) stats[g.status] = Number(g.n);
+  return ok(res, { rows: rows.map(toRecord), count, stats, summary: [] });
 });
 
 // { password } — шинэ SHOPPER хэрэглэгчийн нэвтрэх нууц үг (6+ тэмдэгт)
@@ -60,6 +74,34 @@ module.exports.approve = handle("partnerApprove", async (req, res) => {
       { transaction: t },
     );
     await saveLog({ shop_id: req.shopId, object_name: "partnerRequests", object_id: row.id, log_action: partnerStatuses.approved, created_by: by, created_at: at }, t);
+    await t.commit();
+    return ok(res, toRecord(row));
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
+});
+
+// Баталснаа буцаана: батлахад үүссэн SHOPPER хэрэглэгч, дэлгүүрийг устгаж (status: deleted),
+// хүсэлтийг дахин хүлээгдэж буй болгоно. Дэлгүүрт бараа бүртгэгдсэн бол буцаахгүй.
+module.exports.revert = handle("partnerRevert", async (req, res) => {
+  const { by, at } = req.body;
+  const t = await sequelize.transaction();
+  try {
+    const row = await partnerRequests.findOne({ where: { id: req.params.id, shop_id: req.shopId }, transaction: t });
+    if (!row) throw "Хүсэлт олдсонгүй";
+    if (row.status !== partnerStatuses.approved) throw "Зөвхөн баталсан хүсэлтийг буцаана";
+    if (row.store_id && (await products.count({ where: { shop_id: req.shopId, store_id: row.store_id, status: "active" }, transaction: t })))
+      throw "Дэлгүүрт бараа бүртгэлтэй тул буцаах боломжгүй. Эхлээд барааг устгана уу";
+
+    const removed = { status: "deleted", deleted_by: by, deleted_at: at };
+    if (row.user_id) await users.update(removed, { where: { id: row.user_id, shop_id: req.shopId }, transaction: t });
+    if (row.store_id) await stores.update(removed, { where: { id: row.store_id, shop_id: req.shopId }, transaction: t });
+    await row.update(
+      { status: partnerStatuses.pending, store_id: null, user_id: null, decided_by: null, decided_at: null, updated_at: at },
+      { transaction: t },
+    );
+    await saveLog({ shop_id: req.shopId, object_name: "partnerRequests", object_id: row.id, log_action: "reverted", created_by: by, created_at: at }, t);
     await t.commit();
     return ok(res, toRecord(row));
   } catch (error) {

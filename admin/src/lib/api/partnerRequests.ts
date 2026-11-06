@@ -8,6 +8,7 @@ import { apiFetch, type ApiListResponse } from "./client";
 //   GET  /partnerRequest                → { rows: PartnerRequest[], count }
 //   POST /partnerRequest/{id}/approve   { password }
 //   POST /partnerRequest/{id}/reject
+//   POST /partnerRequest/{id}/revert    approved → pending (removes the store and its shopper)
 
 export type PartnerRequestStatus = "pending" | "approved" | "rejected";
 
@@ -44,6 +45,11 @@ export async function getPartnerRequests(): Promise<PartnerRequest[]> {
 /** `password` is what the new shopper signs in to the admin with. */
 export async function approvePartnerRequest(id: number, password: string): Promise<void> {
   await apiFetch(`/partnerRequest/${id}/approve`, { method: "POST", body: { password } });
+}
+
+/** Undoes an approval; refused while the store still has products. */
+export async function revertPartnerRequest(id: number): Promise<void> {
+  await apiFetch(`/partnerRequest/${id}/revert`, { method: "POST" });
 }
 
 export async function rejectPartnerRequest(id: number): Promise<void> {
