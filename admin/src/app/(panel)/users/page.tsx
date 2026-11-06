@@ -35,7 +35,7 @@ function UserRow({ user, isMe, onChanged }: { user: User; isMe: boolean; onChang
   }
 
   return (
-    <li className="flex items-center gap-2 py-3.5">
+    <li className="flex items-center gap-2 px-4 py-3.5">
       <span className="min-w-0 grow">
         <span className="flex items-center gap-2">
           <span className="truncate text-[15px] font-bold">{name}</span>
@@ -112,7 +112,7 @@ export default function UsersPage() {
           <EmptyState icon={Users} title={t("us.empty")} />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
+        <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
           {rows.map((user) => (
             <UserRow key={user.id} user={user} isMe={user.id === me?.id} onChanged={reload} />
           ))}

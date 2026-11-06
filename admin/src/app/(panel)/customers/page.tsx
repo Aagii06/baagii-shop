@@ -16,7 +16,7 @@ function CustomerRow({ customer }: { customer: Customer }) {
   const { t } = useLanguage();
 
   return (
-    <li className="flex items-center gap-3 py-3.5">
+    <li className="flex items-center gap-3 px-4 py-3.5">
       <span className="min-w-0 grow">
         <span className="block truncate text-[15px] font-bold">{customer.name || t("cu.guest")}</span>
         <span className="mt-0.5 block truncate text-xs text-muted-foreground">
@@ -76,7 +76,7 @@ export default function CustomersPage() {
           <EmptyState icon={UserRound} title={q ? t("common.noResults") : t("cu.empty")} />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
+        <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
           {rows.map((customer) => (
             <CustomerRow key={customer.id} customer={customer} />
           ))}

@@ -33,7 +33,7 @@ function StoreRow({ store, onChanged }: { store: Store; onChanged: () => void })
   }
 
   return (
-    <li className="flex items-center gap-3 py-3.5">
+    <li className="flex items-center gap-3 px-4 py-3.5">
       <Thumb id={store.logo} size={48} className="rounded-xl" />
       <span className="min-w-0 grow">
         <span className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export default function StoresPage() {
           <EmptyState icon={StoreIcon} title={t("st.empty")} description={t("st.emptyHint")} />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
+        <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
           {data.map((store) => (
             <StoreRow key={store.id} store={store} onChanged={reload} />
           ))}
