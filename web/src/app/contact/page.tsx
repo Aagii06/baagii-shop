@@ -190,7 +190,7 @@ export default function Contact() {
                         type="tel"
                         inputMode="tel"
                         autoComplete="tel"
-                        placeholder="9911-2233"
+                        placeholder={t("contact.form.phone")}
                         value={formData.phone}
                         onChange={handleInputChange}
                       />
@@ -218,7 +218,7 @@ export default function Contact() {
                       id="message"
                       name="message"
                       placeholder={t("contact.form.messagePlaceholder")}
-                      rows={6}
+                      rows={3}
                       value={formData.message}
                       onChange={handleInputChange}
                       required

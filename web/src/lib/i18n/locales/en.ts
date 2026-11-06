@@ -397,7 +397,7 @@ export const en: Dict = {
   "contact.form.phone": "Phone number",
   "contact.form.subject": "Subject",
   "contact.form.subjectPlaceholder": "How can we help?",
-  "contact.form.message": "Message",
+  "contact.form.message": "Feedback",
   "contact.form.messagePlaceholder": "Write your question or feedback here...",
   "contact.form.sending": "Sending...",
   "contact.form.sent": "Sent!",

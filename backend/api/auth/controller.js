@@ -5,7 +5,7 @@ const { roles } = require("../../config/constants");
 const { Op } = require("sequelize");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
-const { sendMail } = require("../../helper/mailHelper");
+const { sendCodeMail } = require("../../helper/mailHelper");
 
 const PHONE_CHANGE_OTP = "adminPhone";
 // Имэйлийн кодыг phoneOtps-д имэйл хаягаар нь (phone баганад) хадгална
@@ -92,10 +92,10 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
 });
 
 const sendEmailCode = (shopId, email, code) =>
-  sendMail(shopId, email, {
-    subject: `Баталгаажуулах код: ${code}`,
-    text: `Таны имэйл солих баталгаажуулах код: ${code}\nКод 10 минут хүчинтэй.`,
-    html: `<p>Таны имэйл солих баталгаажуулах код:</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p><p style="color:#666">Код 10 минут хүчинтэй. Та энэ хүсэлтийг илгээгээгүй бол үл тоомсорлоно уу.</p>`,
+  sendCodeMail(shopId, email, {
+    title: "Имэйл баталгаажуулах код",
+    intro: "Таны бүртгэлийн имэйл хаягийг солих хүсэлт ирлээ. Доорх кодыг оруулж баталгаажуулна уу.",
+    code,
   });
 
 // { email } — шинэ имэйл рүү код илгээнэ; changeEmail-д code-оор баталгаажуулна

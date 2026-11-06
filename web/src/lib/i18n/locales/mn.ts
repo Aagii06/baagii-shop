@@ -400,7 +400,7 @@ export const mn: Dict = {
   "contact.form.phone": "Утасны дугаар",
   "contact.form.subject": "Гарчиг",
   "contact.form.subjectPlaceholder": "Танд юугаар туслах вэ?",
-  "contact.form.message": "Мессеж",
+  "contact.form.message": "Санал хүсэлт",
   "contact.form.messagePlaceholder": "Асуулт, санал хүсэлтээ энд бичнэ үү...",
   "contact.form.sending": "Илгээж байна...",
   "contact.form.sent": "Илгээгдлээ!",

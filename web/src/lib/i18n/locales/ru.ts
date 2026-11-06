@@ -399,7 +399,7 @@ export const ru: Dict = {
   "contact.form.phone": "Номер телефона",
   "contact.form.subject": "Тема",
   "contact.form.subjectPlaceholder": "Чем мы можем помочь?",
-  "contact.form.message": "Сообщение",
+  "contact.form.message": "Отзыв или пожелание",
   "contact.form.messagePlaceholder": "Напишите ваш вопрос или пожелание здесь...",
   "contact.form.sending": "Отправка...",
   "contact.form.sent": "Отправлено!",
