@@ -3,7 +3,7 @@
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useConfirm } from "@/components/common/Confirm";
 import ChipTabs from "@/components/common/ChipTabs";
-import { EmptyState, ErrorState } from "@/components/common/States";
+import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import PageHeader from "@/components/layout/PageHeader";
 import OrderListSkeleton from "@/components/orders/OrderListSkeleton";
@@ -20,10 +20,11 @@ import {
   type Order,
   type OrderStatus,
 } from "@/lib/api/orders";
-import { cn, formatMNT, formatWhen } from "@/lib/utils";
-import { Loader2, Plus, ReceiptText } from "lucide-react";
+import { cn, formatMNT, formatPhone, formatWhen } from "@/lib/utils";
+import { Loader2, Phone, Plus, ReceiptText, X } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 const TABS: OrderStatus[] = ["pending", "confirmed", "delivered", "returned", "cancelled"];
 const PAGE_SIZE = 20;
@@ -31,7 +32,19 @@ const PAGE_SIZE = 20;
 type Page = { key: string; rows: Order[]; count: number; pending: number; error?: Error };
 
 export default function OrdersPage() {
+  // useSearchParams needs a Suspense boundary for the static export.
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <OrdersList />
+    </Suspense>
+  );
+}
+
+function OrdersList() {
   const { t } = useLanguage();
+  const router = useRouter();
+  // ?phone= — opened from a customer's "Захиалга харах" (Худалдан авагчид).
+  const phone = (useSearchParams().get("phone") ?? "").replace(/\D/g, "");
   const { run } = useToast();
   const confirm = useConfirm();
   const [status, setStatus] = useState<OrderStatus | "all">("all");
@@ -39,7 +52,7 @@ export default function OrdersPage() {
   // Pages load as the list is scrolled, pending orders first (the backend
   // sorts them). `key` ties the loaded rows to the tab they were fetched
   // for, so a stale page is treated as "loading" until the new one lands.
-  const key = status;
+  const key = `${status}|${phone}`;
   const filter = status === "all" ? undefined : status;
   const [page, setPage] = useState<Page | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -49,7 +62,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     let cancelled = false;
-    getOrdersPage({ skip: 0, take: PAGE_SIZE, status: filter }).then(
+    getOrdersPage({ skip: 0, take: PAGE_SIZE, status: filter, phone: phone || undefined }).then(
       (result) => {
         if (cancelled) return;
         setMoreFailed(false);
@@ -69,7 +82,7 @@ export default function OrdersPage() {
     return () => {
       cancelled = true;
     };
-  }, [key, version, filter]);
+  }, [key, version, filter, phone]);
 
   const ready = page?.key === key;
   const rows = ready ? page.rows : [];
@@ -81,7 +94,12 @@ export default function OrdersPage() {
     setLoadingMore(true);
     setMoreFailed(false);
     try {
-      const result = await getOrdersPage({ skip: page.rows.length, take: PAGE_SIZE, status: filter });
+      const result = await getOrdersPage({
+        skip: page.rows.length,
+        take: PAGE_SIZE,
+        status: filter,
+        phone: phone || undefined,
+      });
       setPage((prev) =>
         prev && prev.key === key
           ? {
@@ -97,7 +115,7 @@ export default function OrdersPage() {
     } finally {
       setLoadingMore(false);
     }
-  }, [page, key, loadingMore, filter]);
+  }, [page, key, loadingMore, filter, phone]);
 
   // Loads the next page once the bottom of the list nears the screen. A
   // failed page stops the loop; "try again" retries it.
@@ -161,6 +179,23 @@ export default function OrdersPage() {
             })),
           ]}
         />
+        {phone && (
+          <div className="mt-3 flex items-center gap-2">
+            <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-secondary py-1 pl-3 pr-1 text-sm font-semibold text-secondary-foreground">
+              <Phone className="size-3.5 shrink-0" aria-hidden />
+              <span className="truncate font-mono">{formatPhone(phone)}</span>
+              <button
+                type="button"
+                onClick={() => router.replace("/orders")}
+                aria-label={t("orders.phoneClear")}
+                title={t("orders.phoneClear")}
+                className="grid size-6 shrink-0 place-items-center rounded-full hover:bg-foreground/10"
+              >
+                <X className="size-3.5" />
+              </button>
+            </span>
+          </div>
+        )}
       </PageHeader>
 
       {!ready ? (
@@ -174,7 +209,9 @@ export default function OrdersPage() {
           <EmptyState
             icon={ReceiptText}
             title={
-              status === "all"
+              phone
+                ? t("orders.noneForPhone", { phone: formatPhone(phone) })
+                : status === "all"
                 ? t("orders.empty")
                 : t("orders.noneInStatus", { status: ORDER_STATUS_LABEL[status] })
             }

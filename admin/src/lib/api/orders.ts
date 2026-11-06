@@ -113,19 +113,24 @@ export async function getOrders(): Promise<Order[]> {
 
 /**
  * One page of orders, pending ones first and then newest first. `status`
- * narrows to one state; `pending` counts waiting orders whatever the filter.
+ * narrows to one state, `phone` to orders for that number (the recipient's
+ * phone, or the web customer signed in with it); `pending` counts waiting
+ * orders whatever the filter.
  */
 export async function getOrdersPage({
   skip,
   take,
   status,
+  phone,
 }: {
   skip: number;
   take: number;
   status?: OrderStatus;
+  phone?: string;
 }): Promise<{ rows: Order[]; count: number; pending: number }> {
   const params = new URLSearchParams({ skip: String(skip), take: String(take) });
   if (status) params.set("status", status);
+  if (phone) params.set("phone", phone);
   const res = await apiFetch<ApiItemResponse<{ rows: Order[]; count: number; pending: number }>>(
     `/order?${params}`
   );
