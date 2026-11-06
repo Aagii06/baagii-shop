@@ -391,6 +391,7 @@ export const ru: Dict = {
   "contact.form.namePlaceholder": "Бат-Эрдэнэ",
   "contact.form.email": "Эл. почта",
   "contact.form.emailPlaceholder": "Ваш email",
+  "contact.form.phone": "Номер телефона",
   "contact.form.subject": "Тема",
   "contact.form.subjectPlaceholder": "Чем мы можем помочь?",
   "contact.form.message": "Сообщение",

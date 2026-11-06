@@ -392,6 +392,7 @@ export const mn: Dict = {
   "contact.form.namePlaceholder": "Таны нэр",
   "contact.form.email": "И-мэйл",
   "contact.form.emailPlaceholder": "Таны имэйл",
+  "contact.form.phone": "Утасны дугаар",
   "contact.form.subject": "Гарчиг",
   "contact.form.subjectPlaceholder": "Танд юугаар туслах вэ?",
   "contact.form.message": "Мессеж",

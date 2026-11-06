@@ -3,6 +3,8 @@ import { apiFetch } from "./client";
 export interface FeedbackInput {
   name: string;
   email: string;
+  /** Optional. */
+  phone?: string;
   subject: string;
   message: string;
 }
