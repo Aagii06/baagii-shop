@@ -1,9 +1,10 @@
 import { apiFetch, type ApiListResponse } from "./client";
 
 // Shoppers who signed in on the website with their phone and an SMS code
-// (../backend `/customer`, admins only). Read-only: a customer starts as
-// "Зочин" and edits their own name on the website.
-//   GET /customer → { rows: Customer[], count }
+// (../backend `/customer`, admins only). A customer starts as "Зочин" and
+// edits their own name on the website; the admin can only delete one.
+//   GET    /customer     → { rows: Customer[], count }
+//   DELETE /customer/:id { password } — the signed-in admin's own password
 
 export interface Customer {
   id: number;
@@ -17,4 +18,9 @@ export interface Customer {
 export async function getCustomers(): Promise<Customer[]> {
   const res = await apiFetch<ApiListResponse<Customer>>("/customer");
   return res.data?.rows ?? [];
+}
+
+/** Soft-deletes the customer; their orders stay. Fails on a wrong password. */
+export async function deleteCustomer(id: number, password: string): Promise<void> {
+  await apiFetch(`/customer/${id}`, { method: "DELETE", body: { password } });
 }

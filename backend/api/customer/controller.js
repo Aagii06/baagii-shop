@@ -1,5 +1,7 @@
-const { customers, orders, sequelize } = require("../../models");
-const { ok, handle, toIso } = require("../../helper/helper");
+const bcrypt = require("bcryptjs");
+const { customers, orders, users, sequelize } = require("../../models");
+const { ok, fail, handle, toIso } = require("../../helper/helper");
+const { saveLog } = require("../../utils/logHelper");
 
 // Вэбээр (утас + OTP) нэвтэрсэн худалдан авагчид. Нэрийг худалдан авагч өөрөө вэбээс засна
 // (анх "Зочин"), admin зөвхөн харна. admin/src/lib/api/customers.ts-ийн Customer
@@ -25,4 +27,20 @@ module.exports.list = handle("customerList", async (req, res) => {
     createdAt: toIso(r.created_at),
   }));
   return ok(res, { rows: data, count: data.length, summary: [] });
+});
+
+// Худалдан авагчийг устгана (status = deleted). Захиалгууд нь түүх болж хэвээр үлдэнэ.
+// Тэр утсаар дахин нэвтэрвэл шинэ "Зочин" бүртгэл үүснэ. Нэвтэрсэн admin нууц үгээ
+// дахин оруулж баталгаажуулна.
+module.exports.destroy = handle("customerDestroy", async (req, res) => {
+  const { by, at, password } = req.body;
+  const admin = await users.findOne({ where: { id: by, shop_id: req.shopId, status: "active" } });
+  const matches = admin?.password && (await bcrypt.compare(String(password ?? ""), admin.password));
+  if (!matches) return fail(res, "Нууц үг буруу байна");
+
+  const customer = await customers.findOne({ where: { id: req.params.id, shop_id: req.shopId, status: "active" } });
+  if (!customer) return fail(res, "Худалдан авагч олдсонгүй");
+  await customer.update({ status: "deleted", deleted_by: by, deleted_at: at });
+  await saveLog({ shop_id: req.shopId, object_name: "customers", object_id: customer.id, log_action: "deleted", created_by: by, created_at: at });
+  return ok(res, null);
 });

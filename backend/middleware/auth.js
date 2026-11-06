@@ -67,7 +67,17 @@ module.exports.protectWeb = (req, res, next) => {
 
 // protectWeb-ийн дараа: утсаар нэвтэрсэн байх ёстой. Зочны токен хүчинтэй тул 401 биш —
 // вэб 401 авбал зочны токеноо шинэчилж, сагсаа алддаг.
-module.exports.requireCustomer = (req, res, next) => {
-  if (req.session?.customerId) return next();
+// Admin устгасан худалдан авагчийн хуучин токен хүчингүй.
+module.exports.requireCustomer = async (req, res, next) => {
+  const id = req.session?.customerId;
+  if (id) {
+    try {
+      const { customers } = require("../models");
+      const active = await customers.count({ where: { id, shop_id: req.shopId, status: "active" } });
+      if (active) return next();
+    } catch (error) {
+      return next(error);
+    }
+  }
   return res.status(200).json({ success: false, message: "Утасны дугаараар нэвтэрнэ үү" });
 };
