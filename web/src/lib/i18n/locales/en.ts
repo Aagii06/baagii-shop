@@ -396,6 +396,7 @@ export const en: Dict = {
   "contact.form.sending": "Sending...",
   "contact.form.sent": "Sent!",
   "contact.form.send": "Send",
+  "contact.form.error": "Couldn't send. Please try again",
   "contact.info.title": "Contact information",
   "contact.info.email.title": "Email",
   "contact.info.email.desc": "We reply as quickly as possible",

@@ -10,6 +10,8 @@ Router.use("/post", require("./post/router"));
 Router.use("/customerAddress", require("./customerAddress/router"));
 Router.use("/blog", require("./blog/router"));
 Router.use("/payment", require("./payment/router"));
+// "Бидэнд бичнэ үү" маягт — нэвтрэхгүйгээр
+Router.use("/feedback", require("./feedback/router"));
 Router.use("/cart", protectWeb, require("./cart/router"));
 Router.use("/order", protectWeb, requireCustomer, require("./order/router"));
 

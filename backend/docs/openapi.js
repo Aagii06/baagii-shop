@@ -206,6 +206,11 @@ module.exports = {
     "/api/partnerRequest/{id}/approve": { post: op("Admin: Хамтрагч", "Хүсэлт батлах (борлуулагч хэрэглэгч үүснэ)", { security: admin, parameters: [idParam()] }) },
     "/api/partnerRequest/{id}/reject": { post: op("Admin: Хамтрагч", "Хүсэлт татгалзах", { security: admin, parameters: [idParam()] }) },
 
+    "/api/feedback": { get: op("Admin: Санал хүсэлт", "Вэбийн \"Бидэнд бичнэ үү\" маягтаар ирсэн санал хүсэлтүүд", { security: admin, responses: reply("Жагсаалт", listData()) }) },
+    "/api/feedback/{id}/read": { post: op("Admin: Санал хүсэлт", "Уншсан болгох", { security: admin, parameters: [idParam()] }) },
+    "/api/feedback/{id}/unread": { post: op("Admin: Санал хүсэлт", "Уншаагүй болгох", { security: admin, parameters: [idParam()] }) },
+    "/api/feedback/{id}": { delete: op("Admin: Санал хүсэлт", "Устгах", { security: admin, parameters: [idParam()] }) },
+
     "/api/file/upload": {
       post: op("Admin: Бусад", "Барааны зураг хуулах (PNG, JPG, WEBP, GIF, SVG, 20MB хүртэл)", {
         security: admin,
@@ -232,6 +237,12 @@ module.exports = {
     },
     "/web/auth/me": { put: op("Web: Нэвтрэх", "Нэрээ солих", { security: web, requestBody: json({ name: str("Бат") }, ["name"]) }) },
     "/web/auth/register": { post: op("Web: Нэвтрэх", "Хамтран ажиллах хүсэлт илгээх (/seller)", { requestBody: json({ userName: str("95001122", "Утасны дугаар") }, ["userName"]) }) },
+
+    "/web/feedback": {
+      post: op("Web: Санал хүсэлт", "\"Бидэнд бичнэ үү\" маягт илгээх (/contact)", {
+        requestBody: json({ name: str("Бат"), email: str("bat@gmail.com"), phone: str("95001122", "Заавал биш"), subject: str("Хүргэлт", "Заавал биш"), message: str("Сайн байна уу...") }, ["name", "email", "message"]),
+      }),
+    },
 
     "/web/category/getCategoryTree": { get: op("Web: Каталог", "Категорийн мод") },
     "/web/post": {

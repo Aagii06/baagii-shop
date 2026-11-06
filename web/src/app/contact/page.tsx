@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { ApiError } from "@/lib/api/errors";
+import { sendFeedback } from "@/lib/api/feedback";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import {
   CheckCircle,
@@ -29,6 +31,7 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -40,8 +43,17 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError("");
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await sendFeedback(formData);
+    } catch (error) {
+      setSubmitError(
+        error instanceof ApiError && error.message ? error.message : t("contact.form.error")
+      );
+      setIsSubmitting(false);
+      return;
+    }
 
     setIsSubmitting(false);
     setIsSubmitted(true);
@@ -56,7 +68,7 @@ export default function Contact() {
     {
       icon: Mail,
       title: t("contact.info.email.title"),
-      details: ["Mandal.battogtokh@gmail.com"], // TODO: түр — hello@uvs.mn, support@uvs.mn-г буцааж тавих
+      details: ["mandal.battogtokh@gmail.com"], // TODO: түр — hello@uvs.mn, support@uvs.mn-г буцааж тавих
       description: t("contact.info.email.desc"),
     },
     {
@@ -194,6 +206,12 @@ export default function Contact() {
                       className="resize-none"
                     />
                   </div>
+
+                  {submitError && (
+                    <p role="alert" className="text-sm font-medium text-destructive">
+                      {submitError}
+                    </p>
+                  )}
 
                   <Button
                     type="submit"

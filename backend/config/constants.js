@@ -50,6 +50,12 @@ const constant = {
     rejected: "rejected",
   },
 
+  // Вэбийн "Бидэнд бичнэ үү" санал хүсэлт
+  feedbackStatuses: {
+    new: "new",
+    read: "read",
+  },
+
   // Бараа нэг агуулахаас зарагдана. Вэбийн сагс branchId шаарддаг тул тогтмол утга буцаана.
   defaultBranch: { id: 1, name: "Үндсэн агуулах" },
 

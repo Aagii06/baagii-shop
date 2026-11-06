@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Thumb from "@/components/common/Thumb";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, CreditCard, Handshake, LayoutGrid, LogOut, NotebookPen, Pencil, SlidersHorizontal, Store, UserRound, Users, type LucideIcon } from "lucide-react";
+import { ChevronRight, CreditCard, Handshake, LayoutGrid, LogOut, MessageSquareText, NotebookPen, Pencil, SlidersHorizontal, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon; tone: string }[] = [
@@ -58,6 +58,13 @@ const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon;
     descKey: "profile.notesDesc",
     icon: NotebookPen,
     tone: "bg-indigo-100 text-indigo-600 ring-indigo-200",
+  },
+  {
+    href: "/feedbacks",
+    labelKey: "profile.feedback",
+    descKey: "profile.feedbackDesc",
+    icon: MessageSquareText,
+    tone: "bg-rose-100 text-rose-600 ring-rose-200",
   },
 ];
 

@@ -398,6 +398,7 @@ export const ru: Dict = {
   "contact.form.sending": "Отправка...",
   "contact.form.sent": "Отправлено!",
   "contact.form.send": "Отправить",
+  "contact.form.error": "Не удалось отправить. Попробуйте ещё раз",
   "contact.info.title": "Контактная информация",
   "contact.info.email.title": "Эл. почта",
   "contact.info.email.desc": "Мы отвечаем максимально быстро",

@@ -399,6 +399,7 @@ export const mn: Dict = {
   "contact.form.sending": "Илгээж байна...",
   "contact.form.sent": "Илгээгдлээ!",
   "contact.form.send": "Илгээх",
+  "contact.form.error": "Илгээж чадсангүй. Дахин оролдоно уу",
   "contact.info.title": "Холбоо барих мэдээлэл",
   "contact.info.email.title": "И-мэйл",
   "contact.info.email.desc": "Бид танд хамгийн богино хугацаанд хариу өгнө",
