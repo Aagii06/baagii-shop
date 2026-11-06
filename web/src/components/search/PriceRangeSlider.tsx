@@ -61,7 +61,7 @@ function PriceInput({
         e.preventDefault();
         e.currentTarget.blur();
       }}
-      className="h-10 w-full min-w-0 flex-1 rounded-xl border border-input bg-transparent px-3 text-sm text-foreground tabular-nums focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+      className="h-10 w-full min-w-0 flex-1 rounded-xl border border-input bg-transparent px-3 text-base md:text-sm text-foreground tabular-nums focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
     />
   );
 }

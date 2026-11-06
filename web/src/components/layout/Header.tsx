@@ -135,7 +135,7 @@ export default function Header() {
           placeholder={t("header.search.placeholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent px-3 py-2 text-base md:text-sm focus:outline-none"
           aria-label={t("header.search.aria")}
         />
         <div className="hidden w-40 shrink-0 border-l-2 border-primary sm:block">

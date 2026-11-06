@@ -73,7 +73,7 @@ export default function OrderSummary() {
             placeholder={t("cart.summary.couponPlaceholder")}
             value={couponInput}
             onChange={(e) => setCouponInput(e.target.value)}
-            className="flex-1 min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            className="flex-1 min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-base md:text-sm focus:outline-none focus:ring-1 focus:ring-ring"
           />
           {couponCode ? (
             <Button variant="outline" size="sm" onClick={handleRemoveCoupon}>
