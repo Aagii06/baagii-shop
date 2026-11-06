@@ -98,7 +98,7 @@ function RequestRow({
       className={cn(
         "relative px-4 py-4",
         // Room for the undo button, centred on the right.
-        request.status === "approved" && "pr-16"
+        request.status !== "pending" && "pr-16"
       )}
     >
       <span className="flex items-center gap-2">
@@ -111,7 +111,7 @@ function RequestRow({
         >
           {partnerStatusLabel(request.status)}
         </span>
-        {request.status === "approved" && (
+        {request.status !== "pending" && (
           <button
             type="button"
             onClick={onRevert}
@@ -282,7 +282,7 @@ export default function PartnerRequestsPage() {
   async function revert(request: PartnerRequest) {
     const ok = await confirm({
       title: t("pr.revertTitle", { id: request.id }),
-      description: t("pr.revertDesc"),
+      description: request.status === "approved" ? t("pr.revertDesc") : t("pr.revertRejectedDesc"),
       confirmLabel: t("pr.revert"),
       tone: "danger",
     });
