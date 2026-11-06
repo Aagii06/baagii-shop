@@ -3,9 +3,9 @@ interface PricedItem {
   quantity: number;
 }
 
-/** Flat delivery fee within Uvs aimag; there is no free-delivery threshold
- * (backend shopSettings[1].delivery.standard.freeAbove is null). */
-export const SHIPPING_FEE = 6000;
+/** Delivery within Uvs aimag is free (backend
+ * shopSettings[1].delivery.standard.fee is 0). */
+export const SHIPPING_FEE = 0;
 
 export interface Coupon {
   code: string;

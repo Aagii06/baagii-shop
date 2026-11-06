@@ -30,7 +30,7 @@ const constant = {
   // freeAbove: дэд дүн үүнээс их бол тухайн хүргэлт үнэгүй
   shopSettings: {
     1: {
-      delivery: { standard: { fee: 6000, freeAbove: null } },
+      delivery: { standard: { fee: 0, freeAbove: null } },
       coupons: { UVS25: 13500 },
     },
     2: {

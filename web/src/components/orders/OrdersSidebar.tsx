@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { useSavedStore } from "@/store/savedStore";
 import {
@@ -24,6 +25,8 @@ type SidebarItem = {
   active: boolean;
   match?: (path: string) => boolean;
   badge?: number;
+  /** Shown to guests too; everything else needs a signed-in user. */
+  public?: boolean;
 };
 
 export default function OrdersSidebar() {
@@ -33,6 +36,7 @@ export default function OrdersSidebar() {
     s.items.reduce((total, item) => total + item.quantity, 0)
   );
   const savedCount = useSavedStore((s) => s.items.length);
+  const isAuthed = useAuthStore((s) => s.user != null || s.phone != null);
 
   const items: SidebarItem[] = [
     {
@@ -49,6 +53,7 @@ export default function OrdersSidebar() {
       active: true,
       match: (path) => path.startsWith("/cart"),
       badge: cartCount,
+      public: true,
     },
     {
       href: "/saved",
@@ -57,6 +62,7 @@ export default function OrdersSidebar() {
       active: true,
       match: (path) => path.startsWith("/saved"),
       badge: savedCount,
+      public: true,
     },
     {
       href: "/addresses",
@@ -85,11 +91,12 @@ export default function OrdersSidebar() {
       match: (path) => path.startsWith("/profile"),
     },
   ];
+  const visibleItems = isAuthed ? items : items.filter((item) => item.public);
 
   return (
     <aside className="hidden lg:block w-64 shrink-0">
       <nav className="rounded-2xl border border-border bg-card p-2 space-y-1">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const isActive = item.active && (item.match?.(pathname) ?? false);
           const Content = (
             <span

@@ -286,7 +286,9 @@ export default function ShippingForm({
             </div>
           </div>
           <span className="font-semibold text-foreground shrink-0">
-            {formatMNT(SHIPPING_FEE)}
+            {SHIPPING_FEE === 0
+              ? t("cart.summary.free")
+              : formatMNT(SHIPPING_FEE)}
           </span>
         </div>
       </div>
