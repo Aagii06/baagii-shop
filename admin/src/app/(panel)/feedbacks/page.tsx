@@ -101,11 +101,25 @@ function FeedbackRow({ feedback, onChanged }: { feedback: Feedback; onChanged: (
         </span>
         <span className="ml-auto text-xs text-muted-foreground">{formatWhen(feedback.createdAt)}</span>
       </span>
-      <span className={cn("mt-1.5 block text-[15px]", isNew ? "font-bold" : "font-semibold")}>
-        {feedback.subject || t("fb.noSubject")}
-      </span>
-      <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-        <span className="truncate font-medium text-foreground">{feedback.name}</span>
+      {feedback.subject && (
+        <span className={cn("mt-1.5 block text-[15px]", isNew ? "font-bold" : "font-semibold")}>
+          {feedback.subject}
+        </span>
+      )}
+      <span
+        className={cn(
+          "flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground",
+          feedback.subject ? "mt-0.5" : "mt-1.5"
+        )}
+      >
+        <span
+          className={cn(
+            "truncate text-foreground",
+            feedback.subject ? "font-medium" : cn("text-[15px]", isNew ? "font-bold" : "font-semibold")
+          )}
+        >
+          {feedback.name}
+        </span>
         <span aria-hidden>·</span>
         <a href={`mailto:${feedback.email}`} className="inline-flex min-w-0 items-center gap-1 hover:underline">
           <Mail className="size-3.5 shrink-0" />

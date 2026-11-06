@@ -465,7 +465,6 @@ export const mn: Dict = {
   "fb.status.read": "Уншсан",
   "fb.empty": "Санал хүсэлт алга",
   "fb.noneInStatus": "“{status}” санал хүсэлт алга",
-  "fb.noSubject": "(Гарчиггүй)",
   "fb.reply": "Хариу бичих",
   "fb.markRead": "Уншсан",
   "fb.markUnread": "Уншаагүй",

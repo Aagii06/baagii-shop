@@ -465,7 +465,6 @@ export const ru: Dict = {
   "fb.status.read": "Прочитанные",
   "fb.empty": "Сообщений нет",
   "fb.noneInStatus": "Нет сообщений «{status}»",
-  "fb.noSubject": "(Без темы)",
   "fb.reply": "Ответить",
   "fb.markRead": "Прочитано",
   "fb.markUnread": "Не прочитано",

@@ -27,7 +27,6 @@ export default function Contact() {
     name: "",
     email: "",
     phone: "",
-    subject: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,7 +60,7 @@ export default function Contact() {
 
     setTimeout(() => {
       setIsSubmitted(false);
-      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", message: "" });
     }, 3000);
   };
 
@@ -179,35 +178,20 @@ export default function Contact() {
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="phone" className="text-sm font-medium">
-                        {t("contact.form.phone")}
-                      </label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        inputMode="tel"
-                        autoComplete="tel"
-                        placeholder={t("contact.form.phone")}
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="subject" className="text-sm font-medium">
-                        {t("contact.form.subject")}
-                      </label>
-                      <Input
-                        id="subject"
-                        name="subject"
-                        placeholder={t("contact.form.subjectPlaceholder")}
-                        value={formData.subject}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label htmlFor="phone" className="text-sm font-medium">
+                      {t("contact.form.phone")}
+                    </label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder={t("contact.form.phone")}
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
                   </div>
 
                   <div className="space-y-2">

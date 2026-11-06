@@ -465,7 +465,6 @@ export const en: Dict = {
   "fb.status.read": "Read",
   "fb.empty": "No messages",
   "fb.noneInStatus": "No “{status}” messages",
-  "fb.noSubject": "(No subject)",
   "fb.reply": "Reply",
   "fb.markRead": "Mark read",
   "fb.markUnread": "Mark unread",

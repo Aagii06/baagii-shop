@@ -5,7 +5,7 @@ export interface FeedbackInput {
   email: string;
   /** Optional. */
   phone?: string;
-  subject: string;
+  subject?: string;
   message: string;
 }
 
