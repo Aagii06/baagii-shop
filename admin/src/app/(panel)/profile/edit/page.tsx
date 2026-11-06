@@ -256,7 +256,7 @@ export default function EditProfilePage() {
                 required
               />
               {phoneChanged && (
-                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft disabled:opacity-50" disabled={sending} onClick={onSendCode}>
+                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink bg-primary/20 transition-colors hover:bg-primary/30 disabled:opacity-50" disabled={sending} onClick={onSendCode}>
                   {codeSent ? t("profile.resendCode") : t("profile.sendCode")}
                 </button>
               )}
@@ -304,7 +304,7 @@ export default function EditProfilePage() {
                 aria-describedby={emailError ? emailErrorId : undefined}
               />
               {emailChanged && (
-                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft disabled:opacity-50" disabled={sending} onClick={onSendEmailCode}>
+                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink bg-primary/20 transition-colors hover:bg-primary/30 disabled:opacity-50" disabled={sending} onClick={onSendEmailCode}>
                   {t("profile.sendCode")}
                 </button>
               )}
