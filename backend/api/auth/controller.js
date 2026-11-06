@@ -104,8 +104,10 @@ module.exports.sendEmailOtp = handle("sendEmailOtp", async (req, res) => {
   if (!user) return notFound(res);
   const email = emailOf(req.body.email);
   if (email === emailOf(user.email)) return fail(res, "Энэ таны одоогийн имэйл байна");
-  // Имэйл тохируулаагүй бол SMS-тэй адил OTP_DEV_CODE ажиллана
-  const send = process.env.MAIL_USER_NAME && process.env.MAIL_USER_PASS ? (code) => sendEmailCode(req.shopId, email, code) : undefined;
+  // Код зөвхөн тэр имэйл рүү очно (SMS биш). Имэйл тохируулаагүй бол dev-д OTP_DEV_CODE ажиллана
+  const mailReady = Boolean(process.env.MAIL_USER_NAME && process.env.MAIL_USER_PASS);
+  if (!mailReady && process.env.NODE_ENV === "production") return fail(res, "Имэйл илгээх тохиргоо хийгдээгүй байна");
+  const send = mailReady ? (code) => sendEmailCode(req.shopId, email, code) : null;
   const result = await sendPhoneOtp(req.shopId, email, EMAIL_CHANGE_OTP, send);
   return res.status(200).json({ ...result, data: null });
 });

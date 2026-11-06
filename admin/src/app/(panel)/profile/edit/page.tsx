@@ -15,6 +15,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Seconds before another code can be asked for the same phone / email.
+const RESEND_SECONDS = 60;
 
 /**
  * The signed-in user's own logo, name, phone, email and password. A new phone
@@ -50,6 +52,8 @@ export default function EditProfilePage() {
   const [codeSentTo, setCodeSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [sending, setSending] = useState(false);
+  const [phoneCooldown, setPhoneCooldown] = useState(0);
+  const [emailCooldown, setEmailCooldown] = useState(0);
   const currentEmail = user?.email ?? "";
   const [email, setEmail] = useState(currentEmail);
   const [emailCode, setEmailCode] = useState("");
@@ -67,6 +71,17 @@ export default function EditProfilePage() {
   const codeSent = phoneChanged && codeSentTo === phone;
   // A new (not just cleared) address; it's saved from the code modal only.
   const emailChanged = Boolean(email.trim()) && email.trim().toLowerCase() !== currentEmail.toLowerCase();
+  const phoneValid = phone.length === 8;
+  const emailValid = EMAIL_RE.test(email.trim());
+
+  useEffect(() => {
+    if (!phoneCooldown && !emailCooldown) return;
+    const timer = setTimeout(() => {
+      setPhoneCooldown((n) => Math.max(0, n - 1));
+      setEmailCooldown((n) => Math.max(0, n - 1));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [phoneCooldown, emailCooldown]);
 
   useEffect(() => {
     if (!logo?.startsWith("blob:")) return;
@@ -103,9 +118,21 @@ export default function EditProfilePage() {
     const sent = await run(() => sendPhoneOtp(phone), t("profile.codeSent"));
     setSending(false);
     if (!sent) return;
+    setPhoneCooldown(RESEND_SECONDS);
     setCodeSentTo(phone);
     setCode("");
     requestAnimationFrame(() => codeRef.current?.focus());
+  }
+
+  // A new number / address starts over without waiting.
+  function onPhoneChange(value: string) {
+    if (value !== phone) setPhoneCooldown(0);
+    setPhone(value);
+  }
+
+  function onEmailChange(value: string) {
+    if (value !== email) setEmailCooldown(0);
+    setEmail(value);
   }
 
   function onPickLogo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -130,6 +157,7 @@ export default function EditProfilePage() {
     const sent = await run(() => sendEmailOtp(email.trim()), t("profile.codeSent"));
     setSending(false);
     if (!sent) return;
+    setEmailCooldown(RESEND_SECONDS);
     setEmailCode("");
     setEmailCodeSubmitted(false);
     emailDialogRef.current?.showModal();
@@ -250,14 +278,15 @@ export default function EditProfilePage() {
                 maxLength={8}
                 className={phoneChanged ? "pr-40 font-mono" : "font-mono"}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => onPhoneChange(e.target.value.replace(/\D/g, ""))}
                 aria-invalid={Boolean(phoneError) || (!codeSent && Boolean(codeError))}
                 aria-describedby={phoneError || codeError ? phoneErrorId : undefined}
                 required
               />
               {phoneChanged && (
-                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink bg-primary/20 transition-colors hover:bg-primary/30 disabled:opacity-50" disabled={sending} onClick={onSendCode}>
+                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink bg-primary/20 transition-colors hover:bg-primary/30 disabled:cursor-not-allowed disabled:opacity-50" disabled={sending || !phoneValid || phoneCooldown > 0} onClick={onSendCode}>
                   {codeSent ? t("profile.resendCode") : t("profile.sendCode")}
+                  {phoneCooldown > 0 && ` (${phoneCooldown})`}
                 </button>
               )}
             </div>
@@ -299,13 +328,14 @@ export default function EditProfilePage() {
                 autoComplete="email"
                 className={emailChanged ? "pr-40" : undefined}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => onEmailChange(e.target.value)}
                 aria-invalid={Boolean(emailError)}
                 aria-describedby={emailError ? emailErrorId : undefined}
               />
               {emailChanged && (
-                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink bg-primary/20 transition-colors hover:bg-primary/30 disabled:opacity-50" disabled={sending} onClick={onSendEmailCode}>
+                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink bg-primary/20 transition-colors hover:bg-primary/30 disabled:cursor-not-allowed disabled:opacity-50" disabled={sending || !emailValid || emailCooldown > 0} onClick={onSendEmailCode}>
                   {t("profile.sendCode")}
+                  {emailCooldown > 0 && ` (${emailCooldown})`}
                 </button>
               )}
             </div>
@@ -385,10 +415,11 @@ export default function EditProfilePage() {
           <button
             type="button"
             className="mt-3 text-sm font-semibold text-primary-ink hover:underline disabled:opacity-50"
-            disabled={sending}
+            disabled={sending || emailCooldown > 0}
             onClick={onSendEmailCode}
           >
             {t("profile.resendCode")}
+            {emailCooldown > 0 && ` (${emailCooldown})`}
           </button>
           <div className="mt-5 grid grid-cols-2 gap-2">
             <Button type="button" variant="outline" onClick={() => emailDialogRef.current?.close()}>

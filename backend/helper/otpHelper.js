@@ -23,7 +23,7 @@ const purposeText = { login: "нэвтрэх код", partner: "бүртгэли
 const deliver = async (shopId, phone, purpose, code) => {
   if (!isSmsConfigured()) {
     if (process.env.NODE_ENV !== "production") console.log(`[sms холбогдоогүй] OTP ${phone}: ${code}`);
-    return null;
+    return null;s
   }
   const shop = await shops.findOne({ where: { id: shopId }, attributes: ["name"], raw: true });
   const label = purposeText[purpose.split(":")[0]] || "баталгаажуулах код";
@@ -36,7 +36,8 @@ const deliver = async (shopId, phone, purpose, code) => {
 };
 
 // Код нь дэлгүүр бүрт тусдаа (нэг дугаар хоёр дэлгүүрт өөр өөр хэрэглэгч).
-// send(code) өгвөл (жишээ нь имэйл) санамсаргүй 6 оронтой кодыг түүгээр илгээнэ; false буцаавал алдаа
+// send(code) өгвөл (жишээ нь имэйл) санамсаргүй 6 оронтой кодыг түүгээр илгээнэ; false буцаавал алдаа.
+// send === null — SMS биш суваг (имэйл) тохируулаагүй: SMS руу явуулахгүй, OTP_DEV_CODE ажиллана.
 module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login", send) => {
   const where = { shop_id: shopId, phone, purpose };
   const existing = await phoneOtps.findOne({ where });
@@ -44,7 +45,10 @@ module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login", send) => 
   if (wait > 0) return { success: false, message: `${wait} секундын дараа дахин код авна уу` };
 
   let code;
-  if (send) {
+  if (send === null) {
+    code = process.env.OTP_DEV_CODE || "2222";
+    console.log(`[суваг тохируулаагүй] OTP ${phone}: ${code}`);
+  } else if (send) {
     code = String(crypto.randomInt(100000, 1000000));
     if (!(await send(code))) return { success: false, message: "Код илгээж чадсангүй. Дахин оролдоно уу" };
   } else {
