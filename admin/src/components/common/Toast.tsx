@@ -3,6 +3,7 @@
 import { tr } from "@/lib/i18n/translations";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type Tone = "success" | "error";
 
@@ -58,12 +59,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <p
             key={toast.id}
             role={toast.tone === "error" ? "alert" : "status"}
-            className="mx-auto flex max-w-sm items-start gap-2.5 rounded-2xl bg-dark px-4 py-3 text-sm font-semibold text-dark-foreground shadow-soft"
+            className={cn(
+              "mx-auto flex max-w-sm items-start gap-2.5 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-soft",
+              toast.tone === "error" ? "bg-destructive/90" : "bg-success/90"
+            )}
           >
             {toast.tone === "error" ? (
-              <CircleAlert className="mt-0.5 size-4 shrink-0 text-primary" />
+              <CircleAlert className="mt-0.5 size-4 shrink-0" />
             ) : (
-              <CircleCheck className="mt-0.5 size-4 shrink-0 text-success-soft" />
+              <CircleCheck className="mt-0.5 size-4 shrink-0" />
             )}
             {toast.message}
           </p>
