@@ -6,9 +6,16 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
 import { Phone, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { useId, useState } from "react";
 
 type Step = "phone" | "code";
+
+const PHONE_LENGTH = 8;
+const CODE_LENGTH = 4;
+
+/** Red border + ring on a field that has an error. */
+const invalidField = "border-destructive focus-visible:ring-destructive";
 
 function digitsOnly(value: string) {
   return value.replace(/\D/g, "");
@@ -24,11 +31,20 @@ export default function PhoneAuthGate() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Show "invalid number" only after leaving the field, not while typing.
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const phoneErrorId = useId();
+  const codeErrorId = useId();
+
+  const phoneValid = digitsOnly(phone).length === PHONE_LENGTH;
+  const codeValid = code.length === CODE_LENGTH;
+  const phoneError =
+    error ?? (phoneTouched && phone.length > 0 && !phoneValid ? t("checkout.auth.invalidPhone") : null);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (digitsOnly(phone).length < 8) {
-      setError(t("checkout.auth.invalidPhone"));
+    if (!phoneValid) {
+      setPhoneTouched(true);
       return;
     }
     setError(null);
@@ -45,6 +61,7 @@ export default function PhoneAuthGate() {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!codeValid) return;
     setError(null);
     setBusy(true);
     try {
@@ -68,53 +85,78 @@ export default function PhoneAuthGate() {
       </p>
 
       {step === "phone" ? (
-        <form onSubmit={handleSendCode} className="mt-6 space-y-4">
+        <form onSubmit={handleSendCode} noValidate className="mt-6 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
+            <label htmlFor={`${phoneErrorId}-input`} className="text-sm font-medium text-foreground">
               {t("checkout.auth.phoneLabel")}
             </label>
             <PhoneInput
+              id={`${phoneErrorId}-input`}
               autoFocus
               required
+              placeholder={t("checkout.auth.phoneLabel")}
               value={phone}
-              onChange={setPhone}
+              onChange={(digits) => {
+                setPhone(digits);
+                setError(null);
+              }}
+              onBlur={() => setPhoneTouched(true)}
+              aria-invalid={Boolean(phoneError)}
+              aria-describedby={phoneError ? phoneErrorId : undefined}
+              className={cn(phoneError && invalidField)}
             />
+            {phoneError && (
+              <p id={phoneErrorId} className="text-xs text-destructive">
+                {phoneError}
+              </p>
+            )}
           </div>
-          {error && <p className="text-xs text-destructive">{error}</p>}
           <Button
             type="submit"
             size="lg"
-            disabled={busy}
+            disabled={busy || !phoneValid}
             className="w-full brand-gradient text-white"
           >
             {busy ? t("checkout.auth.sending") : t("checkout.auth.sendCode")}
           </Button>
         </form>
       ) : (
-        <form onSubmit={handleVerify} className="mt-6 space-y-4">
+        <form onSubmit={handleVerify} noValidate className="mt-6 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
+            <label htmlFor={`${codeErrorId}-input`} className="text-sm font-medium text-foreground">
               {t("checkout.auth.codeLabel")}
             </label>
             <Input
+              id={`${codeErrorId}-input`}
               inputMode="numeric"
+              autoComplete="one-time-code"
               autoFocus
               required
-              maxLength={4}
+              maxLength={CODE_LENGTH}
               placeholder="••••"
               value={code}
-              onChange={(e) => setCode(digitsOnly(e.target.value))}
-              className="text-center text-lg tracking-[0.5em]"
+              onChange={(e) => {
+                setCode(digitsOnly(e.target.value));
+                setError(null);
+              }}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? codeErrorId : undefined}
+              className={cn("text-center text-lg tracking-[0.5em]", error && invalidField)}
             />
-            <p className="text-xs text-muted-foreground">
-              {t("checkout.auth.codeHint", { phone: phone.trim() })}
-            </p>
+            {error ? (
+              <p id={codeErrorId} className="text-xs text-destructive">
+                {error}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {t("checkout.auth.codeHint", { phone: phone.trim() })}
+              </p>
+            )}
           </div>
-          {error && <p className="text-xs text-destructive">{error}</p>}
           <Button
             type="submit"
             size="lg"
-            disabled={busy}
+            disabled={busy || !codeValid}
             className="w-full brand-gradient text-white"
           >
             {busy ? t("checkout.auth.verifying") : t("checkout.auth.verify")}
@@ -126,6 +168,7 @@ export default function PhoneAuthGate() {
                 setStep("phone");
                 setCode("");
                 setError(null);
+                setPhoneTouched(false);
               }}
               className="font-medium text-muted-foreground hover:text-foreground"
             >

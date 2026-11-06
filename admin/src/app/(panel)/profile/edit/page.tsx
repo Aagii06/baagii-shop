@@ -242,13 +242,13 @@ export default function EditProfilePage() {
             errorId={phoneErrorId}
             hint={phoneChanged && !codeSent ? t("profile.phoneHint") : undefined}
           >
-            <div className="flex gap-2">
+            <div className="relative">
               <Input
                 ref={phoneRef}
                 type="tel"
                 inputMode="numeric"
                 maxLength={8}
-                className="font-mono"
+                className={phoneChanged ? "pr-40 font-mono" : "font-mono"}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
                 aria-invalid={Boolean(phoneError) || (!codeSent && Boolean(codeError))}
@@ -256,9 +256,9 @@ export default function EditProfilePage() {
                 required
               />
               {phoneChanged && (
-                <Button type="button" variant="soft" className="h-12 shrink-0" disabled={sending} onClick={onSendCode}>
+                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft disabled:opacity-50" disabled={sending} onClick={onSendCode}>
                   {codeSent ? t("profile.resendCode") : t("profile.sendCode")}
-                </Button>
+                </button>
               )}
             </div>
           </Field>
@@ -291,27 +291,22 @@ export default function EditProfilePage() {
             errorId={emailErrorId}
             hint={emailChanged ? t("profile.emailHint") : undefined}
           >
-            <div className="flex gap-2">
+            <div className="relative">
               <Input
                 ref={emailRef}
                 type="email"
                 inputMode="email"
                 autoComplete="email"
+                className={emailChanged ? "pr-40" : undefined}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 aria-invalid={Boolean(emailError)}
                 aria-describedby={emailError ? emailErrorId : undefined}
               />
               {emailChanged && (
-                <Button
-                  type="button"
-                  variant="soft"
-                  className="h-12 shrink-0"
-                  disabled={sending}
-                  onClick={onSendEmailCode}
-                >
+                <button type="button" className="absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-full px-4 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft disabled:opacity-50" disabled={sending} onClick={onSendEmailCode}>
                   {t("profile.sendCode")}
-                </Button>
+                </button>
               )}
             </div>
           </Field>
