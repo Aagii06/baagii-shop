@@ -9,7 +9,7 @@ import { registerSeller, sendSellerOtp } from "@/lib/api/auth";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
 import { CheckCircle, Store } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Step = "details" | "code";
 
@@ -27,16 +27,18 @@ function Label({ children, optional }: { children: React.ReactNode; optional?: b
 
 /**
  * Become a seller: the store's details, then the phone confirmed by SMS code
- * (skipped for a shopper signed in with that number). An admin approving
+ * — always, even for a signed-in shopper. An admin approving
  * the request opens the store and its seller account.
  */
 export default function SellerRequestPage() {
   const { t } = useLanguage();
   const authLoading = useAuthStore((s) => s.loading);
-  // A signed-in shopper's verified number is used as-is — no code needed.
-  const verifiedPhone = useAuthStore((s) => s.phone);
-  const [typedPhone, setTypedPhone] = useState("");
-  const phone = verifiedPhone ? phoneDigits(verifiedPhone) : typedPhone;
+  // A signed-in shopper's number is filled in for them; it still needs the code.
+  const signedInPhone = useAuthStore((s) => s.phone);
+  const [phone, setPhone] = useState("");
+  useEffect(() => {
+    if (signedInPhone) setPhone((current) => current || phoneDigits(signedInPhone));
+  }, [signedInPhone]);
   const [storeName, setStoreName] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -66,7 +68,7 @@ export default function SellerRequestPage() {
       name: name.trim(),
       email: email.trim() || undefined,
       address: address.trim() || undefined,
-      code: code || undefined,
+      code,
     }).then(() => setDone(true));
 
   const handleDetails = (e: React.FormEvent) => {
@@ -75,7 +77,7 @@ export default function SellerRequestPage() {
     if (!name.trim()) return setError(t("seller.nameRequired"));
     if (phone.length < 8) return setError(t("checkout.auth.invalidPhone"));
     if (email.trim() && !EMAIL_RE.test(email.trim())) return setError(t("seller.emailInvalid"));
-    attempt(verifiedPhone ? submit : () => sendSellerOtp(phone).then(() => setStep("code")));
+    attempt(() => sendSellerOtp(phone).then(() => setStep("code")));
   };
 
   const handleCode = (e: React.FormEvent) => {
@@ -119,18 +121,11 @@ export default function SellerRequestPage() {
                   <Label>{t("checkout.auth.phoneLabel")}</Label>
                   <PhoneInput
                     required
-                    readOnly={!!verifiedPhone}
-                    className={
-                      verifiedPhone
-                        ? "bg-muted text-muted-foreground cursor-not-allowed focus-visible:ring-0"
-                        : undefined
-                    }
+                    placeholder={t("checkout.auth.phoneLabel")}
                     value={phone}
-                    onChange={setTypedPhone}
+                    onChange={setPhone}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {verifiedPhone ? t("seller.registeredPhoneHint") : t("seller.phoneHint")}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t("seller.phoneHint")}</p>
                 </div>
                 <div className="space-y-1.5">
                   <Label optional>{t("seller.email")}</Label>
@@ -148,11 +143,7 @@ export default function SellerRequestPage() {
                 </div>
                 {error && <p className="text-xs text-destructive">{error}</p>}
                 <Button type="submit" size="lg" disabled={busy} className="w-full brand-gradient text-white">
-                  {busy
-                    ? t("checkout.auth.sending")
-                    : verifiedPhone
-                      ? t("seller.submit")
-                      : t("checkout.auth.sendCode")}
+                  {busy ? t("checkout.auth.sending") : t("checkout.auth.sendCode")}
                 </Button>
               </form>
             ) : (
@@ -174,7 +165,12 @@ export default function SellerRequestPage() {
                   </p>
                 </div>
                 {error && <p className="text-xs text-destructive">{error}</p>}
-                <Button type="submit" size="lg" disabled={busy} className="w-full brand-gradient text-white">
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={busy || code.length < 4}
+                  className="w-full brand-gradient text-white"
+                >
                   {busy ? t("checkout.auth.verifying") : t("seller.submit")}
                 </Button>
                 <div className="flex items-center justify-between text-xs">

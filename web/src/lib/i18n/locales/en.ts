@@ -45,7 +45,6 @@ export const en: Dict = {
   "seller.title": "Become a seller",
   "seller.desc": "Leave your store's details and confirm your phone. Once approved, your store opens.",
   "seller.submit": "Send request",
-  "seller.registeredPhoneHint": "The request will be sent with your registered phone number.",
   "seller.doneTitle": "Request sent",
   "seller.doneDesc": "We will contact you shortly.",
   "seller.error": "Could not send the request",

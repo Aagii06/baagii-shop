@@ -132,8 +132,8 @@ export interface SellerRequest {
   name: string;
   email?: string;
   address?: string;
-  /** SMS code from `sendSellerOtp`; not needed when signed in with this phone. */
-  code?: string;
+  /** SMS code from `sendSellerOtp`. */
+  code: string;
 }
 
 /** Texts a code for the seller request (`POST /auth/register/sendOtp`). */
@@ -147,8 +147,8 @@ export async function sendSellerOtp(phone: string): Promise<void> {
 
 // Seller sign-up request: `POST /auth/register` files a partner request with
 // the store's details; approving it in the admin panel opens the store and
-// its shopper account. Sent with the session token so a shopper signed in
-// with this phone needn't confirm it again.
+// its shopper account. The phone always needs the SMS `code` from
+// `sendSellerOtp`, even for a signed-in shopper.
 export async function registerSeller({ phone, ...details }: SellerRequest): Promise<void> {
   await apiFetch<ApiItemResponse<null>>("/auth/register", {
     method: "POST",

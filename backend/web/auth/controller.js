@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const { customers, partnerRequests, sequelize } = require("../../models");
 const { partnerStatuses } = require("../../config/constants");
-const { signWeb, readToken } = require("../../middleware/auth");
+const { signWeb } = require("../../middleware/auth");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
 const { mergeGuestCart } = require("../../helper/cartHelper");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
@@ -74,19 +74,15 @@ module.exports.sendRegisterOtp = handle("sendRegisterOtp", async (req, res) => {
   return res.status(200).json({ ...result, data: null });
 });
 
-// { userName (утас), code, storeName, name, email?, address? }. Тухайн дугаараар нэвтэрсэн
-// худалдан авагчийн токентой бол утас нь баталгаажсан тул код шаардахгүй.
+// { userName (утас), code, storeName, name, email?, address? }. Утсыг үргэлж SMS кодоор
+// (register/sendOtp) баталгаажуулна — нэвтэрсэн худалдан авагч ч гэсэн.
 module.exports.register = handle("register", async (req, res) => {
   const phone = phoneDigits(req.body.userName);
   const blocked = await partnerBlocked(req.shopId, phone);
   if (blocked) return fail(res, blocked);
 
-  const customerId = readToken(req)?.customerId;
-  const customer = customerId ? await customers.findOne({ where: { id: customerId, shop_id: req.shopId, status: "active" } }) : null;
-  if (customer?.phone !== phone) {
-    const result = await verifyPhoneOtp(req.shopId, phone, req.body.code ?? "", PARTNER_OTP);
-    if (!result.success) return fail(res, result.message);
-  }
+  const result = await verifyPhoneOtp(req.shopId, phone, req.body.code ?? "", PARTNER_OTP);
+  if (!result.success) return fail(res, result.message);
 
   const { storeName, name, email, address } = req.body;
   await partnerRequests.create({
