@@ -17,7 +17,7 @@ import { Pencil, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-function UserRow({ user, isMe, onChanged }: { user: User; isMe: boolean; onChanged: () => void }) {
+function UserRow({ user, onChanged }: { user: User; onChanged: () => void }) {
   const { t } = useLanguage();
   const { run } = useToast();
   const confirm = useConfirm();
@@ -51,18 +51,16 @@ function UserRow({ user, isMe, onChanged }: { user: User; isMe: boolean; onChang
           <Pencil />
         </Link>
       </Button>
-      {!isMe && (
-        <Button
-          variant="danger"
-          size="icon-sm"
-          className="shrink-0"
-          aria-label={t("us.deleteAria", { name })}
-          title={t("common.delete")}
-          onClick={onDelete}
-        >
-          <Trash2 />
-        </Button>
-      )}
+      <Button
+        variant="danger"
+        size="icon-sm"
+        className="shrink-0"
+        aria-label={t("us.deleteAria", { name })}
+        title={t("common.delete")}
+        onClick={onDelete}
+      >
+        <Trash2 />
+      </Button>
     </li>
   );
 }
@@ -72,7 +70,8 @@ export default function UsersPage() {
   const { user: me } = useAuth();
   const { data, error, reload } = useApi(getUsers);
   const [role, setRole] = useState<UserRole | "all">("all");
-  const rows = data?.filter((user) => role === "all" || user.role === role) ?? [];
+  // The signed-in user edits themselves from the profile, not from this list.
+  const rows = data?.filter((user) => user.id !== me?.id && (role === "all" || user.role === role)) ?? [];
 
   return (
     <>
@@ -114,7 +113,7 @@ export default function UsersPage() {
       ) : (
         <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
           {rows.map((user) => (
-            <UserRow key={user.id} user={user} isMe={user.id === me?.id} onChanged={reload} />
+            <UserRow key={user.id} user={user} onChanged={reload} />
           ))}
         </ul>
       )}

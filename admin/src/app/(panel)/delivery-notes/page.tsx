@@ -37,9 +37,9 @@ export default function DeliveryNotesPage() {
           <EmptyState title={t("notes.empty")} />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
+        <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
           {data.map((note) => (
-            <li key={note.id} className="py-3.5">
+            <li key={note.id} className="px-4 py-3.5">
               <div className="flex items-baseline justify-between gap-3">
                 <p className="min-w-0 text-[15px] font-semibold">{note.name}</p>
                 <span className="shrink-0 font-mono text-xs text-muted-foreground">
