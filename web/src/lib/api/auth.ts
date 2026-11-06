@@ -132,8 +132,8 @@ export interface SellerRequest {
   name: string;
   email?: string;
   address?: string;
-  /** SMS code from `sendSellerOtp`. */
-  code: string;
+  /** From `verifySellerOtp` — proves the phone was confirmed by SMS code. */
+  phoneToken: string;
 }
 
 /** Texts a code for the seller request (`POST /auth/register/sendOtp`). */
@@ -145,10 +145,24 @@ export async function sendSellerOtp(phone: string): Promise<void> {
   });
 }
 
+/**
+ * Checks the SMS code for the seller request (`POST /auth/register/verifyOtp`)
+ * and returns a token proving the phone, valid 30 minutes; `registerSeller`
+ * sends it instead of the code.
+ */
+export async function verifySellerOtp(phone: string, code: string): Promise<string> {
+  const res = await apiFetch<ApiItemResponse<{ phoneToken: string }>>("/auth/register/verifyOtp", {
+    method: "POST",
+    auth: false,
+    body: { phone, code },
+  });
+  return res.data.phoneToken;
+}
+
 // Seller sign-up request: `POST /auth/register` files a partner request with
 // the store's details; approving it in the admin panel opens the store and
-// its shopper account. The phone always needs the SMS `code` from
-// `sendSellerOtp`, even for a signed-in shopper.
+// its shopper account. The phone is always confirmed first (sendSellerOtp →
+// verifySellerOtp), even for a signed-in shopper.
 export async function registerSeller({ phone, ...details }: SellerRequest): Promise<void> {
   await apiFetch<ApiItemResponse<null>>("/auth/register", {
     method: "POST",
