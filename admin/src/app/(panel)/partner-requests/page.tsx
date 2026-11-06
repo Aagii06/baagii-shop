@@ -260,6 +260,25 @@ export default function PartnerRequestsPage() {
     return Boolean(done);
   }
 
+  async function approve(request: PartnerRequest, password: string) {
+    const ok = await confirm({
+      title: t("pr.approveTitle", { id: request.id }),
+      description: t("pr.approveDesc", { phone: formatPhone(request.phone) }),
+      confirmLabel: t("pr.approve"),
+    });
+    return ok ? decide(() => approvePartnerRequest(request.id, password), t("pr.approved")) : false;
+  }
+
+  async function reject(request: PartnerRequest) {
+    const ok = await confirm({
+      title: t("pr.rejectTitle", { id: request.id }),
+      description: t("pr.rejectDesc"),
+      confirmLabel: t("pr.reject"),
+      tone: "danger",
+    });
+    if (ok) decide(() => rejectPartnerRequest(request.id), t("pr.rejected"));
+  }
+
   async function revert(request: PartnerRequest) {
     const ok = await confirm({
       title: t("pr.revertTitle", { id: request.id }),
@@ -328,8 +347,8 @@ export default function PartnerRequestsPage() {
               <RequestRow
                 key={request.id}
                 request={request}
-                onApprove={(password) => decide(() => approvePartnerRequest(request.id, password), t("pr.approved"))}
-                onReject={() => decide(() => rejectPartnerRequest(request.id), t("pr.rejected"))}
+                onApprove={(password) => approve(request, password)}
+                onReject={() => reject(request)}
                 onRevert={() => revert(request)}
               />
             ))}
