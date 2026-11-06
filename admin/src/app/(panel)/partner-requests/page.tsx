@@ -94,7 +94,13 @@ function RequestRow({
   const contact = [request.name, request.email].filter(Boolean).join(" · ");
 
   return (
-    <li className="rounded-2xl border border-border bg-white p-4">
+    <li
+      className={cn(
+        "relative rounded-2xl border border-border bg-white p-4",
+        // Room for the undo button, centred on the right.
+        request.status === "approved" && "pr-16"
+      )}
+    >
       <span className="flex items-center gap-2">
         <span className="font-mono text-sm text-muted-foreground">#{request.id}</span>
         <span
@@ -111,7 +117,7 @@ function RequestRow({
             onClick={onRevert}
             aria-label={t("pr.revert")}
             title={t("pr.revert")}
-            className="-my-1 ml-auto grid size-9 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            className="absolute right-4 top-1/2 grid size-9 -translate-y-1/2 shrink-0 place-items-center rounded-full bg-destructive/30 text-destructive transition-colors hover:bg-destructive/40"
           >
             <Undo2 className="size-4" />
           </button>

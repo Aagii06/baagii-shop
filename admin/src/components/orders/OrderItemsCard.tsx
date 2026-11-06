@@ -76,9 +76,10 @@ function ReturnItemDialog({
       }}
       // A click that lands on the <dialog> itself is on the backdrop.
       onClick={(event) => event.target === event.currentTarget && onClose()}
-      className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-2xl border border-border bg-card p-0 text-card-foreground shadow-soft backdrop:bg-dark/40"
+      className="inset-x-0 bottom-0 top-auto mx-auto mb-0 mt-auto w-full max-w-md rounded-t-3xl bg-white p-0 text-foreground shadow-soft outline-none transition duration-200 ease-out backdrop:bg-black/40 starting:open:translate-y-8 starting:open:opacity-0"
     >
-      <div className="p-5">
+      <div className="px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
         <h2 id="return-item-title" className="text-lg font-extrabold">
           {t("oi.returnTitle")}
         </h2>

@@ -49,10 +49,10 @@ const codeMailTemplate = ({ shopName, title, intro, code, minutes = 10 }) => {
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title></head>
 <body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111827">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(title)}: ${code}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
-        <tr><td style="background:#111827;padding:24px 32px;text-align:center">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f3f4f6" style="background:#f3f4f6">
+    <tr><td align="center" style="padding:32px 16px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="max-width:480px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;border-collapse:separate">
+        <tr><td bgcolor="#111827" style="background:#111827;padding:24px 32px;text-align:center;border-radius:16px 16px 0 0">
           <span style="font-size:20px;font-weight:700;color:#ffffff;letter-spacing:0.5px">${shop}</span>
         </td></tr>
         <tr><td style="padding:32px 32px 8px">
@@ -60,15 +60,15 @@ const codeMailTemplate = ({ shopName, title, intro, code, minutes = 10 }) => {
           <p style="margin:0;font-size:15px;line-height:1.6;color:#4b5563">${escapeHtml(intro)}</p>
         </td></tr>
         <tr><td style="padding:24px 32px" align="center">
-          <div style="display:inline-block;background:#f9fafb;border:1px dashed #d1d5db;border-radius:12px;padding:18px 28px">
+          <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td bgcolor="#f9fafb" style="background:#f9fafb;border:1px dashed #d1d5db;border-radius:12px;padding:18px 28px">
             <span style="font-family:'SF Mono',Menlo,Consolas,monospace;font-size:34px;font-weight:700;letter-spacing:10px;color:#111827">${code}</span>
-          </div>
+          </td></tr></table>
           <p style="margin:14px 0 0;font-size:13px;color:#6b7280">Код <strong>${minutes} минут</strong> хүчинтэй.</p>
         </td></tr>
         <tr><td style="padding:8px 32px 32px">
-          <div style="background:#fef3c7;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.5;color:#92400e">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate"><tr><td bgcolor="#fef3c7" style="background:#fef3c7;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.5;color:#92400e">
             Энэ кодыг хэнд ч бүү хэл. Та энэ хүсэлтийг илгээгээгүй бол энэ имэйлийг үл тоомсорлоно уу.
-          </div>
+          </td></tr></table>
         </td></tr>
       </table>
       <p style="margin:20px 0 0;font-size:12px;color:#9ca3af">© ${year} ${shop}. Энэ имэйлийг автоматаар илгээсэн тул хариу бичих шаардлагагүй.</p>

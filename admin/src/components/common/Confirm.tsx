@@ -65,10 +65,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
         onClick={(e) => {
           if (e.target === e.currentTarget) close(false);
         }}
-        className="m-auto w-[calc(100%-2rem)] max-w-sm rounded-3xl bg-white p-0 text-foreground shadow-soft transition duration-150 ease-out backdrop:bg-black/40 starting:open:scale-95 starting:open:opacity-0"
+        className="inset-x-0 bottom-0 top-auto mx-auto mb-0 mt-auto w-full max-w-md rounded-t-3xl bg-white p-0 text-foreground shadow-soft outline-none transition duration-200 ease-out backdrop:bg-black/40 starting:open:translate-y-8 starting:open:opacity-0"
       >
         {request && (
-          <div className="p-6 text-center">
+          <div className="px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3 text-center">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
             <span
               className={cn(
                 "mx-auto grid size-12 place-items-center rounded-full",
