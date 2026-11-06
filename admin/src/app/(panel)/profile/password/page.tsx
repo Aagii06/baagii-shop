@@ -64,8 +64,9 @@ function PasswordInput({
 
 /**
  * The signed-in user's password: current one first, then the new one twice.
- * The backend checks the current password and mails a code to the user's
- * confirmed email; the password only changes once that code is entered.
+ * "Save" has the backend check the current password and mail a code to the
+ * user's confirmed email, then asks for that code in a modal; the password
+ * only changes once it is entered.
  */
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -92,6 +93,8 @@ export default function ChangePasswordPage() {
   const [sending, setSending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [sentTo, setSentTo] = useState("");
+  // The passwords the last code was asked for; changing them needs a new code.
+  const [sentFor, setSentFor] = useState("");
   const [code, setCode] = useState("");
   const [codeSubmitted, setCodeSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -111,11 +114,12 @@ export default function ChangePasswordPage() {
     setSending(true);
     let email = "";
     const sent = await run(async () => {
-      email = await sendPasswordOtp(current, next);
+      email = await sendPasswordOtp(current, next, confirm);
     }, t("profile.codeSent"));
     setSending(false);
     if (!sent) return false;
     setSentTo(email);
+    setSentFor(`${current}\n${next}`);
     setCooldown(RESEND_SECONDS);
     setCode("");
     setCodeSubmitted(false);
@@ -128,7 +132,10 @@ export default function ChangePasswordPage() {
     if (!current) return currentRef.current?.focus();
     if (next.length < MIN_PASSWORD) return newRef.current?.focus();
     if (confirm !== next) return confirmRef.current?.focus();
-    if (sending || !(await requestCode())) return;
+    if (sending) return;
+    // Closed the modal without confirming: reopen it while the code still stands.
+    const reuse = cooldown > 0 && sentFor === `${current}\n${next}`;
+    if (!reuse && !(await requestCode())) return;
     dialogRef.current?.showModal();
     requestAnimationFrame(() => codeRef.current?.focus());
   }
@@ -138,7 +145,7 @@ export default function ChangePasswordPage() {
     setCodeSubmitted(true);
     if (!code.trim()) return codeRef.current?.focus();
     setSaving(true);
-    const changed = await run(() => changePassword(current, next, code.trim()), t("pw.changed"));
+    const changed = await run(() => changePassword(current, next, confirm, code.trim()), t("pw.changed"));
     setSaving(false);
     if (!changed) return;
     dialogRef.current?.close();
@@ -154,7 +161,7 @@ export default function ChangePasswordPage() {
           aside={
             <Button type="submit" className="h-10 px-5" disabled={!hasEmail || sending}>
               {sending && <Loader2 className="animate-spin" />}
-              {t("pw.sendCode")}
+              {t("common.save")}
             </Button>
           }
         />

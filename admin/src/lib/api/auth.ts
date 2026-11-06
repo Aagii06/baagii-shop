@@ -93,19 +93,20 @@ export async function updateMe(input: ProfileInput) {
 // Changing the password: `sendPasswordOtp` checks the current password and
 // mails a code to the user's (already confirmed) email; `changePassword`
 // switches to `newPassword` with that code.
-export async function sendPasswordOtp(password: string, newPassword: string) {
+// `confirmPassword` is the new password typed again; the backend checks it too.
+export async function sendPasswordOtp(password: string, newPassword: string, confirmPassword: string) {
   const res = await apiFetch<ApiItemResponse<{ email: string } | null>>("/auth/me/password/sendOtp", {
     method: "POST",
-    body: { password, newPassword },
+    body: { password, newPassword, confirmPassword },
   });
   /** Masked, e.g. "b***a@gmail.com". */
   return res.data?.email ?? "";
 }
 
-export async function changePassword(password: string, newPassword: string, code: string) {
+export async function changePassword(password: string, newPassword: string, confirmPassword: string, code: string) {
   await apiFetch<ApiItemResponse<null>>("/auth/me/password", {
     method: "PUT",
-    body: { password, newPassword, code },
+    body: { password, newPassword, confirmPassword, code },
   });
 }
 

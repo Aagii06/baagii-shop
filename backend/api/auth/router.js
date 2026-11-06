@@ -28,11 +28,14 @@ router.put(
   ]),
   updateMe,
 );
-// Нууц үг солих: одоогийн password, шинэ newPassword (6+ тэмдэгт) шалгаад бүртгэлтэй имэйл рүү код
+// Нууц үг солих: одоогийн password, шинэ newPassword (6+ тэмдэгт), түүнтэй ижил confirmPassword шалгаад бүртгэлтэй имэйл рүү код
 // илгээнэ (/me/password/sendOtp), тэр кодоор солино (/me/password)
 const passwordRules = [
   body("password").notEmpty().withMessage("Одоогийн нууц үгээ оруулна уу"),
   body("newPassword").isLength({ min: 6 }).withMessage("Нууц үг 6-аас дээш тэмдэгттэй байна"),
+  body("confirmPassword")
+    .custom((value, { req }) => value === req.body.newPassword)
+    .withMessage("Шинэ нууц үг таарахгүй байна"),
 ];
 router.post("/me/password/sendOtp", protect, validate(passwordRules), sendPasswordOtp);
 router.put("/me/password", protect, validate([...passwordRules, body("code").trim().notEmpty().withMessage("Код оруулна уу")]), changePassword);
