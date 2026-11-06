@@ -170,7 +170,7 @@ module.exports = {
     },
 
     "/api/order": {
-      get: op("Admin: Захиалга", "Захиалгын жагсаалт", { security: admin, responses: reply("Жагсаалт", listData()) }),
+      get: op("Admin: Захиалга", "Захиалгын жагсаалт (?status=, ?phone=, ?skip=&take=)", { security: admin, responses: reply("Жагсаалт", listData()) }),
       post: op("Admin: Захиалга", "Худалдан авагчийн өмнөөс захиалга үүсгэх", {
         security: admin,
         requestBody: json({
