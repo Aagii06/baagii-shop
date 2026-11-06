@@ -96,7 +96,7 @@ function RequestRow({
   return (
     <li
       className={cn(
-        "relative rounded-2xl border border-border bg-white p-4",
+        "relative px-4 py-4",
         // Room for the undo button, centred on the right.
         request.status === "approved" && "pr-16"
       )}
@@ -323,7 +323,7 @@ export default function PartnerRequestsPage() {
         </div>
       ) : (
         <>
-          <ul className="mt-4 space-y-3">
+          <ul className="-mx-4 mt-4 divide-y divide-border border-y border-border bg-white">
             {rows.map((request) => (
               <RequestRow
                 key={request.id}

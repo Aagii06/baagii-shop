@@ -20,9 +20,9 @@ export default function PartnerRequestsSkeleton({ rows = 5, stats = true }: { ro
         </Card>
       )}
 
-      <ul className="mt-4 space-y-3">
+      <ul className="-mx-4 mt-4 divide-y divide-border border-y border-border bg-white">
         {Array.from({ length: rows }, (_, i) => (
-          <li key={i} className="rounded-2xl border border-border bg-white p-4">
+          <li key={i} className="px-4 py-4">
             <span className="flex items-center gap-2">
               <span className={`${bar} h-4 w-10`} />
               <span className="block h-5 w-20 rounded-full bg-muted" />
