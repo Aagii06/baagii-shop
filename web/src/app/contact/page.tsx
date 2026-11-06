@@ -56,7 +56,7 @@ export default function Contact() {
     {
       icon: Mail,
       title: t("contact.info.email.title"),
-      details: ["hello@uvs.mn", "support@uvs.mn"],
+      details: ["Mandal.battogtokh@gmail.com"], // TODO: түр — hello@uvs.mn, support@uvs.mn-г буцааж тавих
       description: t("contact.info.email.desc"),
     },
     {
