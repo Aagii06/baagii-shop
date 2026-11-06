@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { partnerRequests, products, stores, users, sequelize } = require("../../models");
+const { partnerRequests, products, stores, users, sequelize, op } = require("../../models");
 const { roles, partnerStatuses } = require("../../config/constants");
 const { saveLog } = require("../../utils/logHelper");
 const { ok, handle, toIso } = require("../../helper/helper");
@@ -83,15 +83,21 @@ module.exports.approve = handle("partnerApprove", async (req, res) => {
   }
 });
 
-// Баталснаа буцаана: батлахад үүссэн SHOPPER хэрэглэгч, дэлгүүрийг устгаж (status: deleted),
-// хүсэлтийг дахин хүлээгдэж буй болгоно. Дэлгүүрт бараа бүртгэгдсэн бол буцаахгүй.
+// Шийдвэрээ буцааж хүсэлтийг дахин хүлээгдэж буй болгоно. Баталсныг буцаахад батлахад үүссэн
+// SHOPPER хэрэглэгч, дэлгүүрийг устгана (status: deleted) — дэлгүүрт бараа бүртгэгдсэн бол буцаахгүй.
+// Тэр дугаараас өөр хүлээгдэж буй/баталсан хүсэлт байвал (татгалзсаны дараа дахин илгээсэн) буцаахгүй.
 module.exports.revert = handle("partnerRevert", async (req, res) => {
   const { by, at } = req.body;
   const t = await sequelize.transaction();
   try {
     const row = await partnerRequests.findOne({ where: { id: req.params.id, shop_id: req.shopId }, transaction: t });
     if (!row) throw "Хүсэлт олдсонгүй";
-    if (row.status !== partnerStatuses.approved) throw "Зөвхөн баталсан хүсэлтийг буцаана";
+    if (row.status === partnerStatuses.pending) throw "Хүсэлт хүлээгдэж буй байна";
+    const other = await partnerRequests.count({
+      where: { shop_id: req.shopId, phone: row.phone, id: { [op.ne]: row.id }, status: [partnerStatuses.pending, partnerStatuses.approved] },
+      transaction: t,
+    });
+    if (other) throw "Энэ дугаараас өөр хүсэлт ирсэн байна";
     if (row.store_id && (await products.count({ where: { shop_id: req.shopId, store_id: row.store_id, status: "active" }, transaction: t })))
       throw "Дэлгүүрт бараа бүртгэлтэй тул буцаах боломжгүй. Эхлээд барааг устгана уу";
 
