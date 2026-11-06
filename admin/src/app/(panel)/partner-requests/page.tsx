@@ -123,8 +123,12 @@ function RequestRow({
           </button>
         )}
       </span>
-      {request.storeName && <span className="mt-1.5 block text-[15px] font-bold">{request.storeName}</span>}
-      <span className="mt-0.5 block font-mono text-sm font-semibold">{formatPhone(request.phone)}</span>
+      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-sm">
+        <dt className="text-muted-foreground">{t("pr.store")}</dt>
+        <dd className="min-w-0 truncate text-[15px] font-bold">{request.storeName || "—"}</dd>
+        <dt className="text-muted-foreground">{t("pr.phone")}</dt>
+        <dd className="font-mono font-semibold">{formatPhone(request.phone)}</dd>
+      </dl>
       {contact && <span className="mt-0.5 block text-sm text-muted-foreground">{contact}</span>}
       {request.address && <span className="mt-0.5 block text-sm text-muted-foreground">{request.address}</span>}
       <span className="mt-0.5 block text-xs text-muted-foreground">{formatWhen(request.createdAt)}</span>

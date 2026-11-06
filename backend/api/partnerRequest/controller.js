@@ -48,12 +48,15 @@ module.exports.approve = handle("partnerApprove", async (req, res) => {
     if (!row) throw "Хүсэлт олдсонгүй";
     if (row.status !== partnerStatuses.pending) throw "Хүсэлтийг аль хэдийн шийдвэрлэсэн байна";
     if (String(password ?? "").length < 6) throw "Нууц үг 6-аас дээш тэмдэгттэй байна";
+    // Батлахад дэлгүүр (stores) үүсгэнэ — нэргүй хүсэлтээр нэргүй дэлгүүр үүсгэхгүй
+    const storeName = String(row.store_name ?? "").trim();
+    if (!storeName) throw "Хүсэлтэд дэлгүүрийн нэр байхгүй байна";
     if (await users.count({ where: { shop_id: req.shopId, phone: row.phone, status: "active" }, transaction: t }))
       throw "Энэ утасны дугаар хэрэглэгчид бүртгэлтэй байна";
 
     const audit = { status: "active", created_by: by, created_at: at };
     const store = await stores.create(
-      { shop_id: req.shopId, name: row.store_name || row.phone, phone: row.phone, email: row.email, address: row.address, ...audit },
+      { shop_id: req.shopId, name: storeName, phone: row.phone, email: row.email, address: row.address, ...audit },
       { transaction: t },
     );
     const user = await users.create(
