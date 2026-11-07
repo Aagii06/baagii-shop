@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { savePaymentSettings, type BankSettings, type PaymentSettings } from "@/lib/api/paymentSettings";
 import { toNumber } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 /**
@@ -28,6 +29,7 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
   const [qpay, setQpay] = useState({ ...settings.qpay, password: "" });
   const [hasPassword, setHasPassword] = useState(settings.qpay.hasPassword);
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const required = (on: boolean, v: string) => (submitted && on && !v.trim() ? t("pay.required") : undefined);
   const bankErrors = {
@@ -43,22 +45,28 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (saving) return;
     setSubmitted(true);
     const blank = (on: boolean, values: string[]) => on && values.some((v) => !v.trim());
     if (blank(bank.enabled, [bank.bankName, bank.accountName, bank.accountNumber])) return;
     if (blank(qpay.enabled, [qpay.username, qpay.invoiceCode, hasPassword ? "x" : qpay.password])) return;
     if (deliveryEnabled && !deliveryFee) return;
 
-    await run(async () => {
-      const { enabled, sandbox, username, password, invoiceCode } = qpay;
-      const saved = await savePaymentSettings({
-        delivery: { enabled: deliveryEnabled, fee: toNumber(deliveryFee) },
-        bank,
-        qpay: { enabled, sandbox, username, password, invoiceCode },
-      });
-      setHasPassword(saved.qpay.hasPassword);
-      setQpay((q) => ({ ...q, password: "" }));
-    }, t("common.saved"));
+    setSaving(true);
+    try {
+      await run(async () => {
+        const { enabled, sandbox, username, password, invoiceCode } = qpay;
+        const saved = await savePaymentSettings({
+          delivery: { enabled: deliveryEnabled, fee: toNumber(deliveryFee) },
+          bank,
+          qpay: { enabled, sandbox, username, password, invoiceCode },
+        });
+        setHasPassword(saved.qpay.hasPassword);
+        setQpay((q) => ({ ...q, password: "" }));
+      }, t("common.saved"));
+    } finally {
+      setSaving(false);
+    }
   }
 
   const bankField = (key: keyof typeof bankErrors | "iban", label: string, mono = false) => (
@@ -77,8 +85,10 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
         backHref="/settings"
         title={t("pay.title")}
         aside={
-          <Button type="submit" className="h-10 px-5">
-            {t("common.save")}
+          <Button type="submit" className="relative h-10 px-5" disabled={saving} aria-busy={saving}>
+            {/* The label keeps the button's width; the spinner sits over it while saving. */}
+            <span className={saving ? "invisible" : undefined}>{t("common.save")}</span>
+            {saving && <Loader2 className="absolute inset-0 m-auto animate-spin" />}
           </Button>
         }
       />

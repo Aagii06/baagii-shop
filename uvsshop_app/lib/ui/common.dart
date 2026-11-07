@@ -3,6 +3,18 @@ import 'package:flutter/material.dart';
 
 const brandColor = Color(0xFF7322A6);
 
+/// web-ийн `brand-gradient` (--gradient-from → --gradient-to).
+const brandGradient = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [Color(0xFF7322A6), Color(0xFF4F5BDD)],
+);
+
+/// web-ийн --accent (цайвар ягаан) ба --muted.
+const accentColor = Color(0xFFF3E8F8);
+const mutedColor = Color(0xFFF3F4F6);
+const borderColor = Color(0xFFE5E7EB);
+
 String money(num v) {
   final s = v.round().abs().toString();
   final b = StringBuffer();

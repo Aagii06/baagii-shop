@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../state/shop_state.dart';
 import '../common.dart';
-import 'home_page.dart';
+import 'product_card.dart';
 
 /// Web-ийн /saved — хадгалсан бараа.
 class SavedPage extends StatelessWidget {

@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../api/shop_models.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
-import 'home_page.dart';
+import 'product_card.dart';
 
 /// Web-ийн /search — хайлт ба ангиллаар үзэх. Хайлт хоосон, ангилал
 /// сонгоогүй үед ангиллын жагсаалт; эс бөгөөс барааны үр дүн.

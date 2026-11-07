@@ -3,17 +3,40 @@ import 'api_client.dart';
 
 class Category {
   final int id;
+
+  /// API-ийн `code` (women, electronics, ...) — hero слайдыг ангилалтай холбоно.
+  final String? code;
   final String name;
   final String? image;
   final List<Category> children;
-  Category({required this.id, required this.name, this.image, this.children = const []});
+  Category({required this.id, this.code, required this.name, this.image, this.children = const []});
 
   factory Category.fromJson(Map<String, dynamic> j) => Category(
         id: toInt(j['id']),
+        code: j['code']?.toString(),
         name: j['name']?.toString() ?? '',
         image: fileUrl(j['image']?.toString(), 'thumbnail'),
         children: ((j['children'] as List?) ?? []).map((c) => Category.fromJson(c as Map<String, dynamic>)).toList(),
       );
+
+  /// Мод дотроос id-гаар хайна.
+  static Category? findById(List<Category> tree, int id) {
+    for (final c in tree) {
+      if (c.id == id) return c;
+      final sub = findById(c.children, id);
+      if (sub != null) return sub;
+    }
+    return null;
+  }
+
+  static Category? findByCode(List<Category> tree, String code) {
+    for (final c in tree) {
+      if (c.code == code) return c;
+      final sub = findByCode(c.children, code);
+      if (sub != null) return sub;
+    }
+    return null;
+  }
 
   /// Өөрийн болон бүх дэд ангиллын id.
   Set<int> get allIds => {id, for (final c in children) ...c.allIds};
