@@ -1,6 +1,6 @@
 import type { Order, PaymentMethod, ShippingInfo } from "@/types/order";
 import { apiFetch } from "./client";
-import { fileThumbnailUrl } from "./files";
+import { fileUrl } from "./files";
 
 interface ApiItemResponse<T> {
   success: boolean;
