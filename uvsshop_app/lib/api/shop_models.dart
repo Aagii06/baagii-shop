@@ -28,7 +28,13 @@ class Product {
   final String? description;
   final int? categoryId;
   final String? storeName;
+
+  /// Дэлгүүрийн логоны file id.
+  final String? storeLogo;
   final int? stock;
+
+  /// Сүүлд засварласан (эсвэл нэмсэн) цаг — "Шинэ" эрэмбэ.
+  final DateTime? updatedAt;
 
   Product({
     required this.id,
@@ -39,8 +45,12 @@ class Product {
     this.description,
     this.categoryId,
     this.storeName,
+    this.storeLogo,
     this.stock,
+    this.updatedAt,
   });
+
+  bool get onSale => originalPrice != null && originalPrice! > price;
 
   String? image([String variant = 'grid']) => imageIds.isEmpty ? null : fileUrl(imageIds.first, variant);
 
@@ -55,8 +65,9 @@ class Product {
         'mainPrice': originalPrice ?? price,
         'images': imageIds,
         'categoryId': categoryId,
-        'company': storeName == null ? null : {'name': storeName},
+        'company': storeName == null ? null : {'name': storeName, 'logo': storeLogo},
         'remain': stock,
+        'updatedAt': updatedAt?.toIso8601String(),
       };
 
   factory Product.fromJson(Map<String, dynamic> j) {
@@ -71,7 +82,9 @@ class Product {
       description: j['note']?.toString(),
       categoryId: j['categoryId'] == null ? (j['category']?['id'] as int?) : toInt(j['categoryId']),
       storeName: j['company']?['name']?.toString(),
+      storeLogo: j['company']?['logo']?.toString(),
       stock: j['remain'] == null ? null : toInt(j['remain']),
+      updatedAt: DateTime.tryParse((j['updatedAt'] ?? j['createdAt'] ?? '').toString()),
     );
   }
 }
@@ -348,4 +361,22 @@ class AddressArea {
   final String name;
   AddressArea(this.id, this.code, this.name);
   factory AddressArea.fromJson(Map<String, dynamic> j) => AddressArea(toInt(j['id']), j['code']?.toString(), j['name']?.toString() ?? '');
+}
+
+/// Худалдагчийн дэлгүүр (`/store`): эхлээд түвшин, дараа нь бараа ихтэй нь.
+class Store {
+  final int id;
+  final String name;
+  final String? logo;
+  final String tier;
+  final int productCount;
+  Store(this.id, this.name, this.logo, this.tier, this.productCount);
+
+  factory Store.fromJson(Map<String, dynamic> j) => Store(
+        toInt(j['id']),
+        j['name']?.toString() ?? '',
+        j['logo']?.toString(),
+        j['tier']?.toString() ?? 'normal',
+        toInt(j['productCount']),
+      );
 }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'config.dart';
 import 'state/admin_state.dart';
 import 'state/app_state.dart';
+import 'state/shop_nav.dart';
 import 'state/shop_state.dart';
 import 'ui/admin/admin_shell.dart';
 import 'ui/common.dart';
@@ -19,6 +20,7 @@ void main() {
       ChangeNotifierProvider.value(value: shop),
       ChangeNotifierProvider.value(value: admin),
       ChangeNotifierProvider.value(value: app),
+      ChangeNotifierProvider(create: (_) => ShopNav()),
     ],
     child: const UvsShopApp(),
   ));

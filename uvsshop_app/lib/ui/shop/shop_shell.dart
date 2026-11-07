@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../state/admin_state.dart';
 import '../../state/app_state.dart';
+import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import 'account_page.dart';
 import 'cart_page.dart';
@@ -12,21 +13,14 @@ import 'search_page.dart';
 
 /// Худалдан авагчийн доод цэс — web-ийн MobileBottomNav-тай адил:
 /// Нүүр · Хайх · Сагс · Хадгалсан (нэвтэрсэн үед) · Профайл / Нэвтрэх.
-enum ShopTab { home, search, cart, saved, profile }
-
-class ShopShell extends StatefulWidget {
+class ShopShell extends StatelessWidget {
   const ShopShell({super.key});
-  @override
-  State<ShopShell> createState() => _ShopShellState();
-}
-
-class _ShopShellState extends State<ShopShell> {
-  ShopTab _tab = ShopTab.home;
-
-  void _open(ShopTab t) => setState(() => _tab = t);
 
   @override
   Widget build(BuildContext context) {
+    final nav = context.watch<ShopNav>();
+    final tab = nav.tab;
+    void open(ShopTab t) => nav.open(t);
     final cartCount = context.select<ShopState, int>((s) => s.cartCount);
     final savedCount = context.select<ShopState, int>((s) => s.saved.length);
     final signedIn = context.select<ShopState, bool>((s) => s.signedIn);
@@ -39,7 +33,7 @@ class _ShopShellState extends State<ShopShell> {
       if (signedIn) ShopTab.saved,
       ShopTab.profile,
     ];
-    final current = tabs.contains(_tab) ? _tab : ShopTab.home;
+    final current = tabs.contains(tab) ? tab : ShopTab.home;
 
     Widget badge(int n, IconData icon) => Badge(
           isLabelVisible: n > 0,
@@ -71,9 +65,9 @@ class _ShopShellState extends State<ShopShell> {
       body: IndexedStack(index: ShopTab.values.indexOf(current), children: [
         const HomePage(),
         const SearchPage(),
-        CartPage(onShop: () => _open(ShopTab.search)),
-        SavedPage(onShop: () => _open(ShopTab.search)),
-        AccountPage(onOpenTab: _open),
+        CartPage(onShop: () => nav.openSearch()),
+        SavedPage(onShop: () => nav.openSearch()),
+        AccountPage(onOpenTab: open),
       ]),
       // Админ дэлгүүрээр зочилж байх үед админ руу буцах товч.
       floatingActionButton: isAdmin
@@ -86,7 +80,7 @@ class _ShopShellState extends State<ShopShell> {
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: tabs.indexOf(current),
-        onDestinationSelected: (i) => _open(tabs[i]),
+        onDestinationSelected: (i) => open(tabs[i]),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: [for (final t in tabs) dest(t)],
       ),

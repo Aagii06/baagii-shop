@@ -173,6 +173,25 @@ class ShopState extends ChangeNotifier {
         .toList();
   }
 
+  /// Бүх бараа (web-тэй адил нэг дор татаж, шүүлт/эрэмбийг утсан дээр хийнэ).
+  /// Ангилал өгвөл тэр ангилал болон бүх дэд ангиллынх.
+  Future<List<Product>> getAllProducts({Set<int>? categoryIds, String? search}) async {
+    if (categoryIds == null || categoryIds.isEmpty) {
+      return getProducts(search: search, limit: 1000);
+    }
+    final lists = await Future.wait(categoryIds.map((id) => getProducts(categoryId: id, search: search, limit: 1000)));
+    final seen = <int>{};
+    return [for (final l in lists) ...l].where((p) => seen.add(p.id)).toList();
+  }
+
+  List<Store>? _stores;
+
+  Future<List<Store>> getStores({bool refresh = false}) async {
+    if (_stores != null && !refresh) return _stores!;
+    final res = await call(() => api.get('/store'));
+    return _stores = ((res['data'] as List?) ?? []).map((s) => Store.fromJson(s as Map<String, dynamic>)).toList();
+  }
+
   Future<ProductDetail> getProduct(int id) async {
     final res = await call(() => api.get('/post/$id'));
     return ProductDetail.fromJson(res['data'] as Map<String, dynamic>);

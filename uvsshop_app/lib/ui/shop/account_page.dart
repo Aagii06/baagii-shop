@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 import '../../api/shop_models.dart';
 import '../../state/admin_state.dart';
 import '../../state/app_state.dart';
+import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'orders_page.dart';
-import 'shop_shell.dart';
 import 'sign_in_page.dart';
 
 /// Web-ийн /profile-тэй адил: мэдээллийн карт + ✏️ засах товч, доор нь
