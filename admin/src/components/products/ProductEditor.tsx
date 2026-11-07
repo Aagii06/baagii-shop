@@ -319,6 +319,27 @@ function toPostInput(
   };
 }
 
+/** The category's attributes, the attributes shown, and every combination of their values. */
+function deriveDraft(
+  categories: (Category & { depth: number })[],
+  catalogue: Attr[],
+  form: ProductFormState,
+  allAttrs: ProductAttr[],
+  rows: Record<string, VariantRow>
+) {
+  const fromCategory = categoryAttrs(categories, form.categoryId ? Number(form.categoryId) : null)
+    .map((id) => catalogue.find((attr) => attr.id === id))
+    .filter((attr): attr is Attr => Boolean(attr))
+    .map(emptyAttr);
+  const byKey = new Map(allAttrs.map((attr) => [attr.key, attr]));
+  const attrs = [
+    ...fromCategory.map((attr) => byKey.get(attr.key) ?? attr),
+    ...allAttrs.filter((attr) => !fromCategory.some((a) => a.key === attr.key) && attr.values.length > 0),
+  ];
+  const variants = combinations(attrs).map((values) => rows[comboKey(values)] ?? newVariantRow(values, form));
+  return { fromCategory, attrs, variants };
+}
+
 interface ProductEditor {
   post: PostDetail | null;
   categories: (Category & { depth: number })[];
@@ -381,17 +402,7 @@ export function ProductEditorProvider({
   }, []);
 
   const value = useMemo<Omit<ProductEditor, "dirty" | "snapshot" | "markSaved">>(() => {
-    const fromCategory = categoryAttrs(categories, form.categoryId ? Number(form.categoryId) : null)
-      .map((id) => catalogue.find((attr) => attr.id === id))
-      .filter((attr): attr is Attr => Boolean(attr))
-      .map(emptyAttr);
-    const byKey = new Map(allAttrs.map((attr) => [attr.key, attr]));
-    const attrs = [
-      ...fromCategory.map((attr) => byKey.get(attr.key) ?? attr),
-      ...allAttrs.filter((attr) => !fromCategory.some((a) => a.key === attr.key) && attr.values.length > 0),
-    ];
-
-    const variants = combinations(attrs).map((values) => rows[comboKey(values)] ?? newVariantRow(values, form));
+    const { fromCategory, attrs, variants } = deriveDraft(categories, catalogue, form, allAttrs, rows);
 
     return {
       post,
@@ -446,10 +457,13 @@ export function ProductEditorProvider({
     };
   }, [post, categories, catalogue, form, allAttrs, rows, images]);
 
-  // Picked files show up in `images` as their `blob:` URLs, so the files themselves are left out.
-  const { dirty, snapshot, markSaved } = useDirty(
-    toPostInput(value.form, value.attrs, value.variants, value.images, new Map())
-  );
+  // The draft as it would be saved. Picked files show up in `images` as their
+  // `blob:` URLs, so the files themselves are left out.
+  const draft = useMemo(() => {
+    const { attrs, variants } = deriveDraft(categories, catalogue, form, allAttrs, rows);
+    return toPostInput(form, attrs, variants, images, new Map());
+  }, [categories, catalogue, form, allAttrs, rows, images]);
+  const { dirty, snapshot, markSaved } = useDirty(draft);
   const editor = useMemo<ProductEditor>(
     () => ({ ...value, dirty, snapshot, markSaved }),
     [value, dirty, snapshot, markSaved]
