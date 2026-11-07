@@ -8,7 +8,5 @@
 
 npm-debug.log*
 
-# Admin-аас upload хийсэн зургууд
-/public/uploads/
 /tmpFile/*
 !/tmpFile/.gitkeep
