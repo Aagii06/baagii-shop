@@ -31,7 +31,7 @@ class _ShopShellState extends State<ShopShell> {
     final isAdmin = context.select<AdminState, bool>((a) => a.signedIn);
     return Scaffold(
       body: IndexedStack(index: _tab, children: [
-        HomePage(onOpenCart: () => _select(1)),
+        const HomePage(),
         CartPage(onShop: () => _select(0)),
         OrdersPage(key: ValueKey(_ordersKey)),
         const AccountPage(),

@@ -9,8 +9,7 @@ import '../common.dart';
 import 'product_page.dart';
 
 class HomePage extends StatefulWidget {
-  final VoidCallback onOpenCart;
-  const HomePage({super.key, required this.onOpenCart});
+  const HomePage({super.key});
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -89,9 +88,6 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Image.asset('assets/logo.png', height: 32),
-        actions: [
-          IconButton(onPressed: widget.onOpenCart, icon: const Icon(Icons.shopping_bag_outlined)),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(112),
           child: Column(children: [
