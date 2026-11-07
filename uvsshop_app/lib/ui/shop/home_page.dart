@@ -87,7 +87,17 @@ class _HomePageState extends State<HomePage> {
     final categories = context.watch<ShopState>().categories;
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset('assets/logo.png', height: 32),
+        // Web-ийн header-тэй адил: лого + UVSSHOP.COM / Online Shop.
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          Image.asset('assets/logo.png', height: 36),
+          const SizedBox(width: 8),
+          Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('UVSSHOP.COM',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: brandColor, letterSpacing: -0.3)),
+            Text('ONLINE SHOP',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.grey.shade600, letterSpacing: 1.5)),
+          ]),
+        ]),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(112),
           child: Column(children: [
