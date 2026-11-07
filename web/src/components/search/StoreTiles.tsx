@@ -1,6 +1,6 @@
 "use client";
 
-import { fileThumbnailUrl } from "@/lib/api/files";
+import { fileUrl } from "@/lib/api/files";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import StoreAvatar from "@/components/ui/store-avatar";
@@ -50,7 +50,7 @@ export default function StoreTiles({
       <div className="no-scrollbar -mx-4 flex gap-2.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         {stores.map((store) => {
           const active = store.name === selected;
-          const logo = fileThumbnailUrl(store.logo);
+          const logo = fileUrl(store.logo, "grid");
           return (
               <button
                 key={store.name}

@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { categoryPath, subtreeIds, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
-import { fileThumbnailUrl } from "@/lib/api/files";
+import { fileUrl } from "@/lib/api/files";
 import StoreAvatar from "@/components/ui/store-avatar";
 import PriceRangeSlider from "./PriceRangeSlider";
 
@@ -214,7 +214,7 @@ export function FilterPanelContent({
               <PickRow
                 key={store}
                 label={store}
-                logo={fileThumbnailUrl(counts.brandLogo?.[store])}
+                logo={fileUrl(counts.brandLogo?.[store], "icon")}
                 picked={filters.brands.includes(store)}
                 onClick={() => toggleStore(store)}
               />

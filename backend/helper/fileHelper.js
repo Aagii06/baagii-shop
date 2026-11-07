@@ -42,10 +42,10 @@ const isImage = (file) => /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.mime
 module.exports.isImage = isImage;
 
 // Жижиг хувилбарууд: <prefix><нэр>. Бүх folder-т thumb_, лого (stores, users)-д icon_, grid_ нэмэлт.
-//   thumb_ — 400px өргөн, grid_ — 600px-д багтаасан (жагсаалтын карт), icon_ — 128px-д багтаасан (жижиг дүрс)
+//   thumb_ — 400px өргөн, grid_ — 256px-д багтаасан (дэлгүүрийн карт, 56–96px), icon_ — 128px-д багтаасан (≤48px дүрс)
 const VARIANTS = {
   thumb: { prefix: "thumb_", resize: { width: THUMB_WIDTH } },
-  grid: { prefix: "grid_", resize: { width: 600, height: 600, fit: "inside" } },
+  grid: { prefix: "grid_", resize: { width: 256, height: 256, fit: "inside" } },
   icon: { prefix: "icon_", resize: { width: 128, height: 128, fit: "inside" } },
 };
 const LOGO_VARIANTS = ["thumb", "icon", "grid"];

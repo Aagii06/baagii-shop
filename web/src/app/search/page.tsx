@@ -22,7 +22,7 @@ import type { Product } from "@/types/product";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import StoreAvatar from "@/components/ui/store-avatar";
-import { fileThumbnailUrl } from "@/lib/api/files";
+import { fileUrl } from "@/lib/api/files";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 const PAGE_SIZE = 20;
@@ -343,7 +343,7 @@ function SearchContent() {
                 <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-white">
                   <StoreAvatar
                     name={filters.brands[0]}
-                    src={fileThumbnailUrl(counts.brandLogo[filters.brands[0]])}
+                    src={fileUrl(counts.brandLogo[filters.brands[0]], "icon")}
                     className="size-full object-contain"
                     initialsClassName="text-sm"
                   />

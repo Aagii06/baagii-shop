@@ -82,7 +82,7 @@ export default function ProfilePage() {
       <div className="space-y-3 pt-4">
         <Card className="flex items-center gap-4 p-4">
           {user?.logo ? (
-            <Thumb id={user.logo} alt="" size={56} className="rounded-full" />
+            <Thumb id={user.logo} variant="grid" alt="" size={56} className="rounded-full" />
           ) : (
             <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-xl font-bold text-secondary-foreground">
               {displayName.charAt(0).toUpperCase()}

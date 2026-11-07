@@ -2,7 +2,7 @@ const router = require("express").Router();
 const { findFile, variantName } = require("../helper/fileHelper");
 
 // Нийтэд нээлттэй: /file/{нэр} — эх зураг, /file/thumbnail/{нэр} — 400px,
-// /file/grid/{нэр} — 600px, /file/icon/{нэр} — 128px (лого). Хувилбар байхгүй бол дараагийнх нь, эцэст нь эх.
+// /file/grid/{нэр} — 256px, /file/icon/{нэр} — 128px (лого). Хувилбар байхгүй бол дараагийнх нь, эцэст нь эх.
 const send = (res, ...names) => {
   for (const name of names) {
     const file = findFile(name);
@@ -12,7 +12,9 @@ const send = (res, ...names) => {
 };
 
 router.get("/thumbnail/:name", (req, res) => send(res, variantName("thumb", req.params.name), req.params.name));
-router.get("/grid/:name", (req, res) => send(res, variantName("grid", req.params.name), req.params.name));
+router.get("/grid/:name", (req, res) =>
+  send(res, variantName("grid", req.params.name), variantName("thumb", req.params.name), req.params.name),
+);
 router.get("/icon/:name", (req, res) =>
   send(res, variantName("icon", req.params.name), variantName("thumb", req.params.name), req.params.name),
 );

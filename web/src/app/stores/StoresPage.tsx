@@ -4,7 +4,7 @@ import ProductList from "@/components/home/ProductList";
 import ProductListSkeleton from "@/components/home/ProductListSkeleton";
 import { Button } from "@/components/ui/button";
 import StoreAvatar from "@/components/ui/store-avatar";
-import { fileThumbnailUrl } from "@/lib/api/files";
+import { fileUrl } from "@/lib/api/files";
 import { getProducts } from "@/lib/api/products";
 import { getStores, tierRank, type Store, type StoreTier } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -120,7 +120,7 @@ export default function StoresPage() {
               <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl md:size-20">
                 <StoreAvatar
                   name={store.name}
-                  src={fileThumbnailUrl(store.logo)}
+                  src={fileUrl(store.logo, "grid")}
                   className="size-full rounded-md bg-transparent object-contain"
                   initialsClassName="text-xl md:text-2xl"
                 />

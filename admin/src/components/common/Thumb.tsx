@@ -21,7 +21,8 @@ export default function Thumb({
   alt?: string;
   /** Fixed box size in px; omit to size via `className`. */
   size?: number;
-  variant?: "thumbnail" | "original";
+  /** Logos: "icon" for boxes ≤48px, "grid" for 56–96px. */
+  variant?: "thumbnail" | "original" | "grid" | "icon";
   /** Load immediately — for the above-the-fold hero image. */
   eager?: boolean;
   className?: string;

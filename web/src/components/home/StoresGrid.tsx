@@ -1,7 +1,7 @@
 "use client";
 
 import StoreAvatar from "@/components/ui/store-avatar";
-import { fileThumbnailUrl } from "@/lib/api/files";
+import { fileUrl } from "@/lib/api/files";
 import { getStores, type Store } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import Link from "next/link";
@@ -71,7 +71,7 @@ export default function StoresGrid() {
               <span className={LOGO}>
                 <StoreAvatar
                   name={store.name}
-                  src={fileThumbnailUrl(store.logo)}
+                  src={fileUrl(store.logo, "grid")}
                   className="size-full rounded-md bg-transparent object-contain"
                   initialsClassName="text-xl md:text-2xl"
                 />

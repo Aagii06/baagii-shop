@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatMNT } from "@/lib/utils";
 import { useSavedStore } from "@/store/savedStore";
 import { cn } from "@/lib/utils";
-import { fileThumbnailUrl } from "@/lib/api/files";
+import { fileUrl } from "@/lib/api/files";
 import { ChevronRight, Heart, MoreHorizontal, Star } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -144,7 +144,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-border">
               <StoreAvatar
                 name={product.brand}
-                src={fileThumbnailUrl(product.brandLogo)}
+                src={fileUrl(product.brandLogo, "icon")}
                 className="size-full bg-white object-contain"
                 initialsClassName="text-[9px]"
               />

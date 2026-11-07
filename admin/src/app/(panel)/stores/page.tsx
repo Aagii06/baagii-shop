@@ -34,7 +34,7 @@ function StoreRow({ store, onChanged }: { store: Store; onChanged: () => void })
 
   return (
     <li className="flex items-center gap-3 px-4 py-3.5">
-      <Thumb id={store.logo} size={48} className="rounded-xl" />
+      <Thumb id={store.logo} variant="icon" size={48} className="rounded-xl" />
       <span className="min-w-0 grow">
         <span className="flex items-center gap-2">
           <span className="truncate text-[15px] font-bold">{store.name}</span>
