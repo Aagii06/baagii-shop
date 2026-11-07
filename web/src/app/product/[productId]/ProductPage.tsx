@@ -22,12 +22,14 @@ import {
   Plus,
   ShoppingCart,
   Star,
+  ZoomIn,
 } from "lucide-react";
 import { useRouteId } from "@/lib/useRouteId";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import PageLoader from "@/components/ui/page-loader";
 import SafeImage from "@/components/ui/safe-image";
+import ImageLightbox from "@/components/product/ImageLightbox";
 import { resizedFileUrl } from "@/lib/api/files";
 
 function findMatchingVariant(
@@ -56,6 +58,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [selectedAttrs, setSelectedAttrs] = useState<Record<number, string>>({});
   const [activeThumb, setActiveThumb] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [product, setProduct] = useState<ProductDetail | null>(null);
@@ -212,6 +215,28 @@ export default function ProductPage() {
               </div>
             ) : (
               <SafeImage alt={product.name} fallback="lg" className="w-full aspect-square object-contain bg-white" />
+            )}
+            {images.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(true)}
+                aria-label={t("product.zoom")}
+                title={t("product.zoom")}
+                className="absolute right-3 top-3 grid size-10 place-items-center rounded-full bg-black/50 text-white opacity-50 shadow-sm transition-opacity hover:opacity-100 focus-visible:opacity-100"
+              >
+                <ZoomIn className="size-5" />
+              </button>
+            )}
+            {lightboxOpen && (
+              <ImageLightbox
+                images={images}
+                startIndex={Math.min(activeThumb, images.length - 1)}
+                alt={product.name}
+                onClose={(i) => {
+                  setLightboxOpen(false);
+                  goToImage(i);
+                }}
+              />
             )}
             {discount > 0 && (
               <span className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm font-bold px-2.5 py-1 rounded-md">
