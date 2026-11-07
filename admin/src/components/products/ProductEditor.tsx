@@ -446,8 +446,10 @@ export function ProductEditorProvider({
     };
   }, [post, categories, catalogue, form, allAttrs, rows, images]);
 
-  // Picked files show up in `images` as their `blob:` URLs, so `newFiles` adds nothing.
-  const { dirty, snapshot, markSaved } = useDirty({ ...value.toPostInput(), newFiles: undefined });
+  // Picked files show up in `images` as their `blob:` URLs, so the files themselves are left out.
+  const { dirty, snapshot, markSaved } = useDirty(
+    toPostInput(value.form, value.attrs, value.variants, value.images, new Map())
+  );
   const editor = useMemo<ProductEditor>(
     () => ({ ...value, dirty, snapshot, markSaved }),
     [value, dirty, snapshot, markSaved]
