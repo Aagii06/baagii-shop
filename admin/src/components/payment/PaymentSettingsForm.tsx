@@ -31,6 +31,17 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // What the form holds, to tell whether anything changed since the last save.
+  // A typed QPay password counts as a change; an empty one keeps the stored one.
+  const current = JSON.stringify({
+    deliveryEnabled,
+    deliveryFee,
+    bank,
+    qpay: { ...qpay, hasPassword: undefined },
+  });
+  const [baseline, setBaseline] = useState(current);
+  const dirty = current !== baseline;
+
   const required = (on: boolean, v: string) => (submitted && on && !v.trim() ? t("pay.required") : undefined);
   const bankErrors = {
     bankName: required(bank.enabled, bank.bankName),
@@ -45,7 +56,7 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (saving) return;
+    if (saving || !dirty) return;
     setSubmitted(true);
     const blank = (on: boolean, values: string[]) => on && values.some((v) => !v.trim());
     if (blank(bank.enabled, [bank.bankName, bank.accountName, bank.accountNumber])) return;
@@ -63,6 +74,7 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
         });
         setHasPassword(saved.qpay.hasPassword);
         setQpay((q) => ({ ...q, password: "" }));
+        setBaseline(JSON.stringify({ deliveryEnabled, deliveryFee, bank, qpay: { ...qpay, password: "", hasPassword: undefined } }));
       }, t("common.saved"));
     } finally {
       setSaving(false);
@@ -85,7 +97,7 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
         backHref="/settings"
         title={t("pay.title")}
         aside={
-          <Button type="submit" className="relative h-10 px-5" disabled={saving} aria-busy={saving}>
+          <Button type="submit" className="relative h-10 px-5" disabled={saving || !dirty} aria-busy={saving}>
             {/* The label keeps the button's width; the spinner sits over it while saving. */}
             <span className={saving ? "invisible" : undefined}>{t("common.save")}</span>
             {saving && <Loader2 className="absolute inset-0 m-auto animate-spin" />}
