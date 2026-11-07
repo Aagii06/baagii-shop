@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  startTransition,
   useCallback,
   useContext,
   useEffect,
@@ -27,10 +28,14 @@ export default function LanguageProvider({
 }) {
   const [locale, setLocaleState] = useState<Locale>(defaultLocale);
 
+  // Apply the saved locale as a transition: the server always renders the
+  // default locale, and a plain update here would reach Suspense boundaries
+  // (e.g. the Header) before they hydrate, causing a hydration mismatch. A
+  // transition lets React finish hydrating them first, then re-render.
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (saved && saved in dictionaries) {
-      setLocaleState(saved);
+    if (saved && saved in dictionaries && saved !== defaultLocale) {
+      startTransition(() => setLocaleState(saved));
     }
   }, []);
 

@@ -7,7 +7,7 @@ import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { categoryPath, subtreeIds, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { fileThumbnailUrl } from "@/lib/api/files";
-import SafeImage from "@/components/ui/safe-image";
+import StoreAvatar from "@/components/ui/store-avatar";
 import PriceRangeSlider from "./PriceRangeSlider";
 
 export interface SearchFilters {
@@ -36,7 +36,7 @@ function PickRow({
   logo,
 }: {
   label: string;
-  /** Store rows: the store's logo (gray "no image" logo when missing). */
+  /** Store rows: the store's logo (its initials when missing). */
   logo?: string | null;
   picked: boolean;
   onClick: () => void;
@@ -56,12 +56,11 @@ function PickRow({
     >
       {logo !== undefined && (
         <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-white">
-          <SafeImage
+          <StoreAvatar
+            name={label}
             src={logo}
-            alt=""
-            loading="lazy"
-            fallback="sm"
             className="size-full object-contain"
+            initialsClassName="text-xs"
           />
         </span>
       )}
@@ -178,7 +177,7 @@ export function FilterPanelContent({
     );
   };
 
-  // The stores selling what was found, most products first.
+  // Every store, most products in these results first.
   const stores = Object.entries(counts.brand)
     .sort(([a, x], [b, y]) => y - x || a.localeCompare(b))
     .map(([name]) => name);

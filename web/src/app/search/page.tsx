@@ -16,6 +16,7 @@ import {
   subtreeIds,
 } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
+import { getStores, type Store } from "@/lib/api/stores";
 import { byNewest } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import { useSearchParams } from "next/navigation";
@@ -76,6 +77,19 @@ function SearchContent() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  // Every store of the shop, so the store tiles and filter list show stores
+  // with no products (or none in these results) too.
+  const [allStores, setAllStores] = useState<Store[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getStores()
+      .then((rows) => !cancelled && setAllStores(rows))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // A comma-joined, sorted list of the category ids currently in play. A
   // primitive key keeps the fetch effect from re-firing on array identity
@@ -156,13 +170,17 @@ function SearchContent() {
   const counts = useMemo(() => {
     const brand: Record<string, number> = {};
     const brandLogo: Record<string, string | undefined> = {};
+    for (const s of allStores) {
+      brand[s.name] = 0;
+      brandLogo[s.name] = s.logo ?? undefined;
+    }
     for (const p of products) {
       if (!p.brand) continue;
       brand[p.brand] = (brand[p.brand] ?? 0) + 1;
       brandLogo[p.brand] ??= p.brandLogo;
     }
     return { brand, brandLogo };
-  }, [products]);
+  }, [products, allStores]);
 
   const filtered = useMemo(() => {
     let result = products.slice();
@@ -277,6 +295,15 @@ function SearchContent() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="mb-6">
+        <StoreTiles
+          counts={counts}
+          selected={filters.brands.length === 1 ? filters.brands[0] : undefined}
+          onSelect={(store) =>
+            setFilters((f) => ({ ...f, brands: store ? [store] : [] }))
+          }
+        />
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
@@ -297,13 +324,6 @@ function SearchContent() {
         />
 
         <div className="flex-1 min-w-0 space-y-5">
-          <StoreTiles
-            products={products}
-            selected={filters.brands.length === 1 ? filters.brands[0] : undefined}
-            onSelect={(store) =>
-              setFilters((f) => ({ ...f, brands: store ? [store] : [] }))
-            }
-          />
           <div className="flex items-center gap-3 justify-end">
             <SortTabs value={sort} onChange={setSort} />
             <MobileFilterDrawer

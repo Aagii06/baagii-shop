@@ -11,6 +11,7 @@ import { ChevronRight, Heart, MoreHorizontal, Star } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import SafeImage from "@/components/ui/safe-image";
+import StoreAvatar from "@/components/ui/store-avatar";
 
 interface Product {
   id: number;
@@ -141,12 +142,11 @@ export default function ProductCard({ product }: { product: Product }) {
             className="group/store mx-3 mb-3 flex items-center gap-2 rounded-full border border-border bg-muted/40 py-1 pl-1 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent sm:mx-4 sm:mb-4"
           >
             <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-border">
-              <SafeImage
+              <StoreAvatar
+                name={product.brand}
                 src={fileThumbnailUrl(product.brandLogo)}
-                alt=""
-                loading="lazy"
-                fallback="sm"
                 className="size-full bg-white object-contain"
+                initialsClassName="text-[9px]"
               />
             </span>
             <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted-foreground transition-colors group-hover/store:text-primary">

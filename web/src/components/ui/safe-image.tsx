@@ -22,6 +22,8 @@ type SafeImageProps = Omit<
   src?: string | null | (string | null | undefined)[];
   /** Size of the "no image" logo: sm for thumbnails, lg for the main gallery. */
   fallback?: FallbackSize;
+  /** Rendered instead of the gray logo when every src is missing or fails. */
+  fallbackNode?: React.ReactNode;
 };
 
 // <img> that tries each src in turn and falls back to the gray shop logo
@@ -31,6 +33,7 @@ export default function SafeImage({
   alt = "",
   className,
   fallback = "md",
+  fallbackNode,
   onError,
   onLoad,
   ...rest
@@ -58,6 +61,8 @@ export default function SafeImage({
       setFailed((prev) => (prev.includes(current) ? prev : [...prev, current]));
     }
   }, [current]);
+
+  if (useDefault && fallbackNode !== undefined) return <>{fallbackNode}</>;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

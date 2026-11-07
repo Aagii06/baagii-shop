@@ -3,9 +3,7 @@
 import { fileThumbnailUrl } from "@/lib/api/files";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
-import SafeImage from "@/components/ui/safe-image";
-import Tooltip from "@/components/ui/tooltip";
-import type { Product } from "@/types/product";
+import StoreAvatar from "@/components/ui/store-avatar";
 import { useMemo } from "react";
 
 interface StoreTile {
@@ -14,16 +12,14 @@ interface StoreTile {
   count: number;
 }
 
-/** The stores selling the products found, most products first. */
-function storesOf(products: Product[]): StoreTile[] {
-  const byName = new Map<string, StoreTile>();
-  for (const p of products) {
-    if (!p.brand) continue;
-    const tile = byName.get(p.brand) ?? { name: p.brand, logo: p.brandLogo, count: 0 };
-    tile.count += 1;
-    byName.set(p.brand, tile);
-  }
-  return [...byName.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+/** Every store, most products in these results first. */
+function storesOf(counts: {
+  brand: Record<string, number>;
+  brandLogo?: Record<string, string | undefined>;
+}): StoreTile[] {
+  return Object.entries(counts.brand)
+    .map(([name, count]) => ({ name, count, logo: counts.brandLogo?.[name] }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 /**
@@ -31,17 +27,21 @@ function storesOf(products: Product[]): StoreTile[] {
  * one store at a time; tapping it again clears the filter.
  */
 export default function StoreTiles({
-  products,
+  counts,
   selected,
   onSelect,
 }: {
-  products: Product[];
+  /** Products per store in the results (0 for stores with none), and logos. */
+  counts: {
+    brand: Record<string, number>;
+    brandLogo?: Record<string, string | undefined>;
+  };
   /** The store filtered to, if one. */
   selected?: string;
   onSelect: (store: string | undefined) => void;
 }) {
   const { t } = useLanguage();
-  const stores = useMemo(() => storesOf(products), [products]);
+  const stores = useMemo(() => storesOf(counts), [counts]);
   if (stores.length === 0) return null;
 
   return (
@@ -52,28 +52,8 @@ export default function StoreTiles({
           const active = store.name === selected;
           const logo = fileThumbnailUrl(store.logo);
           return (
-            <Tooltip
-              key={store.name}
-              content={
-                <span className="flex items-center gap-2.5">
-                  <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-white">
-                    <SafeImage src={logo} alt="" fallback="sm" className="size-full object-contain" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-1.5">
-                      <span className="truncate text-sm font-bold">{store.name}</span>
-                      <span className="shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-bold text-primary-foreground">
-                        {t("search.storeTip.count", { count: store.count })}
-                      </span>
-                    </span>
-                    <span className="block text-[11px] text-background/65">
-                      {t(active ? "search.storeTip.clear" : "search.storeTip.filter")}
-                    </span>
-                  </span>
-                </span>
-              }
-            >
               <button
+                key={store.name}
                 type="button"
                 aria-pressed={active}
                 aria-label={t("search.storeCount", { name: store.name, count: store.count })}
@@ -84,12 +64,10 @@ export default function StoreTiles({
                 )}
               >
                 <span className="grid size-14 place-items-center overflow-hidden rounded-xl bg-muted sm:size-16">
-                  {/* No logo, or it fails to load: the gray "no image" logo. */}
-                  <SafeImage
+                  {/* No logo, or it fails to load: the store's initials. */}
+                  <StoreAvatar
+                    name={store.name}
                     src={logo}
-                    alt=""
-                    loading="lazy"
-                    fallback="sm"
                     className={cn(
                       "size-full object-contain transition",
                       active ? "" : "opacity-85 grayscale group-hover:opacity-100 group-hover:grayscale-0"
@@ -101,7 +79,6 @@ export default function StoreTiles({
                 </span>
                 <span className="-mt-1 text-[11px] text-muted-foreground">{store.count}</span>
               </button>
-            </Tooltip>
           );
         })}
       </div>

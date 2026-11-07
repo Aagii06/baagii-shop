@@ -1,6 +1,6 @@
 "use client";
 
-import SafeImage from "@/components/ui/safe-image";
+import StoreAvatar from "@/components/ui/store-avatar";
 import { fileThumbnailUrl } from "@/lib/api/files";
 import { getStores, type Store } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -69,12 +69,11 @@ export default function StoresGrid() {
               className={`group ${CARD} transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:brand-glow focus-visible:-translate-y-1 focus-visible:border-primary/40 focus-visible:brand-glow focus-visible:outline-none`}
             >
               <span className={LOGO}>
-                <SafeImage
+                <StoreAvatar
+                  name={store.name}
                   src={fileThumbnailUrl(store.logo)}
-                  alt=""
-                  loading="lazy"
-                  fallback="sm"
-                  className="size-full rounded-md bg-transparent object-contain opacity-80 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
+                  className="size-full rounded-md bg-transparent object-contain"
+                  initialsClassName="text-xl md:text-2xl"
                 />
               </span>
               <span className={`${NAME} text-foreground transition-colors duration-300 group-hover:text-primary group-focus-visible:text-primary`}>
