@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../state/admin_state.dart';
 import '../../state/app_state.dart';
 import '../../state/shop_state.dart';
+import 'orders_page.dart';
 import 'sign_in_page.dart';
 
 class AccountPage extends StatelessWidget {
@@ -56,6 +57,14 @@ class AccountPage extends StatelessWidget {
         const SizedBox(height: 12),
         Card(
           child: Column(children: [
+            // Захиалга доод цэснээс хасагдаж энд орсон (web-ийн профайл цэстэй адил).
+            if (c != null)
+              ListTile(
+                leading: const Icon(Icons.receipt_long_outlined),
+                title: const Text('Миний захиалгууд'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OrdersPage())),
+              ),
             if (admin.signedIn)
               ListTile(
                 leading: const Icon(Icons.admin_panel_settings_outlined),
