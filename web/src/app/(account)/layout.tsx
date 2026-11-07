@@ -62,16 +62,16 @@ export default function AccountLayout({
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Phones have no sidebar: the account pages (orders, saved,
-              addresses) lead back to /profile, where their menu lives. The cart is a
-              bottom-bar tab and needs none; a guest's saved list goes back home. */}
-          {!pathname.startsWith("/profile") && !pathname.startsWith("/cart") && (
+          {/* Phones have no sidebar: orders and addresses lead back to
+              /profile, where their menu lives. Cart and saved are bottom-bar
+              tabs (MobileBottomNav) and need no back link. */}
+          {!["/profile", "/cart", "/saved"].some((p) => pathname.startsWith(p)) && (
             <Link
-              href={isAuthed ? "/profile" : "/"}
+              href="/profile"
               className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted lg:hidden"
             >
               <ArrowLeft className="h-4 w-4" />
-              {t(isAuthed ? "seller.backToProfile" : "seller.backHome")}
+              {t("seller.backToProfile")}
             </Link>
           )}
           {needsAuth && (authLoading || !isAuthed) ? <PageLoader /> : children}
