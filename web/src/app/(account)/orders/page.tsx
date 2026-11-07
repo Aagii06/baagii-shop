@@ -50,7 +50,7 @@ export default function OrdersPage() {
         </h1>
         <p className="text-muted-foreground mb-6">{t("orders.empty.desc")}</p>
         <Button asChild>
-          <Link href="/">{t("orders.empty.cta")}</Link>
+          <Link href="/search">{t("orders.empty.cta")}</Link>
         </Button>
       </div>
     );
