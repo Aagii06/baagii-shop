@@ -185,15 +185,34 @@
     );
   }
 
+  /* Skeleton shimmer on an <img> until it loads (SafeImage). Opaque, so it
+     shows over a caller's bg-white / bg-transparent too. */
   .img-placeholder {
-    background-color: var(--muted);
-    background-image: repeating-linear-gradient(
-      45deg,
-      var(--border) 0,
-      var(--border) 1px,
-      transparent 1px,
-      transparent 10px
+    background-image: linear-gradient(
+      100deg,
+      var(--muted) 30%,
+      color-mix(in oklch, var(--muted) 40%, white) 50%,
+      var(--muted) 70%
     );
+    background-size: 200% 100%;
+    animation: img-shimmer 1.4s ease-in-out infinite;
+    /* No broken-image icon or alt text flashing in while it loads. */
+    color: transparent;
+  }
+
+  @keyframes img-shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -100% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .img-placeholder {
+      animation: none;
+    }
   }
 
   .no-scrollbar {

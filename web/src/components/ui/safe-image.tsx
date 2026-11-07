@@ -27,7 +27,7 @@ type SafeImageProps = Omit<
 };
 
 // <img> that tries each src in turn and falls back to the gray shop logo
-// when they are all missing or fail to load. Shows a striped placeholder until it loads.
+// when they are all missing or fail to load. Shows a shimmering skeleton until it loads.
 export default function SafeImage({
   src,
   alt = "",
@@ -55,10 +55,15 @@ export default function SafeImage({
 
   // A server-rendered <img> can fail before hydration, when onError isn't
   // attached yet; catch that case here.
+  // A server-rendered <img> can also finish loading before hydration: drop
+  // the skeleton then, or it would stay behind transparent images.
   useEffect(() => {
     const img = ref.current;
-    if (img?.complete && img.naturalWidth === 0 && current) {
-      setFailed((prev) => (prev.includes(current) ? prev : [...prev, current]));
+    if (!img?.complete) return;
+    if (img.naturalWidth === 0) {
+      if (current) setFailed((prev) => (prev.includes(current) ? prev : [...prev, current]));
+    } else {
+      setLoadedSrc(img.getAttribute("src"));
     }
   }, [current]);
 
