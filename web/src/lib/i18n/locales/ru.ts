@@ -183,6 +183,7 @@ export const ru: Dict = {
   "product.notFound.desc": "Товар, который вы ищете, не существует.",
   "product.notFound.back": "Вернуться в магазин",
   "product.quickView.details": "Подробнее",
+  "product.zoom": "Открыть на весь экран",
   "product.quickView.open": "Быстрый просмотр",
   "product.quickView.close": "Закрыть",
   "product.quickView.selectOption": "Выберите вариант",

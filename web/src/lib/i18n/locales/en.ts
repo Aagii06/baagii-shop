@@ -183,6 +183,7 @@ export const en: Dict = {
   "product.notFound.desc": "The product you're looking for doesn't exist.",
   "product.notFound.back": "Back to shop",
   "product.quickView.details": "View details",
+  "product.zoom": "View full screen",
   "product.quickView.open": "Quick view",
   "product.quickView.close": "Close",
   "product.quickView.selectOption": "Select an option",
