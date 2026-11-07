@@ -5,6 +5,7 @@ const { byAndAt } = require("../../middleware/timeStamp");
 const { validate } = require("../../utils/validationHelper");
 const { isPhone } = require("../../helper/helper");
 const controller = require("./controller");
+const { storeTiers } = require("../../config/constants");
 
 // Утас, имэйл, хаяг тус бүр дээд тал нь
 const maxStoreContacts = 5;
@@ -18,6 +19,7 @@ const saveValidation = validate([
   body("emails").optional().isArray({ max: maxStoreContacts }).withMessage(`Имэйл ${maxStoreContacts} хүртэл байна`),
   body("emails.*").trim().isEmail().withMessage("Имэйл буруу байна"),
   body("addresses").optional().isArray({ max: maxStoreContacts }).withMessage(`Хаяг ${maxStoreContacts} хүртэл байна`),
+  body("tier").optional().isIn(storeTiers).withMessage("Дэлгүүрийн түвшин буруу байна"),
   body("addresses.*").trim().notEmpty().isLength({ max: 255 }).withMessage("Хаяг 255 тэмдэгтээс хэтрэхгүй"),
 ]);
 

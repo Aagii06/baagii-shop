@@ -6,6 +6,9 @@ const constant = {
     shopper: "SHOPPER",
   },
 
+  // Дэлгүүрийн түвшин (stores.tier), өндрөөс нь. Зөвхөн ADMIN тохируулна
+  storeTiers: ["gold", "silver", "bronze", "normal"],
+
   // Захиалгын төлөв: pending → confirmed → delivered, эсвэл бүгдийг буцаавал returned.
   // Удаан төлөгдөөгүй pending захиалгыг ADMIN цуцалбал cancelled (api/order cancel)
   orderStatuses: {

@@ -23,6 +23,8 @@ module.exports = (sequelize, DataTypes) => {
       address: { type: DataTypes.STRING },
       addresses: { type: DataTypes.TEXT },
       logo: { type: DataTypes.STRING },
+      // gold / silver / bronze / normal (config/constants.js storeTiers); зөвхөн ADMIN тохируулна
+      tier: { type: DataTypes.STRING, defaultValue: "normal" },
       ...auditFields(DataTypes),
     },
     { sequelize, tableName: "stores", modelName: "stores", timestamps: false },

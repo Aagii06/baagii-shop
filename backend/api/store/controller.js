@@ -2,6 +2,7 @@ const { stores, products, users, sequelize } = require("../../models");
 const { toStore, findStore, ownStoreId } = require("../../helper/storeHelper");
 const { saveLog } = require("../../utils/logHelper");
 const { ok, fail, handle, phoneDigits } = require("../../helper/helper");
+const { storeTiers } = require("../../config/constants");
 
 // Борлуулагч дэлгүүрүүд, нэрээр. SHOPPER зөвхөн өөрийнхөө дэлгүүрийг харна.
 module.exports.list = handle("storeList", async (req, res) => {
@@ -42,6 +43,8 @@ const fields = (body) => {
     address: addresses[0] ?? null,
     addresses: JSON.stringify(addresses),
     logo: body.logo || null,
+    // Түвшин ирээгүй бол (хуучин клиент) өмнөхөө хадгална
+    ...(storeTiers.includes(body.tier) && { tier: body.tier }),
   };
 };
 
