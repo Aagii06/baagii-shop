@@ -129,9 +129,10 @@ export default function ProductForm() {
         backHref="/products"
         title={post ? t("products.edit") : t("products.add")}
         aside={
-          <Button type="submit" className="h-10 px-5" disabled={saving} aria-busy={saving}>
-            {saving && <Loader2 className="animate-spin" />}
-            {t("common.save")}
+          <Button type="submit" className="relative h-10 px-5" disabled={saving} aria-busy={saving}>
+            {/* While saving only the spinner shows; the hidden label keeps the width. */}
+            <span className={saving ? "invisible" : undefined}>{t("common.save")}</span>
+            {saving && <Loader2 className="absolute inset-0 m-auto animate-spin" />}
           </Button>
         }
       />
