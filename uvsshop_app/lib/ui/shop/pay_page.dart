@@ -71,7 +71,10 @@ class _PayPageState extends State<PayPage> {
     }
   }
 
+  bool _checking = false;
+
   Future<void> _check({bool silent = false}) async {
+    if (!silent) setState(() => _checking = true);
     try {
       final o = await context.read<ShopState>().checkQpay(widget.orderId);
       if (!mounted) return;
@@ -83,6 +86,8 @@ class _PayPageState extends State<PayPage> {
       }
     } catch (e) {
       if (!silent && mounted) showMessage(context, e.toString(), error: true);
+    } finally {
+      if (!silent && mounted) setState(() => _checking = false);
     }
   }
 
@@ -190,8 +195,8 @@ class _PayPageState extends State<PayPage> {
       const SizedBox(height: 16),
       OutlinedButton.icon(
         style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-        onPressed: () => _check(),
-        icon: const Icon(Icons.refresh),
+        onPressed: _checking ? null : () => _check(),
+        icon: _checking ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.refresh),
         label: const Text('Төлбөр шалгах'),
       ),
     ]);
@@ -228,7 +233,7 @@ class _PayPageState extends State<PayPage> {
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           onPressed: _busy ? null : _bankDone,
-          child: const Text('Шилжүүлсэн'),
+          child: _busy ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Шилжүүлсэн'),
         ),
     ]);
   }

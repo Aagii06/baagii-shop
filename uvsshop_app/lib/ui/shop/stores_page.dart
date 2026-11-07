@@ -5,6 +5,7 @@ import '../../api/shop_models.dart';
 import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import 'home_page.dart' show byNewest;
+import '../common.dart';
 import 'product_card.dart';
 
 const _tierRank = {'gold': 0, 'silver': 1, 'bronze': 2, 'normal': 3};

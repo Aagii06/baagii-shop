@@ -192,6 +192,9 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
   AdminOrder? _order;
   Object? _error;
   bool _busy = false;
+
+  /// Аль товчны үйлдэл явж байна — тэр товч эргэлдэнэ.
+  String? _action;
   bool _changed = false;
 
   @override
@@ -222,8 +225,11 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
       ) ??
       false;
 
-  Future<void> _run(Future<void> Function() fn, String done) async {
-    setState(() => _busy = true);
+  Future<void> _run(Future<void> Function() fn, String done, {String? action}) async {
+    setState(() {
+      _busy = true;
+      _action = action;
+    });
     try {
       await fn();
       _changed = true;
@@ -232,7 +238,12 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
     } catch (e) {
       if (mounted) showMessage(context, e.toString(), error: true);
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _action = null;
+        });
+      }
     }
   }
 
@@ -260,7 +271,7 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
       ),
     );
     if (ok == true) {
-      await _run(() => context.read<AdminState>().returnItem(widget.orderId, item.id, qty), 'Буцаалаа');
+      await _run(() => context.read<AdminState>().returnItem(widget.orderId, item.id, qty), 'Буцаалаа', action: 'item-${item.id}');
     }
   }
 
@@ -343,7 +354,13 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
               title: Text(i.name, maxLines: 2, overflow: TextOverflow.ellipsis),
               subtitle: Text('${money(i.price)} × ${i.qty}${i.returnedQty > 0 ? ' (буцаасан ${i.returnedQty})' : ''}'),
               trailing: o.canReturn && i.keptQty > 0 && admin.user?.isAdmin == true
-                  ? IconButton(tooltip: 'Буцаах', icon: const Icon(Icons.undo), onPressed: _busy ? null : () => _returnItem(i))
+                  ? IconButton(
+                      tooltip: 'Буцаах',
+                      icon: _action == 'item-${i.id}'
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.undo),
+                      onPressed: _busy ? null : () => _returnItem(i),
+                    )
                   : Text(money(i.price * i.keptQty)),
             ),
         ]),
@@ -380,10 +397,10 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
                     ? null
                     : () async {
                         if (await _confirm('Захиалгыг цуцлах уу? Бараа агуулахад буцна.')) {
-                          await _run(() => admin.cancelOrder(o.id), 'Цуцаллаа');
+                          await _run(() => admin.cancelOrder(o.id), 'Цуцаллаа', action: 'cancel');
                         }
                       },
-                child: const Text('Цуцлах'),
+                child: _action == 'cancel' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red)) : const Text('Цуцлах'),
               ),
             )
           else if (o.canReturn)
@@ -394,10 +411,10 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
                     ? null
                     : () async {
                         if (await _confirm('Захиалгыг бүхэлд нь буцаах уу?')) {
-                          await _run(() => admin.setOrderStatus(o.id, 'returned'), 'Буцаалаа');
+                          await _run(() => admin.setOrderStatus(o.id, 'returned'), 'Буцаалаа', action: 'return');
                         }
                       },
-                child: const Text('Бүгдийг буцаах'),
+                child: _action == 'return' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Бүгдийг буцаах'),
               ),
             ),
           if (next != null) ...[
@@ -409,10 +426,10 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
                     ? null
                     : () async {
                         if (await _confirm('${next.$1}?')) {
-                          await _run(() => admin.setOrderStatus(o.id, next.$2), orderStatusLabel[next.$2]!);
+                          await _run(() => admin.setOrderStatus(o.id, next.$2), orderStatusLabel[next.$2]!, action: 'next');
                         }
                       },
-                child: Text(next.$1),
+                child: _action == 'next' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text(next.$1),
               ),
             ),
           ],
