@@ -12,6 +12,18 @@ import { apiFetch, type ApiItemResponse, type ApiListResponse } from "./client";
 /** Phones, emails and addresses a store can have, each. */
 export const MAX_STORE_CONTACTS = 5;
 
+/** Store tiers, highest first. Only an admin sets them; the shop's
+ *  Stores page lists higher tiers' products first. */
+export const STORE_TIERS = ["gold", "silver", "bronze", "normal"] as const;
+export type StoreTier = (typeof STORE_TIERS)[number];
+
+/** Badge colours per tier; `normal` shows no badge. */
+export const TIER_BADGE: Record<Exclude<StoreTier, "normal">, string> = {
+  gold: "bg-amber-100 text-amber-800",
+  silver: "bg-slate-200 text-slate-700",
+  bronze: "bg-orange-100 text-orange-800",
+};
+
 export interface Store {
   id: number;
   name: string;
@@ -24,6 +36,7 @@ export interface Store {
   addresses: string[];
   /** Logo file id. */
   logo: string | null;
+  tier: StoreTier;
   /** Active products; only on the list. */
   productsCnt?: number;
   createdAt: string;
@@ -36,6 +49,7 @@ export interface StoreInput {
   emails: string[];
   addresses: string[];
   logo: string | null;
+  tier: StoreTier;
 }
 
 /** By name. */

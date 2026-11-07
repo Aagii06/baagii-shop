@@ -10,7 +10,8 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { uploadFile } from "@/lib/api/files";
-import { createStore, MAX_STORE_CONTACTS, updateStore, type Store } from "@/lib/api/stores";
+import Select from "@/components/common/Select";
+import { createStore, MAX_STORE_CONTACTS, STORE_TIERS, updateStore, type Store, type StoreTier } from "@/lib/api/stores";
 import { Loader2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
@@ -37,6 +38,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
   // A saved file id, or a `blob:` preview of `logoFile` until it's uploaded.
   const [logo, setLogo] = useState<string | null>(store?.logo ?? null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [tier, setTier] = useState<StoreTier>(store?.tier ?? "normal");
   const [nameTouched, setNameTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   // From the first tap until the save fails or the page leaves.
@@ -79,6 +81,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
         emails,
         addresses,
         logo: logoFile ? await uploadFile(logoFile) : logo,
+        tier,
       };
       await (store ? updateStore(store.id, input) : createStore(input));
     }, store ? t("common.saved") : t("st.added"));
@@ -130,6 +133,16 @@ export default function StoreForm({ store }: { store: Store | null }) {
             aria-describedby={nameError ? nameErrorId : undefined}
             required
           />
+        </Field>
+
+        <Field label={t("st.tier")} hint={t("st.tierHint")}>
+          <Select title={t("st.tier")} value={tier} onChange={(v) => setTier(v as StoreTier)} aria-label={t("st.tier")}>
+            {STORE_TIERS.map((tr) => (
+              <option key={tr} value={tr}>
+                {t(`st.tier.${tr}`)}
+              </option>
+            ))}
+          </Select>
         </Field>
 
         <ContactList

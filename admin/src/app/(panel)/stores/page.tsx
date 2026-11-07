@@ -9,7 +9,7 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { deleteStore, getStores, type Store } from "@/lib/api/stores";
+import { deleteStore, getStores, TIER_BADGE, type Store } from "@/lib/api/stores";
 import { useApi } from "@/lib/useApi";
 import { formatPhone, formatQty } from "@/lib/utils";
 import { Pencil, Plus, Store as StoreIcon, Trash2 } from "lucide-react";
@@ -38,6 +38,9 @@ function StoreRow({ store, onChanged }: { store: Store; onChanged: () => void })
       <span className="min-w-0 grow">
         <span className="flex items-center gap-2">
           <span className="truncate text-[15px] font-bold">{store.name}</span>
+          {store.tier && store.tier !== "normal" && (
+            <Badge className={`shrink-0 px-2 py-0.5 ${TIER_BADGE[store.tier]}`}>{t(`st.tier.${store.tier}`)}</Badge>
+          )}
           <Badge className="shrink-0 px-2 py-0.5 font-mono">
             {formatQty(store.productsCnt ?? 0)}
             <span className="sr-only">{t("st.productsSr")}</span>

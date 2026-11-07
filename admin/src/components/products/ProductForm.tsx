@@ -3,6 +3,7 @@
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { tr } from "@/lib/i18n/translations";
 import { useConfirm } from "@/components/common/Confirm";
+import DatePicker from "@/components/common/DatePicker";
 import Field from "@/components/common/Field";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -60,7 +61,7 @@ export default function ProductForm() {
   const nameRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   const saleRef = useRef<HTMLInputElement>(null);
-  const saleStartRef = useRef<HTMLInputElement>(null);
+  const saleStartRef = useRef<HTMLButtonElement>(null);
   const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant, toPostInput } =
     useProductEditor();
   const Icon = ATTR_ICONS[attrs[0]?.viewType ?? "text"];
@@ -177,24 +178,22 @@ export default function ProductForm() {
             <legend className="px-1 text-sm font-bold">{t("pf.salePeriod")}</legend>
             <div className="grid grid-cols-2 gap-3">
               <Field label={t("pf.saleStart")}>
-                <Input
+                <DatePicker
                   ref={saleStartRef}
-                  type="date"
-                  className="px-4 font-mono"
+                  title={t("pf.saleStart")}
                   value={form.saleStart}
                   max={form.saleEnd || undefined}
-                  onChange={(e) => set("saleStart", e.target.value)}
+                  onChange={(date) => set("saleStart", date)}
                   aria-invalid={Boolean(periodError)}
                   aria-describedby={periodError ? periodErrorId : undefined}
                 />
               </Field>
               <Field label={t("pf.saleEnd")}>
-                <Input
-                  type="date"
-                  className="px-4 font-mono"
+                <DatePicker
+                  title={t("pf.saleEnd")}
                   value={form.saleEnd}
                   min={form.saleStart || undefined}
-                  onChange={(e) => set("saleEnd", e.target.value)}
+                  onChange={(date) => set("saleEnd", date)}
                   aria-invalid={Boolean(periodError)}
                   aria-describedby={periodError ? periodErrorId : undefined}
                 />
