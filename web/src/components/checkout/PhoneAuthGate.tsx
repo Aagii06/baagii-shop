@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
-import { Phone, ShieldCheck } from "lucide-react";
+import { Phone, ShieldCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useId, useState } from "react";
 
@@ -180,8 +180,9 @@ export default function PhoneAuthGate() {
               type="button"
               disabled={busy}
               onClick={() => requestOtp(phone.trim())}
-              className="font-medium text-primary hover:underline disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 font-medium text-primary hover:underline disabled:opacity-50"
             >
+              {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               {t("checkout.auth.resend")}
             </button>
           </div>
