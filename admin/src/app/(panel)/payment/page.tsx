@@ -16,7 +16,7 @@ export default function PaymentSettingsPage() {
 
   return (
     <>
-      <DetailHeader backHref="/profile" title={t("pay.title")} />
+      <DetailHeader backHref="/settings" title={t("pay.title")} />
       {error ? <ErrorState error={error} onRetry={reload} /> : <PaymentSettingsSkeleton />}
     </>
   );

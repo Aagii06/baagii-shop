@@ -328,7 +328,7 @@ export default function CategoriesPage() {
   return (
     <>
       <DetailHeader
-        backHref="/profile"
+        backHref="/settings"
         title={t("cat.title")}
         aside={
           <Button asChild className="h-10 px-4">

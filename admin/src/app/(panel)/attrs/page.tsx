@@ -84,7 +84,7 @@ export default function AttrsPage() {
   return (
     <>
       <DetailHeader
-        backHref="/profile"
+        backHref="/settings"
         title={t("attrs.title")}
         aside={
           <Button asChild className="h-10 px-4">

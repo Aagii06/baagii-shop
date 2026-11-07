@@ -74,7 +74,7 @@ export default function PaymentSettingsForm({ settings }: { settings: PaymentSet
   return (
     <form onSubmit={onSubmit} noValidate>
       <DetailHeader
-        backHref="/profile"
+        backHref="/settings"
         title={t("pay.title")}
         aside={
           <Button type="submit" className="h-10 px-5">

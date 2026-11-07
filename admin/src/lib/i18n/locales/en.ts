@@ -256,6 +256,8 @@ export const en: Dict = {
   "profile.title": "Profile",
   "profile.user": "User",
   "profile.logout": "Sign out",
+  "settings.title": "Settings",
+  "profile.settings": "Categories, attributes and payment",
   "profile.categories": "Add and edit categories",
   "profile.attrs": "Attributes and values such as colour and size",
   "profile.notes": "Delivery notes",

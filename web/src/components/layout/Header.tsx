@@ -7,7 +7,9 @@ import { useCartStore } from "@/store/cartStore";
 import { useSavedStore } from "@/store/savedStore";
 import logo from "@/assets/logo.png";
 import {
+  ChevronDown,
   Heart,
+  LogOut,
   Menu,
   Package,
   ShoppingCart,
@@ -18,7 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { categoryHref, categoryKey } from "@/lib/categories";
 import LanguageSwitcher from "./LanguageSwitcher";
 import {
@@ -60,6 +62,86 @@ function HeaderAction({
       </span>
       <span className="max-w-20 truncate">{label}</span>
     </Link>
+  );
+}
+
+/** The header's profile button: opens a menu with the profile, orders and sign-out. */
+function ProfileMenu({ label }: { label: string }) {
+  const { t } = useLanguage();
+  const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const item =
+    "flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted";
+
+  return (
+    <div ref={root} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex min-w-14 cursor-pointer flex-col items-center gap-1 px-2 text-xs text-muted-foreground transition-colors hover:text-primary"
+      >
+        <User className="h-5 w-5" />
+        <span className="flex max-w-24 items-center gap-0.5">
+          <span className="truncate">{label}</span>
+          <ChevronDown className={`h-3 w-3 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+        </span>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full z-50 mt-2 w-52 rounded-lg border border-border bg-white p-1.5 shadow-lg animate-in fade-in-0 zoom-in-95 duration-100"
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest("a")) setOpen(false);
+          }}
+        >
+          <Link href="/profile" role="menuitem" className={item}>
+            <User className="h-4 w-4 text-muted-foreground" /> {t("header.nav.myProfile")}
+          </Link>
+          <Link href="/orders" role="menuitem" className={item}>
+            <Package className="h-4 w-4 text-muted-foreground" /> {t("header.nav.orders")}
+          </Link>
+          <div className="my-1 h-px bg-border" />
+          <button
+            type="button"
+            role="menuitem"
+            className={`${item} text-destructive`}
+            onClick={() => {
+              setOpen(false);
+              logout();
+              router.push("/");
+            }}
+          >
+            <LogOut className="h-4 w-4" /> {t("profile.logout")}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -252,21 +334,12 @@ export default function Header() {
               {isMounted && isAuthed ? (
                 <>
                   <div className="hidden md:flex">
-                    <HeaderAction
-                      href="/profile"
-                      icon={User}
-                      label={profileName ?? t("header.nav.profile")}
-                    />
+                    <ProfileMenu label={profileName ?? t("header.nav.profile")} />
                     <HeaderAction
                       href="/saved"
                       icon={Heart}
                       label={t("header.nav.saved")}
                       count={savedCount}
-                    />
-                    <HeaderAction
-                      href="/orders"
-                      icon={Package}
-                      label={t("header.nav.orders")}
                     />
                   </div>
                 </>

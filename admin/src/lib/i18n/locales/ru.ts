@@ -256,6 +256,8 @@ export const ru: Dict = {
   "profile.title": "Профиль",
   "profile.user": "Пользователь",
   "profile.logout": "Выйти",
+  "settings.title": "Настройки",
+  "profile.settings": "Категории, характеристики и оплата",
   "profile.categories": "Добавление и изменение категорий",
   "profile.attrs": "Характеристики и значения, например цвет и размер",
   "profile.notes": "Заметки к доставке",

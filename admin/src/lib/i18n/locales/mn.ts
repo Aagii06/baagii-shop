@@ -256,6 +256,8 @@ export const mn: Dict = {
   "profile.title": "Профайл",
   "profile.user": "Хэрэглэгч",
   "profile.logout": "Гарах",
+  "settings.title": "Тохиргоо",
+  "profile.settings": "Категори, үзүүлэлт, төлбөрийн тохиргоо",
   "profile.categories": "Категори нэмэх, засах",
   "profile.attrs": "Өнгө, хэмжээ зэрэг үзүүлэлт, утгууд",
   "profile.notes": "Хүргэлтийн тэмдэглэл",

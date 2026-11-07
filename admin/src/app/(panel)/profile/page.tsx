@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Thumb from "@/components/common/Thumb";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, CreditCard, Handshake, KeyRound, LayoutGrid, LogOut, MessageSquareText, NotebookPen, Pencil, SlidersHorizontal, Store, UserRound, Users, type LucideIcon } from "lucide-react";
+import { ChevronRight, Handshake, KeyRound, LogOut, MessageSquareText, NotebookPen, Pencil, Settings, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon; tone: string }[] = [
@@ -32,25 +32,11 @@ const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon;
     tone: "bg-emerald-100 text-emerald-600 ring-emerald-200",
   },
   {
-    href: "/categories",
-    labelKey: "common.category",
-    descKey: "profile.categories",
-    icon: LayoutGrid,
-    tone: "bg-amber-100 text-amber-600 ring-amber-200",
-  },
-  {
-    href: "/attrs",
-    labelKey: "attrs.title",
-    descKey: "profile.attrs",
-    icon: SlidersHorizontal,
-    tone: "bg-pink-100 text-pink-600 ring-pink-200",
-  },
-  {
-    href: "/payment",
-    labelKey: "pay.title",
-    descKey: "profile.payment",
-    icon: CreditCard,
-    tone: "bg-teal-100 text-teal-600 ring-teal-200",
+    href: "/settings",
+    labelKey: "settings.title",
+    descKey: "profile.settings",
+    icon: Settings,
+    tone: "bg-slate-100 text-slate-600 ring-slate-200",
   },
   {
     href: "/delivery-notes",

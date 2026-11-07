@@ -102,7 +102,7 @@ class AdminState extends ChangeNotifier {
     String? status,
     String? phone,
   }) async {
-    final q = {'skip': '$skip', 'take': '$take', if (status != null) 'status': status, if (phone != null && phone.isNotEmpty) 'phone': phone};
+    final q = {'skip': '$skip', 'take': '$take', 'status': ?status, if (phone != null && phone.isNotEmpty) 'phone': phone};
     final res = await guard(() => api.get('/order?${Uri(queryParameters: q).query}'));
     final d = res['data'] as Map<String, dynamic>? ?? {};
     return (
