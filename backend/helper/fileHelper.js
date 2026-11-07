@@ -8,7 +8,7 @@ const sharp = require("sharp");
 // <folder> нь model-ийн нэр (products, stores, users, blogs ...) — public/uploads доторх folder-ууд.
 // Фронт файлын нэрийг id болгон хадгалж, /file/<нэр>, /file/thumbnail/<нэр>-ээр харуулна
 // (файлын нэр давтагдахгүй тул аль folder-т байгааг нь хайж олно).
-// Лого (stores, users): эх, thumb_, icon_, grid_ гэсэн 4 файл; бусад: эх, thumb_.
+// Бараа, лого (products, stores, users): эх, thumb_, icon_, grid_ гэсэн 4 файл; бусад: эх, thumb_.
 const uploadsRoot = path.join(__dirname, "../public/uploads");
 const DEFAULT_FOLDER = "products";
 const THUMB_WIDTH = 400;
@@ -52,15 +52,20 @@ module.exports.findFile = (fileName) => {
 const isImage = (file) => /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.mimetype);
 module.exports.isImage = isImage;
 
-// Жижиг хувилбарууд: <prefix><нэр>. Бүх folder-т thumb_, лого (stores, users)-д icon_, grid_ нэмэлт.
-//   thumb_ — 400px өргөн, grid_ — 256px-д багтаасан (дэлгүүрийн карт, 56–96px), icon_ — 128px-д багтаасан (≤48px дүрс)
+// Жижиг хувилбарууд: <prefix><нэр>. Бүх folder-т thumb_, бараа ба лого (products, stores, users)-д icon_, grid_ нэмэлт.
+//   thumb_ — 400px өргөн
+//   icon_  — 128px-д багтаасан (≤64px: admin-ы жагсаалт, захиалгын мөр, жижиг лого)
+//   grid_  — бараа: 600px-д багтаасан (барааны grid карт); лого: 256px (дэлгүүрийн карт, 56–96px)
 const VARIANTS = {
   thumb: { prefix: "thumb_", resize: { width: THUMB_WIDTH } },
   grid: { prefix: "grid_", resize: { width: 256, height: 256, fit: "inside" } },
   icon: { prefix: "icon_", resize: { width: 128, height: 128, fit: "inside" } },
 };
-const LOGO_VARIANTS = ["thumb", "icon", "grid"];
-const folderVariants = (folder) => (["stores", "users"].includes(folder) ? LOGO_VARIANTS : ["thumb"]);
+// Folder-оор өөр хэмжээ (VARIANTS-ийг дарна)
+const FOLDER_RESIZE = { products: { grid: { width: 600, height: 600, fit: "inside" } } };
+const FULL_VARIANTS = ["thumb", "icon", "grid"];
+const folderVariants = (folder) => (["products", "stores", "users"].includes(folder) ? FULL_VARIANTS : ["thumb"]);
+const variantResize = (folder, variant) => FOLDER_RESIZE[folder]?.[variant] || VARIANTS[variant].resize;
 module.exports.VARIANTS = VARIANTS;
 module.exports.folderVariants = folderVariants;
 module.exports.variantName = (variant, fileName) => `${VARIANTS[variant].prefix}${fileName}`;
@@ -75,7 +80,7 @@ const makeVariants = async (folder, fileName, source) => {
     try {
       await sharp(source || path.join(dir, fileName))
         .rotate()
-        .resize({ ...VARIANTS[variant].resize, withoutEnlargement: true })
+        .resize({ ...variantResize(folder, variant), withoutEnlargement: true })
         .toFile(target);
     } catch (error) {
       // эх файлаар харуулна
