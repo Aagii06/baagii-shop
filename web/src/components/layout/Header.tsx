@@ -100,6 +100,21 @@ export default function Header() {
     setIsMobileOpen(false);
   }, [pathname]);
 
+  // The full-screen mobile menu: lock page scroll behind it, close on Escape.
+  useEffect(() => {
+    if (!isMobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMobileOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isMobileOpen]);
+
   const toggleMobileMenu = useCallback(() => {
     setIsMobileOpen((prev) => !prev);
   }, []);
@@ -279,11 +294,31 @@ export default function Header() {
 
       {isMobileOpen && (
         <nav
-          className="lg:hidden border-b border-border animate-in slide-in-from-top duration-200"
+          className="fixed inset-0 z-[60] flex flex-col bg-white lg:hidden animate-in slide-in-from-left duration-200"
           role="navigation"
           aria-label={t("header.mobileNavAria")}
+          // A link to the page already open doesn't change the path; close anyway.
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest("a")) setIsMobileOpen(false);
+          }}
         >
-          <div className="container mx-auto px-4 py-4 space-y-1">
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+            <Link href="/" className="flex items-center gap-2">
+              <Image src={logo} alt="" className="h-8 w-8 object-contain" />
+              <span className="text-lg font-bold tracking-tight text-primary">
+                {t("header.brand.name")}
+              </span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsMobileOpen(false)}
+              aria-label={t("header.menuClose")}
+              className="-mr-2 cursor-pointer rounded-md p-2 transition-colors hover:bg-muted"
+            >
+              <X className="h-5 w-5 text-foreground" />
+            </button>
+          </div>
+          <div className="flex-1 space-y-1 overflow-y-auto overscroll-contain px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Link
               href="/search"
               className="block py-2.5 px-3 rounded-md text-sm font-medium text-foreground hover:bg-muted transition-colors"

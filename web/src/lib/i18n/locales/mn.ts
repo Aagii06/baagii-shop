@@ -8,6 +8,7 @@ export const mn: Dict = {
   "header.topbar.contact": "Холбогдох",
   "header.topbar.becomeSeller": "Хамтран ажиллах",
   "header.menuOpen": "Цэс нээх",
+  "header.menuClose": "Цэс хаах",
   "header.brand.name": "UVSSHOP.COM",
   "header.brand.tagline": "Online Shop",
   "header.search.placeholder": "Бараа, брэнд, ангилал хайх...",
