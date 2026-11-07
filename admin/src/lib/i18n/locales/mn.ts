@@ -70,6 +70,7 @@ export const mn: Dict = {
   "dash.left": "{qty} үлдсэн",
   "dash.sampleNotice": "Захиалга, борлуулалтын API холбогдоогүй тул тэдгээрийн тоо жишээ өгөгдөл.",
   "products.title": "Бараа",
+  "products.count": "{count} бараа",
   "products.search": "Бараа хайх",
   "products.allCategories": "Бүх категори",
   "cf.count": "{count} категори",

@@ -70,6 +70,7 @@ export const ru: Dict = {
   "dash.left": "Осталось {qty}",
   "dash.sampleNotice": "API заказов и продаж не подключены, поэтому эти данные — примеры.",
   "products.title": "Товары",
+  "products.count": "{count} товаров",
   "products.search": "Поиск товаров",
   "products.allCategories": "Все категории",
   "cf.count": "Категорий: {count}",

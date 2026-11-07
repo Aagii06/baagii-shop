@@ -70,6 +70,7 @@ export const en: Dict = {
   "dash.left": "{qty} left",
   "dash.sampleNotice": "The orders and sales APIs aren't connected, so those figures are sample data.",
   "products.title": "Products",
+  "products.count": "{count} products",
   "products.search": "Search products",
   "products.allCategories": "All categories",
   "cf.count": "{count} categories",

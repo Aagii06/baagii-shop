@@ -135,12 +135,19 @@ export default function ProductsPage() {
       <PageHeader
         title={t("products.title")}
         aside={
-          <Button asChild size="sm" className="px-4">
-            <Link href="/products/new">
-              <Plus />
-              {t("common.add")}
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            {ready && !page.error && (
+              <span className="shrink-0 font-mono text-sm text-muted-foreground">
+                {t("products.count", { count: page.count })}
+              </span>
+            )}
+            <Button asChild size="sm" className="px-4">
+              <Link href="/products/new">
+                <Plus />
+                {t("common.add")}
+              </Link>
+            </Button>
+          </div>
         }
       >
         <Input
