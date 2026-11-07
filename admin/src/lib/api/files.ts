@@ -1,5 +1,6 @@
 import { apiFetch, type ApiItemResponse } from "./client";
 import { API_BASE_URL } from "./config";
+import { tr } from "@/lib/i18n/translations";
 
 // Images are served by ../backend at `NEXT_PUBLIC_FILE_URL` (`/file/{id}`,
 // `/file/thumbnail/{id}`). The old file service, behind the eshop gateway:
@@ -35,8 +36,19 @@ export function fileUrl(
 /** The backend's `public/uploads/<folder>` an image is saved in (one per model). */
 export type UploadFolder = "products" | "stores" | "users" | "blogs";
 
+/** Largest image the backend takes (`api/file/router.js` maxFileSize); it then shrinks it. */
+export const MAX_IMAGE_MB = 50;
+
+/** The error to show for a picked image over `MAX_IMAGE_MB`, or `null` if it's fine. */
+export function imageSizeError(file: File): string | null {
+  if (file.size <= MAX_IMAGE_MB * 1024 * 1024) return null;
+  return tr("img.tooLarge", { name: file.name, size: (file.size / 1024 / 1024).toFixed(1), max: MAX_IMAGE_MB });
+}
+
 /** Uploads one image (`POST /file/upload`) into `folder` and returns its file id. */
 export async function uploadFile(file: File, folder: UploadFolder): Promise<string> {
+  const tooLarge = imageSizeError(file);
+  if (tooLarge) throw new Error(tooLarge);
   const body = new FormData();
   body.append("folder", folder);
   body.append("file", file);

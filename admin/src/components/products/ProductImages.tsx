@@ -1,5 +1,8 @@
 "use client";
 
+import { useToast } from "@/components/common/Toast";
+import { imageSizeError } from "@/lib/api/files";
+
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import ChipTabs from "@/components/common/ChipTabs";
 import Thumb from "@/components/common/Thumb";
@@ -13,6 +16,7 @@ import { imageKey, useProductEditor } from "./ProductEditor";
  * one group at a time, like the shop: its own until a colour is chosen.
  */
 export default function ProductImages() {
+  const { show } = useToast();
   const { t } = useLanguage();
   const { form, attrs, images, addImages, removeImage } = useProductEditor();
   const colorAttr = attrs.find((attr) => attr.viewType === "image");
@@ -30,7 +34,11 @@ export default function ProductImages() {
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (picked.length > 0) addImages(group.key, picked);
+    // Over 50MB: refused here with a message, the rest still go in.
+    const errors = picked.map(imageSizeError).filter((m): m is string => m !== null);
+    errors.forEach((m) => show(m, "error"));
+    const ok = picked.filter((f) => !imageSizeError(f));
+    if (ok.length > 0) addImages(group.key, ok);
   }
 
   const hint = !colorAttr

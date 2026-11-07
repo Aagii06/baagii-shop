@@ -8,7 +8,7 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { changeEmail, sendEmailOtp, sendPhoneOtp, updateMe } from "@/lib/api/auth";
-import { uploadFile } from "@/lib/api/files";
+import { imageSizeError, uploadFile } from "@/lib/api/files";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { Camera, Loader2, Mail, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -28,7 +28,7 @@ const RESEND_SECONDS = 60;
 export default function EditProfilePage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { run } = useToast();
+  const { run, show } = useToast();
   const { user, setUser } = useAuth();
   const nameErrorId = useId();
   const phoneErrorId = useId();
@@ -141,6 +141,8 @@ export default function EditProfilePage() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    const tooLarge = imageSizeError(file);
+    if (tooLarge) return show(tooLarge, "error");
     setLogoFile(file);
     setLogo(URL.createObjectURL(file));
   }

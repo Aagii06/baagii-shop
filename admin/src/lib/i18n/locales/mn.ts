@@ -137,6 +137,7 @@ export const mn: Dict = {
   "ap.otherColor": "Өөр өнгө нэмэх",
   "ap.otherValue": "Өөр утга нэмэх",
   "ap.otherColorAria": "Өөр өнгийн өнгө",
+  "img.tooLarge": "«{name}» зураг {size}MB байна. {max}MB хүртэлх зураг сонгоно уу.",
   "img.general": "Ерөнхий",
   "img.hintColor": "Худалдан авагч “{label}” өнгийг сонгоход харагдана. Эхний зураг нь өнгөний нүүр зураг.",
   "img.hintDefault": "Өнгө сонгоогүй үед дэлгүүрт харагдана.",

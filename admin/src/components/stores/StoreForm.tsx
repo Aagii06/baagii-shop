@@ -9,7 +9,7 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { uploadFile } from "@/lib/api/files";
+import { imageSizeError, uploadFile } from "@/lib/api/files";
 import Select from "@/components/common/Select";
 import { createStore, MAX_STORE_CONTACTS, STORE_TIERS, updateStore, type Store, type StoreTier } from "@/lib/api/stores";
 import { Loader2, X } from "lucide-react";
@@ -28,7 +28,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function StoreForm({ store }: { store: Store | null }) {
   const router = useRouter();
   const { t } = useLanguage();
-  const { run } = useToast();
+  const { run, show } = useToast();
   const nameErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -60,6 +60,8 @@ export default function StoreForm({ store }: { store: Store | null }) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    const tooLarge = imageSizeError(file);
+    if (tooLarge) return show(tooLarge, "error");
     setLogoFile(file);
     setLogo(URL.createObjectURL(file));
   }

@@ -137,6 +137,7 @@ export const en: Dict = {
   "ap.otherColor": "Add another colour",
   "ap.otherValue": "Add another value",
   "ap.otherColorAria": "Custom colour",
+  "img.tooLarge": "“{name}” is {size} MB. Pick an image up to {max} MB.",
   "img.general": "General",
   "img.hintColor": "Shown when a shopper picks “{label}”. The first image is the colour's cover.",
   "img.hintDefault": "Shown in the shop while no colour is picked.",
