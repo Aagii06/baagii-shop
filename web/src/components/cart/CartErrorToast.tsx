@@ -22,7 +22,7 @@ export default function CartErrorToast() {
   if (!error) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
+    <div className="fixed inset-x-0 bottom-20 md:bottom-4 z-50 flex justify-center px-4">
       <button
         onClick={() => setError(null)}
         className="flex items-center gap-2 rounded-xl bg-destructive px-4 py-3 text-sm font-medium text-destructive-foreground shadow-lg max-w-md text-left"

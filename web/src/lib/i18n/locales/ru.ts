@@ -21,6 +21,8 @@ export const ru: Dict = {
   "header.nav.cart": "Корзина",
   "header.nav.cartAria": "Корзина, {count} товаров",
   "header.nav.myProfile": "Мой профиль",
+  "header.nav.home": "Главная",
+  "header.nav.search": "Поиск",
   "header.tabs.all": "Все категории",
   "header.tabs.sale": "Скидки",
   "header.tabs.stores": "Магазины",

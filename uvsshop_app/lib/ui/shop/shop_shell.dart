@@ -7,6 +7,7 @@ import '../../state/shop_state.dart';
 import 'account_page.dart';
 import 'cart_page.dart';
 import 'home_page.dart';
+import 'orders_page.dart';
 
 class ShopShell extends StatefulWidget {
   const ShopShell({super.key});
@@ -16,6 +17,13 @@ class ShopShell extends StatefulWidget {
 
 class _ShopShellState extends State<ShopShell> {
   int _tab = 0;
+  // Захиалга табыг нээх бүрт жагсаалтыг шинээр татахын тулд.
+  int _ordersKey = 0;
+
+  void _select(int i) => setState(() {
+        if (i == 2 && _tab != 2) _ordersKey++;
+        _tab = i;
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +31,9 @@ class _ShopShellState extends State<ShopShell> {
     final isAdmin = context.select<AdminState, bool>((a) => a.signedIn);
     return Scaffold(
       body: IndexedStack(index: _tab, children: [
-        HomePage(onOpenCart: () => setState(() => _tab = 1)),
-        CartPage(onShop: () => setState(() => _tab = 0)),
+        HomePage(onOpenCart: () => _select(1)),
+        CartPage(onShop: () => _select(0)),
+        OrdersPage(key: ValueKey(_ordersKey)),
         const AccountPage(),
       ]),
       // Админ дэлгүүрээр зочилж байх үед админ руу буцах товч.
@@ -38,7 +47,7 @@ class _ShopShellState extends State<ShopShell> {
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
+        onDestinationSelected: _select,
         destinations: [
           const NavigationDestination(icon: Icon(Icons.storefront_outlined), selectedIcon: Icon(Icons.storefront), label: 'Нүүр'),
           NavigationDestination(
@@ -46,6 +55,7 @@ class _ShopShellState extends State<ShopShell> {
             selectedIcon: Badge(isLabelVisible: cartCount > 0, label: Text('$cartCount'), child: const Icon(Icons.shopping_bag)),
             label: 'Сагс',
           ),
+          const NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Захиалга'),
           const NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Миний'),
         ],
       ),

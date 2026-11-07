@@ -352,12 +352,15 @@ export default function Header() {
                   />
                 </div>
               )}
-              <HeaderAction
-                href="/cart"
-                icon={ShoppingCart}
-                label={t("header.nav.cart")}
-                count={isMounted ? cartCount : 0}
-              />
+              {/* On phones the cart lives in the bottom tab bar (MobileBottomNav). */}
+              <div className="hidden md:flex">
+                <HeaderAction
+                  href="/cart"
+                  icon={ShoppingCart}
+                  label={t("header.nav.cart")}
+                  count={isMounted ? cartCount : 0}
+                />
+              </div>
             </div>
           </div>
 

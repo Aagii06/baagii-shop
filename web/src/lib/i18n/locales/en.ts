@@ -21,6 +21,8 @@ export const en: Dict = {
   "header.nav.cart": "Cart",
   "header.nav.cartAria": "Cart, {count} items",
   "header.nav.myProfile": "My profile",
+  "header.nav.home": "Home",
+  "header.nav.search": "Search",
   "header.tabs.all": "All categories",
   "header.tabs.sale": "Sale",
   "header.tabs.stores": "Stores",

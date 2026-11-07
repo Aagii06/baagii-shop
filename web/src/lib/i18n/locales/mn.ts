@@ -21,6 +21,8 @@ export const mn: Dict = {
   "header.nav.cart": "Сагс",
   "header.nav.cartAria": "Сагс, {count} бараа",
   "header.nav.myProfile": "Миний профайл",
+  "header.nav.home": "Нүүр",
+  "header.nav.search": "Хайх",
   "header.tabs.all": "Бүх ангилал",
   "header.tabs.sale": "Хямдрал",
   "header.tabs.stores": "Дэлгүүрүүд",

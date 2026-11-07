@@ -1,5 +1,6 @@
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import CategoriesProvider from "@/lib/categories/CategoriesProvider";
 import LanguageProvider from "@/lib/i18n/LanguageProvider";
@@ -60,6 +61,7 @@ export default function RootLayout({
               <main className="grow">{children}</main>
               <Footer />
               <ScrollToTop />
+              <MobileBottomNav />
             </StoreProvider>
           </CategoriesProvider>
         </LanguageProvider>
