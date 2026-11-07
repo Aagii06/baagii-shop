@@ -24,7 +24,7 @@ function EditUser() {
       {error ? (
         <ErrorState error={error} onRetry={reload} />
       ) : loading ? (
-        <LoadingState />
+        <LoadingState variant="form" />
       ) : (
         <EmptyState icon={SearchX} title={t("us.notFound")} />
       )}
@@ -34,7 +34,7 @@ function EditUser() {
 
 export default function EditUserPage() {
   return (
-    <Suspense fallback={<LoadingState />}>
+    <Suspense fallback={<LoadingState variant="form" />}>
       <EditUser />
     </Suspense>
   );

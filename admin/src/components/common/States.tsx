@@ -4,20 +4,69 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
-import { AlertTriangle, Inbox, Loader2, RotateCw } from "lucide-react";
+import { AlertTriangle, Inbox, RotateCw } from "lucide-react";
 import Image from "next/image";
 
-export function LoadingState({ className }: { className?: string }) {
+/**
+ * Loading placeholder as a skeleton of what's coming:
+ * - `list` (default): rows like the list pages'
+ * - `form`: labelled fields and a save button (edit / new pages)
+ * - `detail`: a status card, a few info cards and line items (order detail)
+ */
+export function LoadingState({
+  className,
+  variant = "list",
+}: {
+  className?: string;
+  variant?: "list" | "form" | "detail";
+}) {
   const { t } = useLanguage();
+  const bone = "block rounded-md bg-muted";
   return (
-    <div
-      className={cn(
-        "flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground",
-        className
+    <div role="status" aria-busy="true" className={cn("animate-pulse pt-2", className)}>
+      <span className="sr-only">{t("common.loading")}</span>
+      {variant === "form" ? (
+        <div className="space-y-5">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="space-y-2">
+              <span className={cn(bone, "h-4 w-28")} />
+              <span className={cn(bone, i === 2 ? "h-24" : "h-11", "w-full rounded-xl")} />
+            </div>
+          ))}
+          <span className={cn(bone, "h-12 w-full rounded-full")} />
+        </div>
+      ) : variant === "detail" ? (
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-border p-4">
+            <span className={cn(bone, "h-5 w-24 rounded-full")} />
+            <span className={cn(bone, "mt-3 h-4 w-2/3")} />
+            <span className={cn(bone, "mt-2 h-4 w-1/2")} />
+          </div>
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-2xl border border-border p-4">
+              <span className={cn(bone, "size-12 shrink-0 rounded-xl")} />
+              <span className="min-w-0 grow space-y-2">
+                <span className={cn(bone, "h-4 w-3/5")} />
+                <span className={cn(bone, "h-3.5 w-2/5")} />
+              </span>
+              <span className={cn(bone, "h-4 w-16 shrink-0")} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <ul className="divide-y divide-border">
+          {Array.from({ length: 6 }, (_, i) => (
+            <li key={i} className="flex items-center gap-3 py-4">
+              <span className={cn(bone, "size-11 shrink-0 rounded-xl")} />
+              <span className="min-w-0 grow space-y-2">
+                <span className={cn(bone, "h-4 w-1/2")} />
+                <span className={cn(bone, "h-3.5 w-1/3")} />
+              </span>
+              <span className={cn(bone, "h-8 w-8 shrink-0 rounded-full")} />
+            </li>
+          ))}
+        </ul>
       )}
-    >
-      <Loader2 className="size-4 animate-spin" />
-      {t("common.loading")}
     </div>
   );
 }

@@ -34,7 +34,7 @@ export default function EditCategoryPage() {
       {error && !categories ? (
         <ErrorState error={error} onRetry={reload} />
       ) : !categories ? (
-        <LoadingState />
+        <LoadingState variant="form" />
       ) : (
         <EmptyState
           icon={FolderX}

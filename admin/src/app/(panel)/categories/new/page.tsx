@@ -17,7 +17,7 @@ async function loadForm() {
 
 export default function NewCategoryPage() {
   return (
-    <Suspense fallback={<LoadingState />}>
+    <Suspense fallback={<LoadingState variant="form" />}>
       <NewCategoryForm />
     </Suspense>
   );
@@ -44,7 +44,7 @@ function NewCategoryForm() {
   return (
     <>
       <DetailHeader backHref="/categories" title={parentId ? t("cat.addSub") : t("cat.add")} />
-      {error ? <ErrorState error={error} onRetry={reload} /> : <LoadingState />}
+      {error ? <ErrorState error={error} onRetry={reload} /> : <LoadingState variant="form" />}
     </>
   );
 }

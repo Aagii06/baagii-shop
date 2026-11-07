@@ -46,7 +46,7 @@ export default function OrderDetailPage() {
         {error ? (
           <ErrorState error={error} onRetry={reload} />
         ) : order === undefined ? (
-          <LoadingState />
+          <LoadingState variant="detail" />
         ) : (
           <EmptyState
             icon={ReceiptText}

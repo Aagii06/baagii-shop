@@ -25,7 +25,7 @@ function EditStore() {
       {error ? (
         <ErrorState error={error} onRetry={reload} />
       ) : loading ? (
-        <LoadingState />
+        <LoadingState variant="form" />
       ) : (
         <EmptyState icon={SearchX} title={t("st.notFound")} />
       )}
@@ -35,7 +35,7 @@ function EditStore() {
 
 export default function EditStorePage() {
   return (
-    <Suspense fallback={<LoadingState />}>
+    <Suspense fallback={<LoadingState variant="form" />}>
       <EditStore />
     </Suspense>
   );

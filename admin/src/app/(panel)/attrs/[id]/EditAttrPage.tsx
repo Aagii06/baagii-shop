@@ -22,7 +22,7 @@ export default function EditAttrPage() {
       {error ? (
         <ErrorState error={error} onRetry={reload} />
       ) : loading ? (
-        <LoadingState />
+        <LoadingState variant="form" />
       ) : (
         <EmptyState
           icon={SearchX}

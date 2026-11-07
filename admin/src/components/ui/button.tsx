@@ -1,5 +1,6 @@
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -41,17 +42,38 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /**
+   * The button's request is in flight: disabled, with a spinner in place of
+   * its icon (icon-only buttons show just the spinner).
+   */
+  loading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+  ({ className, variant, size, asChild = false, loading = false, disabled, children, ...props }, ref) => {
+    if (asChild) {
+      return (
+        <Slot className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props}>
+          {children}
+        </Slot>
+      );
+    }
+    const iconOnly = typeof size === "string" && size.startsWith("icon");
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+      <button
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          // While loading, the spinner stands in for the button's own icon.
+          loading && "[&_svg:not(.btn-spinner)]:hidden"
+        )}
         ref={ref}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
         {...props}
-      />
+      >
+        {loading && <Loader2 className="btn-spinner animate-spin" aria-hidden />}
+        {loading && iconOnly ? null : children}
+      </button>
     );
   }
 );
