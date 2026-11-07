@@ -19,7 +19,7 @@ import { getProducts } from "@/lib/api/products";
 import { getStores, type Store } from "@/lib/api/stores";
 import { byNewest } from "@/lib/utils";
 import type { Product } from "@/types/product";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
@@ -58,6 +58,7 @@ function SearchContent() {
   const { t } = useLanguage();
   const { categories } = useCategories();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialCategory = searchParams.get("category");
   const initialSale = searchParams.get("sale") === "1";
   const initialSort = searchParams.get("sort");
@@ -285,6 +286,17 @@ function SearchContent() {
       : []),
   ];
 
+  // A store tile shows that store's whole catalog: every other filter
+  // (search text, category, sale, price) is cleared. Tapping the picked
+  // store again goes back to all products.
+  const selectStore = (store: string | undefined) => {
+    setFilters({ categories: [], brands: store ? [store] : [], priceRange: priceBounds });
+    setSaleOnly(false);
+    router.push(store ? `/search?store=${encodeURIComponent(store)}` : "/search", {
+      scroll: false,
+    });
+  };
+
   const breadcrumbLabel = query
     ? `«${query}»`
     : activeCategory
@@ -299,9 +311,7 @@ function SearchContent() {
         <StoreTiles
           counts={counts}
           selected={filters.brands.length === 1 ? filters.brands[0] : undefined}
-          onSelect={(store) =>
-            setFilters((f) => ({ ...f, brands: store ? [store] : [] }))
-          }
+          onSelect={selectStore}
         />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
