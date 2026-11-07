@@ -66,6 +66,7 @@ const MAIN_WIDTH = 1600;
 const RESIZABLE = /\.(jpe?g|png|webp)$/i;
 const folderVariants = () => Object.keys(VARIANTS);
 module.exports.VARIANTS = VARIANTS;
+module.exports.MAIN_WIDTH = MAIN_WIDTH;
 module.exports.folderVariants = folderVariants;
 module.exports.variantName = (variant, fileName) => `${VARIANTS[variant].prefix}${fileName}`;
 
