@@ -21,6 +21,8 @@ import { byNewest } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import StoreAvatar from "@/components/ui/store-avatar";
+import { fileThumbnailUrl } from "@/lib/api/files";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 const PAGE_SIZE = 20;
@@ -335,6 +337,22 @@ function SearchContent() {
 
         <div className="flex-1 min-w-0 space-y-5">
           <div className="flex items-center gap-3 justify-end">
+            {/* The picked store, left of the sort tabs. */}
+            {filters.brands.length === 1 && (
+              <div className="mr-auto flex min-w-0 items-center gap-2.5">
+                <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-white">
+                  <StoreAvatar
+                    name={filters.brands[0]}
+                    src={fileThumbnailUrl(counts.brandLogo[filters.brands[0]])}
+                    className="size-full object-contain"
+                    initialsClassName="text-sm"
+                  />
+                </span>
+                <h2 className="truncate text-lg font-bold text-foreground">
+                  {filters.brands[0]}
+                </h2>
+              </div>
+            )}
             <SortTabs value={sort} onChange={setSort} />
             <MobileFilterDrawer
               filters={filters}
