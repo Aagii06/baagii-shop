@@ -2,10 +2,10 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { tr } from "@/lib/i18n/translations";
-import ChipTabs from "@/components/common/ChipTabs";
 import { EmptyState, ErrorState } from "@/components/common/States";
 import Thumb from "@/components/common/Thumb";
 import PageHeader from "@/components/layout/PageHeader";
+import CategoryFilter from "@/components/products/CategoryFilter";
 import ProductListSkeleton from "@/components/products/ProductListSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,18 +19,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const PAGE_SIZE = 20;
 
-/** Category id → its name, and → the id of its top-level ancestor. */
+/** Category id → its name. */
 function indexCategories(tree: Category[]) {
   const name = new Map<number, string>();
-  const root = new Map<number, number>();
-  const walk = (list: Category[], rootId?: number) =>
+  const walk = (list: Category[]) =>
     list.forEach((c) => {
       name.set(c.id, c.name);
-      root.set(c.id, rootId ?? c.id);
-      walk(c.children, rootId ?? c.id);
+      walk(c.children);
     });
   walk(tree);
-  return { name, root };
+  return { name };
 }
 
 function stockLine(post: Post) {
@@ -48,7 +46,8 @@ export default function ProductsPage() {
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [rootId, setRootId] = useState("all");
+  // Ticked categories (each with everything below it); empty is all of them.
+  const [picked, setPicked] = useState<number[]>([]);
 
   const categories = useMemo(() => indexCategories(tree ?? []), [tree]);
 
@@ -58,16 +57,12 @@ export default function ProductsPage() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // A chip's category plus everything below it.
-  const categoryIds = useMemo(() => {
-    if (rootId === "all") return undefined;
-    return [...categories.root].filter(([, root]) => root === Number(rootId)).map(([id]) => id);
-  }, [categories, rootId]);
+  const categoryIds = picked.length > 0 ? picked : undefined;
 
   // Pages load as the list is scrolled — like a social feed. `key` ties the
   // loaded rows to the search/category they were fetched for, so a stale
   // page is treated as "loading" until the new one lands.
-  const key = `${debouncedQuery}|${rootId}`;
+  const key = `${debouncedQuery}|${picked.join(",")}`;
   const [page, setPage] = useState<{ key: string; rows: Post[]; count: number; error?: Error } | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);
@@ -155,17 +150,7 @@ export default function ProductsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        {tree && tree.length > 0 && (
-          <ChipTabs
-            label={t("common.category")}
-            value={rootId}
-            options={[
-              { value: "all", label: t("common.all") },
-              ...tree.map((c) => ({ value: String(c.id), label: c.name })),
-            ]}
-            onChange={setRootId}
-          />
-        )}
+        {tree && tree.length > 0 && <CategoryFilter tree={tree} value={picked} onChange={setPicked} />}
       </PageHeader>
 
       {ready && page.error ? (
