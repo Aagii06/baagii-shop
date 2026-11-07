@@ -144,8 +144,16 @@ function OrdersList() {
     return () => observer.disconnect();
   }, [hasMore, moreFailed, loadMore]);
 
+  // The order whose status change is in flight, and to which status — its button spins.
+  const [busy, setBusy] = useState<{ id: number; to: OrderStatus } | null>(null);
+
   async function changeStatus(id: number, to: OrderStatus, success: string) {
-    if (await run(() => setOrderStatus(id, to), success)) reload();
+    setBusy({ id, to });
+    try {
+      if (await run(() => setOrderStatus(id, to), success)) reload();
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function returnOrder(order: Order) {
@@ -262,6 +270,8 @@ function OrdersList() {
                       <Button
                         variant="ghost"
                         className={cn("h-10", ORDER_TONE.confirmed.solid)}
+                        loading={busy?.id === order.id && busy.to === "confirmed"}
+                        disabled={busy?.id === order.id}
                         onClick={() => changeStatus(order.id, "confirmed", t("orders.confirmed"))}
                       >
                         {t("orders.confirm")}
@@ -271,12 +281,20 @@ function OrdersList() {
                       <Button
                         variant="ghost"
                         className={cn("h-10", ORDER_TONE.delivered.solid)}
+                        loading={busy?.id === order.id && busy.to === "delivered"}
+                        disabled={busy?.id === order.id}
                         onClick={() => changeStatus(order.id, "delivered", t("orders.statusUpdated"))}
                       >
                         {t("orders.deliver")}
                       </Button>
                     )}
-                    <Button variant="danger" className="h-10" onClick={() => returnOrder(order)}>
+                    <Button
+                      variant="danger"
+                      className="h-10"
+                      loading={busy?.id === order.id && busy.to === "returned"}
+                      disabled={busy?.id === order.id}
+                      onClick={() => returnOrder(order)}
+                    >
                       {t("orders.return")}
                     </Button>
                   </div>
@@ -288,13 +306,11 @@ function OrdersList() {
           {hasMore && (
             <div ref={sentinel}>
               {moreFailed ? (
-                <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
+                <Button variant="outline" className="mt-4 w-full" loading={loadingMore} onClick={loadMore}>
                   {t("common.retry")}
                 </Button>
               ) : (
-                <div className="flex justify-center py-6" aria-label={t("common.loading")}>
-                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
-                </div>
+                <OrderListSkeleton rows={2} className="border-b-0" />
               )}
             </div>
           )}
