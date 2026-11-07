@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { formatPhone } from "@/components/ui/phone-input";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
-import { Check, ChevronRight, LogOut, Store, UserRound } from "lucide-react";
+import { Check, ChevronRight, LogOut, Pencil, Store, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,6 +23,8 @@ export default function ProfilePage() {
   const setName = useAuthStore((s) => s.setName);
   const logout = useAuthStore((s) => s.logout);
 
+  // Like the admin profile: details are shown read-only, the pencil opens the form.
+  const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [justSaved, setJustSaved] = useState(false);
 
@@ -30,6 +32,12 @@ export default function ProfilePage() {
   useEffect(() => {
     setNameInput(storedName ?? "");
   }, [storedName]);
+
+  useEffect(() => {
+    if (!justSaved) return;
+    const id = setTimeout(() => setJustSaved(false), 2000);
+    return () => clearTimeout(id);
+  }, [justSaved]);
 
   if (!loading && !isAuthed) {
     return (
@@ -48,13 +56,20 @@ export default function ProfilePage() {
 
   const trimmed = nameInput.trim();
   const canSave = trimmed.length > 0 && trimmed !== (storedName ?? "");
+  const displayName = storedName?.trim() || t("profile.noName");
+  const formattedPhone = phone ? formatPhone(phone) : "";
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSave) return;
     setName(trimmed);
+    setEditing(false);
     setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 2000);
+  };
+
+  const handleCancel = () => {
+    setNameInput(storedName ?? "");
+    setEditing(false);
   };
 
   const handleLogout = () => {
@@ -73,71 +88,103 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      {/* Phones have no account sidebar (layout shows it from lg up) —
-          its links sit here instead. */}
-      <div className="mb-6 lg:hidden">
-        <OrdersSidebar variant="menu" />
-      </div>
+      {editing ? (
+        <form
+          onSubmit={handleSave}
+          className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-5"
+        >
+          <h2 className="text-sm font-semibold text-foreground">
+            {t("profile.section.personal")}
+          </h2>
 
-      <form
-        onSubmit={handleSave}
-        className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-5"
-      >
-        <h2 className="text-sm font-semibold text-foreground">
-          {t("profile.section.personal")}
-        </h2>
-
-        <div className="space-y-1.5">
-          <label
-            htmlFor="profile-name"
-            className="text-sm font-medium text-foreground"
-          >
-            {t("profile.name.label")}
-          </label>
-          <Input
-            id="profile-name"
-            value={nameInput}
-            onChange={(e) => setNameInput(e.target.value)}
-            placeholder={t("profile.name.placeholder")}
-            autoComplete="name"
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-foreground">
-            {t("profile.phone.label")}
-          </label>
-          <Input value={phone ? formatPhone(phone) : ""} disabled readOnly />
-          <p className="text-xs text-muted-foreground">
-            {t("profile.phone.hint")}
-          </p>
-        </div>
-
-        {user && (
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
-              {t("profile.email.label")}
+            <label
+              htmlFor="profile-name"
+              className="text-sm font-medium text-foreground"
+            >
+              {t("profile.name.label")}
             </label>
             <Input
-              value={user.email ?? t("profile.email.empty")}
-              disabled
-              readOnly
+              id="profile-name"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder={t("profile.name.placeholder")}
+              autoComplete="name"
+              autoFocus
             />
           </div>
-        )}
 
-        <div className="flex items-center gap-3 pt-1">
-          <Button type="submit" disabled={!canSave}>
-            {t("profile.save")}
-          </Button>
-          {justSaved && (
-            <span className="flex items-center gap-1 text-sm text-green-600">
-              <Check className="h-4 w-4" />
-              {t("profile.saved")}
-            </span>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t("profile.phone.label")}
+            </label>
+            <Input value={formattedPhone} disabled readOnly />
+            <p className="text-xs text-muted-foreground">
+              {t("profile.phone.hint")}
+            </p>
+          </div>
+
+          {user && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">
+                {t("profile.email.label")}
+              </label>
+              <Input
+                value={user.email ?? t("profile.email.empty")}
+                disabled
+                readOnly
+              />
+            </div>
           )}
+
+          <div className="flex gap-3 pt-1">
+            <Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={handleCancel}>
+              {t("profile.cancel")}
+            </Button>
+            <Button type="submit" className="flex-1 sm:flex-none" disabled={!canSave}>
+              {t("profile.save")}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
+          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-accent text-xl font-bold text-accent-foreground">
+            {storedName?.trim() ? storedName.trim().charAt(0).toUpperCase() : <UserRound className="h-6 w-6" />}
+          </span>
+          <span className="min-w-0 grow">
+            <span className="block truncate text-[17px] font-bold text-foreground">{displayName}</span>
+            {formattedPhone && (
+              <span className="mt-0.5 block truncate font-mono text-sm text-muted-foreground">{formattedPhone}</span>
+            )}
+            {user?.email && (
+              <span className="mt-0.5 block truncate text-sm text-muted-foreground">{user.email}</span>
+            )}
+            {justSaved && (
+              <span className="mt-1 flex items-center gap-1 text-sm text-green-600">
+                <Check className="h-4 w-4" />
+                {t("profile.saved")}
+              </span>
+            )}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="shrink-0 rounded-full"
+            onClick={() => setEditing(true)}
+            aria-label={t("profile.edit")}
+            title={t("profile.edit")}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
         </div>
-      </form>
+      )}
+
+      {/* Phones have no account sidebar (layout shows it from lg up) —
+          its links sit here instead. */}
+      <div className="mt-4 lg:hidden">
+        <OrdersSidebar variant="menu" />
+      </div>
 
       <Link
         href="/seller"
