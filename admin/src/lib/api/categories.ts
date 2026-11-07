@@ -162,6 +162,15 @@ export async function releaseParentAttrs(parent?: Category) {
   }
 }
 
+/**
+ * Moves a category under `parentId` (`null` = top level) at `index` among
+ * its new siblings; the backend renumbers both levels. A leaf that gets its
+ * first subcategory loses its attributes there; one with products refuses.
+ */
+export async function moveCategoryTo(id: number, parentId: number | null, index: number) {
+  await apiFetch(`/category/${id}/move`, { method: "PUT", body: { parentId, index } });
+}
+
 export async function deleteCategory(id: number) {
   await apiFetch<ApiItemResponse<CategoryRecord | null>>(`/category/${id}`, { method: "DELETE" });
 }

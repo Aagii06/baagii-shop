@@ -8,6 +8,7 @@ const saveValidation = validate([body("name").trim().notEmpty().withMessage("–ö–
 
 router.get("/tree", controller.tree);
 router.post("/", saveValidation, byAndAt, controller.create);
+router.put("/:id/move", byAndAt, controller.move);
 router.route("/:id").put(saveValidation, byAndAt, controller.update).delete(byAndAt, controller.destroy);
 
 module.exports = router;

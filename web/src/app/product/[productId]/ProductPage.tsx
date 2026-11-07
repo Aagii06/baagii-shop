@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import PageLoader from "@/components/ui/page-loader";
 import SafeImage from "@/components/ui/safe-image";
+import { resizedFileUrl } from "@/lib/api/files";
 
 function findMatchingVariant(
   variants: ProductVariant[],
@@ -192,7 +193,7 @@ export default function ProductPage() {
 
       <div className="grid lg:grid-cols-[1.1fr_1fr_320px] gap-8 mb-16">
         <div className="space-y-3">
-          <div className="relative rounded-2xl overflow-hidden group">
+          <div className="relative rounded-2xl overflow-hidden border border-border bg-white group">
             {images.length > 0 ? (
               <div
                 ref={galleryRef}
@@ -205,12 +206,12 @@ export default function ProductPage() {
                     src={src}
                     fallback="lg"
                     alt={product.name}
-                    className="w-full shrink-0 snap-center aspect-square object-cover bg-muted"
+                    className="w-full shrink-0 snap-center aspect-square object-contain bg-white"
                   />
                 ))}
               </div>
             ) : (
-              <SafeImage alt={product.name} fallback="lg" className="w-full aspect-square object-cover" />
+              <SafeImage alt={product.name} fallback="lg" className="w-full aspect-square object-contain bg-white" />
             )}
             {discount > 0 && (
               <span className="absolute top-4 left-4 bg-destructive text-destructive-foreground text-sm font-bold px-2.5 py-1 rounded-md">
@@ -246,7 +247,7 @@ export default function ProductPage() {
                       aria-label={`Go to image ${i + 1}`}
                       className={cn(
                         "h-1.5 rounded-full transition-all",
-                        i === activeThumb ? "w-4 bg-white" : "w-1.5 bg-white/60"
+                        i === activeThumb ? "w-4 bg-primary" : "w-1.5 bg-foreground/25"
                       )}
                     />
                   ))}
@@ -266,7 +267,7 @@ export default function ProductPage() {
                   )}
                 >
                   <SafeImage
-                    src={src}
+                    src={[resizedFileUrl(src, "icon"), src]}
                     fallback="sm"
                     alt=""
                     className="h-full w-full object-cover bg-muted"
@@ -336,7 +337,7 @@ export default function ProductPage() {
                       >
                         {val.image && (
                           <SafeImage
-                            src={val.image}
+                            src={[resizedFileUrl(val.image, "icon"), val.image]}
                             fallback="sm"
                             alt={val.value}
                             className="h-full w-full object-cover"

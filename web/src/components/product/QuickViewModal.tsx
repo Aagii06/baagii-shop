@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import SafeImage from "@/components/ui/safe-image";
+import { resizedFileUrl } from "@/lib/api/files";
 
 function findMatchingVariant(
   variants: ProductVariant[],
@@ -230,12 +231,12 @@ export default function QuickViewModal({
         ) : (
           <div className="grid sm:grid-cols-2 gap-0">
             <div className="p-4 sm:p-5">
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+              <div className="relative aspect-square overflow-hidden rounded-xl border border-border bg-white">
                 <SafeImage
                   fallback="lg"
                   src={images[Math.min(activeImage, images.length - 1)]}
                   alt={name}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain bg-white"
                 />
                 {discount > 0 && (
                   <span className="absolute left-3 top-3 rounded-md bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground">
@@ -256,7 +257,7 @@ export default function QuickViewModal({
                       )}
                     >
                       <SafeImage
-                        src={src}
+                        src={[resizedFileUrl(src, "icon"), src]}
                         fallback="sm"
                         alt=""
                         className="h-full w-full object-cover bg-muted"
@@ -333,7 +334,7 @@ export default function QuickViewModal({
                               >
                                 {val.image && (
                                   <SafeImage
-                                    src={val.image}
+                                    src={[resizedFileUrl(val.image, "icon"), val.image]}
                                     fallback="sm"
                                     alt={val.value}
                                     className="h-full w-full object-cover"

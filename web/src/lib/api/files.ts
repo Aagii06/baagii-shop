@@ -37,3 +37,19 @@ export function fileUrl(
 export function fileThumbnailUrl(id: string | null | undefined): string | null {
   return fileUrl(id, "thumbnail");
 }
+
+/**
+ * The same file at a smaller size: turns an original file-service URL (from
+ * `fileUrl`) into its `variant` URL. Other URLs come back unchanged.
+ */
+export function resizedFileUrl(
+  url: string | null | undefined,
+  variant: "thumbnail" | "grid" | "icon"
+): string | null {
+  if (!url) return null;
+  const prefix = `${FILE_BASE_URL}/`;
+  if (!url.startsWith(prefix)) return url;
+  const rest = url.slice(prefix.length);
+  if (/^(thumbnail|grid|icon)\//.test(rest)) return url;
+  return `${prefix}${variant}/${rest}`;
+}

@@ -96,6 +96,63 @@ const save = (getId) => async (req, res) => {
 module.exports.create = handle("categoryCreate", save(() => null));
 module.exports.update = handle("categoryUpdate", save((req) => req.params.id));
 
+// Категорийг чирж зөөх: { parentId (null = үндсэн), index (шинэ эцгийн доорх байрлал, 0-ээс) }.
+// Хуучин, шинэ эцгийн доорх категориудын order_number-ийг 0..n-ээр дахин дугаарлана.
+// Дэд категоригүй байсан эцэг дэд категоритой болбол сонголтууд нь (categoryAttrs) устна;
+// бараатай категорийн доор категори оруулахгүй (бараа нь эцэг категори дээр үлдэнэ).
+module.exports.move = handle("categoryMove", async (req, res) => {
+  const { by, at } = req.body;
+  const { shopId } = req;
+  const id = Number(req.params.id);
+  const parentId = req.body.parentId ? Number(req.body.parentId) : null;
+  const t = await sequelize.transaction();
+  try {
+    const category = await categories.findOne({ where: { id, shop_id: shopId, status: "active" }, transaction: t, lock: t.LOCK.UPDATE });
+    if (!category) throw "Категори олдсонгүй";
+    const oldParentId = category.parent_id ?? null;
+
+    if (parentId) {
+      if (await isBelow(parentId, id, t)) throw "Категорийг өөрийнхөө доор зөөх боломжгүй";
+      if ((await depthOf(shopId, parentId, t)) + (await heightOf(id, t)) > maxCategoryDepth)
+        throw `Категори дээд тал нь ${maxCategoryDepth} түвшин байна`;
+      if (parentId !== oldParentId) {
+        const childCount = await categories.count({ where: { parent_id: parentId, status: "active" }, transaction: t });
+        if (childCount === 0 && (await products.count({ where: { category_id: parentId, status: "active" }, transaction: t })))
+          throw "Энэ категорид бараа бүртгэлтэй тул доор нь категори оруулах боломжгүй";
+        if (childCount === 0) await categoryAttrs.destroy({ where: { category_id: parentId }, transaction: t });
+      }
+    }
+
+    const siblingsOf = (pid) =>
+      categories.findAll({
+        where: { shop_id: shopId, parent_id: pid, status: "active" },
+        order: [["order_number", "asc"], ["id", "asc"]],
+        transaction: t,
+      });
+    const renumber = async (list) => {
+      for (const [i, c] of list.entries())
+        if (c.order_number !== i) await c.update({ order_number: i }, { transaction: t });
+    };
+
+    const siblings = (await siblingsOf(parentId)).filter((c) => c.id !== id);
+    const index = Math.max(0, Math.min(siblings.length, Math.floor(Number(req.body.index ?? siblings.length)) || 0));
+    await category.update({ parent_id: parentId, updated_by: by, updated_at: at }, { transaction: t });
+    siblings.splice(index, 0, category);
+    await renumber(siblings);
+    if (oldParentId !== parentId) await renumber(await siblingsOf(oldParentId));
+
+    await saveLog(
+      { shop_id: shopId, object_name: "categories", object_id: id, log_action: "moved", modify_data: JSON.stringify({ parentId, index }), created_by: by, created_at: at },
+      t,
+    );
+    await t.commit();
+    return ok(res, null);
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
+});
+
 // Дэд категори эсвэл бараатай категорийг устгахгүй
 module.exports.destroy = handle("categoryDestroy", async (req, res) => {
   const { by, at } = req.body;

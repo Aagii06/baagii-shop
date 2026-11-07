@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   canMoveUnder,
   canNestUnder,
-  moveCategory,
+  moveCategoryTo,
   deleteCategory,
   flattenCategories,
   getCategoryTree,
@@ -23,9 +23,13 @@ import { ChevronRight, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-// Drag & drop moving is switched off for now — set to `true` to bring the
-// grip handle (and the drag logic in `CategoriesPage`) back.
-const DRAG_AND_DROP = false;
+type Flat = Category & { depth: number };
+
+/** Where a dragged category lands: above or below a row, inside it, or at the top level. */
+type Drop = { id: number; place: "before" | "after" | "inside" } | "root";
+
+const sameDrop = (a: Drop | null, b: Drop | null) =>
+  a === b || (a !== null && b !== null && a !== "root" && b !== "root" && a.id === b.id && a.place === b.place);
 
 function CategoryRow({
   category,
@@ -40,8 +44,8 @@ function CategoryRow({
   onChanged: () => void;
   /** This row is the one being dragged. */
   dragging: boolean;
-  /** The dragged category would land inside this row. */
-  over: boolean;
+  /** Where the dragged category would land against this row. */
+  over: "before" | "after" | "inside" | null;
   onDragStart: (id: number, x: number, y: number) => void;
   /** Its subcategories are showing. */
   open: boolean;
@@ -70,12 +74,23 @@ function CategoryRow({
     <li
       data-drop={category.id}
       className={cn(
-        "flex items-center gap-2 py-3.5 transition-colors",
+        "relative flex items-center gap-2 py-3.5 transition-colors",
         dragging && "opacity-40",
-        over && "rounded-xl bg-primary-soft ring-2 ring-primary"
+        over === "inside" && "rounded-xl bg-primary-soft ring-2 ring-primary"
       )}
       style={indent}
     >
+      {(over === "before" || over === "after") && (
+        // The line it would land on, at this row's indent.
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute right-0 h-0.5 rounded-full bg-primary",
+            over === "before" ? "-top-px" : "-bottom-px"
+          )}
+          style={{ left: `${category.depth * 20}px` }}
+        />
+      )}
       {category.children.length > 0 ? (
         <button
           type="button"
@@ -90,7 +105,6 @@ function CategoryRow({
         // A leaf has nothing to fold; keeps the names lined up.
         <span className="-ml-1 size-8 shrink-0" aria-hidden />
       )}
-      {DRAG_AND_DROP && (
       <button
         type="button"
         aria-label={t("cat.dragAria", { name: category.name })}
@@ -103,7 +117,6 @@ function CategoryRow({
       >
         <GripVertical className="size-5" />
       </button>
-      )}
       <span
         className={cn("min-w-0 grow", category.children.length > 0 && "cursor-pointer")}
         onClick={category.children.length > 0 ? onToggle : undefined}
@@ -159,7 +172,7 @@ function CategoryRow({
   );
 }
 
-type Drag = { id: number; x: number; y: number; over: number | "root" | null };
+type Drag = { id: number; x: number; y: number; over: Drop | null };
 
 export default function CategoriesPage() {
   const { t } = useLanguage();
@@ -167,7 +180,7 @@ export default function CategoriesPage() {
   const { run } = useToast();
   const confirm = useConfirm();
 
-  const rows = useMemo(() => (data ? flattenCategories(data) : []), [data]);
+  const rows = useMemo<Flat[]>(() => (data ? flattenCategories(data) : []), [data]);
   // Folded by default: only top-level categories show until one is opened.
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const visibleRows = useMemo(() => {
@@ -188,10 +201,43 @@ export default function CategoriesPage() {
   const dragId = drag?.id ?? null;
   const moving = rows.find((row) => row.id === dragId);
 
+  /** The new parent (`null` = top level) and position among its children for a drop, or `null` if nothing would change. */
+  const placement = useCallback(
+    (dragged: Flat, drop: Drop): { parent: Flat | null; index: number } | null => {
+      const byId = new Map(rows.map((row) => [row.id, row]));
+      const childrenOf = (parent: Flat | null) =>
+        (parent ? parent.children : (data ?? [])).filter((c) => c.id !== dragged.id).map((c) => byId.get(c.id)!);
+      let parent: Flat | null;
+      let index: number;
+      if (drop === "root") {
+        parent = null;
+        index = childrenOf(null).length;
+      } else {
+        const target = byId.get(drop.id);
+        if (!target || target.id === dragged.id) return null;
+        if (drop.place === "inside") {
+          parent = target;
+          index = expanded.has(target.id) ? 0 : childrenOf(target).length;
+        } else {
+          parent = target.parentId != null ? (byId.get(target.parentId) ?? null) : null;
+          index = childrenOf(parent).findIndex((c) => c.id === target.id) + (drop.place === "after" ? 1 : 0);
+        }
+      }
+      if (parent && !canMoveUnder(dragged, parent)) return null;
+      // Same parent, same spot: nothing to do.
+      const current = (parent ? parent.children : (data ?? [])).findIndex((c) => c.id === dragged.id);
+      if ((parent?.id ?? null) === dragged.parentId && current === index) return null;
+      return { parent, index };
+    },
+    [rows, data, expanded]
+  );
+
   const onDrop = useCallback(
-    async (category: Category, target: number | "root") => {
-      const parent = target === "root" ? undefined : rows.find((row) => row.id === target);
-      if (parent && parent.children.length === 0 && parent.attrs.length > 0) {
+    async (category: Flat, drop: Drop) => {
+      const spot = placement(category, drop);
+      if (!spot) return;
+      const { parent, index } = spot;
+      if (parent && parent.id !== category.parentId && parent.children.length === 0 && parent.attrs.length > 0) {
         const ok = await confirm({
           title: t("cat.moveTitle"),
           description: t("cat.moveClearsAttrs", { name: parent.name }),
@@ -199,32 +245,48 @@ export default function CategoriesPage() {
         });
         if (!ok) return;
       }
-      if (await run(() => moveCategory(category, parent ? parent.id : null, parent), t("cat.moved"))) reload();
+      if (await run(() => moveCategoryTo(category.id, parent?.id ?? null, index), t("cat.moved"))) {
+        // Show where it went.
+        if (parent) setExpanded((prev) => new Set(prev).add(parent.id));
+        reload();
+      }
     },
-    [rows, confirm, run, reload, t]
+    [placement, confirm, run, reload, t]
   );
 
   // Dragging works with a pointer or a finger: the handle starts it, and
-  // everything after is tracked on the window. The row under the pointer
-  // (or the "top level" zone) is the drop target if the move is allowed.
+  // everything after is tracked on the window. The top or bottom quarter of
+  // the row under the pointer drops above or below it, the middle inside it;
+  // the "top level" zone moves it to the top level.
   useEffect(() => {
     if (dragId == null || !moving) return;
     const dragged = moving;
     let pointerY = 0;
     let frame = 0;
 
-    const targetAt = (x: number, y: number): number | "root" | null => {
-      const zone = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-drop]")?.dataset.drop;
-      if (!zone) return null;
-      if (zone === "root") return dragged.parentId == null ? null : "root";
-      const target = rows.find((row) => String(row.id) === zone);
-      if (!target || target.id === dragged.parentId) return null;
-      return canMoveUnder(dragged, target) ? target.id : null;
+    const targetAt = (x: number, y: number): Drop | null => {
+      const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-drop]");
+      const zone = el?.dataset.drop;
+      if (!el || !zone) return null;
+      let drop: Drop;
+      if (zone === "root") drop = "root";
+      else {
+        const target = rows.find((row) => String(row.id) === zone);
+        if (!target) return null;
+        const rect = el.getBoundingClientRect();
+        const at = (y - rect.top) / rect.height;
+        // The deepest level takes no subcategories, so it only splits in half.
+        const nests = canMoveUnder(dragged, target);
+        const place = nests ? (at < 0.25 ? "before" : at > 0.75 ? "after" : "inside") : at < 0.5 ? "before" : "after";
+        // Below an open parent is above its first child: drop inside it instead.
+        drop = { id: target.id, place: place === "after" && expanded.has(target.id) && nests ? "inside" : place };
+      }
+      return placement(dragged, drop) ? drop : null;
     };
     const onMove = (e: PointerEvent) => {
       pointerY = e.clientY;
       const over = targetAt(e.clientX, e.clientY);
-      setDrag((d) => d && { ...d, x: e.clientX, y: e.clientY, over });
+      setDrag((d) => d && { ...d, x: e.clientX, y: e.clientY, over: sameDrop(d.over, over) ? d.over : over });
     };
     const onUp = (e: PointerEvent) => {
       const over = targetAt(e.clientX, e.clientY);
@@ -252,7 +314,7 @@ export default function CategoriesPage() {
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onCancel);
     };
-  }, [dragId, moving, rows, onDrop]);
+  }, [dragId, moving, rows, onDrop, placement, expanded]);
 
   return (
     <>
@@ -287,7 +349,7 @@ export default function CategoriesPage() {
               category={category}
               onChanged={reload}
               dragging={category.id === dragId}
-              over={drag?.over === category.id}
+              over={drag?.over && drag.over !== "root" && drag.over.id === category.id ? drag.over.place : null}
               onDragStart={(id, x, y) => setDrag({ id, x, y, over: null })}
               open={expanded.has(category.id)}
               onToggle={() => toggle(category.id)}

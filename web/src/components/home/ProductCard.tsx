@@ -59,11 +59,11 @@ export default function ProductCard({ product }: { product: Product }) {
           aria-label={product.name}
           className="block w-full cursor-pointer text-left relative"
         >
-          <div className="relative aspect-square overflow-hidden border-b border-border bg-white p-3">
+          <div className="relative aspect-square overflow-hidden border-b border-border bg-white">
             <SafeImage
               src={[product.thumbnail, product.image]}
               alt={product.name}
-              className="w-full h-full rounded-md object-contain bg-white transition-transform duration-300 group-hover:scale-105"
+              className="h-full w-full object-cover bg-white transition-transform duration-300 group-hover:scale-105"
             />
             {discount > 0 && (
               <span className="absolute top-2 left-2 rounded-md bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground">
