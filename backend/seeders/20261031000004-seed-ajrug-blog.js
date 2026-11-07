@@ -1,10 +1,11 @@
 "use strict";
 
 // Ajrug-ийн "Ээжүүдийн булан"-гийн анхны нийтлэлүүд (өмнө нь вэбийн src/data/blog.ts-д байсан).
-// Зургийг seeders/data/blog-оос public/uploads/products руу хуулж, файлын id болгоно.
+// Зургийг seeders/data/blog-оос public/uploads/blogs руу хуулж, файлын id болгоно.
 const fs = require("fs");
 const path = require("path");
-const { uploadPath, thumbName } = require("../helper/fileHelper");
+const { folderPath, thumbName } = require("../helper/fileHelper");
+const uploadPath = folderPath("blogs");
 const sharp = require("sharp");
 
 const dataDir = path.join(__dirname, "data/blog");

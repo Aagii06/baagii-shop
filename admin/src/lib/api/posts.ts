@@ -337,7 +337,7 @@ export async function savePost(id: number | null, input: PostInput): Promise<voi
 /** Uploads the draft's new images and puts their file ids where the `blob:` URLs were. */
 async function withUploads(input: PostInput): Promise<PostInput> {
   const uploaded = new Map(
-    await Promise.all(Object.entries(input.newFiles).map(async ([ref, file]) => [ref, await uploadFile(file)] as const))
+    await Promise.all(Object.entries(input.newFiles).map(async ([ref, file]) => [ref, await uploadFile(file, "products")] as const))
   );
   if (uploaded.size === 0) return input;
   const swap = (ref: string) => uploaded.get(ref) ?? ref;

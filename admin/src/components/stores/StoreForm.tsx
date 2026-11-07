@@ -80,7 +80,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
         phones,
         emails,
         addresses,
-        logo: logoFile ? await uploadFile(logoFile) : logo,
+        logo: logoFile ? await uploadFile(logoFile, "stores") : logo,
         tier,
       };
       await (store ? updateStore(store.id, input) : createStore(input));

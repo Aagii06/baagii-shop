@@ -32,9 +32,13 @@ export function fileUrl(
     : `${FILE_BASE_URL}/${trimmed}`;
 }
 
-/** Uploads one image (`POST /file/upload`) and returns its file id. */
-export async function uploadFile(file: File): Promise<string> {
+/** The backend's `public/uploads/<folder>` an image is saved in (one per model). */
+export type UploadFolder = "products" | "stores" | "users" | "blogs";
+
+/** Uploads one image (`POST /file/upload`) into `folder` and returns its file id. */
+export async function uploadFile(file: File, folder: UploadFolder): Promise<string> {
   const body = new FormData();
+  body.append("folder", folder);
   body.append("file", file);
   const res = await apiFetch<ApiItemResponse<{ id: string } | null>>("/file/upload", { method: "POST", body });
   if (!res.data?.id) throw new Error(res.message);

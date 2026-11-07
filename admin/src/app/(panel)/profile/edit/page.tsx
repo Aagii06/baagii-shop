@@ -188,7 +188,7 @@ export default function EditProfilePage() {
         name: name.trim(),
         phone,
         email: email.trim() ? currentEmail : "",
-        logo: logoFile ? await uploadFile(logoFile) : logo,
+        logo: logoFile ? await uploadFile(logoFile, "users") : logo,
         ...(phoneChanged && { code: code.trim() }),
       });
       setUser(next);
