@@ -114,7 +114,8 @@ export default function PhoneAuthGate() {
           <Button
             type="submit"
             size="lg"
-            disabled={busy || !phoneValid}
+            disabled={!phoneValid}
+            loading={busy}
             className="w-full brand-gradient text-white"
           >
             {busy ? t("checkout.auth.sending") : t("checkout.auth.sendCode")}
@@ -156,7 +157,8 @@ export default function PhoneAuthGate() {
           <Button
             type="submit"
             size="lg"
-            disabled={busy || !codeValid}
+            disabled={!codeValid}
+            loading={busy}
             className="w-full brand-gradient text-white"
           >
             {busy ? t("checkout.auth.verifying") : t("checkout.auth.verify")}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
@@ -36,6 +38,8 @@ export default function OrderDetailPage() {
   const { t } = useLanguage();
   const id = useRouteId("id", 1);
   const { data: order, error, reload } = useApi(() => getOrder(Number(id)), id);
+  // The status change in flight — its button spins and the bar locks.
+  const [busyTo, setBusyTo] = useState<OrderStatus | null>(null);
   const { run } = useToast();
   const confirm = useConfirm();
 
@@ -64,7 +68,12 @@ export default function OrderDetailPage() {
   const canReturn = canReturnOrder(order);
 
   async function changeStatus(to: OrderStatus, success: string) {
-    if (await run(() => setOrderStatus(shown.id, to), success)) reload();
+    setBusyTo(to);
+    try {
+      if (await run(() => setOrderStatus(shown.id, to), success)) reload();
+    } finally {
+      setBusyTo(null);
+    }
   }
 
   async function returnOrder() {
@@ -133,7 +142,14 @@ export default function OrderDetailPage() {
           <div className="fixed inset-x-0 bottom-0 z-30">
             <div className="mx-auto flex max-w-md gap-3 border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:border-x">
               {canReturn && (
-                <Button size="lg" variant="danger" className={action ? "shrink-0 px-5" : "w-full"} onClick={returnOrder}>
+                <Button
+                  size="lg"
+                  variant="danger"
+                  className={action ? "shrink-0 px-5" : "w-full"}
+                  loading={busyTo === "returned"}
+                  disabled={busyTo !== null}
+                  onClick={returnOrder}
+                >
                   {t("orders.return")}
                 </Button>
               )}
@@ -142,6 +158,8 @@ export default function OrderDetailPage() {
                   size="lg"
                   variant="ghost"
                   className={cn("min-w-0 grow", ORDER_TONE[action.to].solid)}
+                  loading={busyTo === action.to}
+                  disabled={busyTo !== null}
                   onClick={() => changeStatus(action.to, t("orders.statusUpdated"))}
                 >
                   {action.label}

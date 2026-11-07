@@ -291,7 +291,8 @@ export default function PaymentForm({
         type="submit"
         size="lg"
         className="w-full brand-gradient text-white"
-        disabled={isSubmitting || !method}
+        disabled={!method}
+        loading={isSubmitting}
       >
         {isSubmitting
           ? t("checkout.summary.processing")

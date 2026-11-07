@@ -122,7 +122,7 @@ function DeleteCustomerDialog({
             <Button type="button" variant="outline" onClick={close} disabled={busy}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" variant="destructive" disabled={busy}>
+            <Button type="submit" variant="destructive" loading={busy}>
               {t("common.delete")}
             </Button>
           </div>

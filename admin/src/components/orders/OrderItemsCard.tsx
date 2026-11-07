@@ -141,7 +141,7 @@ function ReturnItemDialog({
           <Button variant="outline" onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button variant="destructive" disabled={busy} onClick={submit}>
+          <Button variant="destructive" loading={busy} onClick={submit}>
             {t("oi.return")}
           </Button>
         </div>

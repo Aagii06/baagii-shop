@@ -383,7 +383,7 @@ export default function SellerRequestPage() {
                   />
                 </div>
                 {error && <p className="text-xs text-destructive">{error}</p>}
-                <Button type="submit" size="lg" disabled={busy} className="h-12 w-full brand-gradient text-base text-white">
+                <Button type="submit" size="lg" loading={busy} className="h-12 w-full brand-gradient text-base text-white">
                   {busy ? t("checkout.auth.sending") : t("seller.submit")}
                 </Button>
               </fieldset>

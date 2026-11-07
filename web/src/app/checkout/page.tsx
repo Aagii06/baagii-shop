@@ -169,7 +169,7 @@ export default function CheckoutPage() {
               form="shipping-form"
               size="lg"
               className="w-full brand-gradient text-white"
-              disabled={isSubmitting}
+              loading={isSubmitting}
             >
               {isSubmitting
                 ? t("checkout.summary.processing")

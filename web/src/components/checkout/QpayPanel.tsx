@@ -122,7 +122,7 @@ export default function QpayPanel({
           )}
 
           <div className="space-y-2">
-            <Button type="button" variant="outline" className="w-full" onClick={checkNow} disabled={checking}>
+            <Button type="button" variant="outline" className="w-full" onClick={checkNow} loading={checking}>
               {checking ? t("checkout.summary.processing") : t("checkout.payment.qpay.check")}
             </Button>
             {notYet && (
