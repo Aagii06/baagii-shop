@@ -12,6 +12,7 @@ import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { useDirty } from "@/lib/useDirty";
 
 const MIN_PASSWORD = 6;
 // Seconds before another code can be asked for.
@@ -98,6 +99,8 @@ export default function ChangePasswordPage() {
   const [code, setCode] = useState("");
   const [codeSubmitted, setCodeSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
+  // The save button stays off until something changes.
+  const { dirty } = useDirty({ current, next, confirm });
 
   useEffect(() => {
     if (!cooldown) return;
@@ -128,6 +131,7 @@ export default function ChangePasswordPage() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!dirty) return;
     setSubmitted(true);
     if (!current) return currentRef.current?.focus();
     if (next.length < MIN_PASSWORD) return newRef.current?.focus();
@@ -159,7 +163,7 @@ export default function ChangePasswordPage() {
           backHref="/profile"
           title={t("pw.title")}
           aside={
-            <Button type="submit" className="h-10 px-5" disabled={!hasEmail || sending}>
+            <Button type="submit" className="h-10 px-5" disabled={!hasEmail || sending || !dirty}>
               {sending && <Loader2 className="animate-spin" />}
               {t("common.save")}
             </Button>

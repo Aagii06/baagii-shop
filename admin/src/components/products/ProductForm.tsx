@@ -62,7 +62,7 @@ export default function ProductForm() {
   const priceRef = useRef<HTMLInputElement>(null);
   const saleRef = useRef<HTMLInputElement>(null);
   const saleStartRef = useRef<HTMLButtonElement>(null);
-  const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant, toPostInput } =
+  const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant, toPostInput, dirty, snapshot, markSaved } =
     useProductEditor();
   const Icon = ATTR_ICONS[attrs[0]?.viewType ?? "text"];
   // Until values are picked, the product has one variant, stocked on this form.
@@ -100,15 +100,19 @@ export default function ProductForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (saving || !validateAll()) return;
+    if (saving || !dirty || !validateAll()) return;
     setSaving(true);
+    const savedSnapshot = snapshot;
     const saved = await run(
       () => savePost(post?.id ?? null, toPostInput()),
       t("common.saved")
     );
     if (saved && !post) router.replace("/products");
     // A new product leaves the page; keep the button off until it does.
-    else setSaving(false);
+    else {
+      if (saved) markSaved(savedSnapshot);
+      setSaving(false);
+    }
   }
 
   async function onDelete() {
@@ -129,7 +133,7 @@ export default function ProductForm() {
         backHref="/products"
         title={post ? t("products.edit") : t("products.add")}
         aside={
-          <Button type="submit" className="relative h-10 px-5" disabled={saving} aria-busy={saving}>
+          <Button type="submit" className="relative h-10 px-5" disabled={saving || !dirty} aria-busy={saving}>
             {/* While saving only the spinner shows; the hidden label keeps the width. */}
             <span className={saving ? "invisible" : undefined}>{t("common.save")}</span>
             {saving && <Loader2 className="absolute inset-0 m-auto animate-spin" />}

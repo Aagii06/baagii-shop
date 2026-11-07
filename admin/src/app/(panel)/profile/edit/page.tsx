@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { Camera, Loader2, Mail, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { useDirty } from "@/lib/useDirty";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Seconds before another code can be asked for the same phone / email.
@@ -61,6 +62,14 @@ export default function EditProfilePage() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // The save button stays off until something changes.
+  const { dirty } = useDirty({
+    name,
+    phone,
+    logo,
+    // Compared with the account's address, which a confirmed change updates.
+    email: email.trim().toLowerCase() === currentEmail.toLowerCase() ? "" : email,
+  });
 
   const phoneChanged = phone !== currentPhone;
   const codeSent = phoneChanged && codeSentTo === phone;
@@ -173,6 +182,7 @@ export default function EditProfilePage() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!dirty) return;
     setSubmitted(true);
     if (!name.trim()) return nameRef.current?.focus();
     if (phone.length < 8) return phoneRef.current?.focus();
@@ -204,7 +214,7 @@ export default function EditProfilePage() {
           backHref="/profile"
           title={t("profile.edit")}
           aside={
-            <Button type="submit" className="h-10 px-5" disabled={saving}>
+            <Button type="submit" className="h-10 px-5" disabled={saving || !dirty}>
               {saving && <Loader2 className="animate-spin" />}
               {t("common.save")}
             </Button>

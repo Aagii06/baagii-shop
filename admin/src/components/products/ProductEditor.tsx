@@ -7,6 +7,7 @@ import type { PostDetail, PostInput } from "@/lib/api/posts";
 import { valueKey } from "@/lib/attributes";
 import { toNumber } from "@/lib/utils";
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useDirty } from "@/lib/useDirty";
 
 // Numbers are kept as strings while editing so a field can be cleared.
 export interface ProductFormState {
@@ -341,6 +342,11 @@ interface ProductEditor {
   removeImage: (key: string, ref: string) => void;
   /** The draft as saved. */
   toPostInput: () => PostInput;
+  /** Whether the draft differs from the product as opened or last saved. */
+  dirty: boolean;
+  /** The draft right now; pass it to `markSaved` once a save that started with it succeeds. */
+  snapshot: string;
+  markSaved: (snapshot: string) => void;
 }
 
 const ProductEditorContext = createContext<ProductEditor | null>(null);
@@ -374,7 +380,7 @@ export function ProductEditorProvider({
     return () => picked.forEach((_, url) => URL.revokeObjectURL(url));
   }, []);
 
-  const value = useMemo<ProductEditor>(() => {
+  const value = useMemo<Omit<ProductEditor, "dirty" | "snapshot" | "markSaved">>(() => {
     const fromCategory = categoryAttrs(categories, form.categoryId ? Number(form.categoryId) : null)
       .map((id) => catalogue.find((attr) => attr.id === id))
       .filter((attr): attr is Attr => Boolean(attr))
@@ -440,7 +446,14 @@ export function ProductEditorProvider({
     };
   }, [post, categories, catalogue, form, allAttrs, rows, images]);
 
-  return <ProductEditorContext.Provider value={value}>{children}</ProductEditorContext.Provider>;
+  // Picked files show up in `images` as their `blob:` URLs, so `newFiles` adds nothing.
+  const { dirty, snapshot, markSaved } = useDirty({ ...value.toPostInput(), newFiles: undefined });
+  const editor = useMemo<ProductEditor>(
+    () => ({ ...value, dirty, snapshot, markSaved }),
+    [value, dirty, snapshot, markSaved]
+  );
+
+  return <ProductEditorContext.Provider value={editor}>{children}</ProductEditorContext.Provider>;
 }
 
 export function useProductEditor() {

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, Pencil, Plus, Star, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useDirty } from "@/lib/useDirty";
 
 type InputProps = {
   value: string;
@@ -179,6 +180,8 @@ function ListSheet({
   // An empty list opens with one row ready to type in.
   const [draft, setDraft] = useState(() => (items.length ? items : [""]));
   const [error, setError] = useState<string>();
+  // The save button stays off until something changes.
+  const { dirty } = useDirty(draft);
 
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -204,6 +207,7 @@ function ListSheet({
     e.preventDefault();
     // React bubbles the portal's submit up to the store form; keep it here.
     e.stopPropagation();
+    if (!dirty) return;
     const clean = draft.map(normalize).filter(Boolean);
     const problem =
       clean.map(check).find(Boolean) ?? (new Set(clean).size !== clean.length ? t("st.duplicate") : undefined);
@@ -300,7 +304,7 @@ function ListSheet({
             <Button type="button" variant="outline" className="h-12" onClick={onClose}>
               {t("common.cancel")}
             </Button>
-            <Button type="submit" className="h-12">
+            <Button type="submit" className="h-12" disabled={!dirty}>
               {t("common.save")}
             </Button>
           </div>
