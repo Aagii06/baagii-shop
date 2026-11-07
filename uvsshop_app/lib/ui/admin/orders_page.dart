@@ -139,7 +139,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
       itemCount: _rows.length + (_loading ? 1 : 0),
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, i) {
-        if (i >= _rows.length) return const Padding(padding: EdgeInsets.all(16), child: LoadingView());
+        if (i >= _rows.length) return const Padding(padding: EdgeInsets.all(16), child: LoadingView(count: 2));
         final o = _rows[i];
         return Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -274,7 +274,7 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
       child: Scaffold(
         appBar: AppBar(title: Text('Захиалга #${widget.orderId}')),
         body: _order == null
-            ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView())
+            ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView(kind: SkeletonKind.detail))
             : _body(_order!),
         bottomNavigationBar: _order == null ? null : _actions(_order!),
       ),

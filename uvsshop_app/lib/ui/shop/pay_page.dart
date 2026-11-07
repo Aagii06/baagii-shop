@@ -103,7 +103,7 @@ class _PayPageState extends State<PayPage> {
     return Scaffold(
       appBar: AppBar(title: Text('Захиалга #${widget.orderId}')),
       body: _order == null
-          ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView())
+          ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView(kind: SkeletonKind.detail))
           : _body(_order!),
     );
   }
@@ -152,7 +152,7 @@ class _PayPageState extends State<PayPage> {
 
   Widget _qpay() {
     final inv = _invoice;
-    if (inv == null) return const Padding(padding: EdgeInsets.all(32), child: LoadingView());
+    if (inv == null) return const Pulse(child: Column(children: [Bone(height: 272, radius: 12), SizedBox(height: 16), Bone(height: 160, radius: 12)]));
     Widget? qr;
     try {
       final raw = inv.qrImage.contains(',') ? inv.qrImage.split(',').last : inv.qrImage;

@@ -62,7 +62,7 @@ class _StoresPageState extends State<StoresPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Дэлгүүрүүд')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingView(kind: SkeletonKind.grid)
           : ListView(padding: const EdgeInsets.all(16), children: [
               Text.rich(TextSpan(children: [
                 const TextSpan(text: 'Дэлгүүрүүд ', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),

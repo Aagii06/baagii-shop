@@ -45,7 +45,7 @@ class _DashboardPageState extends State<DashboardPage> {
             future: _future,
             builder: (context, snap) {
               if (snap.connectionState != ConnectionState.done) {
-                return const SizedBox(height: 300, child: LoadingView());
+                return const LoadingView(kind: SkeletonKind.stats);
               }
               if (snap.hasError) return SizedBox(height: 300, child: ErrorView(snap.error!, onRetry: _reload));
               final d = snap.data!;

@@ -104,7 +104,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                         itemCount: rows.length + (_loading ? 1 : 0),
                         separatorBuilder: (_, _) => const SizedBox(height: 8),
                         itemBuilder: (context, i) {
-                          if (i >= rows.length) return const Padding(padding: EdgeInsets.all(16), child: LoadingView());
+                          if (i >= rows.length) return const Padding(padding: EdgeInsets.all(16), child: LoadingView(count: 2));
                           return _tile(rows[i]);
                         },
                       ),

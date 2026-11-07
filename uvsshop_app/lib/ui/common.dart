@@ -82,10 +82,153 @@ class NetImage extends StatelessWidget {
   }
 }
 
+enum SkeletonKind { list, grid, product, detail, stats }
+
+/// Ачаалж байх үеийн skeleton (web-ийн animate-pulse шиг анивчина) —
+/// ирэх агуулгын хэлбэртэй: жагсаалт, барааны grid, барааны хуудас,
+/// дэлгэрэнгүй, тайлангийн карт.
 class LoadingView extends StatelessWidget {
-  const LoadingView({super.key});
+  final SkeletonKind kind;
+
+  /// Жагсаалт/grid-ийн мөрийн тоо.
+  final int count;
+  const LoadingView({super.key, this.kind = SkeletonKind.list, this.count = 6});
+
   @override
-  Widget build(BuildContext context) => const Center(child: CircularProgressIndicator());
+  Widget build(BuildContext context) {
+    final content = switch (kind) {
+      SkeletonKind.list => Column(children: [for (var i = 0; i < count; i++) const _ListRowBone()]),
+      SkeletonKind.grid => GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.62,
+          children: [for (var i = 0; i < count; i++) const _CardBone()],
+        ),
+      SkeletonKind.product => Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+          AspectRatio(aspectRatio: 1, child: Bone()),
+          SizedBox(height: 16),
+          Bone(width: 220, height: 22),
+          SizedBox(height: 10),
+          Bone(width: 140, height: 28),
+          SizedBox(height: 10),
+          Bone(width: 90, height: 14),
+          SizedBox(height: 20),
+          Bone(height: 14),
+          SizedBox(height: 8),
+          Bone(height: 14),
+          SizedBox(height: 8),
+          Bone(width: 200, height: 14),
+        ]),
+      SkeletonKind.detail => Column(children: [
+          const Bone(height: 90, radius: 12),
+          const SizedBox(height: 10),
+          for (var i = 0; i < 3; i++) const _ListRowBone(),
+          const SizedBox(height: 10),
+          const Bone(height: 110, radius: 12),
+        ]),
+      SkeletonKind.stats => Column(children: const [
+          Row(children: [
+            Expanded(child: Bone(height: 84, radius: 12)),
+            SizedBox(width: 12),
+            Expanded(child: Bone(height: 84, radius: 12)),
+          ]),
+          SizedBox(height: 12),
+          Bone(height: 220, radius: 12),
+        ]),
+    };
+    return Semantics(
+      label: 'Ачаалж байна',
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(12),
+        child: Pulse(child: content),
+      ),
+    );
+  }
+}
+
+/// Хүүхэд widget-ийг анивчуулна (skeleton-д).
+class Pulse extends StatefulWidget {
+  final Widget child;
+  const Pulse({super.key, required this.child});
+  @override
+  State<Pulse> createState() => _PulseState();
+}
+
+class _PulseState extends State<Pulse> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+    ..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      FadeTransition(opacity: Tween<double>(begin: 0.45, end: 1).animate(_c), child: widget.child);
+}
+
+/// Skeleton-ий саарал хэсэг.
+class Bone extends StatelessWidget {
+  final double? width;
+  final double height;
+  final double radius;
+  const Bone({super.key, this.width, this.height = 14, this.radius = 6});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(color: const Color(0xFFECEDF1), borderRadius: BorderRadius.circular(radius)),
+      );
+}
+
+class _ListRowBone extends StatelessWidget {
+  const _ListRowBone();
+  @override
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+        child: const Row(children: [
+          Bone(width: 52, height: 52, radius: 8),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Bone(width: 160, height: 14),
+              SizedBox(height: 8),
+              Bone(width: 100, height: 12),
+            ]),
+          ),
+          SizedBox(width: 12),
+          Bone(width: 56, height: 14),
+        ]),
+      );
+}
+
+class _CardBone extends StatelessWidget {
+  const _CardBone();
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+        clipBehavior: Clip.antiAlias,
+        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          AspectRatio(aspectRatio: 1, child: Bone(radius: 0)),
+          Padding(
+            padding: EdgeInsets.all(12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Bone(width: 80, height: 16),
+              SizedBox(height: 8),
+              Bone(width: 120, height: 12),
+            ]),
+          ),
+        ]),
+      );
 }
 
 class ErrorView extends StatelessWidget {

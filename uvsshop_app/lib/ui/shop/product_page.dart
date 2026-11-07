@@ -92,7 +92,7 @@ class _ProductPageState extends State<ProductPage> {
         ],
       ),
       body: _detail == null
-          ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView())
+          ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView(kind: SkeletonKind.product))
           : _buildBody(_detail!),
       bottomNavigationBar: _detail == null ? null : _buildBottom(),
     );
