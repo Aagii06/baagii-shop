@@ -17,6 +17,19 @@ module.exports.variantOrder = [[{ model: productVariants, as: "variants" }, "ord
 
 const money = (value) => toNumber(value).toFixed(2);
 
+// Хямдрал өнөөдөр хүчинтэй эсэх: sale_start..sale_end (огноо багтаана, Улаанбаатарын цагаар).
+// Хугацаа заагаагүй (хуучин) хямдрал үргэлж хүчинтэй.
+const onSale = (product, day = today()) =>
+  (!product?.sale_start || product.sale_start <= day) && (!product?.sale_end || day <= product.sale_end);
+module.exports.onSale = onSale;
+
+/** Бараа / хувилбарын одоо зарагдах үнэ: хямдралын хугацаанаас гадуур бол үндсэн үнэ. */
+const sellingPrice = (row, product) => {
+  const main = toNumber(row?.main_price);
+  return main > 0 && !onSale(product) ? main : toNumber(row?.price);
+};
+module.exports.sellingPrice = sellingPrice;
+
 // Хувилбарыг таних түлхүүр: сонголтын утгууд (attrId:value), сонголтгүй бол нэр
 const signature = (attr, name) =>
   attr?.length ? attr.map((a) => `${a.attrId}:${String(a.value).trim().toUpperCase()}`).sort().join("|") : `name:${name}`;
@@ -63,6 +76,8 @@ module.exports.toAdminProduct = (product) => ({
   qty: String(remainOf(product)),
   mainPrice: money(product.main_price),
   price: money(product.price),
+  saleStart: product.sale_start ?? null,
+  saleEnd: product.sale_end ?? null,
   deepLink: String(product.id),
   isActive: !!product.is_active,
   statusId: product.is_active ? "active" : "inactive",
@@ -100,8 +115,10 @@ module.exports.toWebPost = (product, detail = false) => {
     productName: product.name,
     name: product.name,
     note: product.description,
-    price: money(product.price),
+    price: money(sellingPrice(product, product)),
     mainPrice: money(product.main_price),
+    // Хямдрал дуусах өдөр (хүчинтэй үед)
+    saleEnd: onSale(product) && toNumber(product.price) < toNumber(product.main_price) ? product.sale_end ?? null : null,
     remain: String(remainOf(product)),
     isActive: !!product.is_active,
     categoryId: product.category_id,
@@ -124,7 +141,7 @@ module.exports.toWebPost = (product, detail = false) => {
       variantCode: v.code,
       variantName: v.name,
       image: variantImage(attrs, v),
-      price: money(v.price),
+      price: money(sellingPrice(v, product)),
       mainPrice: money(v.main_price),
       remain: String(v.remain),
       attr: Object.fromEntries((v.attr ?? []).map((a) => [String(a.attrId), a.value])),
@@ -193,6 +210,15 @@ module.exports.saveProduct = async ({ shopId, id = null, body, by, storeId }) =>
   if (!body.categoryId) throw "Категори сонгоно уу";
   if (variantsIn.length === 0) throw "Дор хаяж нэг хувилбар оруулна уу";
 
+  // Хямдралын үнэ үндсэн үнээс их байж болохгүй (бараа болон хувилбар бүр)
+  const overMain = (row) => toNumber(row.mainPrice) > 0 && toNumber(row.price) > toNumber(row.mainPrice);
+  if (overMain(body) || variantsIn.some(overMain)) throw "Хямдралын үнэ үндсэн үнээс их байж болохгүй";
+  const discounted = [body, ...variantsIn].some((row) => toNumber(row.price) < toNumber(row.mainPrice));
+  const isDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d ?? "");
+  const saleStart = discounted && isDate(body.saleStart) ? body.saleStart : null;
+  const saleEnd = discounted && isDate(body.saleEnd) ? body.saleEnd : null;
+  if (saleStart && saleEnd && saleStart > saleEnd) throw "Хямдрал эхлэх огноо дуусах огнооноос хойш байж болохгүй";
+
   if (!(await categories.count({ where: { id: body.categoryId, shop_id: shopId, status: "active" } }))) throw "Категори олдсонгүй";
 
   const attrs = await normalizeAttrs(shopId, body.attrs, variantsIn);
@@ -207,6 +233,8 @@ module.exports.saveProduct = async ({ shopId, id = null, body, by, storeId }) =>
     attrs,
     main_price: toNumber(body.mainPrice),
     price: toNumber(body.price),
+    sale_start: saleStart,
+    sale_end: saleEnd,
     is_active: body.isActive !== false && body.statusId !== "inactive",
   };
 

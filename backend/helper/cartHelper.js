@@ -1,7 +1,7 @@
 const { carts, cartDetails, productVariants, products, op } = require("../models");
 const { defaultBranch, cartLineTtlMinutes } = require("../config/constants");
 const { toNumber, now, parseAt } = require("./helper");
-const { variantImage } = require("./productHelper");
+const { variantImage, sellingPrice } = require("./productHelper");
 
 // Сагс: утсаар нэвтэрсэн бол customer_id-аар, үгүй бол зочны guest_id-аар хайна (дэлгүүр бүрт тусдаа)
 const ownerWhere = ({ shopId, guestId, customerId }) =>
@@ -28,11 +28,11 @@ const expiresInSec = (detail) => {
 };
 module.exports.isExpired = (detail) => expiresInSec(detail) <= 0;
 
-// web/src/lib/api/cart.ts-ийн ApiCartDetail. Үнэ нь барааны одоогийн үнэ.
+// web/src/lib/api/cart.ts-ийн ApiCartDetail. Үнэ нь барааны одоогийн үнэ (хямдралын хугацааг тооцно).
 module.exports.toCartDetail = (detail) => {
   const variant = detail.variant;
   const product = variant?.product;
-  const price = toNumber(variant?.price);
+  const price = sellingPrice(variant, product);
   return {
     id: detail.id,
     cartId: detail.cart_id,

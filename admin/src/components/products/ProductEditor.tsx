@@ -15,6 +15,9 @@ export interface ProductFormState {
   price: string;
   /** "Хямдрал" — the discounted selling price; left empty, it's `price`. */
   salePrice: string;
+  /** Discount period, `YYYY-MM-DD` inclusive — asked for once a discount is entered. */
+  saleStart: string;
+  saleEnd: string;
   /** Seller store id, or "" for the shop's own. */
   storeId: string;
   categoryId: string;
@@ -62,6 +65,8 @@ function initialForm(post: PostDetail | null): ProductFormState {
     name: post?.name ?? "",
     price: post ? String(toNumber(post.mainPrice) || price) : "",
     salePrice: post ? String(price) : "",
+    saleStart: post?.saleStart ?? "",
+    saleEnd: post?.saleEnd ?? "",
     storeId: post?.storeId != null ? String(post.storeId) : "",
     categoryId: post?.categoryId != null ? String(post.categoryId) : "",
     note: post?.note ?? "",
@@ -76,6 +81,38 @@ export function productErrors(form: ProductFormState): ProductErrors {
   const errors: ProductErrors = {};
   if (!form.name.trim()) errors.name = tr("pf.nameRequired");
   if (form.price === "") errors.price = tr("pf.priceRequired");
+  return errors;
+}
+
+/** A sale price entered below the price. */
+const discounted = (price: string, salePrice: string) => salePrice !== "" && Number(salePrice) < (Number(price) || 0);
+/** A sale price above the price. */
+const overPrice = (price: string, salePrice: string) => salePrice !== "" && Number(salePrice) > (Number(price) || 0);
+
+/** Variants that are sold, or the product itself while nothing is picked. */
+const pricedRows = (form: ProductFormState, attrs: ProductAttr[], variants: VariantRow[]) =>
+  attrs.some((attr) => attr.values.length > 0) ? variants.filter((row) => !row.off) : [form];
+
+/** Whether the product or any of its variants is discounted — the period is asked for then. */
+export function hasDiscount(form: ProductFormState, attrs: ProductAttr[], variants: VariantRow[]) {
+  return [form, ...pricedRows(form, attrs, variants)].some((row) => discounted(row.price, row.salePrice));
+}
+
+/** Whether this variant's sale price is above its price. */
+export const variantOverPrice = (row: VariantRow) => overPrice(row.price, row.salePrice);
+
+export type SaleErrors = Partial<Record<"salePrice" | "variants" | "salePeriod", string>>;
+
+/** Sale prices above the price, and a discount without a valid period. */
+export function saleErrors(form: ProductFormState, attrs: ProductAttr[], variants: VariantRow[]): SaleErrors {
+  const errors: SaleErrors = {};
+  if (overPrice(form.price, form.salePrice)) errors.salePrice = tr("pf.saleOverPrice");
+  if (attrs.some((attr) => attr.values.length > 0) && variants.some((row) => !row.off && variantOverPrice(row)))
+    errors.variants = tr("pf.variantSaleOverPrice");
+  if (hasDiscount(form, attrs, variants)) {
+    if (!form.saleStart || !form.saleEnd) errors.salePeriod = tr("pf.salePeriodRequired");
+    else if (form.saleStart > form.saleEnd) errors.salePeriod = tr("pf.salePeriodOrder");
+  }
   return errors;
 }
 
@@ -236,9 +273,13 @@ function toPostInput(
   const own = images[""] ?? [];
   const valueImages = (attrKey: string, value: string) => images[imageKey(attrKey, value)] ?? [];
   const saved = [...own, ...used.flatMap((attr) => attr.values.flatMap((v) => valueImages(attr.key, v.value)))];
+  // Without a discount the period is dropped.
+  const onSale = hasDiscount(form, attrs, variants);
   return {
     name: form.name.trim(),
     ...prices(form.price, form.salePrice),
+    saleStart: onSale && form.saleStart ? form.saleStart : null,
+    saleEnd: onSale && form.saleEnd ? form.saleEnd : null,
     storeId: form.storeId ? Number(form.storeId) : null,
     categoryId: form.categoryId ? Number(form.categoryId) : null,
     note: form.note.trim(),

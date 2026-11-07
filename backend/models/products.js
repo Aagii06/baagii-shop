@@ -28,6 +28,9 @@ module.exports = (sequelize, DataTypes) => {
       qty: { type: DataTypes.INTEGER, defaultValue: 0 },
       main_price: { type: DataTypes.DECIMAL(14, 2), defaultValue: 0 },
       price: { type: DataTypes.DECIMAL(14, 2), defaultValue: 0 },
+      // Хямдралын хугацаа (YYYY-MM-DD, огноо багтаана); null бол хязгааргүй
+      sale_start: { type: DataTypes.DATEONLY },
+      sale_end: { type: DataTypes.DATEONLY },
       is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
       ...auditFields(DataTypes),
     },

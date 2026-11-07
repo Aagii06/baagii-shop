@@ -3,6 +3,7 @@ const { cartDetails, orders, sequelize } = require("../../models");
 const { shopSettings, orderStatuses } = require("../../config/constants");
 const { findCart, detailInclude, isActiveLine } = require("../../helper/cartHelper");
 const { placeOrder, findOrder, toWebOrder, itemsInclude } = require("../../helper/orderHelper");
+const { sellingPrice } = require("../../helper/productHelper");
 const { createInvoice, checkOrder, toWebInvoice } = require("../../helper/qpayHelper");
 const { paymentSettings } = require("../../models");
 const { ok, fail, handle, now, phoneDigits, isPhone, toNumber } = require("../../helper/helper");
@@ -45,7 +46,7 @@ router.post(
       const cart = await findCart(req.session, t);
       const lines = cart ? (await cartDetails.findAll({ where: { cart_id: cart.id }, include: detailInclude, transaction: t })).filter(isActiveLine) : [];
       if (lines.length === 0) throw "Сагс хоосон байна";
-      const subtotal = lines.reduce((sum, l) => sum + toNumber(l.variant.price) * l.qty, 0);
+      const subtotal = lines.reduce((sum, l) => sum + sellingPrice(l.variant, l.variant.product) * l.qty, 0);
       const { fee, freeAbove } = delivery[method];
 
       const id = await placeOrder({

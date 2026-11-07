@@ -2,7 +2,7 @@ const { orders, orderItems, products, productVariants, sequelize } = require("..
 const moment = require("moment");
 const { orderStatuses, unpaidCancelHours } = require("../config/constants");
 const { toIso, toNumber, now, parseAt } = require("./helper");
-const { variantImage } = require("./productHelper");
+const { variantImage, sellingPrice } = require("./productHelper");
 const { saveLog } = require("../utils/logHelper");
 
 module.exports.itemsInclude = [{ model: orderItems, as: "items" }];
@@ -125,7 +125,7 @@ module.exports.placeOrder = async ({ shopId, lines, info, by = null, transaction
         name,
         image: variantImage(variant.product.attrs ?? [], variant) ?? variant.product.images?.[0] ?? null,
         qty: line.qty,
-        price: line.price != null ? toNumber(line.price) : toNumber(variant.price),
+        price: line.price != null ? toNumber(line.price) : sellingPrice(variant, variant.product),
         returned_qty: 0,
       });
     }

@@ -55,6 +55,9 @@ interface Product {
   qty: string;
   mainPrice: string;
   price: string;
+  /** Discount period, `YYYY-MM-DD` inclusive; `null` for no limit. */
+  saleStart?: string | null;
+  saleEnd?: string | null;
   /** Eshop post id. */
   deepLink: string | null;
   // ../backend sends both; the old eshop-admin sent neither.
@@ -81,6 +84,9 @@ export interface Post {
   isActive?: boolean;
   mainPrice: string;
   price: string;
+  /** Discount period, `YYYY-MM-DD` inclusive; `null` for no limit. */
+  saleStart: string | null;
+  saleEnd: string | null;
   qty: string;
   /** Summed over the variants. */
   remain: string;
@@ -157,6 +163,8 @@ function toPostDetail(product: Product): PostDetail {
     isActive: product.statusId ? product.statusId === "active" : product.isActive,
     mainPrice: product.mainPrice,
     price: product.price,
+    saleStart: product.saleStart ?? null,
+    saleEnd: product.saleEnd ?? null,
     qty: product.qty,
     remain: String(remain),
     images: product.images,
@@ -231,6 +239,9 @@ export interface PostInput {
   mainPrice: number;
   /** Selling price after any discount. */
   price: number;
+  /** While a discount is on, `YYYY-MM-DD` inclusive; outside it the shop sells at `mainPrice`. */
+  saleStart: string | null;
+  saleEnd: string | null;
   /** Seller store; `null` for the shop's own. */
   storeId: number | null;
   categoryId: number | null;
@@ -296,6 +307,8 @@ function toProductBody(input: PostInput) {
     qty: input.variants.reduce((sum, v) => sum + v.qty, 0),
     mainPrice: input.mainPrice,
     price: input.price,
+    saleStart: input.saleStart,
+    saleEnd: input.saleEnd,
     attrs: input.attrs.map((attr) => ({ attrId: attr.attrId, name: attr.name, values: attr.values })),
     variants: input.variants.map((variant) => ({
       id: variant.id,

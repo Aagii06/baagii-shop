@@ -20,8 +20,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 import {
+  hasDiscount,
   hasProductBasics,
   productErrors,
+  saleErrors,
   useProductEditor,
   type ProductAttr,
   type VariantRow,
@@ -52,9 +54,13 @@ export default function ProductForm() {
   // const publishLabelId = useId();
   const nameErrorId = useId();
   const priceErrorId = useId();
+  const saleErrorId = useId();
+  const periodErrorId = useId();
   const storeId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
+  const saleRef = useRef<HTMLInputElement>(null);
+  const saleStartRef = useRef<HTMLInputElement>(null);
   const { post, categories, basePath, form, setField: set, attrs, variants, updateVariant, toPostInput } =
     useProductEditor();
   const Icon = ATTR_ICONS[attrs[0]?.viewType ?? "text"];
@@ -66,6 +72,11 @@ export default function ProductForm() {
   const errors = productErrors(form);
   const nameError = touched.name ? errors.name : undefined;
   const priceError = touched.price ? errors.price : undefined;
+  // A sale price above the price shows at once; a missing period on save.
+  const [saveTried, setSaveTried] = useState(false);
+  const sale = saleErrors(form, attrs, variants);
+  const periodError = saveTried || (form.saleStart && form.saleEnd) ? sale.salePeriod : undefined;
+  const onSale = hasDiscount(form, attrs, variants);
 
   /** Reveals every error and focuses the first bad field; `true` when there are none. */
   function validate() {
@@ -75,9 +86,18 @@ export default function ProductForm() {
     return !errors.name && !errors.price;
   }
 
+  /** Like `validate`, and also the discount; tells what's wrong with the variants. */
+  function validateAll() {
+    setSaveTried(true);
+    if (!validate()) return false;
+    if (sale.salePrice) saleRef.current?.focus();
+    else if (sale.salePeriod) saleStartRef.current?.focus();
+    return !sale.salePrice && !sale.salePeriod && !sale.variants;
+  }
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validateAll()) return;
     const saved = await run(
       () => savePost(post?.id ?? null, toPostInput()),
       t("common.saved")
@@ -136,17 +156,59 @@ export default function ProductForm() {
               required
             />
           </Field>
-          <Field label={t("pf.salePrice")}>
+          <Field label={t("pf.salePrice")} error={sale.salePrice} errorId={saleErrorId}>
             {/* Empty is saved as the price; the placeholder shows that value. */}
             <Input
+              ref={saleRef}
               className="font-mono"
               inputMode="numeric"
               placeholder={form.price}
               value={form.salePrice}
               onChange={(e) => set("salePrice", digitsOnly(e.target.value))}
+              aria-invalid={Boolean(sale.salePrice)}
+              aria-describedby={sale.salePrice ? saleErrorId : undefined}
             />
           </Field>
         </div>
+
+        {onSale && (
+          // Outside the period the shop sells at the price.
+          <fieldset className="rounded-2xl border border-border bg-white px-4 pb-4 pt-3">
+            <legend className="px-1 text-sm font-bold">{t("pf.salePeriod")}</legend>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t("pf.saleStart")}>
+                <Input
+                  ref={saleStartRef}
+                  type="date"
+                  className="px-4 font-mono"
+                  value={form.saleStart}
+                  max={form.saleEnd || undefined}
+                  onChange={(e) => set("saleStart", e.target.value)}
+                  aria-invalid={Boolean(periodError)}
+                  aria-describedby={periodError ? periodErrorId : undefined}
+                />
+              </Field>
+              <Field label={t("pf.saleEnd")}>
+                <Input
+                  type="date"
+                  className="px-4 font-mono"
+                  value={form.saleEnd}
+                  min={form.saleStart || undefined}
+                  onChange={(e) => set("saleEnd", e.target.value)}
+                  aria-invalid={Boolean(periodError)}
+                  aria-describedby={periodError ? periodErrorId : undefined}
+                />
+              </Field>
+            </div>
+            {periodError ? (
+              <p id={periodErrorId} className="mt-1.5 px-1 text-sm text-destructive">
+                {periodError}
+              </p>
+            ) : (
+              <p className="mt-1.5 px-1 text-sm text-muted-foreground">{t("pf.salePeriodHint")}</p>
+            )}
+          </fieldset>
+        )}
 
         {role === "admin" ? (
           // Optional: left empty, it's the shop's own product.
@@ -244,6 +306,10 @@ export default function ProductForm() {
               <Lock className="size-4 shrink-0 text-muted-foreground" />
             </button>
           ))}
+        {attrs.length > 0 && hasProductBasics(form) && sale.variants && (
+          // A variant's sale price above its price — fixed on the variants page.
+          <p className="-mt-2 px-5 text-sm text-destructive">{sale.variants}</p>
+        )}
 
         {/* After the variants: a colour needs picking before it gets images. */}
         <ProductImages />

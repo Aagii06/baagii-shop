@@ -10,7 +10,13 @@ import { Trash2, Undo2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { AttrPicker, Swatch } from "./AttrPickers";
-import { hasProductBasics, useProductEditor, type ProductAttr, type VariantRow } from "./ProductEditor";
+import {
+  hasProductBasics,
+  useProductEditor,
+  variantOverPrice,
+  type ProductAttr,
+  type VariantRow,
+} from "./ProductEditor";
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
@@ -58,6 +64,8 @@ function VariantTable({ attrs }: { attrs: ProductAttr[] }) {
       onFocus={(e) => e.currentTarget.select()}
       onChange={(e) => updateVariant(row, { [field]: digitsOnly(e.target.value) })}
       required={field !== "salePrice"}
+      // A sale price above the price can't be saved.
+      aria-invalid={field === "salePrice" && variantOverPrice(row)}
     />
   );
 
