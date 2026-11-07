@@ -34,7 +34,7 @@ class _ShopShellState extends State<ShopShell> {
         const HomePage(),
         CartPage(onShop: () => _select(0)),
         OrdersPage(key: ValueKey(_ordersKey)),
-        const AccountPage(),
+        AccountPage(onOpenTab: _select),
       ]),
       // Админ дэлгүүрээр зочилж байх үед админ руу буцах товч.
       floatingActionButton: isAdmin

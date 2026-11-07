@@ -45,6 +45,8 @@ export const mn: Dict = {
   "footer.links.about": "Бидний тухай",
   "footer.links.becomeSeller": "Хамтран ажиллах",
   "seller.title": "Борлуулагч болох",
+  "seller.backToProfile": "Профайл руу буцах",
+  "seller.backHome": "Нүүр рүү буцах",
   "seller.desc": "Дэлгүүрийнхээ мэдээллийг үлдээж, утсаа баталгаажуулна уу. Хүсэлт батлагдвал таны дэлгүүр нээгдэнэ.",
   "seller.submit": "Хүсэлт илгээх",
   "seller.doneTitle": "Хүсэлт илгээгдлээ",

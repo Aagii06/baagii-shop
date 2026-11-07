@@ -45,6 +45,8 @@ export const en: Dict = {
   "footer.links.about": "About us",
   "footer.links.becomeSeller": "Become a seller",
   "seller.title": "Become a seller",
+  "seller.backToProfile": "Back to profile",
+  "seller.backHome": "Back to home",
   "seller.desc": "Leave your store's details and confirm your phone. Once approved, your store opens.",
   "seller.submit": "Send request",
   "seller.doneTitle": "Request sent",

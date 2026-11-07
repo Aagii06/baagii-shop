@@ -45,6 +45,8 @@ export const ru: Dict = {
   "footer.links.about": "О нас",
   "footer.links.becomeSeller": "Стать продавцом",
   "seller.title": "Стать продавцом",
+  "seller.backToProfile": "Назад в профиль",
+  "seller.backHome": "На главную",
   "seller.desc": "Укажите данные магазина и подтвердите телефон. После одобрения заявки ваш магазин откроется.",
   "seller.submit": "Отправить заявку",
   "seller.doneTitle": "Заявка отправлена",

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
 import PageLoader from "@/components/ui/page-loader";
-import { LogOut } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -61,6 +62,18 @@ export default function AccountLayout({
         </div>
 
         <div className="flex-1 min-w-0">
+          {/* Phones have no sidebar: the account pages (cart, orders, saved,
+              addresses) lead back to /profile, where their menu lives. A guest's
+              cart / saved go back home instead. */}
+          {!pathname.startsWith("/profile") && (
+            <Link
+              href={isAuthed ? "/profile" : "/"}
+              className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted lg:hidden"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t(isAuthed ? "seller.backToProfile" : "seller.backHome")}
+            </Link>
+          )}
           {needsAuth && (authLoading || !isAuthed) ? <PageLoader /> : children}
         </div>
       </div>

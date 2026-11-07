@@ -9,7 +9,8 @@ import { registerSeller, sendSellerOtp, verifySellerOtp } from "@/lib/api/auth";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
-import { CheckCircle, CircleCheck, Store } from "lucide-react";
+import { ArrowLeft, CheckCircle, CircleCheck, Store } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -188,7 +189,17 @@ export default function SellerRequestPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+      {/* Opened from /profile ("Худалдагч болох"); a guest goes back home instead. */}
+      <div className="mx-auto mb-4 max-w-md">
+        <Link
+          href={signedInPhone ? "/profile" : "/"}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t(signedInPhone ? "seller.backToProfile" : "seller.backHome")}
+        </Link>
+      </div>
       <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-6 sm:p-8">
         {done ? (
           <div className="text-center">
