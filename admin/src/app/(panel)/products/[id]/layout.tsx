@@ -1,9 +1,10 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import { EmptyState, ErrorState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { ProductEditorProvider } from "@/components/products/ProductEditor";
+import { ProductFormSkeleton, ProductVariantsSkeleton } from "@/components/products/ProductFormSkeleton";
 import { getAttrs } from "@/lib/api/attrs";
 import { flattenCategories, getCategoryTree } from "@/lib/api/categories";
 import { getPost } from "@/lib/api/posts";
@@ -47,7 +48,11 @@ export default function EditProductLayout({ children }: { children: React.ReactN
       {error && !data ? (
         <ErrorState error={error} onRetry={reload} />
       ) : !data ? (
-        <LoadingState />
+        onVariants ? (
+          <ProductVariantsSkeleton />
+        ) : (
+          <ProductFormSkeleton />
+        )
       ) : (
         <EmptyState
           icon={PackageX}

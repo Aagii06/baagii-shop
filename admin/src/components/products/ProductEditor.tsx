@@ -59,14 +59,27 @@ export interface VariantRow {
   off: boolean;
 }
 
+/** Days a new sale runs by default (today included as day 0). */
+const DEFAULT_SALE_DAYS = 14;
+
+/** A local date `days` from today, as YYYY-MM-DD. */
+function localDate(days = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 function initialForm(post: PostDetail | null): ProductFormState {
   const price = toNumber(post?.price);
   return {
     name: post?.name ?? "",
     price: post ? String(toNumber(post.mainPrice) || price) : "",
     salePrice: post ? String(price) : "",
-    saleStart: post?.saleStart ?? "",
-    saleEnd: post?.saleEnd ?? "",
+    // No period saved yet: today → two weeks on, ready for a discount; both
+    // can be changed. Saved only when the product is actually on sale.
+    saleStart: post?.saleStart || localDate(),
+    saleEnd: post?.saleEnd || localDate(DEFAULT_SALE_DAYS),
     storeId: post?.storeId != null ? String(post.storeId) : "",
     categoryId: post?.categoryId != null ? String(post.categoryId) : "",
     note: post?.note ?? "",

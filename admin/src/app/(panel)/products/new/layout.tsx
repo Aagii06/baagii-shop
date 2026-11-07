@@ -1,9 +1,10 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { ErrorState, LoadingState } from "@/components/common/States";
+import { ErrorState } from "@/components/common/States";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { ProductEditorProvider } from "@/components/products/ProductEditor";
+import { ProductFormSkeleton, ProductVariantsSkeleton } from "@/components/products/ProductFormSkeleton";
 import { getAttrs } from "@/lib/api/attrs";
 import { flattenCategories, getCategoryTree } from "@/lib/api/categories";
 import { useApi } from "@/lib/useApi";
@@ -34,7 +35,7 @@ export default function NewProductLayout({ children }: { children: React.ReactNo
         backHref={onVariants ? "/products/new" : "/products"}
         title={onVariants ? t("products.variantsTitle") : t("products.add")}
       />
-      {error ? <ErrorState error={error} onRetry={reload} /> : <LoadingState />}
+      {error ? <ErrorState error={error} onRetry={reload} /> : onVariants ? <ProductVariantsSkeleton /> : <ProductFormSkeleton />}
     </>
   );
 }
