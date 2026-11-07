@@ -24,6 +24,17 @@ const folders = () => {
 const isFolder = (folder) => typeof folder === "string" && /^[A-Za-z]+$/.test(folder) && folders().includes(folder);
 
 module.exports.uploadsRoot = uploadsRoot;
+
+// public/uploads/<model> folder-уудыг (models/*.js бүрт нэг) байхгүй бол үүсгэнэ — server асахад.
+// Git-д folder бүр .gitignore-оор орсон ч deploy-оор ирэхгүй тохиолдолд хоосон folder-ууд бэлэн байна.
+module.exports.ensureFolders = () => {
+  const modelsDir = path.join(__dirname, "../models");
+  const models = fs
+    .readdirSync(modelsDir)
+    .filter((file) => file.endsWith(".js") && file !== "index.js")
+    .map((file) => path.basename(file, ".js"));
+  for (const model of models) fs.mkdirSync(folderPath(model), { recursive: true });
+};
 module.exports.folderPath = folderPath;
 module.exports.isFolder = isFolder;
 module.exports.thumbName = (fileName) => `thumb_${fileName}`;

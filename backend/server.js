@@ -4,6 +4,9 @@ const moment = require("moment");
 const cors = require("cors");
 const { resolveShop } = require("./middleware/shop");
 
+// public/uploads/<model> folder-ууд (зураг хадгалах) байхгүй бол үүсгэнэ
+require("./helper/fileHelper").ensureFolders();
+
 const app = express();
 const PORT = process.env.PORT || 5021;
 
