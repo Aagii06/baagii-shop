@@ -350,7 +350,7 @@ export default function Contact() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white/40 text-white hover:bg-white/10 hover:text-white"
+                className="border-2 border-white/70 bg-transparent text-white shadow-none hover:bg-white/15 hover:text-white"
               >
                 <Mail className="h-4 w-4 mr-2" />
                 {t("contact.cta.chat")}

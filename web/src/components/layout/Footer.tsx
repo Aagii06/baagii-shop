@@ -22,7 +22,6 @@ export default function Footer() {
       title: t("footer.sections.service"),
       links: [
         { href: "/contact", label: t("footer.links.shippingTerms") },
-        { href: "/contact", label: t("footer.links.returns") },
         { href: "/contact", label: t("footer.links.paymentGuide") },
         { href: "/contact", label: t("footer.links.faq") },
       ],
@@ -32,7 +31,6 @@ export default function Footer() {
       links: [
         { href: "/contact", label: t("footer.links.about") },
         { href: "/seller", label: t("footer.links.becomeSeller") },
-        { href: "/contact", label: t("footer.links.careers") },
         { href: "/contact", label: t("footer.links.contact") },
       ],
     },
