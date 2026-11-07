@@ -1,17 +1,28 @@
-# uvsshop_app
+# UVS SHOP апп (Flutter)
 
-A new Flutter project.
+Дэлгүүр (web) болон админ (admin) нэгдсэн нэг мобайл апп. `../backend`-ийн
+API-г ашиглана: дэлгүүр `/web`, админ `/api`, зураг `/file`.
 
-## Getting Started
+## Ажиллуулах
 
-This project is a starting point for a Flutter application.
+```bash
+cd uvsshop_app
+flutter pub get
+flutter run                       # production (https://uvsshop.com:8898)
+flutter run --dart-define=API_ORIGIN=http://10.0.2.2:5021   # локал backend (Android эмулятор)
+flutter run --dart-define=SHOP_ID=2                          # өөр дэлгүүр (X-Shop-Id)
+```
 
-A few resources to get you started if this is your first Flutter project:
+Build: `flutter build apk --release`, `flutter build ios --release`.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Бүтэц
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Апп нээгдэхэд хадгалсан админ сесс хүчинтэй бол **шууд админ хэсэг** рүү орно, үгүй бол дэлгүүр.
+- **Дэлгүүр**: бараа (хайлт, ангилал), барааны дэлгэрэнгүй (хувилбар сонголт), сагс,
+  утасны SMS кодоор нэвтрэх, захиалга, QPay / дансаар төлөх, миний захиалгууд.
+- **Админ**: тайлан (орлого, захиалга), захиалга (төлөв солих, буцаах, цуцлах), бараа (үлдэгдэл), профайл.
+  Худалдагч (admin биш) зөвхөн бараа, профайлаа харна.
+- Админ "Дэлгүүр" товчоор дэлгүүр рүү зочилж, "Админ" товчоор буцна.
+- Нэвтрэх: "Миний" → "Админ / Худалдагч нэвтрэх" (утас + нууц үг).
+
+Код: `lib/config.dart` (хаяг), `lib/state/` (shop/admin/app төлөв), `lib/ui/shop`, `lib/ui/admin`.
