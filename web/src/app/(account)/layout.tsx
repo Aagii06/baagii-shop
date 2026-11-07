@@ -62,10 +62,10 @@ export default function AccountLayout({
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Phones have no sidebar: the account pages (cart, orders, saved,
-              addresses) lead back to /profile, where their menu lives. A guest's
-              cart / saved go back home instead. */}
-          {!pathname.startsWith("/profile") && (
+          {/* Phones have no sidebar: the account pages (orders, saved,
+              addresses) lead back to /profile, where their menu lives. The cart is a
+              bottom-bar tab and needs none; a guest's saved list goes back home. */}
+          {!pathname.startsWith("/profile") && !pathname.startsWith("/cart") && (
             <Link
               href={isAuthed ? "/profile" : "/"}
               className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted lg:hidden"
