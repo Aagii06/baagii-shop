@@ -115,6 +115,7 @@ export default function ProductForm() {
     }
   }
 
+  const [deleting, setDeleting] = useState(false);
   async function onDelete() {
     if (!post) return;
     const ok = await confirm({
@@ -124,7 +125,12 @@ export default function ProductForm() {
       tone: "danger",
     });
     if (!ok) return;
-    if (await run(() => deletePost(post.id), t("pf.deleted"))) router.replace("/products");
+    setDeleting(true);
+    try {
+      if (await run(() => deletePost(post.id), t("pf.deleted"))) router.replace("/products");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -342,7 +348,7 @@ export default function ProductForm() {
         */}
 
         {post && (
-          <Button type="button" variant="danger" size="lg" className="w-full" onClick={onDelete}>
+          <Button type="button" variant="danger" size="lg" className="w-full" loading={deleting} onClick={onDelete}>
             {t("pf.deleteProduct")}
           </Button>
         )}

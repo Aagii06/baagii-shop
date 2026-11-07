@@ -23,6 +23,7 @@ function UserRow({ user, onChanged }: { user: User; onChanged: () => void }) {
   const confirm = useConfirm();
   const name = user.name || formatPhone(user.phone);
 
+  const [deleting, setDeleting] = useState(false);
   async function onDelete() {
     const ok = await confirm({
       title: t("us.deleteTitle"),
@@ -31,7 +32,12 @@ function UserRow({ user, onChanged }: { user: User; onChanged: () => void }) {
       tone: "danger",
     });
     if (!ok) return;
-    if (await run(() => deleteUser(user.id), t("us.deleted"))) onChanged();
+    setDeleting(true);
+    try {
+      if (await run(() => deleteUser(user.id), t("us.deleted"))) onChanged();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -57,7 +63,7 @@ function UserRow({ user, onChanged }: { user: User; onChanged: () => void }) {
         className="shrink-0"
         aria-label={t("us.deleteAria", { name })}
         title={t("common.delete")}
-        onClick={onDelete}
+        loading={deleting} onClick={onDelete}
       >
         <Trash2 />
       </Button>

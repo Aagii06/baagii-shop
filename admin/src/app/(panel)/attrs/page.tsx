@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { EmptyState, ErrorState } from "@/components/common/States";
 import AttrListSkeleton from "@/components/attrs/AttrListSkeleton";
@@ -24,6 +26,7 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
   const count = attr.valuesCnt ?? values.length;
   const preview = values.slice(0, 4).map((v) => v.name).join(", ") + (values.length > 4 ? "…" : "");
 
+  const [deleting, setDeleting] = useState(false);
   async function onDelete() {
     const ok = await confirm({
       title: t("attrs.deleteTitle"),
@@ -32,7 +35,12 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
       tone: "danger",
     });
     if (!ok) return;
-    if (await run(() => deleteAttr(attr.id), t("attrs.deleted"))) onChanged();
+    setDeleting(true);
+    try {
+      if (await run(() => deleteAttr(attr.id), t("attrs.deleted"))) onChanged();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -69,7 +77,7 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
         className="shrink-0"
         aria-label={t("attrs.deleteAria", { name: attr.name })}
         title={t("common.delete")}
-        onClick={onDelete}
+        loading={deleting} onClick={onDelete}
       >
         <Trash2 />
       </Button>

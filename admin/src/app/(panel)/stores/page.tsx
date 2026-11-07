@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import AttrListSkeleton from "@/components/attrs/AttrListSkeleton";
 import { useConfirm } from "@/components/common/Confirm";
@@ -21,6 +23,7 @@ function StoreRow({ store, onChanged }: { store: Store; onChanged: () => void })
   const confirm = useConfirm();
   const contact = [store.phone && formatPhone(store.phone), store.email].filter(Boolean).join(" · ");
 
+  const [deleting, setDeleting] = useState(false);
   async function onDelete() {
     const ok = await confirm({
       title: t("st.deleteTitle"),
@@ -29,7 +32,12 @@ function StoreRow({ store, onChanged }: { store: Store; onChanged: () => void })
       tone: "danger",
     });
     if (!ok) return;
-    if (await run(() => deleteStore(store.id), t("st.deleted"))) onChanged();
+    setDeleting(true);
+    try {
+      if (await run(() => deleteStore(store.id), t("st.deleted"))) onChanged();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -60,7 +68,7 @@ function StoreRow({ store, onChanged }: { store: Store; onChanged: () => void })
         className="shrink-0"
         aria-label={t("st.deleteAria", { name: store.name })}
         title={t("common.delete")}
-        onClick={onDelete}
+        loading={deleting} onClick={onDelete}
       >
         <Trash2 />
       </Button>

@@ -57,6 +57,7 @@ function CategoryRow({
   // Subcategories sit indented under their parent.
   const indent = { paddingLeft: `${category.depth * 20}px` };
 
+  const [deleting, setDeleting] = useState(false);
   async function onDelete() {
     const ok = await confirm({
       title: t("cat.deleteTitle"),
@@ -67,7 +68,12 @@ function CategoryRow({
       tone: "danger",
     });
     if (!ok) return;
-    if (await run(() => deleteCategory(category.id), t("cat.deleted"))) onChanged();
+    setDeleting(true);
+    try {
+      if (await run(() => deleteCategory(category.id), t("cat.deleted"))) onChanged();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -164,7 +170,7 @@ function CategoryRow({
         className="shrink-0"
         aria-label={t("cat.deleteAria", { name: category.name })}
         title={t("common.delete")}
-        onClick={onDelete}
+        loading={deleting} onClick={onDelete}
       >
         <Trash2 />
       </Button>

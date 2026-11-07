@@ -62,11 +62,18 @@ function FeedbackRow({ feedback, onChanged }: { feedback: Feedback; onChanged: (
   const confirm = useConfirm();
   const isNew = feedback.status === "new";
 
+  const [toggling, setToggling] = useState(false);
   async function onToggleRead() {
     const action = isNew ? () => markFeedbackRead(feedback.id) : () => markFeedbackUnread(feedback.id);
-    if (await run(action, isNew ? t("fb.markedRead") : t("fb.markedUnread"))) onChanged();
+    setToggling(true);
+    try {
+      if (await run(action, isNew ? t("fb.markedRead") : t("fb.markedUnread"))) onChanged();
+    } finally {
+      setToggling(false);
+    }
   }
 
+  const [deleting, setDeleting] = useState(false);
   async function onDelete() {
     const ok = await confirm({
       title: t("fb.deleteTitle"),
@@ -75,7 +82,12 @@ function FeedbackRow({ feedback, onChanged }: { feedback: Feedback; onChanged: (
       tone: "danger",
     });
     if (!ok) return;
-    if (await run(() => deleteFeedback(feedback.id), t("fb.deleted"))) onChanged();
+    setDeleting(true);
+    try {
+      if (await run(() => deleteFeedback(feedback.id), t("fb.deleted"))) onChanged();
+    } finally {
+      setDeleting(false);
+    }
   }
 
   // Answering by mail also marks it read.
@@ -146,7 +158,7 @@ function FeedbackRow({ feedback, onChanged }: { feedback: Feedback; onChanged: (
             {t("fb.reply")}
           </a>
         </Button>
-        <Button variant="outline" className="h-10 grow" onClick={onToggleRead}>
+        <Button variant="outline" className="h-10 grow" loading={toggling} onClick={onToggleRead}>
           {isNew ? <Check /> : <Undo2 />}
           {isNew ? t("fb.markRead") : t("fb.markUnread")}
         </Button>
@@ -156,7 +168,7 @@ function FeedbackRow({ feedback, onChanged }: { feedback: Feedback; onChanged: (
           className="size-10 shrink-0"
           aria-label={t("fb.deleteAria", { name: feedback.name })}
           title={t("common.delete")}
-          onClick={onDelete}
+          loading={deleting} onClick={onDelete}
         >
           <Trash2 />
         </Button>
