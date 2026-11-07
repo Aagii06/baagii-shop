@@ -74,7 +74,7 @@ export default function AccountLayout({
               {t("seller.backToProfile")}
             </Link>
           )}
-          {needsAuth && (authLoading || !isAuthed) ? <PageLoader /> : children}
+          {needsAuth && (authLoading || !isAuthed) ? <PageLoader className="px-0 py-0 sm:py-0" /> : children}
         </div>
       </div>
     </div>

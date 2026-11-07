@@ -110,7 +110,7 @@ export default function ProductPage() {
   }, [activeThumb]);
 
   if (loading) {
-    return <PageLoader />;
+    return <PageLoader variant="product" />;
   }
 
   if (!product) {

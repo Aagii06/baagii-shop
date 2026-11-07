@@ -20,7 +20,7 @@ export default function Cart() {
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   if (!hydrated && cart.length === 0) {
-    return <PageLoader />;
+    return <PageLoader className="px-0 py-0 sm:py-0" />;
   }
 
   if (cart.length === 0) {

@@ -81,7 +81,7 @@ export default function CheckoutPage() {
   }
 
   if (authLoading) {
-    return <PageLoader />;
+    return <PageLoader variant="form" />;
   }
 
   // A guest token is enough to build a cart, but confirming the order needs a

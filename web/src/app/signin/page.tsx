@@ -22,7 +22,7 @@ export default function SignInPage() {
   }, [authLoading, isAuthed, router]);
 
   if (authLoading || isAuthed) {
-    return <PageLoader />;
+    return <PageLoader variant="form" />;
   }
 
   return (

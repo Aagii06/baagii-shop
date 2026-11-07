@@ -185,7 +185,7 @@ export default function SellerRequestPage() {
   };
 
   if (authLoading) {
-    return <PageLoader />;
+    return <PageLoader variant="form" />;
   }
 
   return (

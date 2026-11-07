@@ -22,7 +22,7 @@ export default function SavedPage() {
   }, []);
 
   if (!mounted || authLoading) {
-    return <PageLoader />;
+    return <PageLoader className="px-0 py-0 sm:py-0" />;
   }
 
   if (items.length === 0) {

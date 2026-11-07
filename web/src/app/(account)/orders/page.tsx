@@ -38,7 +38,7 @@ export default function OrdersPage() {
   );
 
   if (!ordersLoaded) {
-    return <PageLoader />;
+    return <PageLoader className="px-0 py-0 sm:py-0" />;
   }
 
   if (orders.length === 0) {

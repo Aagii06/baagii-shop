@@ -22,7 +22,7 @@ export default function OrderDetailPage() {
   );
 
   if (!ordersLoaded) {
-    return <PageLoader />;
+    return <PageLoader className="px-0 py-0 sm:py-0" />;
   }
 
   if (!order) {
