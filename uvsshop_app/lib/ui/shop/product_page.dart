@@ -77,7 +77,20 @@ class _ProductPageState extends State<ProductPage> {
   Widget build(BuildContext context) {
     final p = _detail?.product ?? widget.preview;
     return Scaffold(
-      appBar: AppBar(title: Text(p?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis)),
+      appBar: AppBar(
+        title: Text(p?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis),
+        actions: [
+          if (p != null)
+            Builder(builder: (context) {
+              final saved = context.select<ShopState, bool>((s) => s.isSaved(p.id));
+              return IconButton(
+                tooltip: saved ? 'Хадгалснаас хасах' : 'Хадгалах',
+                onPressed: () => context.read<ShopState>().toggleSaved(p),
+                icon: Icon(saved ? Icons.favorite : Icons.favorite_border, color: saved ? Colors.red : null),
+              );
+            }),
+        ],
+      ),
       body: _detail == null
           ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView())
           : _buildBody(_detail!),

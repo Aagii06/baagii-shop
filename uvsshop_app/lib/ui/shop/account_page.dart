@@ -6,13 +6,15 @@ import '../../state/admin_state.dart';
 import '../../state/app_state.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'orders_page.dart';
+import 'shop_shell.dart';
 import 'sign_in_page.dart';
 
 /// Web-ийн /profile-тэй адил: мэдээллийн карт + ✏️ засах товч, доор нь
 /// цэс (Миний захиалгууд, Сагс), бүтэн өргөнтэй "Гарах".
 class AccountPage extends StatefulWidget {
-  /// Доод цэсний таб руу шилжүүлнэ (1 — Сагс, 2 — Захиалга).
-  final ValueChanged<int>? onOpenTab;
+  /// Доод цэсний таб руу шилжүүлнэ (Сагс, Хадгалсан).
+  final ValueChanged<ShopTab>? onOpenTab;
   const AccountPage({super.key, this.onOpenTab});
 
   @override
@@ -71,8 +73,11 @@ class _AccountPageState extends State<AccountPage> {
         const SizedBox(height: 12),
         _menu([
           if (c != null)
-            _MenuItem(Icons.receipt_long_outlined, 'Миний захиалгууд', () => widget.onOpenTab?.call(2)),
-          _MenuItem(Icons.shopping_bag_outlined, 'Сагс', () => widget.onOpenTab?.call(1), badge: shop.cartCount),
+            _MenuItem(Icons.receipt_long_outlined, 'Миний захиалгууд',
+                () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OrdersPage()))),
+          _MenuItem(Icons.shopping_cart_outlined, 'Миний сагс', () => widget.onOpenTab?.call(ShopTab.cart), badge: shop.cartCount),
+          if (c != null)
+            _MenuItem(Icons.favorite_border, 'Хадгалсан', () => widget.onOpenTab?.call(ShopTab.saved), badge: shop.saved.length),
           if (admin.signedIn)
             _MenuItem(Icons.admin_panel_settings_outlined, 'Админ хэсэг рүү орох', () => context.read<AppState>().openAdmin(),
                 subtitle: admin.user?.name)

@@ -232,6 +232,7 @@ class ProductCard extends StatelessWidget {
                     child: Text('-${p.discountPercent}%', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ),
+              Positioned(right: 6, top: 6, child: SaveButton(p)),
               if (soldOut)
                 Container(
                   color: Colors.white60,
@@ -256,6 +257,29 @@ class ProductCard extends StatelessWidget {
             ),
           ),
         ]),
+      ),
+    );
+  }
+}
+
+/// ♡ — барааг хадгалах / хасах (web-ийн хадгалсантай адил).
+class SaveButton extends StatelessWidget {
+  final Product product;
+  const SaveButton(this.product, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final saved = context.select<ShopState, bool>((s) => s.isSaved(product.id));
+    return Material(
+      color: Colors.white.withValues(alpha: 0.9),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () => context.read<ShopState>().toggleSaved(product),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(saved ? Icons.favorite : Icons.favorite_border, size: 20, color: saved ? Colors.red : Colors.grey.shade700),
+        ),
       ),
     );
   }

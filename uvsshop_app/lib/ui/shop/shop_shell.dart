@@ -7,7 +7,12 @@ import '../../state/shop_state.dart';
 import 'account_page.dart';
 import 'cart_page.dart';
 import 'home_page.dart';
-import 'orders_page.dart';
+import 'saved_page.dart';
+import 'search_page.dart';
+
+/// Худалдан авагчийн доод цэс — web-ийн MobileBottomNav-тай адил:
+/// Нүүр · Хайх · Сагс · Хадгалсан (нэвтэрсэн үед) · Профайл / Нэвтрэх.
+enum ShopTab { home, search, cart, saved, profile }
 
 class ShopShell extends StatefulWidget {
   const ShopShell({super.key});
@@ -16,25 +21,59 @@ class ShopShell extends StatefulWidget {
 }
 
 class _ShopShellState extends State<ShopShell> {
-  int _tab = 0;
-  // Захиалга табыг нээх бүрт жагсаалтыг шинээр татахын тулд.
-  int _ordersKey = 0;
+  ShopTab _tab = ShopTab.home;
 
-  void _select(int i) => setState(() {
-        if (i == 2 && _tab != 2) _ordersKey++;
-        _tab = i;
-      });
+  void _open(ShopTab t) => setState(() => _tab = t);
 
   @override
   Widget build(BuildContext context) {
     final cartCount = context.select<ShopState, int>((s) => s.cartCount);
+    final savedCount = context.select<ShopState, int>((s) => s.saved.length);
+    final signedIn = context.select<ShopState, bool>((s) => s.signedIn);
     final isAdmin = context.select<AdminState, bool>((a) => a.signedIn);
+
+    final tabs = [
+      ShopTab.home,
+      ShopTab.search,
+      ShopTab.cart,
+      if (signedIn) ShopTab.saved,
+      ShopTab.profile,
+    ];
+    final current = tabs.contains(_tab) ? _tab : ShopTab.home;
+
+    Widget badge(int n, IconData icon) => Badge(
+          isLabelVisible: n > 0,
+          label: Text(n > 99 ? '99+' : '$n'),
+          child: Icon(icon),
+        );
+
+    NavigationDestination dest(ShopTab t) => switch (t) {
+          ShopTab.home => const NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Нүүр'),
+          ShopTab.search => const NavigationDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search), label: 'Хайх'),
+          ShopTab.cart => NavigationDestination(
+              icon: badge(cartCount, Icons.shopping_cart_outlined),
+              selectedIcon: badge(cartCount, Icons.shopping_cart),
+              label: 'Сагс',
+            ),
+          ShopTab.saved => NavigationDestination(
+              icon: badge(savedCount, Icons.favorite_border),
+              selectedIcon: badge(savedCount, Icons.favorite),
+              label: 'Хадгалсан',
+            ),
+          ShopTab.profile => NavigationDestination(
+              icon: const Icon(Icons.person_outline),
+              selectedIcon: const Icon(Icons.person),
+              label: signedIn ? 'Профайл' : 'Нэвтрэх',
+            ),
+        };
+
     return Scaffold(
-      body: IndexedStack(index: _tab, children: [
+      body: IndexedStack(index: ShopTab.values.indexOf(current), children: [
         const HomePage(),
-        CartPage(onShop: () => _select(0)),
-        OrdersPage(key: ValueKey(_ordersKey)),
-        AccountPage(onOpenTab: _select),
+        const SearchPage(),
+        CartPage(onShop: () => _open(ShopTab.search)),
+        SavedPage(onShop: () => _open(ShopTab.search)),
+        AccountPage(onOpenTab: _open),
       ]),
       // Админ дэлгүүрээр зочилж байх үед админ руу буцах товч.
       floatingActionButton: isAdmin
@@ -46,18 +85,10 @@ class _ShopShellState extends State<ShopShell> {
             )
           : null,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: _select,
-        destinations: [
-          const NavigationDestination(icon: Icon(Icons.storefront_outlined), selectedIcon: Icon(Icons.storefront), label: 'Нүүр'),
-          NavigationDestination(
-            icon: Badge(isLabelVisible: cartCount > 0, label: Text('$cartCount'), child: const Icon(Icons.shopping_bag_outlined)),
-            selectedIcon: Badge(isLabelVisible: cartCount > 0, label: Text('$cartCount'), child: const Icon(Icons.shopping_bag)),
-            label: 'Сагс',
-          ),
-          const NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Захиалга'),
-          const NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Миний'),
-        ],
+        selectedIndex: tabs.indexOf(current),
+        onDestinationSelected: (i) => _open(tabs[i]),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: [for (final t in tabs) dest(t)],
       ),
     );
   }
