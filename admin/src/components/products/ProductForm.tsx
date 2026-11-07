@@ -16,7 +16,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { deletePost, savePost } from "@/lib/api/posts";
 import { attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
-import { ChevronRight, Lock, Palette, Tag } from "lucide-react";
+import { ChevronRight, Loader2, Lock, Palette, Tag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
@@ -75,6 +75,8 @@ export default function ProductForm() {
   const priceError = touched.price ? errors.price : undefined;
   // A sale price above the price shows at once; a missing period on save.
   const [saveTried, setSaveTried] = useState(false);
+  // While saving (images upload first), the button is off and spins.
+  const [saving, setSaving] = useState(false);
   const sale = saleErrors(form, attrs, variants);
   const periodError = saveTried || (form.saleStart && form.saleEnd) ? sale.salePeriod : undefined;
   const onSale = hasDiscount(form, attrs, variants);
@@ -98,12 +100,15 @@ export default function ProductForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!validateAll()) return;
+    if (saving || !validateAll()) return;
+    setSaving(true);
     const saved = await run(
       () => savePost(post?.id ?? null, toPostInput()),
       t("common.saved")
     );
     if (saved && !post) router.replace("/products");
+    // A new product leaves the page; keep the button off until it does.
+    else setSaving(false);
   }
 
   async function onDelete() {
@@ -124,7 +129,8 @@ export default function ProductForm() {
         backHref="/products"
         title={post ? t("products.edit") : t("products.add")}
         aside={
-          <Button type="submit" className="h-10 px-5">
+          <Button type="submit" className="h-10 px-5" disabled={saving} aria-busy={saving}>
+            {saving && <Loader2 className="animate-spin" />}
             {t("common.save")}
           </Button>
         }
