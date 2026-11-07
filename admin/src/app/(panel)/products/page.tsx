@@ -208,7 +208,7 @@ export default function ProductsPage() {
           {hasMore && (
             <div ref={sentinel}>
               {moreFailed ? (
-                <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
+                <Button variant="outline" className="mt-4 w-full" loading={loadingMore} onClick={loadMore}>
                   {t("common.retry")}
                 </Button>
               ) : (

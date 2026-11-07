@@ -66,16 +66,21 @@ const MIN_PASSWORD = 6;
  * store's name (the one sent with the request, editable) and the new
  * shopper's password first — it opens the store and their account.
  */
+type Decision = "approve" | "reject" | "revert";
+
 function RequestRow({
   request,
   onApprove,
   onReject,
   onRevert,
+  busy,
 }: {
   request: PartnerRequest;
   onApprove: (storeName: string, password: string) => Promise<boolean>;
   onReject: () => void;
   onRevert: () => void;
+  /** This request's decision in flight — its button spins, the others lock. */
+  busy?: Decision | null;
 }) {
   const { t } = useLanguage();
   const passwordErrorId = useId();
@@ -119,11 +124,13 @@ function RequestRow({
           <button
             type="button"
             onClick={onRevert}
+            disabled={Boolean(busy)}
+            aria-busy={busy === "revert" || undefined}
             aria-label={t("pr.revert")}
             title={t("pr.revert")}
             className="absolute right-4 top-1/2 grid size-9 -translate-y-1/2 shrink-0 place-items-center rounded-full bg-destructive/30 text-destructive transition-colors hover:bg-destructive/40"
           >
-            <Undo2 className="size-4" />
+            {busy === "revert" ? <Loader2 className="size-4 animate-spin" /> : <Undo2 className="size-4" />}
           </button>
         )}
       </span>
@@ -171,7 +178,7 @@ function RequestRow({
               <Button type="button" variant="outline" className="h-10" onClick={() => setApproving(false)}>
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" variant="ghost" className={cn("h-10", TONE.approved.solid)}>
+              <Button type="submit" variant="ghost" className={cn("h-10", TONE.approved.solid)} loading={busy === "approve"}>
                 {t("pr.approve")}
               </Button>
             </div>
@@ -181,7 +188,7 @@ function RequestRow({
             <Button variant="ghost" className={cn("h-10", TONE.approved.solid)} onClick={() => setApproving(true)}>
               {t("pr.approve")}
             </Button>
-            <Button variant="danger" className="h-10" onClick={onReject}>
+            <Button variant="danger" className="h-10" loading={busy === "reject"} disabled={Boolean(busy)} onClick={onReject}>
               {t("pr.reject")}
             </Button>
           </div>
@@ -270,10 +277,18 @@ export default function PartnerRequestsPage() {
     return () => observer.disconnect();
   }, [hasMore, moreFailed, loadMore]);
 
-  async function decide(action: () => Promise<void>, success: string) {
-    const done = await run(action, success);
-    if (done) reload();
-    return Boolean(done);
+  // The decision in flight: which request, and which button spins.
+  const [busy, setBusy] = useState<{ id: number; kind: Decision } | null>(null);
+
+  async function decide(id: number, kind: Decision, action: () => Promise<void>, success: string) {
+    setBusy({ id, kind });
+    try {
+      const done = await run(action, success);
+      if (done) reload();
+      return Boolean(done);
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function approve(request: PartnerRequest, storeName: string, password: string) {
@@ -282,7 +297,7 @@ export default function PartnerRequestsPage() {
       description: t("pr.approveDesc", { phone: formatPhone(request.phone) }),
       confirmLabel: t("pr.approve"),
     });
-    return ok ? decide(() => approvePartnerRequest(request.id, password, storeName), t("pr.approved")) : false;
+    return ok ? decide(request.id, "approve", () => approvePartnerRequest(request.id, password, storeName), t("pr.approved")) : false;
   }
 
   async function reject(request: PartnerRequest) {
@@ -292,7 +307,7 @@ export default function PartnerRequestsPage() {
       confirmLabel: t("pr.reject"),
       tone: "danger",
     });
-    if (ok) decide(() => rejectPartnerRequest(request.id), t("pr.rejected"));
+    if (ok) decide(request.id, "reject", () => rejectPartnerRequest(request.id), t("pr.rejected"));
   }
 
   async function revert(request: PartnerRequest) {
@@ -302,7 +317,7 @@ export default function PartnerRequestsPage() {
       confirmLabel: t("pr.revert"),
       tone: "danger",
     });
-    if (ok) decide(() => revertPartnerRequest(request.id), t("pr.reverted"));
+    if (ok) decide(request.id, "revert", () => revertPartnerRequest(request.id), t("pr.reverted"));
   }
 
   const stats = page?.stats;
@@ -366,6 +381,7 @@ export default function PartnerRequestsPage() {
                 onApprove={(storeName, password) => approve(request, storeName, password)}
                 onReject={() => reject(request)}
                 onRevert={() => revert(request)}
+                busy={busy?.id === request.id ? busy.kind : null}
               />
             ))}
           </ul>
@@ -373,13 +389,11 @@ export default function PartnerRequestsPage() {
           {hasMore && (
             <div ref={sentinel}>
               {moreFailed ? (
-                <Button variant="outline" className="mt-4 w-full" onClick={loadMore}>
+                <Button variant="outline" className="mt-4 w-full" loading={loadingMore} onClick={loadMore}>
                   {t("common.retry")}
                 </Button>
               ) : (
-                <div className="flex justify-center py-6" aria-label={t("common.loading")}>
-                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
-                </div>
+                <PartnerRequestsSkeleton rows={2} stats={false} />
               )}
             </div>
           )}
