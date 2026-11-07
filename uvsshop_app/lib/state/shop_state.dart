@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,6 +22,10 @@ class ShopState extends ChangeNotifier {
   Future<String?>? _pendingLogin;
 
   Customer? customer;
+
+  /// Хадгалсан бараа. Backend-гүй тул web-тэй адил утсан дээр, дугаар тус
+  /// бүрээр (зочин бол "guest") хадгална.
+  List<Product> saved = [];
   List<CartLine> cart = [];
   List<Category> categories = [];
 
@@ -83,6 +89,7 @@ class ShopState extends ChangeNotifier {
     } catch (_) {
       customer = null;
     }
+    await _loadSaved();
     notifyListeners();
   }
 
@@ -97,6 +104,7 @@ class ShopState extends ChangeNotifier {
       await _prefs!.setString(_tokenKey, res['data']['token'] as String);
       await _prefs!.remove(_expiresKey);
       customer = Customer.fromJson(res['data']['customer'] as Map<String, dynamic>);
+      await _loadSaved();
       notifyListeners();
       await refreshCart();
       return true;
@@ -114,8 +122,34 @@ class ShopState extends ChangeNotifier {
     await _clearToken();
     customer = null;
     cart = [];
+    await _loadSaved();
     notifyListeners();
     await _ensureToken();
+  }
+
+  // ---------- хадгалсан ----------
+
+  String get _savedKey => 'saved_products:${customer?.phone ?? 'guest'}';
+
+  Future<void> _loadSaved() async {
+    final prefs = _prefs ??= await SharedPreferences.getInstance();
+    try {
+      final raw = prefs.getString(_savedKey);
+      saved = raw == null
+          ? []
+          : (jsonDecode(raw) as List).map((p) => Product.fromJson(p as Map<String, dynamic>)).toList();
+    } catch (_) {
+      saved = [];
+    }
+  }
+
+  bool isSaved(int id) => saved.any((p) => p.id == id);
+
+  /// Байхгүй бол нэмнэ (эхэнд), байвал хасна.
+  Future<void> toggleSaved(Product p) async {
+    saved = isSaved(p.id) ? saved.where((s) => s.id != p.id).toList() : [p, ...saved];
+    notifyListeners();
+    await _prefs?.setString(_savedKey, jsonEncode(saved.map((s) => s.toJson()).toList()));
   }
 
   // ---------- каталог ----------

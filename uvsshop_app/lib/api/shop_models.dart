@@ -47,6 +47,18 @@ class Product {
   int? get discountPercent =>
       originalPrice == null || originalPrice! <= 0 ? null : (((originalPrice! - price) / originalPrice!) * 100).round();
 
+  /// Хадгалсан бараанд (утсанд) — `fromJson`-оор буцааж уншина.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'price': price,
+        'mainPrice': originalPrice ?? price,
+        'images': imageIds,
+        'categoryId': categoryId,
+        'company': storeName == null ? null : {'name': storeName},
+        'remain': stock,
+      };
+
   factory Product.fromJson(Map<String, dynamic> j) {
     final price = toNum(j['price']);
     final main = toNum(j['mainPrice']);
