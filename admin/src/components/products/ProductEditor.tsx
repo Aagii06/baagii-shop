@@ -106,6 +106,22 @@ const overPrice = (price: string, salePrice: string) => salePrice !== "" && Numb
 const pricedRows = (form: ProductFormState, attrs: ProductAttr[], variants: VariantRow[]) =>
   attrs.some((attr) => attr.values.length > 0) ? variants.filter((row) => !row.off) : [form];
 
+/** `YYYY-MM-DD`, local time, `days` from today. */
+function dayFromToday(days = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toLocaleDateString("en-CA");
+}
+
+/** How long a new discount runs by default, today included. */
+const DEFAULT_SALE_DAYS = 7;
+
+/** A discount entered with no period yet starts today and runs a week. */
+function withSaleDefaults(form: ProductFormState, discount: boolean): ProductFormState {
+  if (!discount || form.saleStart || form.saleEnd) return form;
+  return { ...form, saleStart: dayFromToday(), saleEnd: dayFromToday(DEFAULT_SALE_DAYS - 1) };
+}
+
 /** Whether the product or any of its variants is discounted — the period is asked for then. */
 export function hasDiscount(form: ProductFormState, attrs: ProductAttr[], variants: VariantRow[]) {
   return [form, ...pricedRows(form, attrs, variants)].some((row) => discounted(row.price, row.salePrice));
@@ -394,7 +410,10 @@ export function ProductEditorProvider({
       basePath: post ? `/products/${post.id}` : "/products/new",
       form,
       setField: (key, fieldValue) => {
-        setForm((prev) => ({ ...prev, [key]: fieldValue }));
+        setForm((prev) => {
+          const next = { ...prev, [key]: fieldValue };
+          return withSaleDefaults(next, discounted(next.price, next.salePrice));
+        });
         // Variants still on the product's old price or sale price follow the change.
         if (key === "price" || key === "salePrice") {
           const field = key as "price" | "salePrice";
@@ -421,8 +440,11 @@ export function ProductEditorProvider({
         );
       },
       variants,
-      updateVariant: (row, patch) =>
-        setRows((prev) => ({ ...prev, [row.key]: { ...(prev[row.key] ?? row), ...patch } })),
+      updateVariant: (row, patch) => {
+        const next = { ...row, ...patch };
+        if (!next.off) setForm((prev) => withSaleDefaults(prev, discounted(next.price, next.salePrice)));
+        setRows((prev) => ({ ...prev, [row.key]: { ...(prev[row.key] ?? row), ...patch } }));
+      },
       images,
       addImages: (key, picked) => {
         const refs = picked.map((file) => {
