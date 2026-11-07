@@ -9,10 +9,10 @@ import { useEffect, useState } from "react";
 
 const SKELETON_TILES = 10;
 
-// One card per store: logo on top, name inside the card underneath. Fixed
+// One card per store: logo on top, then its name and product count. Fixed
 // height (the name always gets two lines' room) so every card lines up.
 const CARD =
-  "flex h-36 w-28 shrink-0 flex-col items-center gap-2.5 rounded-2xl border border-border bg-card p-3 md:h-40 md:w-32";
+  "flex h-40 w-28 shrink-0 flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 md:h-44 md:w-32";
 const LOGO = "flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl md:size-20";
 const NAME = "line-clamp-2 min-h-[2.5em] w-full text-center text-xs font-semibold leading-tight md:text-[13px]";
 
@@ -58,6 +58,7 @@ export default function StoresGrid() {
                 <div className="size-full animate-pulse rounded-md bg-muted" />
               </div>
               <div className="h-3 w-16 animate-pulse rounded-full bg-muted" />
+              <div className="h-2.5 w-10 animate-pulse rounded-full bg-muted" />
             </div>
           ))}
         {!loading &&
@@ -78,6 +79,9 @@ export default function StoresGrid() {
               </span>
               <span className={`${NAME} text-foreground transition-colors duration-300 group-hover:text-primary group-focus-visible:text-primary`}>
                 {store.name}
+              </span>
+              <span className="-mt-1 text-[11px] text-muted-foreground">
+                {t("stores.productCount", { count: store.productCount })}
               </span>
             </Link>
           ))}
