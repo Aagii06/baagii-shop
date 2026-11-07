@@ -27,10 +27,14 @@ export default function Thumb({
   eager?: boolean;
   className?: string;
 }) {
-  const src = fileUrl(id, variant);
-  // The src that failed, so a new one gets its own try.
-  const [failed, setFailed] = useState<string | null>(null);
-  const missing = !src || failed === src;
+  const small = fileUrl(id, variant);
+  const original = fileUrl(id, "original");
+  // URLs that failed, so a new id gets its own try. A missing resized file
+  // falls back to the original image; only when that fails too does the
+  // placeholder show.
+  const [failed, setFailed] = useState<string[]>([]);
+  const src = small && !failed.includes(small) ? small : original;
+  const missing = !src || failed.includes(src);
 
   return (
     <span
@@ -60,7 +64,7 @@ export default function Thumb({
           className="object-cover"
           loading={eager ? "eager" : undefined}
           unoptimized
-          onError={() => setFailed(src)}
+          onError={() => setFailed((prev) => (prev.includes(src) ? prev : [...prev, src]))}
         />
       )}
     </span>
