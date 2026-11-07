@@ -16,7 +16,6 @@ export default function Footer() {
       links: [
         { href: "/search", label: t("footer.links.allCategories") },
         { href: "/search?sale=1", label: t("footer.links.sale") },
-        { href: "/search", label: t("footer.links.brands") },
       ],
     },
     {

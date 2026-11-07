@@ -36,7 +36,6 @@ export const ru: Dict = {
   "footer.sections.company": "КОМПАНИЯ",
   "footer.links.allCategories": "Все категории",
   "footer.links.sale": "Скидки",
-  "footer.links.brands": "Бренды",
   "footer.links.shippingTerms": "Условия доставки",
   "footer.links.returns": "Возврат и обмен",
   "footer.links.paymentGuide": "Способы оплаты",

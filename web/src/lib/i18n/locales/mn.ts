@@ -36,7 +36,6 @@ export const mn: Dict = {
   "footer.sections.company": "КОМПАНИ",
   "footer.links.allCategories": "Бүх ангилал",
   "footer.links.sale": "Хямдрал",
-  "footer.links.brands": "Брэндүүд",
   "footer.links.shippingTerms": "Хүргэлтийн нөхцөл",
   "footer.links.returns": "Буцаалт, солилт",
   "footer.links.paymentGuide": "Төлбөрийн заавар",

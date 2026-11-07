@@ -36,7 +36,6 @@ export const en: Dict = {
   "footer.sections.company": "COMPANY",
   "footer.links.allCategories": "All categories",
   "footer.links.sale": "Sale",
-  "footer.links.brands": "Brands",
   "footer.links.shippingTerms": "Shipping terms",
   "footer.links.returns": "Returns & exchanges",
   "footer.links.paymentGuide": "Payment guide",
