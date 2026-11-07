@@ -8,6 +8,7 @@ const sharp = require("sharp");
 // <folder> нь model-ийн нэр (products, stores, users, blogs ...) — public/uploads доторх folder-ууд.
 // Фронт файлын нэрийг id болгон хадгалж, /file/<нэр>, /file/thumbnail/<нэр>-ээр харуулна
 // (файлын нэр давтагдахгүй тул аль folder-т байгааг нь хайж олно).
+// Лого (stores, users): эх, thumb_, icon_, grid_ гэсэн 4 файл; бусад: эх, thumb_.
 const uploadsRoot = path.join(__dirname, "../public/uploads");
 const DEFAULT_FOLDER = "products";
 const THUMB_WIDTH = 400;
@@ -40,6 +41,38 @@ module.exports.findFile = (fileName) => {
 const isImage = (file) => /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.mimetype);
 module.exports.isImage = isImage;
 
+// Жижиг хувилбарууд: <prefix><нэр>. Бүх folder-т thumb_, лого (stores, users)-д icon_, grid_ нэмэлт.
+//   thumb_ — 400px өргөн, grid_ — 600px-д багтаасан (жагсаалтын карт), icon_ — 128px-д багтаасан (жижиг дүрс)
+const VARIANTS = {
+  thumb: { prefix: "thumb_", resize: { width: THUMB_WIDTH } },
+  grid: { prefix: "grid_", resize: { width: 600, height: 600, fit: "inside" } },
+  icon: { prefix: "icon_", resize: { width: 128, height: 128, fit: "inside" } },
+};
+const LOGO_VARIANTS = ["thumb", "icon", "grid"];
+const folderVariants = (folder) => (["stores", "users"].includes(folder) ? LOGO_VARIANTS : ["thumb"]);
+module.exports.VARIANTS = VARIANTS;
+module.exports.folderVariants = folderVariants;
+module.exports.variantName = (variant, fileName) => `${VARIANTS[variant].prefix}${fileName}`;
+
+// folder доторх fileName-ээс тухайн folder-ийн жижиг хувилбаруудыг үүсгэнэ (байгааг нь дахин хийхгүй).
+// sharp уншиж чадахгүй (svg г.м.) бол хувилбаргүй — харуулахдаа эх файл руу буцна.
+const makeVariants = async (folder, fileName, source) => {
+  const dir = folderPath(folder);
+  for (const variant of folderVariants(folder)) {
+    const target = path.join(dir, module.exports.variantName(variant, fileName));
+    if (fs.existsSync(target)) continue;
+    try {
+      await sharp(source || path.join(dir, fileName))
+        .rotate()
+        .resize({ ...VARIANTS[variant].resize, withoutEnlargement: true })
+        .toFile(target);
+    } catch (error) {
+      // эх файлаар харуулна
+    }
+  }
+};
+module.exports.makeVariants = makeVariants;
+
 // file - formidable-ийн файл объект, folder - public/uploads доторх folder. Буцаах: хадгалсан файлын нэр
 module.exports.saveImage = async (file, folder = DEFAULT_FOLDER) => {
   const uploadPath = folderPath(folder);
@@ -47,14 +80,7 @@ module.exports.saveImage = async (file, folder = DEFAULT_FOLDER) => {
   const fileName = `${moment().utcOffset("+0800").format("YYYYMMDDHHmmss")}_${str.random(12)}.${ext}`;
   await fs.promises.mkdir(uploadPath, { recursive: true });
   await fs.promises.copyFile(file.filepath, path.join(uploadPath, fileName));
-  try {
-    await sharp(file.filepath)
-      .rotate()
-      .resize({ width: THUMB_WIDTH, withoutEnlargement: true })
-      .toFile(path.join(uploadPath, module.exports.thumbName(fileName)));
-  } catch (error) {
-    // sharp уншиж чадахгүй (svg г.м.) бол жижиг хувилбар нь эх файл өөрөө
-  }
+  await makeVariants(folder, fileName, file.filepath);
   await fs.promises.rm(file.filepath, { force: true });
   return fileName;
 };
