@@ -19,7 +19,7 @@ import {
 import { attrsSummary } from "@/lib/attributes";
 import { useApi } from "@/lib/useApi";
 import { cn, formatQty } from "@/lib/utils";
-import { ChevronRight, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, GripVertical, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -176,7 +176,9 @@ type Drag = { id: number; x: number; y: number; over: Drop | null };
 
 export default function CategoriesPage() {
   const { t } = useLanguage();
-  const { data, error, reload } = useApi(getCategoryTree);
+  const { data, error, loading, reload } = useApi(getCategoryTree);
+  // A move is saving, or the list is reloading after it.
+  const [moveBusy, setMoveBusy] = useState<"saving" | "reloading" | null>(null);
   const { run } = useToast();
   const confirm = useConfirm();
 
@@ -245,14 +247,21 @@ export default function CategoriesPage() {
         });
         if (!ok) return;
       }
+      setMoveBusy("saving");
       if (await run(() => moveCategoryTo(category.id, parent?.id ?? null, index), t("cat.moved"))) {
         // Show where it went.
         if (parent) setExpanded((prev) => new Set(prev).add(parent.id));
+        setMoveBusy("reloading");
         reload();
+      } else {
+        setMoveBusy(null);
       }
     },
     [placement, confirm, run, reload, t]
   );
+
+  // The overlay stays until the reloaded list has landed.
+  const showMoveBusy = moveBusy === "saving" || (moveBusy === "reloading" && loading);
 
   // Dragging works with a pointer or a finger: the handle starts it, and
   // everything after is tracked on the window. The top or bottom quarter of
@@ -347,7 +356,10 @@ export default function CategoriesPage() {
             <CategoryRow
               key={category.id}
               category={category}
-              onChanged={reload}
+              onChanged={() => {
+                setMoveBusy(null);
+                reload();
+              }}
               dragging={category.id === dragId}
               over={drag?.over && drag.over !== "root" && drag.over.id === category.id ? drag.over.place : null}
               onDragStart={(id, x, y) => setDrag({ id, x, y, over: null })}
@@ -380,6 +392,16 @@ export default function CategoriesPage() {
             {moving.name}
           </div>
         </>
+      )}
+
+      {showMoveBusy && (
+        <div
+          role="status"
+          aria-label={t("common.loading")}
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30"
+        >
+          <Loader2 className="size-10 animate-spin text-white" />
+        </div>
       )}
     </>
   );
