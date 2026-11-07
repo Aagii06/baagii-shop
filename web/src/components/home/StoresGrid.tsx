@@ -44,7 +44,7 @@ export default function StoresGrid() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t("home.stores.title")}
         </h2>
-        <Link href="/search" className="text-sm font-medium text-primary hover:underline">
+        <Link href="/stores" className="text-sm font-medium text-primary hover:underline">
           {t("home.allProducts.viewAll")}
         </Link>
       </div>

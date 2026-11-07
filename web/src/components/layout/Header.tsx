@@ -89,6 +89,7 @@ export default function Header() {
   const topCategories = isMounted ? categories : [];
   const categoryTabs = [
     { label: t("header.tabs.sale"), href: "/search?sale=1" },
+    { label: t("header.tabs.stores"), href: "/stores" },
     ...topCategories.slice(0, 5).map((category) => ({
       label: category.name,
       href: categoryHref(category),
