@@ -1,5 +1,6 @@
 "use client";
 
+import OrdersSidebar from "@/components/orders/OrdersSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPhone } from "@/components/ui/phone-input";
@@ -70,6 +71,12 @@ export default function ProfilePage() {
         <p className="text-sm text-muted-foreground mt-1">
           {t("profile.subtitle")}
         </p>
+      </div>
+
+      {/* Phones have no account sidebar (layout shows it from lg up) —
+          its links sit here instead. */}
+      <div className="mb-6 lg:hidden">
+        <OrdersSidebar variant="menu" />
       </div>
 
       <form
@@ -154,7 +161,7 @@ export default function ProfilePage() {
         <Button
           variant="outline"
           onClick={handleLogout}
-          className="text-destructive hover:text-destructive"
+          className="w-full rounded-2xl text-destructive hover:text-destructive"
         >
           <LogOut className="h-4 w-4" />
           {t("profile.logout")}

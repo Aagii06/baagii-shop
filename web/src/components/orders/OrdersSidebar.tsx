@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { useSavedStore } from "@/store/savedStore";
 import {
+  ChevronRight,
   ClipboardList,
   CreditCard,
   Heart,
@@ -29,7 +30,12 @@ type SidebarItem = {
   public?: boolean;
 };
 
-export default function OrdersSidebar() {
+/**
+ * `sidebar` — the desktop account column (lg and up).
+ * `menu` — the same links as a tappable list for phones, shown on /profile;
+ * leaves out the profile page itself and the not-yet-available entries.
+ */
+export default function OrdersSidebar({ variant = "sidebar" }: { variant?: "sidebar" | "menu" }) {
   const { t } = useLanguage();
   const pathname = usePathname();
   const cartCount = useCartStore((s) =>
@@ -92,6 +98,32 @@ export default function OrdersSidebar() {
     },
   ];
   const visibleItems = isAuthed ? items : items.filter((item) => item.public);
+
+  if (variant === "menu") {
+    const menuItems = visibleItems.filter((item) => item.active && item.href !== "/profile");
+    return (
+      <nav className="overflow-hidden rounded-2xl border border-border bg-card divide-y divide-border">
+        {menuItems.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            className="flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-foreground transition-colors active:bg-muted hover:bg-muted/60"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+              <item.icon className="h-4 w-4" />
+            </span>
+            <span className="flex-1">{item.label}</span>
+            {item.badge ? (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+                {item.badge > 99 ? "99+" : item.badge}
+              </span>
+            ) : null}
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
+        ))}
+      </nav>
+    );
+  }
 
   return (
     <aside className="hidden lg:block w-64 shrink-0">
