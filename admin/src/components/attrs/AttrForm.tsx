@@ -11,6 +11,7 @@ import { valueKey } from "@/lib/attributes";
 import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
+import { useDirty } from "@/lib/useDirty";
 
 type ValueRow = AttrInput["values"][number] & { key: string };
 
@@ -51,6 +52,8 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
   );
   const [draft, setDraft] = useState("");
   const [draftError, setDraftError] = useState<string>();
+  // The save button stays off until something changes.
+  const { dirty } = useDirty({ name, values: values.map((v) => ({ id: v.id, name: v.name })), draft });
 
   const nameError = (nameTouched || submitted) && !name.trim() ? t("af.nameRequired") : undefined;
   const duplicate = firstDuplicate(values.map((v) => v.name));
@@ -93,6 +96,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!dirty) return;
     setSubmitted(true);
     // A value typed but not yet added goes in with the rest.
     const rows = addDraft();
@@ -117,7 +121,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
         backHref="/attrs"
         title={attr ? t("attrs.edit") : t("attrs.add")}
         aside={
-          <Button type="submit" className="h-10 px-5">
+          <Button type="submit" className="h-10 px-5" disabled={!dirty}>
             {t("common.save")}
           </Button>
         }

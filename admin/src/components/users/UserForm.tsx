@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
+import { useDirty } from "@/lib/useDirty";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD = 6;
@@ -44,6 +45,8 @@ export default function UserForm({ user }: { user: User | null }) {
   const [storeId, setStoreId] = useState(user?.store ? String(user.store.id) : "");
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  // The save button stays off until something changes.
+  const { dirty } = useDirty({ name, phone, email, role, storeId, password });
   // Your own account stays an admin.
   const isMe = user != null && me?.id === user.id;
 
@@ -56,6 +59,7 @@ export default function UserForm({ user }: { user: User | null }) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!dirty) return;
     setSubmitted(true);
     if (!name.trim()) return nameRef.current?.focus();
     if (phone.length < 8) return phoneRef.current?.focus();
@@ -84,7 +88,7 @@ export default function UserForm({ user }: { user: User | null }) {
         backHref="/users"
         title={user ? t("us.edit") : t("us.add")}
         aside={
-          <Button type="submit" className="h-10 px-5">
+          <Button type="submit" className="h-10 px-5" disabled={!dirty}>
             {t("common.save")}
           </Button>
         }

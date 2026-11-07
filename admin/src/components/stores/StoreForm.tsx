@@ -15,6 +15,7 @@ import { createStore, MAX_STORE_CONTACTS, STORE_TIERS, updateStore, type Store, 
 import { Loader2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { useDirty } from "@/lib/useDirty";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -43,6 +44,8 @@ export default function StoreForm({ store }: { store: Store | null }) {
   const [submitted, setSubmitted] = useState(false);
   // From the first tap until the save fails or the page leaves.
   const [saving, setSaving] = useState(false);
+  // The save button stays off until something changes.
+  const { dirty } = useDirty({ name, phones, emails, addresses, logo, tier });
 
   useEffect(() => {
     if (!logo?.startsWith("blob:")) return;
@@ -68,6 +71,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!dirty) return;
     if (saving) return;
     setSubmitted(true);
     if (!name.trim()) return nameRef.current?.focus();
@@ -95,7 +99,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
         backHref="/stores"
         title={store ? t("st.edit") : t("st.add")}
         aside={
-          <Button type="submit" className="h-10 px-5" disabled={saving}>
+          <Button type="submit" className="h-10 px-5" disabled={saving || !dirty}>
             {saving && <Loader2 className="animate-spin" />}
             {t("common.save")}
           </Button>

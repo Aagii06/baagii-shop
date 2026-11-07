@@ -17,6 +17,7 @@ import { formatMNT, toNumber } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useDirty } from "@/lib/useDirty";
 
 export default function NewOrderPage() {
   const router = useRouter();
@@ -33,6 +34,8 @@ export default function NewOrderPage() {
   const [lines, setLines] = useState<OrderLine[]>([]);
   const [picking, setPicking] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // The save button stays off until something changes.
+  const { dirty } = useDirty({ phone, address, deliveryFee, lines });
 
   const subtotal = lines.reduce((sum, line) => sum + line.qty * line.price, 0);
   const total = subtotal + fee;
@@ -56,6 +59,7 @@ export default function NewOrderPage() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!dirty) return;
     setSubmitted(true);
     if (Object.values(errors).some(Boolean)) return;
     const saved = await run(
@@ -76,7 +80,7 @@ export default function NewOrderPage() {
         backHref="/orders"
         title={t("on.title")}
         aside={
-          <Button type="submit" className="h-10 px-5">
+          <Button type="submit" className="h-10 px-5" disabled={!dirty}>
             {t("on.create")}
           </Button>
         }

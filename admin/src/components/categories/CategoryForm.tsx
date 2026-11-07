@@ -19,6 +19,7 @@ import { Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
+import { useDirty } from "@/lib/useDirty";
 
 /** "Хар, Цагаан, Саарал, Цайвар цэнхэр…" — tells apart attributes of the same name. */
 function valuesPreview(attr: Attr) {
@@ -67,6 +68,8 @@ export default function CategoryForm({
     category && isLeaf ? category.attrs.map((attr) => attr.id).filter((id) => catalogue.some((a) => a.id === id)) : []
   );
   const full = attrs.length >= MAX_ATTRS;
+  // The save button stays off until something changes.
+  const { dirty } = useDirty({ name, attrs });
   const nameOf = (id: number) => catalogue.find((a) => a.id === id)?.name ?? `#${id}`;
 
   const nameError = nameTouched && !name.trim() ? t("cf.nameRequired") : undefined;
@@ -79,6 +82,7 @@ export default function CategoryForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!dirty) return;
     setNameTouched(true);
     if (!name.trim()) {
       nameRef.current?.focus();
@@ -109,7 +113,7 @@ export default function CategoryForm({
         backHref="/categories"
         title={category ? t("cat.edit") : parentId != null ? t("cat.addSub") : t("cat.add")}
         aside={
-          <Button type="submit" className="h-10 px-5">
+          <Button type="submit" className="h-10 px-5" disabled={!dirty}>
             {t("common.save")}
           </Button>
         }
