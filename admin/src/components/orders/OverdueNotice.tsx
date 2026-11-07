@@ -8,6 +8,7 @@ import { cancelOrder, type Order } from "@/lib/api/orders";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
+import { useState } from "react";
 
 /**
  * Warns that an order has waited too long unpaid; an admin can cancel it
@@ -26,6 +27,7 @@ export default function OverdueNotice({
   const { role } = useAuth();
   const { run } = useToast();
   const confirm = useConfirm();
+  const [cancelling, setCancelling] = useState(false);
 
   if (!order.overdue) return null;
 
@@ -36,7 +38,13 @@ export default function OverdueNotice({
       confirmLabel: t("orders.cancel"),
       tone: "danger",
     });
-    if (ok && (await run(() => cancelOrder(order.id), t("orders.cancelled")))) onCancelled();
+    if (!ok) return;
+    setCancelling(true);
+    try {
+      if (await run(() => cancelOrder(order.id), t("orders.cancelled"))) onCancelled();
+    } finally {
+      setCancelling(false);
+    }
   }
 
   return (
@@ -44,7 +52,7 @@ export default function OverdueNotice({
       <AlertTriangle className="size-5 shrink-0" />
       <p className="min-w-0 grow text-sm font-semibold">{t("orders.overdue")}</p>
       {role === "admin" && (
-        <Button variant="danger" size="sm" className="shrink-0" onClick={onCancel}>
+        <Button variant="danger" size="sm" className="shrink-0" loading={cancelling} onClick={onCancel}>
           {t("orders.cancel")}
         </Button>
       )}

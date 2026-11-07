@@ -22,7 +22,7 @@ import {
   type OrderStatus,
 } from "@/lib/api/orders";
 import { cn, formatMNT, formatPhone, formatWhen } from "@/lib/utils";
-import { Loader2, Phone, Plus, ReceiptText } from "lucide-react";
+import { Phone, Plus, ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
