@@ -23,15 +23,14 @@ export const FILE_BASE_URL = deriveFileBaseUrl();
  */
 export function fileUrl(
   id: string | null | undefined,
-  variant: "original" | "thumbnail" = "original"
+  variant: "original" | "thumbnail" | "grid" | "icon" = "original"
 ): string | null {
   const value = id?.trim();
   if (!value || value === "null" || value === "undefined") return null;
   if (/^(https?:|blob:|data:)/i.test(value)) return value;
   const trimmed = value.replace(/^\//, "");
-  return variant === "thumbnail"
-    ? `${FILE_BASE_URL}/thumbnail/${trimmed}`
-    : `${FILE_BASE_URL}/${trimmed}`;
+  // thumbnail — 400px, grid — 600px, icon — 128px (stores/users logo); a missing size falls back to the original
+  return variant === "original" ? `${FILE_BASE_URL}/${trimmed}` : `${FILE_BASE_URL}/${variant}/${trimmed}`;
 }
 
 /** Shorthand for `fileUrl(id, "thumbnail")`. */
