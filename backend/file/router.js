@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const { findFile, variantName } = require("../helper/fileHelper");
 
-// Нийтэд нээлттэй: /file/{нэр} — эх зураг, /file/thumbnail/{нэр} — 400px,
-// /file/grid/{нэр} — 600px (бараа) / 256px (лого), /file/icon/{нэр} — 128px. Хувилбар байхгүй бол дараагийнх нь, эцэст нь эх.
+// Нийтэд нээлттэй (хэмжээ нь helper/fileHelper.js VARIANTS): /file/{нэр} — main (1600px),
+// /file/grid/{нэр} — 600px, /file/thumbnail/{нэр} — 300px, /file/icon/{нэр} — 128px.
+// Хувилбар байхгүй бол (хуучин зураг, svg) дараагийн томыг нь, эцэст нь main-ийг өгнө.
 const send = (res, ...names) => {
   for (const name of names) {
     const file = findFile(name);
@@ -11,9 +12,11 @@ const send = (res, ...names) => {
   return res.status(404).send(null);
 };
 
-router.get("/thumbnail/:name", (req, res) => send(res, variantName("thumb", req.params.name), req.params.name));
+router.get("/thumbnail/:name", (req, res) =>
+  send(res, variantName("thumb", req.params.name), variantName("grid", req.params.name), req.params.name),
+);
 router.get("/grid/:name", (req, res) =>
-  send(res, variantName("grid", req.params.name), variantName("thumb", req.params.name), req.params.name),
+  send(res, variantName("grid", req.params.name), req.params.name),
 );
 router.get("/icon/:name", (req, res) =>
   send(res, variantName("icon", req.params.name), variantName("thumb", req.params.name), req.params.name),

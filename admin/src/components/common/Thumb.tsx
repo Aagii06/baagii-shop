@@ -21,7 +21,7 @@ export default function Thumb({
   alt?: string;
   /** Fixed box size in px; omit to size via `className`. */
   size?: number;
-  /** Logos: "icon" for boxes ≤48px, "grid" for 56–96px. */
+  /** "icon" for boxes ≤64px, "thumbnail" for ≤150px, "grid" for larger tiles. */
   variant?: "thumbnail" | "original" | "grid" | "icon";
   /** Load immediately — for the above-the-fold hero image. */
   eager?: boolean;

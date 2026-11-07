@@ -1,6 +1,5 @@
 // Хуучин зургуудын дутуу жижиг хувилбаруудыг (thumb_, icon_, grid_) public/uploads доторх
-// бүх folder-т үүсгэнэ. Folder бүр өөрийн хувилбаруудтай (helper/fileHelper.js folderVariants):
-// бараа, лого (products, stores, users) — эх + thumb_ + icon_ + grid_ (4 төрөл), бусад — эх + thumb_.
+// бүх folder-т үүсгэнэ: main + icon_ + thumb_ + grid_ (4 төрөл, хэмжээ нь helper/fileHelper.js VARIANTS).
 // Байгаа хувилбарыг алгасна, тиймээс дахин ажиллуулахад аюулгүй.
 //   node scripts/makeVariants.js            — дутууг нь үүсгэнэ
 //   node scripts/makeVariants.js --force    — бүх хувилбарыг устгаад дахин үүсгэнэ

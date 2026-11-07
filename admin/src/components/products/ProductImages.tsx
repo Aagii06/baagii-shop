@@ -65,7 +65,7 @@ export default function ProductImages() {
       <div className="grid grid-cols-3 gap-2">
         {list.map((ref, i) => (
           <div key={ref} className="relative">
-            <Thumb id={ref} alt={t("img.alt", { name: form.name, group: group.label, n: i + 1 })} className="aspect-square w-full rounded-2xl" />
+            <Thumb id={ref} variant="grid" alt={t("img.alt", { name: form.name, group: group.label, n: i + 1 })} className="aspect-square w-full rounded-2xl" />
             {group.key && i === 0 && (
               <span className="absolute bottom-1.5 left-1.5 rounded-full bg-dark/75 px-2 py-0.5 text-[11px] font-bold text-dark-foreground">
                 {t("img.cover")}

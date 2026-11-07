@@ -72,7 +72,7 @@ export default function StoresGrid() {
               <span className={LOGO}>
                 <StoreAvatar
                   name={store.name}
-                  src={fileUrl(store.logo, "grid")}
+                  src={fileUrl(store.logo, "thumbnail")}
                   className="size-full rounded-md bg-transparent object-contain"
                   initialsClassName="text-xl md:text-2xl"
                 />

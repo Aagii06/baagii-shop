@@ -120,7 +120,7 @@ export default function StoresPage() {
               <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl md:size-20">
                 <StoreAvatar
                   name={store.name}
-                  src={fileUrl(store.logo, "grid")}
+                  src={fileUrl(store.logo, "thumbnail")}
                   className="size-full rounded-md bg-transparent object-contain"
                   initialsClassName="text-xl md:text-2xl"
                 />

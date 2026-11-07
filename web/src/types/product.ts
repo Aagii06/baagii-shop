@@ -10,6 +10,8 @@ export interface Product {
   originalPrice?: number;
   image: string;
   thumbnail?: string;
+  /** 600px image for product grid cards. */
+  grid?: string;
   images?: string[];
   description?: string;
   category?: string;

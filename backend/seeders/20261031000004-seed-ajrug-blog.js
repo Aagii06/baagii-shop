@@ -4,9 +4,8 @@
 // Зургийг seeders/data/blog-оос public/uploads/blogs руу хуулж, файлын id болгоно.
 const fs = require("fs");
 const path = require("path");
-const { folderPath, thumbName } = require("../helper/fileHelper");
+const { folderPath, makeVariants } = require("../helper/fileHelper");
 const uploadPath = folderPath("blogs");
-const sharp = require("sharp");
 
 const dataDir = path.join(__dirname, "data/blog");
 const posts = require("./data/blog/ajrug-posts.json");
@@ -22,8 +21,7 @@ module.exports = {
     for (const post of posts) {
       const target = path.join(uploadPath, post.image);
       if (!fs.existsSync(target)) await fs.promises.copyFile(path.join(dataDir, post.image), target);
-      const thumb = path.join(uploadPath, thumbName(post.image));
-      if (!fs.existsSync(thumb)) await sharp(target).resize({ width: 400, withoutEnlargement: true }).toFile(thumb);
+      await makeVariants("blogs", post.image);
     }
 
     const [[{ cnt }]] = await queryInterface.sequelize.query("SELECT COUNT(*) AS cnt FROM blogs WHERE shop_id = ?", { replacements: [shop.id] });

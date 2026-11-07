@@ -50,7 +50,7 @@ export default function StoreTiles({
       <div className="no-scrollbar -mx-4 flex gap-2.5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         {stores.map((store) => {
           const active = store.name === selected;
-          const logo = fileUrl(store.logo, "grid");
+          const logo = fileUrl(store.logo, "thumbnail");
           return (
               <button
                 key={store.name}

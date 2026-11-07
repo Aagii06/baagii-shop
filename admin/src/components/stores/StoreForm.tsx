@@ -105,7 +105,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
       <div className="space-y-4">
         <div role="group" aria-label={t("st.logo")} className="flex items-center gap-4">
           <div className="relative">
-            <Thumb id={logo} variant="grid" alt={t("st.logo")} size={80} className="rounded-2xl" />
+            <Thumb id={logo} variant="thumbnail" alt={t("st.logo")} size={80} className="rounded-2xl" />
             {logo && (
               <button
                 type="button"

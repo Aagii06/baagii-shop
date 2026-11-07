@@ -177,7 +177,7 @@ export default function ProductsPage() {
                     href={`/products/${post.id}`}
                     className="-mx-4 flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
                   >
-                    <Thumb id={post.images?.[0]} size={52} className="rounded-xl" />
+                    <Thumb id={post.images?.[0]} variant="icon" size={52} className="rounded-xl" />
                     <span className="min-w-0 grow">
                       <span className="block truncate text-[15px] font-semibold">
                         {post.name}

@@ -31,7 +31,7 @@ interface ApiOrder extends Omit<Order, "status" | "confirmedAt" | "paymentMethod
 function toOrder(o: ApiOrder): Order {
   return {
     ...o,
-    items: o.items.map((item) => ({ ...item, image: fileThumbnailUrl(item.image) ?? "" })),
+    items: o.items.map((item) => ({ ...item, image: fileUrl(item.image, "icon") ?? "" })),
     status: o.status === "cancelled" ? "cancelled" : o.paidAt ? "confirmed" : "pending",
     paymentMethod: o.paymentMethod ?? undefined,
     confirmedAt: o.paidAt ?? undefined,

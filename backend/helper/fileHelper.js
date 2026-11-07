@@ -4,14 +4,12 @@ const moment = require("moment");
 const str = require("@supercharge/strings");
 const sharp = require("sharp");
 
-// Admin-аас хуулсан зургууд: public/uploads/<folder>/<нэр> (эх), thumb_<нэр> (жижиг).
+// Admin-аас хуулсан зургууд: public/uploads/<folder>/<нэр> (main) ба icon_, thumb_, grid_ хувилбарууд.
 // <folder> нь model-ийн нэр (products, stores, users, blogs ...) — public/uploads доторх folder-ууд.
 // Фронт файлын нэрийг id болгон хадгалж, /file/<нэр>, /file/thumbnail/<нэр>-ээр харуулна
 // (файлын нэр давтагдахгүй тул аль folder-т байгааг нь хайж олно).
-// Бараа, лого (products, stores, users): эх, thumb_, icon_, grid_ гэсэн 4 файл; бусад: эх, thumb_.
 const uploadsRoot = path.join(__dirname, "../public/uploads");
 const DEFAULT_FOLDER = "products";
-const THUMB_WIDTH = 400;
 
 const folderPath = (folder = DEFAULT_FOLDER) => path.join(uploadsRoot, folder);
 // public/uploads доторх folder-ууд (model бүрийнх). products-ыг эхэнд нь — хуучин зургууд тэнд.
@@ -52,40 +50,45 @@ module.exports.findFile = (fileName) => {
 const isImage = (file) => /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.mimetype);
 module.exports.isImage = isImage;
 
-// Жижиг хувилбарууд: <prefix><нэр>. Бүх folder-т thumb_, бараа ба лого (products, stores, users)-д icon_, grid_ нэмэлт.
-//   thumb_ — 400px өргөн
-//   icon_  — 128px-д багтаасан (≤64px: admin-ы жагсаалт, захиалгын мөр, жижиг лого)
-//   grid_  — бараа: 600px-д багтаасан (барааны grid карт); лого: 256px (дэлгүүрийн карт, 56–96px)
+// Зураг бүр 4 файлтай (хуучин backend-ийн saveSharpConverter-ийн санаагаар), өргөнөөр нь жижигрүүлнэ:
+//   icon_<нэр>  — 128px: admin-ы жагсаалт, захиалгын мөр, жижиг лого (≤64px)
+//   thumb_<нэр> — 300px: сагс, хямдралын tile, дэлгүүрийн лого карт (≤150px)
+//   grid_<нэр>  — 600px: барааны grid карт, admin-ы зургийн засвар
+//   <нэр>       — main, 1600px: барааны дэлгэрэнгүйн зураг (эх зураг өөрөө хадгалагдахгүй)
+// Retina дэлгэцэнд харагдах хэмжээнээс 2 дахин том. Жижиг зургийг томруулахгүй.
+// JPG/PNG/WEBP-ээс бусдыг (svg, gif) жижигрүүлэхгүй — эхээр нь хадгалж, бүх хэмжээнд эх нь харагдана.
 const VARIANTS = {
-  thumb: { prefix: "thumb_", resize: { width: THUMB_WIDTH } },
-  grid: { prefix: "grid_", resize: { width: 256, height: 256, fit: "inside" } },
-  icon: { prefix: "icon_", resize: { width: 128, height: 128, fit: "inside" } },
+  icon: { prefix: "icon_", width: 128 },
+  thumb: { prefix: "thumb_", width: 300 },
+  grid: { prefix: "grid_", width: 600 },
 };
-// Folder-оор өөр хэмжээ (VARIANTS-ийг дарна)
-const FOLDER_RESIZE = { products: { grid: { width: 600, height: 600, fit: "inside" } } };
-const FULL_VARIANTS = ["thumb", "icon", "grid"];
-const folderVariants = (folder) => (["products", "stores", "users"].includes(folder) ? FULL_VARIANTS : ["thumb"]);
-const variantResize = (folder, variant) => FOLDER_RESIZE[folder]?.[variant] || VARIANTS[variant].resize;
+const MAIN_WIDTH = 1600;
+const RESIZABLE = /\.(jpe?g|png|webp)$/i;
+const folderVariants = () => Object.keys(VARIANTS);
 module.exports.VARIANTS = VARIANTS;
 module.exports.folderVariants = folderVariants;
 module.exports.variantName = (variant, fileName) => `${VARIANTS[variant].prefix}${fileName}`;
 
-// folder доторх fileName-ээс тухайн folder-ийн жижиг хувилбаруудыг үүсгэнэ (байгааг нь дахин хийхгүй).
-// sharp уншиж чадахгүй (svg г.м.) бол хувилбаргүй — харуулахдаа эх файл руу буцна.
+const resize = (source, width, target) =>
+  sharp(source).rotate().resize({ width, withoutEnlargement: true }).toFile(target);
+
+// folder доторх fileName-ийн дутуу хувилбаруудыг (icon_, thumb_, grid_) үүсгэнэ — байгааг нь алгасна.
+// source — эх файл (өгөхгүй бол folder доторх main).
 const makeVariants = async (folder, fileName, source) => {
+  if (!RESIZABLE.test(fileName)) return;
   const dir = folderPath(folder);
-  for (const variant of folderVariants(folder)) {
-    const target = path.join(dir, module.exports.variantName(variant, fileName));
-    if (fs.existsSync(target)) continue;
-    try {
-      await sharp(source || path.join(dir, fileName))
-        .rotate()
-        .resize({ ...variantResize(folder, variant), withoutEnlargement: true })
-        .toFile(target);
-    } catch (error) {
-      // эх файлаар харуулна
-    }
-  }
+  const from = source || path.join(dir, fileName);
+  await Promise.all(
+    folderVariants(folder).map(async (variant) => {
+      const target = path.join(dir, module.exports.variantName(variant, fileName));
+      if (fs.existsSync(target)) return;
+      try {
+        await resize(from, VARIANTS[variant].width, target);
+      } catch (error) {
+        // уншиж чадахгүй бол хувилбаргүй — харуулахдаа main руу буцна
+      }
+    }),
+  );
 };
 module.exports.makeVariants = makeVariants;
 
@@ -94,9 +97,16 @@ module.exports.saveImage = async (file, folder = DEFAULT_FOLDER) => {
   const uploadPath = folderPath(folder);
   const ext = path.extname(file.originalFilename || file.newFilename).replace(".", "").toLowerCase() || "jpg";
   const fileName = `${moment().utcOffset("+0800").format("YYYYMMDDHHmmss")}_${str.random(12)}.${ext}`;
+  const main = path.join(uploadPath, fileName);
   await fs.promises.mkdir(uploadPath, { recursive: true });
-  await fs.promises.copyFile(file.filepath, path.join(uploadPath, fileName));
+  try {
+    if (!RESIZABLE.test(fileName)) throw new Error("not resizable");
+    await resize(file.filepath, MAIN_WIDTH, main);
+  } catch (error) {
+    await fs.promises.copyFile(file.filepath, main);
+  }
   await makeVariants(folder, fileName, file.filepath);
+  // tmpFile дотор түр файл хуримтлагдахгүй
   await fs.promises.rm(file.filepath, { force: true });
   return fileName;
 };

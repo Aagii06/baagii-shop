@@ -27,7 +27,8 @@ export function fileUrl(
   if (!value || value === "null" || value === "undefined") return null;
   if (/^(https?:|blob:|data:)/i.test(value)) return value;
   const trimmed = value.replace(/^\//, "");
-  // thumbnail — 400px, grid — 256px (logo cards 56–96px), icon — 128px (logos ≤48px); a missing size falls back to the original
+  // Sizes (backend helper/fileHelper.js): icon — 128px (boxes ≤64px), thumbnail — 300px (≤150px),
+  // grid — 600px (product cards), original — up to 1600px. A missing size falls back to a larger one.
   return variant === "original" ? `${FILE_BASE_URL}/${trimmed}` : `${FILE_BASE_URL}/${variant}/${trimmed}`;
 }
 

@@ -85,7 +85,7 @@ function ReturnItemDialog({
         </h2>
 
         <div className="mt-4 flex items-center gap-3">
-          <Thumb id={item.image} size={44} className="rounded-xl" />
+          <Thumb id={item.image} variant="icon" size={44} className="rounded-xl" />
           <span className="min-w-0">
             <span className="block truncate text-[15px] font-bold">{item.name}</span>
             <span className="block font-mono text-xs text-muted-foreground">
@@ -170,7 +170,7 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
           const kept = keptQty(item);
           return (
             <li key={item.id} className="flex items-center gap-3 px-4 py-3">
-              <Thumb id={item.image} size={44} className="rounded-xl" />
+              <Thumb id={item.image} variant="icon" size={44} className="rounded-xl" />
               <span className="min-w-0 grow">
                 <span
                   className={cn(

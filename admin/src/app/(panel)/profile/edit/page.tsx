@@ -215,7 +215,7 @@ export default function EditProfilePage() {
           <div role="group" aria-label={t("profile.photo")} className="flex flex-col items-center gap-3 pb-2">
             <div className="relative">
               <label className="group relative block cursor-pointer rounded-full focus-within:ring-4 focus-within:ring-primary/15">
-                <Thumb id={logo} variant="grid" alt={t("profile.photo")} size={96} className="rounded-full" />
+                <Thumb id={logo} variant="thumbnail" alt={t("profile.photo")} size={96} className="rounded-full" />
                 <span className="absolute bottom-0 right-0 grid size-8 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm ring-2 ring-white transition-transform group-hover:scale-110">
                   <Camera className="size-4" />
                 </span>

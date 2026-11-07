@@ -112,7 +112,7 @@ export default function NewOrderPage() {
             <Card className="divide-y divide-border">
               {lines.map((line) => (
                 <div key={line.key} className="flex items-center gap-3 p-3">
-                  <Thumb id={line.image} size={44} className="rounded-xl" />
+                  <Thumb id={line.image} variant="icon" size={44} className="rounded-xl" />
                   <span className="min-w-0 grow">
                     <span className="block truncate text-sm font-bold">{line.name}</span>
                     <span className="block font-mono text-xs text-muted-foreground">{formatMNT(line.price)}</span>

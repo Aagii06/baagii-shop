@@ -110,6 +110,7 @@ function mapApiProduct(p: ApiProduct): Product {
     originalPrice: mainPrice > price ? mainPrice : undefined,
     image: fileUrl(imageId) ?? "",
     thumbnail: fileThumbnailUrl(imageId) ?? undefined,
+    grid: fileUrl(imageId, "grid") ?? undefined,
     images: (p.images ?? [])
       .map((id) => fileUrl(id))
       .filter((url): url is string => url !== null),

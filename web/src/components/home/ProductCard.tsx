@@ -17,6 +17,7 @@ interface Product {
   id: number;
   image: string;
   thumbnail?: string;
+  grid?: string;
   category?: string;
   name: string;
   price: number;
@@ -61,7 +62,7 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           <div className="relative aspect-square overflow-hidden border-b border-border bg-white">
             <SafeImage
-              src={[product.thumbnail, product.image]}
+              src={[product.grid, product.thumbnail, product.image]}
               alt={product.name}
               className="h-full w-full object-cover bg-white transition-transform duration-300 group-hover:scale-105"
             />
