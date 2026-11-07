@@ -196,6 +196,12 @@ export function FilterPanelContent({
         <h3 className="mb-1 text-lg font-bold text-foreground">
           {t("search.filters.category")}
         </h3>
+        {/* No category picked = every product; picking this clears them. */}
+        <PickRow
+          label={t("search.breadcrumb.allProducts")}
+          picked={filters.categories.length === 0}
+          onClick={() => onChange({ ...filters, categories: [] })}
+        />
         {categories.map((category) => renderCategory(category))}
 
         {stores.length > 0 && (
