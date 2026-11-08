@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import PageLoader from "@/components/ui/page-loader";
 import StorePage from "./StorePage";
+import StorePageSkeleton from "./StoreSkeleton";
 
 export const metadata: Metadata = {
   title: "Дэлгүүр | UVSSHOP.COM",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // no extra nginx rule (like the admin's `/stores/edit?id=`).
 export default function Page() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<StorePageSkeleton />}>
       <StorePage />
     </Suspense>
   );

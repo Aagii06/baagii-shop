@@ -29,6 +29,7 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { StoreHeaderSkeleton } from "./StoreSkeleton";
 
 const PAGE_SIZE = 40;
 
@@ -189,31 +190,22 @@ export default function StorePage() {
     <div className="container mx-auto space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div>
         {back}
-        {/* Brand-gradient banner: logo, tier, name, product count, then the store's contacts. */}
-        <section
-          aria-busy={loading}
-          className="relative overflow-hidden rounded-2xl brand-gradient p-5 text-white shadow-lg shadow-primary/20 sm:p-7"
-        >
-          {/* Soft light circles for depth. */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-white/10"
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -bottom-24 right-24 size-48 rounded-full bg-white/10"
-          />
+        {loading || !store ? (
+          <StoreHeaderSkeleton />
+        ) : (
+          // Brand-gradient banner: logo, tier, name, product count, then the store's contacts.
+          <section className="relative overflow-hidden rounded-2xl brand-gradient p-5 text-white shadow-lg shadow-primary/20 sm:p-7">
+            {/* Soft light circles for depth. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-white/10"
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -bottom-24 right-24 size-48 rounded-full bg-white/10"
+            />
 
-          <div className="relative flex items-center gap-4">
-            {loading || !store ? (
-              <>
-                <div className="size-16 shrink-0 animate-pulse rounded-2xl bg-white/25 sm:size-20" />
-                <div className="flex-1 space-y-2.5">
-                  <div className="h-6 w-48 animate-pulse rounded-md bg-white/25" />
-                  <div className="h-4 w-24 animate-pulse rounded-md bg-white/25" />
-                </div>
-              </>
-            ) : (
+            <div className="relative flex items-center gap-4">
               <>
                 <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-1.5 shadow-md ring-4 ring-white/30 sm:size-20">
                   <StoreAvatar
@@ -243,11 +235,9 @@ export default function StorePage() {
                   </p>
                 </div>
               </>
-            )}
-          </div>
+            </div>
 
-          {store &&
-            (store.phones.length > 0 ||
+            {(store.phones.length > 0 ||
               store.emails.length > 0 ||
               store.addresses.length > 0) && (
               <div className="relative mt-5 border-t border-white/20 pt-4">
@@ -289,7 +279,8 @@ export default function StorePage() {
                 </ul>
               </div>
             )}
-        </section>
+          </section>
+        )}
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row">
