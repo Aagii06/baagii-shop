@@ -92,8 +92,8 @@ export default function ProfilePage() {
                 <span className="truncate">{user?.store ? user.store.name : t("profile.noStore")}</span>
               </span>
             ) : role ? (
-              <span className="mt-1.5 inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold capitalize">
-                {role}
+              <span className="mt-1.5 inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold">
+                {t(`us.role.${role}`)}
               </span>
             ) : null}
           </span>
