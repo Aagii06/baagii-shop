@@ -26,6 +26,8 @@ interface FilterSidebarProps {
     brandLogo?: Record<string, string | undefined>;
     /** Only these categories (and their parents) are listed; all when absent. */
     categoryIds?: number[];
+    /** The products behind the counts are still loading: category rows show as a skeleton. */
+    loading?: boolean;
   };
 }
 
@@ -94,7 +96,8 @@ export function FilterPanelContent({
   counts,
 }: FilterSidebarProps) {
   const { t } = useLanguage();
-  const { categories: allCategories } = useCategories();
+  const { categories: allCategories, loading: categoriesLoading } =
+    useCategories();
   const categories = useMemo(
     () =>
       counts.categoryIds
@@ -229,7 +232,24 @@ export function FilterPanelContent({
           picked={filters.categories.length === 0}
           onClick={() => onChange({ ...filters, categories: [] })}
         />
-        {categories.map((category) => renderCategory(category))}
+        {counts.loading || categoriesLoading ? (
+          <div aria-hidden className="space-y-1 py-1">
+            {["70%", "55%", "80%", "60%", "72%"].map((width, i) => (
+              <div
+                key={i}
+                className="flex h-[42px] items-center justify-between"
+              >
+                <div
+                  className="h-3.5 animate-pulse rounded bg-muted"
+                  style={{ width }}
+                />
+                <div className="h-3.5 w-3.5 animate-pulse rounded bg-muted" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          categories.map((category) => renderCategory(category))
+        )}
 
         {stores.length > 0 && (
           <>

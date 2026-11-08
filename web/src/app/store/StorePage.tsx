@@ -108,13 +108,14 @@ export default function StorePage() {
   const filterCounts = useMemo(
     () => ({
       brand: {} as Record<string, number>,
+      loading,
       categoryIds: [
         ...new Set(
           products.flatMap((p) => (p.categoryId ? [p.categoryId] : [])),
         ),
       ],
     }),
-    [products],
+    [products, loading],
   );
   const filters: SearchFilters = {
     categories: filterCats,
