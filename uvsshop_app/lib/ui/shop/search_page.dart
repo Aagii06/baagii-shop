@@ -9,6 +9,7 @@ import '../../state/shop_state.dart';
 import '../common.dart';
 import 'home_page.dart' show byNewest;
 import 'product_card.dart';
+import 'store_page.dart';
 
 /// Шүүлтүүр — web-ийн FilterSidebar / MobileFilterDrawer.
 class _Filters {
@@ -179,8 +180,11 @@ class _SearchPageState extends State<SearchPage> {
 
   int get _visibleCount => _page * _pageSize;
 
-  /// Дэлгүүрийн tile: тэр дэлгүүрийн бүх бараа (бусад шүүлт цэвэрлэгдэнэ); дахин дарвал цуцална.
+  /// Дэлгүүрийн tile: тэр дэлгүүрийн хуудас руу (буцахад энд ирнэ). id нь
+  /// мэдэгдэхгүй (эсвэл сонгосныг дахин дарсан) бол энд шүүнэ.
   void _selectStore(String? store) {
+    final id = store == null ? null : _allStores.where((s) => s.name == store).firstOrNull?.id;
+    if (id != null) return openStore(context, id);
     _search.clear();
     setState(() {
       _filters = _Filters(stores: store == null ? {} : {store});

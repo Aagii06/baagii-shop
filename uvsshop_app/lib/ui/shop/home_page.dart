@@ -8,6 +8,7 @@ import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'product_card.dart';
+import 'store_page.dart';
 import 'product_page.dart';
 import 'stores_page.dart';
 
@@ -423,10 +424,7 @@ class StoreTile extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              Navigator.of(context).popUntil((r) => r.isFirst);
-              context.read<ShopNav>().openSearch(SearchRequest(store: store.name));
-            },
+            onTap: () => openStore(context, store.id),
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(children: [

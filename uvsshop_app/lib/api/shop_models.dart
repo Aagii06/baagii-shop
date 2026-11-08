@@ -54,6 +54,9 @@ class Product {
 
   /// Дэлгүүрийн логоны file id.
   final String? storeLogo;
+
+  /// Дэлгүүрийн id (`company.id`) — дэлгүүрийн хуудас.
+  final int? storeId;
   final int? stock;
 
   /// Сүүлд засварласан (эсвэл нэмсэн) цаг — "Шинэ" эрэмбэ.
@@ -69,6 +72,7 @@ class Product {
     this.categoryId,
     this.storeName,
     this.storeLogo,
+    this.storeId,
     this.stock,
     this.updatedAt,
   });
@@ -88,7 +92,7 @@ class Product {
         'mainPrice': originalPrice ?? price,
         'images': imageIds,
         'categoryId': categoryId,
-        'company': storeName == null ? null : {'name': storeName, 'logo': storeLogo},
+        'company': storeName == null ? null : {'id': storeId, 'name': storeName, 'logo': storeLogo},
         'remain': stock,
         'updatedAt': updatedAt?.toIso8601String(),
       };
@@ -106,6 +110,7 @@ class Product {
       categoryId: j['categoryId'] == null ? (j['category']?['id'] as int?) : toInt(j['categoryId']),
       storeName: j['company']?['name']?.toString(),
       storeLogo: j['company']?['logo']?.toString(),
+      storeId: j['company']?['id'] == null ? null : toInt(j['company']['id']),
       stock: j['remain'] == null ? null : toInt(j['remain']),
       updatedAt: DateTime.tryParse((j['updatedAt'] ?? j['createdAt'] ?? '').toString()),
     );
@@ -387,13 +392,20 @@ class AddressArea {
 }
 
 /// Худалдагчийн дэлгүүр (`/store`): эхлээд түвшин, дараа нь бараа ихтэй нь.
+/// Холбоо барих мэдээлэл зөвхөн `/store/{id}`-д ирнэ.
 class Store {
   final int id;
   final String name;
   final String? logo;
   final String tier;
   final int productCount;
-  Store(this.id, this.name, this.logo, this.tier, this.productCount);
+  final List<String> phones;
+  final List<String> emails;
+  final List<String> addresses;
+  Store(this.id, this.name, this.logo, this.tier, this.productCount,
+      {this.phones = const [], this.emails = const [], this.addresses = const []});
+
+  static List<String> _list(dynamic v) => ((v as List?) ?? []).map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
 
   factory Store.fromJson(Map<String, dynamic> j) => Store(
         toInt(j['id']),
@@ -401,5 +413,8 @@ class Store {
         j['logo']?.toString(),
         j['tier']?.toString() ?? 'normal',
         toInt(j['productCount']),
+        phones: _list(j['phones']),
+        emails: _list(j['emails']),
+        addresses: _list(j['addresses']),
       );
 }

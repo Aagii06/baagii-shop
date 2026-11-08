@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/shop_models.dart';
-import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import 'home_page.dart' show byNewest;
 import '../common.dart';
 import 'product_card.dart';
+import 'store_page.dart';
 
 const _tierRank = {'gold': 0, 'silver': 1, 'bronze': 2, 'normal': 3};
 const _tierLabel = {'gold': 'Gold', 'silver': 'Silver', 'bronze': 'Bronze'};
@@ -122,10 +122,7 @@ class _TierStoreTile extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                Navigator.of(context).popUntil((r) => r.isFirst);
-                context.read<ShopNav>().openSearch(SearchRequest(store: store.name));
-              },
+              onTap: () => openStore(context, store.id),
               child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

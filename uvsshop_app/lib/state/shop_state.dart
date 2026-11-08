@@ -192,6 +192,17 @@ class ShopState extends ChangeNotifier {
     return _stores = ((res['data'] as List?) ?? []).map((s) => Store.fromJson(s as Map<String, dynamic>)).toList();
   }
 
+  /// Нэг дэлгүүр холбоо барих мэдээлэлтэй (`/store/{id}`). Хуучин backend-д
+  /// энэ endpoint байхгүй бол жагсаалтаас (холбоо баригүй); олдохгүй бол null.
+  Future<Store?> getStore(int id) async {
+    try {
+      final res = await call(() => api.get('/store/$id'));
+      if (res['data'] != null) return Store.fromJson(res['data'] as Map<String, dynamic>);
+    } catch (_) {}
+    final list = await getStores();
+    return list.where((s) => s.id == id).firstOrNull;
+  }
+
   Future<ProductDetail> getProduct(int id) async {
     final res = await call(() => api.get('/post/$id'));
     return ProductDetail.fromJson(res['data'] as Map<String, dynamic>);

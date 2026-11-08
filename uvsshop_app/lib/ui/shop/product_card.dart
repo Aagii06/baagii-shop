@@ -7,12 +7,16 @@ import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'product_page.dart';
+import 'store_page.dart';
 
 /// web-ийн components/home/ProductCard.tsx-тэй адил: зураг (хямдралын хувь,
 /// ♡ товч), үнэ, нэр, доор нь дэлгүүрийн pill.
 class ProductCard extends StatelessWidget {
   final Product product;
-  const ProductCard(this.product, {super.key});
+
+  /// Дэлгүүрийн өөрийн хуудсанд бүх карт тэр дэлгүүрийнх — нэр харуулахгүй.
+  final bool hideStore;
+  const ProductCard(this.product, {super.key, this.hideStore = false});
 
   void _open(BuildContext context) =>
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProductPage(productId: product.id, preview: product)));
@@ -65,10 +69,10 @@ class ProductCard extends StatelessWidget {
                 ]),
               ),
             ),
-            if (p.storeName != null)
+            if (p.storeName != null && !hideStore)
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
-                child: StorePill(name: p.storeName!, logo: p.storeLogo),
+                child: StorePill(name: p.storeName!, logo: p.storeLogo, storeId: p.storeId),
               )
             else
               const SizedBox(height: 10),
@@ -83,7 +87,8 @@ class ProductCard extends StatelessWidget {
 class StorePill extends StatelessWidget {
   final String name;
   final String? logo;
-  const StorePill({super.key, required this.name, this.logo});
+  final int? storeId;
+  const StorePill({super.key, required this.name, this.logo, this.storeId});
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +98,7 @@ class StorePill extends StatelessWidget {
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: () {
+          if (storeId != null) return openStore(context, storeId!);
           Navigator.of(context).popUntil((r) => r.isFirst);
           context.read<ShopNav>().openSearch(SearchRequest(store: name));
         },
@@ -178,7 +184,8 @@ class SaveButton extends StatelessWidget {
 /// web-ийн ProductList — 2 баганатай grid (утсан дээр).
 class ProductGrid extends StatelessWidget {
   final List<Product> products;
-  const ProductGrid(this.products, {super.key});
+  final bool hideStore;
+  const ProductGrid(this.products, {super.key, this.hideStore = false});
 
   @override
   Widget build(BuildContext context) => GridView.builder(
@@ -187,7 +194,7 @@ class ProductGrid extends StatelessWidget {
         padding: EdgeInsets.zero,
         gridDelegate: productGridDelegate,
         itemCount: products.length,
-        itemBuilder: (_, i) => ProductCard(products[i]),
+        itemBuilder: (_, i) => ProductCard(products[i], hideStore: hideStore),
       );
 }
 
