@@ -1,24 +1,38 @@
 import ProductListSkeleton from "@/components/home/ProductListSkeleton";
 
-/** The store banner while it loads: logo, name, count and a contacts row, in grey. */
+/**
+ * The store banner while it loads: the same coloured banner as the real one
+ * (its colour never changes), with white pulsing bars for the logo, name,
+ * count and contacts.
+ */
 export function StoreHeaderSkeleton() {
   return (
     <section
       aria-busy="true"
-      className="animate-pulse rounded-2xl border border-border bg-card p-5 sm:p-7"
+      className="relative overflow-hidden rounded-2xl brand-gradient p-5 text-white shadow-lg shadow-primary/20 sm:p-7"
     >
-      <div className="flex items-center gap-4">
-        <div className="size-16 shrink-0 rounded-2xl bg-muted sm:size-20" />
-        <div className="flex-1 space-y-2.5">
-          <div className="h-7 w-48 max-w-full rounded-md bg-muted" />
-          <div className="h-4 w-20 rounded-md bg-muted" />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-white/10"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -bottom-24 right-24 size-48 rounded-full bg-white/10"
+      />
+      <div className="relative animate-pulse">
+        <div className="flex items-center gap-4">
+          <div className="size-16 shrink-0 rounded-2xl bg-white/30 sm:size-20" />
+          <div className="flex-1 space-y-2.5">
+            <div className="h-7 w-48 max-w-full rounded-md bg-white/30" />
+            <div className="h-4 w-20 rounded-md bg-white/25" />
+          </div>
         </div>
-      </div>
-      <div className="mt-5 border-t border-border pt-4">
-        <div className="h-3 w-24 rounded bg-muted" />
-        <div className="mt-3 flex gap-2">
-          <div className="h-8 w-32 rounded-full bg-muted" />
-          <div className="h-8 w-40 rounded-full bg-muted" />
+        <div className="mt-5 border-t border-white/20 pt-4">
+          <div className="h-3 w-24 rounded-md bg-white/25" />
+          <div className="mt-3 flex gap-2">
+            <div className="h-8 w-32 rounded-full bg-white/20" />
+            <div className="h-8 w-40 rounded-full bg-white/20" />
+          </div>
         </div>
       </div>
     </section>
