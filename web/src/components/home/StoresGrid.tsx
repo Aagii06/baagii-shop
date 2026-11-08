@@ -65,7 +65,7 @@ export default function StoresGrid() {
           stores.map((store) => (
             <Link
               key={store.id}
-              href={storeHref(store.id)}
+              href={storeHref(store.id, "/")}
               title={store.name}
               className={`group ${CARD} transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:brand-glow focus-visible:-translate-y-1 focus-visible:border-primary/40 focus-visible:brand-glow focus-visible:outline-none`}
             >

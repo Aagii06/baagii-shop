@@ -10,6 +10,7 @@ import { fileUrl } from "@/lib/api/files";
 import { storeHref } from "@/lib/api/stores";
 import { ChevronRight, Heart, MoreHorizontal, Star } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import SafeImage from "@/components/ui/safe-image";
 import StoreAvatar from "@/components/ui/store-avatar";
@@ -42,6 +43,8 @@ export default function ProductCard({
 }) {
   const { t } = useLanguage();
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+  // The store pill's page leads back here.
+  const pathname = usePathname();
 
   const toggleSaved = useSavedStore((s) => s.toggle);
   const isSaved = useSavedStore((s) => s.items.some((p) => p.id === product.id));
@@ -147,7 +150,7 @@ export default function ProductCard({
 
         {product.brand && !hideStore && (
           <Link
-            href={product.storeId ? storeHref(product.storeId) : `/search?store=${encodeURIComponent(product.brand)}`}
+            href={product.storeId ? storeHref(product.storeId, pathname) : `/search?store=${encodeURIComponent(product.brand)}`}
             title={product.brand}
             className="group/store mx-3 mb-3 flex items-center gap-2 rounded-full border border-border bg-muted/40 py-1 pl-1 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent sm:mx-4 sm:mb-4"
           >

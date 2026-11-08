@@ -26,9 +26,12 @@ interface ApiStoresResponse {
   data: Store[];
 }
 
-/** A store's own page: only its products. */
-export function storeHref(id: number) {
-  return `/store?id=${id}`;
+/**
+ * A store's own page: only its products. `back` is the page it was opened
+ * from (path + query, e.g. "/search?q=цүнх"); its back link returns there.
+ */
+export function storeHref(id: number, back?: string) {
+  return back ? `/store?id=${id}&back=${encodeURIComponent(back)}` : `/store?id=${id}`;
 }
 
 /** One store with its contacts — for its own page. */

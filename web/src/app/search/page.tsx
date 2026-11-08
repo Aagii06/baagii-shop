@@ -294,7 +294,7 @@ function SearchContent() {
   const selectStore = (store: string | undefined) => {
     const id = store ? allStores.find((s) => s.name === store)?.id : undefined;
     if (id) {
-      router.push(storeHref(id));
+      router.push(storeHref(id, `/search${window.location.search}`));
       return;
     }
     setFilters({ categories: [], brands: store ? [store] : [], priceRange: priceBounds });

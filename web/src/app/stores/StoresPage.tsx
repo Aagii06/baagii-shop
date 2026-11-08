@@ -110,7 +110,7 @@ export default function StoresPage() {
           {stores.map((store) => (
             <Link
               key={store.id}
-              href={storeHref(store.id)}
+              href={storeHref(store.id, "/stores")}
               className={cn(
                 "group relative flex flex-col items-center gap-2 rounded-2xl border-2 bg-card p-3 transition duration-300 ease-out hover:-translate-y-1 hover:brand-glow focus-visible:-translate-y-1 focus-visible:brand-glow focus-visible:outline-none",
                 TIER_RING[store.tier] ?? TIER_RING.normal

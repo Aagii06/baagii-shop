@@ -35,7 +35,20 @@ function discountPercent(p: Product) {
  */
 export default function StorePage() {
   const { t } = useLanguage();
-  const id = Number(useSearchParams().get("id"));
+  const params = useSearchParams();
+  const id = Number(params.get("id"));
+  // Back to the page the store was opened from (only same-site paths), else the store list.
+  const from = params.get("back");
+  const backHref = from && from.startsWith("/") && !from.startsWith("//") ? from : "/stores";
+  const backPath = backHref.split("?")[0];
+  const backLabel =
+    backPath === "/stores"
+      ? t("store.back")
+      : backPath === "/search"
+        ? t("store.backSearch")
+        : backPath === "/"
+          ? t("store.backHome")
+          : t("store.backOther");
   const [store, setStore] = useState<StoreDetail | null | undefined>(undefined);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,11 +90,11 @@ export default function StorePage() {
 
   const back = (
     <Link
-      href="/stores"
+      href={backHref}
       className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
     >
       <ArrowLeft className="h-4 w-4" />
-      {t("store.back")}
+      {backLabel}
     </Link>
   );
 
