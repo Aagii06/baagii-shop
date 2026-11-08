@@ -26,6 +26,8 @@ export default function UserForm({ user }: { user: User | null }) {
   const router = useRouter();
   const { t } = useLanguage();
   const { run } = useToast();
+  // The request is in flight: the save button spins and ignores more taps.
+  const [saving, setSaving] = useState(false);
   const { user: me } = useAuth();
   const nameErrorId = useId();
   const phoneErrorId = useId();
@@ -59,7 +61,7 @@ export default function UserForm({ user }: { user: User | null }) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!dirty) return;
+    if (!dirty || saving) return;
     setSubmitted(true);
     if (!name.trim()) return nameRef.current?.focus();
     if (phone.length < 8) return phoneRef.current?.focus();
@@ -75,11 +77,13 @@ export default function UserForm({ user }: { user: User | null }) {
       storeId: role === "shopper" ? Number(storeId) : null,
       password,
     };
+    setSaving(true);
     const saved = await run(
       () => (user ? updateUser(user.id, input) : createUser(input)),
       user ? t("common.saved") : t("us.added")
     );
     if (saved) router.replace("/users");
+    else setSaving(false);
   }
 
   return (
@@ -88,7 +92,7 @@ export default function UserForm({ user }: { user: User | null }) {
         backHref="/users"
         title={user ? t("us.edit") : t("us.add")}
         aside={
-          <Button type="submit" className="h-10 px-5" disabled={!dirty}>
+          <Button type="submit" className="h-10 px-5" disabled={!dirty} loading={saving}>
             {t("common.save")}
           </Button>
         }

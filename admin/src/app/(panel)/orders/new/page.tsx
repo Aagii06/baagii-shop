@@ -23,6 +23,8 @@ export default function NewOrderPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { run } = useToast();
+  // The request is in flight: the save button spins and ignores more taps.
+  const [saving, setSaving] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -59,9 +61,10 @@ export default function NewOrderPage() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!dirty) return;
+    if (!dirty || saving) return;
     setSubmitted(true);
     if (Object.values(errors).some(Boolean)) return;
+    setSaving(true);
     const saved = await run(
       () =>
         createOrder({
@@ -72,6 +75,7 @@ export default function NewOrderPage() {
       t("on.created")
     );
     if (saved) router.replace("/orders");
+    else setSaving(false);
   }
 
   return (
@@ -80,7 +84,7 @@ export default function NewOrderPage() {
         backHref="/orders"
         title={t("on.title")}
         aside={
-          <Button type="submit" className="h-10 px-5" disabled={!dirty}>
+          <Button type="submit" className="h-10 px-5" disabled={!dirty} loading={saving}>
             {t("on.create")}
           </Button>
         }

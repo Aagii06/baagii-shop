@@ -53,6 +53,8 @@ export default function CategoryForm({
   const router = useRouter();
   const { t } = useLanguage();
   const { run } = useToast();
+  // The request is in flight: the save button spins and ignores more taps.
+  const [saving, setSaving] = useState(false);
   const nameErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -82,7 +84,7 @@ export default function CategoryForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!dirty) return;
+    if (!dirty || saving) return;
     setNameTouched(true);
     if (!name.trim()) {
       nameRef.current?.focus();
@@ -93,6 +95,7 @@ export default function CategoryForm({
       parentId,
       attrs: isLeaf ? attrs : [],
     };
+    setSaving(true);
     const saved = await run(
       async () => {
         if (!category) {
@@ -105,6 +108,7 @@ export default function CategoryForm({
       category ? t("common.saved") : t("cf.added")
     );
     if (saved) router.replace("/categories");
+    else setSaving(false);
   }
 
   return (
@@ -113,7 +117,7 @@ export default function CategoryForm({
         backHref="/categories"
         title={category ? t("cat.edit") : parentId != null ? t("cat.addSub") : t("cat.add")}
         aside={
-          <Button type="submit" className="h-10 px-5" disabled={!dirty}>
+          <Button type="submit" className="h-10 px-5" disabled={!dirty} loading={saving}>
             {t("common.save")}
           </Button>
         }

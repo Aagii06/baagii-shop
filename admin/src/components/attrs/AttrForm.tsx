@@ -34,6 +34,8 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
   const router = useRouter();
   const { t } = useLanguage();
   const { run } = useToast();
+  // The request is in flight: the save button spins and ignores more taps.
+  const [saving, setSaving] = useState(false);
   const nameErrorId = useId();
   const draftErrorId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
@@ -96,7 +98,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!dirty) return;
+    if (!dirty || saving) return;
     setSubmitted(true);
     // A value typed but not yet added goes in with the rest.
     const rows = addDraft();
@@ -108,11 +110,13 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
       name: name.trim(),
       values: rows.map((v) => ({ id: v.id, name: v.name.trim() })),
     };
+    setSaving(true);
     const saved = await run(
       () => (attr ? updateAttr(attr, input) : createAttr(input)),
       attr ? t("common.saved") : t("af.added")
     );
     if (saved) router.replace("/attrs");
+    else setSaving(false);
   }
 
   return (
@@ -121,7 +125,7 @@ export default function AttrForm({ attr }: { attr: AttrRecord | null }) {
         backHref="/attrs"
         title={attr ? t("attrs.edit") : t("attrs.add")}
         aside={
-          <Button type="submit" className="h-10 px-5" disabled={!dirty}>
+          <Button type="submit" className="h-10 px-5" disabled={!dirty} loading={saving}>
             {t("common.save")}
           </Button>
         }
