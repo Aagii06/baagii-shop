@@ -275,7 +275,7 @@ class _SearchPageState extends State<SearchPage> {
                           border: Border.all(color: active ? brandColor : borderColor, width: 2),
                         ),
                         child: Column(children: [
-                          Opacity(opacity: active ? 1 : 0.85, child: StoreAvatar(name: name, logo: logos[name], size: 52, radius: 12)),
+                          StoreAvatar(name: name, logo: logos[name], size: 52, radius: 12),
                           const SizedBox(height: 6),
                           Text(name,
                               maxLines: 1,

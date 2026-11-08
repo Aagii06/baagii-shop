@@ -68,10 +68,7 @@ export default function StoreTiles({
                   <StoreAvatar
                     name={store.name}
                     src={logo}
-                    className={cn(
-                      "size-full object-contain transition",
-                      active ? "" : "opacity-85 grayscale group-hover:opacity-100 group-hover:grayscale-0"
-                    )}
+                    className="size-full object-contain transition-transform group-hover:scale-105"
                   />
                 </span>
                 <span className={cn("w-full truncate text-center text-xs font-semibold", active ? "text-primary" : "text-foreground")}>
