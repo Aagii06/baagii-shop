@@ -12,13 +12,13 @@ import 'product_card.dart';
 import 'store_page.dart';
 
 /// Шүүлтүүр — web-ийн FilterSidebar / MobileFilterDrawer.
-class _Filters {
+class SearchFilters {
   final Set<int> categories;
   final Set<String> stores;
   final RangeValues? price;
-  const _Filters({this.categories = const {}, this.stores = const {}, this.price});
+  const SearchFilters({this.categories = const {}, this.stores = const {}, this.price});
 
-  _Filters copyWith({Set<int>? categories, Set<String>? stores, RangeValues? price, bool clearPrice = false}) => _Filters(
+  SearchFilters copyWith({Set<int>? categories, Set<String>? stores, RangeValues? price, bool clearPrice = false}) => SearchFilters(
         categories: categories ?? this.categories,
         stores: stores ?? this.stores,
         price: clearPrice ? null : price ?? this.price,
@@ -48,7 +48,7 @@ class _SearchPageState extends State<SearchPage> {
   int _request = 0;
   int _page = 1;
 
-  _Filters _filters = const _Filters();
+  SearchFilters _filters = const SearchFilters();
   bool _saleOnly = false;
   SearchSort _sort = SearchSort.discount;
   String _fetchedKey = '';
@@ -91,7 +91,7 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _saleOnly = r.sale;
       _sort = r.sort ?? SearchSort.discount;
-      _filters = _Filters(
+      _filters = SearchFilters(
         categories: r.categoryId == null ? {} : {r.categoryId!},
         stores: r.store == null ? {} : {r.store!},
       );
@@ -187,7 +187,7 @@ class _SearchPageState extends State<SearchPage> {
     if (id != null) return openStore(context, id);
     _search.clear();
     setState(() {
-      _filters = _Filters(stores: store == null ? {} : {store});
+      _filters = SearchFilters(stores: store == null ? {} : {store});
       _saleOnly = false;
       _page = 1;
     });
@@ -318,7 +318,7 @@ class _SearchPageState extends State<SearchPage> {
                       _page = 1;
                     })),
                 const SizedBox(width: 8),
-                _FilterButton(
+                FilterButton(
                   count: _activeFilterCount,
                   onTap: () => _openFilters(categories, storeNames, logos),
                 ),
@@ -359,13 +359,13 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _openFilters(List<Category> categories, List<String> stores, Map<String, String?> logos) async {
-    final result = await showModalBottomSheet<_Filters>(
+    final result = await showModalBottomSheet<SearchFilters>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => _FilterSheet(
+      builder: (_) => FilterSheet(
         initial: _filters,
         categories: categories,
         stores: stores,
@@ -407,10 +407,10 @@ class _SortMenu extends StatelessWidget {
       );
 }
 
-class _FilterButton extends StatelessWidget {
+class FilterButton extends StatelessWidget {
   final int count;
   final VoidCallback onTap;
-  const _FilterButton({required this.count, required this.onTap});
+  const FilterButton({super.key, required this.count, required this.onTap});
 
   @override
   Widget build(BuildContext context) => InkWell(
@@ -437,13 +437,14 @@ class _FilterButton extends StatelessWidget {
       );
 }
 
-class _FilterSheet extends StatefulWidget {
-  final _Filters initial;
+class FilterSheet extends StatefulWidget {
+  final SearchFilters initial;
   final List<Category> categories;
   final List<String> stores;
   final Map<String, String?> logos;
   final RangeValues bounds;
-  const _FilterSheet({
+  const FilterSheet({
+    super.key,
     required this.initial,
     required this.categories,
     required this.stores,
@@ -451,11 +452,11 @@ class _FilterSheet extends StatefulWidget {
     required this.bounds,
   });
   @override
-  State<_FilterSheet> createState() => _FilterSheetState();
+  State<FilterSheet> createState() => FilterSheetState();
 }
 
-class _FilterSheetState extends State<_FilterSheet> {
-  late _Filters _f = widget.initial;
+class FilterSheetState extends State<FilterSheet> {
+  late SearchFilters _f = widget.initial;
   final Set<int> _open = {};
 
   void _toggleCategory(int id) {

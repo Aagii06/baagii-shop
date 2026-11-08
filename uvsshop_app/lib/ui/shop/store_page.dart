@@ -8,6 +8,7 @@ import '../../state/shop_state.dart';
 import '../common.dart';
 import 'home_page.dart' show byNewest;
 import 'product_card.dart';
+import 'search_page.dart' show FilterButton, FilterSheet, SearchFilters;
 
 /// Дэлгүүрийг нээнэ. Буцах товч (AppBar) нээсэн газар руугаа буцна.
 void openStore(BuildContext context, int storeId) =>
@@ -35,6 +36,7 @@ class _StorePageState extends State<StorePage> {
   bool _loading = true;
   bool _notFound = false;
   SearchSort _sort = SearchSort.newest;
+  SearchFilters _filters = const SearchFilters();
   int _shown = _pageSize;
 
   @override
@@ -65,8 +67,56 @@ class _StorePageState extends State<StorePage> {
     }
   }
 
+  /// Сонгосон ангиллууд дэд ангиллуудтайгаа.
+  Set<int> get _categoryIds {
+    final tree = context.read<ShopState>().categories;
+    return {for (final id in _filters.categories) ...(Category.findById(tree, id)?.allIds ?? {id})};
+  }
+
+  /// Зөвхөн энэ дэлгүүрийн бараатай ангиллууд (эх ангиллуудтайгаа).
+  List<Category> _pruned(List<Category> list, Set<int> keep) => [
+        for (final c in list)
+          if (keep.contains(c.id) || _pruned(c.children, keep).isNotEmpty)
+            Category(id: c.id, code: c.code, name: c.name, image: c.image, children: _pruned(c.children, keep)),
+      ];
+
+  RangeValues get _bounds {
+    if (_products.isEmpty) return const RangeValues(0, 0);
+    final prices = _products.map((p) => p.price);
+    return RangeValues(prices.reduce((a, b) => a < b ? a : b), prices.reduce((a, b) => a > b ? a : b));
+  }
+
+  Future<void> _openFilters() async {
+    final keep = {for (final p in _products) if (p.categoryId != null) p.categoryId!};
+    final result = await showModalBottomSheet<SearchFilters>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => FilterSheet(
+        initial: _filters,
+        categories: _pruned(context.read<ShopState>().categories, keep),
+        stores: const [],
+        logos: const {},
+        bounds: _bounds,
+      ),
+    );
+    if (result != null) {
+      setState(() {
+        _filters = result;
+        _shown = _pageSize;
+      });
+    }
+  }
+
   List<Product> get _sorted {
-    final list = [..._products];
+    final cats = _categoryIds;
+    final price = _filters.price;
+    final list = _products
+        .where((p) => cats.isEmpty || (p.categoryId != null && cats.contains(p.categoryId)))
+        .where((p) => price == null || (p.price >= price.start && p.price <= price.end))
+        .toList();
     switch (_sort) {
       case SearchSort.newest:
         list.sort(byNewest);
@@ -94,9 +144,8 @@ class _StorePageState extends State<StorePage> {
               child: ListView(padding: const EdgeInsets.all(16), children: [
                 _Header(store: _store, count: _products.length, loading: _loading),
                 const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: PopupMenuButton<SearchSort>(
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  PopupMenuButton<SearchSort>(
                     initialValue: _sort,
                     position: PopupMenuPosition.under,
                     onSelected: (s) => setState(() {
@@ -119,7 +168,12 @@ class _StorePageState extends State<StorePage> {
                       ]),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  FilterButton(
+                    count: _filters.categories.length + (_filters.price != null ? 1 : 0),
+                    onTap: _openFilters,
+                  ),
+                ]),
                 const SizedBox(height: 14),
                 if (_loading)
                   const LoadingView(kind: SkeletonKind.grid, count: 4)
@@ -130,7 +184,7 @@ class _StorePageState extends State<StorePage> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: borderColor),
                     ),
-                    child: Text('Энэ дэлгүүрт одоогоор бараа алга.',
+                    child: Text(_products.isEmpty ? 'Энэ дэлгүүрт одоогоор бараа алга.' : 'Шүүлтэд тохирох бараа алга.',
                         textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
                   )
                 else
