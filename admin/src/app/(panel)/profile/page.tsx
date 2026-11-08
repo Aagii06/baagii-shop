@@ -66,38 +66,56 @@ export default function ProfilePage() {
       <PageHeader title={t("profile.title")} />
 
       <div className="space-y-3 pt-4">
-        <Card className="flex items-center gap-4 p-4">
+        {/* The account card wears the brand gradient, with soft light blobs for depth. */}
+        <section className="brand-gradient relative isolate flex items-center gap-4 overflow-hidden rounded-2xl p-5 text-white shadow-soft">
+          <span aria-hidden className="absolute -right-10 -top-12 -z-10 size-40 rounded-full bg-white/15 blur-sm" />
+          <span aria-hidden className="absolute -bottom-16 left-1/3 -z-10 size-36 rounded-full bg-white/10" />
+          <span aria-hidden className="absolute -left-6 -top-8 -z-10 size-20 rounded-full bg-fuchsia-300/20 blur-md" />
+
           {user?.logo ? (
-            <Thumb id={user.logo} variant="thumbnail" alt="" size={56} className="rounded-full" />
+            <span className="shrink-0 rounded-full ring-[3px] ring-white/60">
+              <Thumb id={user.logo} variant="thumbnail" alt="" size={60} className="rounded-full" />
+            </span>
           ) : (
-            <span className="grid size-14 shrink-0 place-items-center rounded-full bg-secondary text-xl font-bold text-secondary-foreground">
+            <span className="grid size-[60px] shrink-0 place-items-center rounded-full bg-white/20 text-2xl font-bold ring-[3px] ring-white/50 backdrop-blur">
               {displayName.charAt(0).toUpperCase()}
             </span>
           )}
           <span className="min-w-0 grow">
-            <span className="block truncate text-[17px] font-bold">{displayName}</span>
+            <span className="block truncate text-lg font-bold">{displayName}</span>
             {user?.userName && (
-              <span className="mt-0.5 block truncate font-mono text-sm text-muted-foreground">
-                {user.userName}
-              </span>
+              <span className="mt-0.5 block truncate font-mono text-sm text-white/80">{user.userName}</span>
             )}
-            {role === "shopper" && (
-              <span className="mt-0.5 block truncate text-sm text-muted-foreground">
-                {user?.store ? user.store.name : t("profile.noStore")}
+            {role === "shopper" ? (
+              <span className="mt-1.5 inline-flex max-w-full items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold">
+                <Store className="size-3.5 shrink-0" />
+                <span className="truncate">{user?.store ? user.store.name : t("profile.noStore")}</span>
               </span>
-            )}
+            ) : role ? (
+              <span className="mt-1.5 inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold capitalize">
+                {role}
+              </span>
+            ) : null}
           </span>
-          <Button asChild variant="outline" size="icon-sm" className="shrink-0">
-            <Link href="/profile/edit" aria-label={t("profile.edit")}>
-              <Pencil />
+          <span className="flex shrink-0 flex-col gap-2">
+            <Link
+              href="/profile/edit"
+              aria-label={t("profile.edit")}
+              title={t("profile.edit")}
+              className="grid size-9 place-items-center rounded-full bg-white/20 transition-colors hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              <Pencil className="size-4" />
             </Link>
-          </Button>
-          <Button asChild variant="outline" size="icon-sm" className="shrink-0">
-            <Link href="/profile/password" aria-label={t("pw.title")}>
-              <KeyRound />
+            <Link
+              href="/profile/password"
+              aria-label={t("pw.title")}
+              title={t("pw.title")}
+              className="grid size-9 place-items-center rounded-full bg-white/20 transition-colors hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              <KeyRound className="size-4" />
             </Link>
-          </Button>
-        </Card>
+          </span>
+        </section>
 
         {role === "admin" && (
         <Card className="overflow-hidden">

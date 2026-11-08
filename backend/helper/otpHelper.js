@@ -52,14 +52,9 @@ module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login", send) => 
     code = String(crypto.randomInt(100000, 1000000));
     if (!(await send(code))) return { success: false, message: "Код илгээж чадсангүй. Дахин оролдоно уу" };
   } else {
-    // ТҮР (тест): OTP_FORCE_DEV_CODE=true бол SMS илгээхгүй, бүх дугаарт OTP_DEV_CODE (2222).
-    // Тест дуусмагц .env-д false болгож/устгаж backend-ээ restart хийнэ.
-    const forceDev = process.env.OTP_FORCE_DEV_CODE === "true";
-    code = !forceDev && isSmsConfigured() ? newPhoneOtp() : process.env.OTP_DEV_CODE || "2222";
-    if (!forceDev) {
-      const error = await deliver(shopId, phone, purpose, code);
-      if (error) return { success: false, message: error };
-    }
+    code = isSmsConfigured() ? newPhoneOtp() : process.env.OTP_DEV_CODE || "2222";
+    const error = await deliver(shopId, phone, purpose, code);
+    if (error) return { success: false, message: error };
   }
   const at = now();
   const values = {
