@@ -38,9 +38,6 @@ const TIER_BADGE: Record<string, string> = {
   bronze: "bg-gradient-to-r from-orange-300 to-amber-700 text-orange-950",
 };
 
-/** No store filter here — the page is one store's. */
-const NO_STORES = { brand: {} as Record<string, number> };
-
 function priceBoundsOf(products: Product[]): [number, number] {
   if (products.length === 0) return [0, 0];
   const prices = products.map((p) => p.price);
@@ -107,6 +104,18 @@ export default function StorePage() {
   }, [id]);
 
   const priceBounds = useMemo(() => priceBoundsOf(products), [products]);
+  // No store filter (the page is one store's); only the categories it has products in.
+  const filterCounts = useMemo(
+    () => ({
+      brand: {} as Record<string, number>,
+      categoryIds: [
+        ...new Set(
+          products.flatMap((p) => (p.categoryId ? [p.categoryId] : [])),
+        ),
+      ],
+    }),
+    [products],
+  );
   const filters: SearchFilters = {
     categories: filterCats,
     brands: [],
@@ -287,7 +296,7 @@ export default function StorePage() {
           filters={filters}
           onChange={setFilters}
           priceBounds={priceBounds}
-          counts={NO_STORES}
+          counts={filterCounts}
         />
 
         <section className="min-w-0 flex-1 space-y-5">
@@ -297,7 +306,7 @@ export default function StorePage() {
               filters={filters}
               onChange={setFilters}
               priceBounds={priceBounds}
-              counts={NO_STORES}
+              counts={filterCounts}
               activeCount={activeFilters}
             />
           </div>

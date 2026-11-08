@@ -11,6 +11,7 @@ interface MobileFilterDrawerProps {
   priceBounds: [number, number];
   counts: {
     brand: Record<string, number>;
+    categoryIds?: number[];
   };
   activeCount: number;
 }

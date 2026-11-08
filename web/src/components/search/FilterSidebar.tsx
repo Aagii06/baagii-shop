@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
@@ -24,6 +24,8 @@ interface FilterSidebarProps {
     brand: Record<string, number>;
     /** Each store's logo file id, when it has one. */
     brandLogo?: Record<string, string | undefined>;
+    /** Only these categories (and their parents) are listed; all when absent. */
+    categoryIds?: number[];
   };
 }
 
@@ -51,7 +53,9 @@ function PickRow({
       className={cn(
         "flex w-full cursor-pointer items-center gap-2 text-left transition-colors",
         sub ? "py-2 text-sm" : "py-3 text-[15px]",
-        picked ? "font-semibold text-primary" : "text-foreground hover:text-primary"
+        picked
+          ? "font-semibold text-primary"
+          : "text-foreground hover:text-primary",
       )}
     >
       {logo !== undefined && (
@@ -70,6 +74,19 @@ function PickRow({
   );
 }
 
+/**
+ * The category tree cut down to `keep` (ids that have products) and their
+ * parents, so a store's page lists only the categories it sells in.
+ */
+function pruneCategories(list: Category[], keep: Set<number>): Category[] {
+  return list.flatMap((category) => {
+    const children = pruneCategories(category.children, keep);
+    return keep.has(category.id) || children.length > 0
+      ? [{ ...category, children }]
+      : [];
+  });
+}
+
 export function FilterPanelContent({
   filters,
   onChange,
@@ -77,9 +94,16 @@ export function FilterPanelContent({
   counts,
 }: FilterSidebarProps) {
   const { t } = useLanguage();
-  const { categories } = useCategories();
+  const { categories: allCategories } = useCategories();
+  const categories = useMemo(
+    () =>
+      counts.categoryIds
+        ? pruneCategories(allCategories, new Set(counts.categoryIds))
+        : allCategories,
+    [allCategories, counts.categoryIds],
+  );
   const [openCategories, setOpenCategories] = useState<Record<number, boolean>>(
-    {}
+    {},
   );
 
   // A group's default open state follows its selection (see renderCategory),
@@ -88,7 +112,8 @@ export function FilterPanelContent({
   const keepAncestorsOpen = (id: number) =>
     setOpenCategories((prev) => {
       const next = { ...prev };
-      for (const c of categoryPath(categories, id).slice(0, -1)) next[c.id] = true;
+      for (const c of categoryPath(categories, id).slice(0, -1))
+        next[c.id] = true;
       return next;
     });
 
@@ -133,7 +158,7 @@ export function FilterPanelContent({
 
     const ids = subtreeIds(category);
     const selectedCount = ids.filter((id) =>
-      filters.categories.includes(id)
+      filters.categories.includes(id),
     ).length;
     // A partial selection opens by default, to show which children are picked.
     const isOpen =
@@ -149,7 +174,9 @@ export function FilterPanelContent({
           className={cn(
             "flex w-full cursor-pointer items-center gap-2 text-left transition-colors hover:text-primary",
             sub ? "py-2 text-sm" : "py-3 text-[15px]",
-            selectedCount > 0 ? "font-semibold text-primary" : "text-foreground"
+            selectedCount > 0
+              ? "font-semibold text-primary"
+              : "text-foreground",
           )}
         >
           <span className="min-w-0 flex-1 truncate">{category.name}</span>
@@ -157,7 +184,7 @@ export function FilterPanelContent({
             className={cn(
               "shrink-0 text-foreground/70 transition-transform",
               sub ? "h-4 w-4" : "h-5 w-5",
-              isOpen && "rotate-180"
+              isOpen && "rotate-180",
             )}
           />
         </button>
