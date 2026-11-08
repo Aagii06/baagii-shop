@@ -241,9 +241,9 @@ function OrdersList() {
         </div>
       ) : (
         <>
-          <ul className="divide-y divide-border border-b border-border">
+          <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
             {rows.map((order) => (
-              <li key={order.id} className="py-4">
+              <li key={order.id} className="px-4 py-4">
                 <Link href={`/orders/${order.id}`} className="flex items-start justify-between gap-3">
                   <span className="min-w-0">
                     <span className="flex items-center gap-2">

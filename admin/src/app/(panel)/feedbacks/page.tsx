@@ -34,9 +34,9 @@ const TONE: Record<FeedbackStatus, (typeof ORDER_TONE)[keyof typeof ORDER_TONE]>
 function FeedbacksSkeleton() {
   const bar = "block rounded-md bg-muted";
   return (
-    <ul aria-hidden className="animate-pulse divide-y divide-border border-b border-border">
+    <ul aria-hidden className="-mx-4 animate-pulse divide-y divide-border border-b border-border bg-white">
       {Array.from({ length: 4 }, (_, i) => (
-        <li key={i} className="py-4">
+        <li key={i} className="px-4 py-4">
           <span className="flex items-center gap-2">
             <span className={`${bar} h-4 w-10`} />
             <span className="block h-5 w-16 rounded-full bg-muted" />
@@ -100,7 +100,7 @@ function FeedbackRow({ feedback, onChanged }: { feedback: Feedback; onChanged: (
     : `mailto:${feedback.email}`;
 
   return (
-    <li className="py-4">
+    <li className="px-4 py-4">
       <span className="flex items-center gap-2">
         <span className="font-mono text-sm text-muted-foreground">#{feedback.id}</span>
         <span
@@ -221,7 +221,7 @@ export default function FeedbacksPage() {
           />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
+        <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
           {rows.map((feedback) => (
             <FeedbackRow key={feedback.id} feedback={feedback} onChanged={reload} />
           ))}

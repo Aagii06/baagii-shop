@@ -55,7 +55,7 @@ function CategoryRow({
   const { run } = useToast();
   const confirm = useConfirm();
   // Subcategories sit indented under their parent.
-  const indent = { paddingLeft: `${category.depth * 20}px` };
+  const indent = { paddingLeft: `${16 + category.depth * 20}px` };
 
   const [deleting, setDeleting] = useState(false);
   async function onDelete() {
@@ -80,9 +80,9 @@ function CategoryRow({
     <li
       data-drop={category.id}
       className={cn(
-        "relative flex items-center gap-2 py-3.5 transition-colors",
+        "relative flex items-center gap-2 py-3.5 pr-4 transition-colors",
         dragging && "opacity-40",
-        over === "inside" && "rounded-xl bg-primary-soft ring-2 ring-primary"
+        over === "inside" && "bg-primary-soft ring-2 ring-inset ring-primary"
       )}
       style={indent}
     >
@@ -91,10 +91,10 @@ function CategoryRow({
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none absolute right-0 h-0.5 rounded-full bg-primary",
+            "pointer-events-none absolute right-4 h-0.5 rounded-full bg-primary",
             over === "before" ? "-top-px" : "-bottom-px"
           )}
-          style={{ left: `${category.depth * 20}px` }}
+          style={{ left: `${16 + category.depth * 20}px` }}
         />
       )}
       {category.children.length > 0 ? (
@@ -357,7 +357,7 @@ export default function CategoriesPage() {
           <EmptyState title={t("cat.empty")} description={t("cat.emptyHint")} />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
+        <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
           {visibleRows.map((category) => (
             <CategoryRow
               key={category.id}

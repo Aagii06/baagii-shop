@@ -172,7 +172,7 @@ export default function ProductsPage() {
         </div>
       ) : (
         <>
-          <ul className="divide-y divide-border border-b border-border">
+          <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
             {rows.map((post) => {
               const stock = stockLine(post);
               const category = [post.categoryId != null ? categories.name.get(post.categoryId) : undefined, post.storeName]
@@ -182,7 +182,7 @@ export default function ProductsPage() {
                 <li key={post.id}>
                   <Link
                     href={`/products/${post.id}`}
-                    className="-mx-4 flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
+                    className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
                   >
                     <Thumb id={post.images?.[0]} variant="icon" size={52} className="rounded-xl" />
                     <span className="min-w-0 grow">

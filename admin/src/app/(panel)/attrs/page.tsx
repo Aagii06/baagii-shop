@@ -44,7 +44,7 @@ function AttrRow({ attr, onChanged }: { attr: AttrRecord; onChanged: () => void 
   }
 
   return (
-    <li className="flex items-center gap-2 py-3.5">
+    <li className="flex items-center gap-2 px-4 py-3.5">
       <span className="min-w-0 grow">
         <span className="flex items-center gap-2">
           <span className="truncate text-[15px] font-bold">{attr.name}</span>
@@ -119,7 +119,7 @@ export default function AttrsPage() {
           />
         </div>
       ) : (
-        <ul className="divide-y divide-border border-b border-border">
+        <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
           {data.map((attr) => (
             <AttrRow key={attr.id} attr={attr} onChanged={reload} />
           ))}

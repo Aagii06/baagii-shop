@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 /** Placeholder rows shaped like the order list's, shown while it loads. */
 export default function OrderListSkeleton({ rows = 6, className }: { rows?: number; className?: string }) {
   return (
-    <ul aria-hidden className={cn("divide-y divide-border border-b border-border", className)}>
+    <ul aria-hidden className={cn("-mx-4 divide-y divide-border border-b border-border bg-white", className)}>
       {Array.from({ length: rows }, (_, i) => (
-        <li key={i} className="animate-pulse py-4">
+        <li key={i} className="animate-pulse px-4 py-4">
           <div className="flex items-start justify-between gap-3">
             <span className="min-w-0 grow">
               <span className="flex items-center gap-2">
