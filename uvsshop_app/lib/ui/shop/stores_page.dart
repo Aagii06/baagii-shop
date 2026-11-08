@@ -6,6 +6,7 @@ import '../../state/shop_state.dart';
 import 'home_page.dart' show byNewest;
 import '../common.dart';
 import 'product_card.dart';
+import 'search_page.dart' show FilterButton, FilterSheet, SearchFilters;
 import 'store_page.dart';
 
 const _tierRank = {'gold': 0, 'silver': 1, 'bronze': 2, 'normal': 3};
@@ -35,6 +36,49 @@ class _StoresPageState extends State<StoresPage> {
   bool _loading = true;
   int _shown = _pageSize;
 
+  /// Барааны шүүлтүүр (ангилал, дэлгүүр, үнэ) — web-ийн /stores-ийн хажуугийн шүүлтүүр.
+  SearchFilters _filters = const SearchFilters();
+
+  /// Зөвхөн бараатай ангиллууд (эх ангиллуудтайгаа).
+  List<Category> _pruned(List<Category> list, Set<int> keep) => [
+        for (final c in list)
+          if (keep.contains(c.id) || _pruned(c.children, keep).isNotEmpty)
+            Category(id: c.id, code: c.code, name: c.name, image: c.image, children: _pruned(c.children, keep)),
+      ];
+
+  Future<void> _openFilters() async {
+    final keep = {for (final p in _products) if (p.categoryId != null) p.categoryId!};
+    final counts = <String, int>{for (final s in _stores) s.name: 0};
+    for (final p in _products) {
+      if (p.storeName != null) counts[p.storeName!] = (counts[p.storeName!] ?? 0) + 1;
+    }
+    final names = counts.keys.toList()..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    final prices = _products.map((p) => p.price);
+    final bounds = _products.isEmpty
+        ? const RangeValues(0, 0)
+        : RangeValues(prices.reduce((a, b) => a < b ? a : b), prices.reduce((a, b) => a > b ? a : b));
+    final result = await showModalBottomSheet<SearchFilters>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => FilterSheet(
+        initial: _filters,
+        categories: _pruned(context.read<ShopState>().categories, keep),
+        stores: names,
+        logos: {for (final s in _stores) s.name: s.logo},
+        bounds: bounds,
+      ),
+    );
+    if (result != null) {
+      setState(() {
+        _filters = result;
+        _shown = _pageSize;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -54,7 +98,14 @@ class _StoresPageState extends State<StoresPage> {
   Widget build(BuildContext context) {
     final rankOf = {for (final s in _stores) s.name: _tierRank[s.tier] ?? 3};
     int rank(Product p) => p.storeName == null ? 3 : rankOf[p.storeName] ?? 3;
-    final sorted = [..._products]..sort((a, b) {
+    final tree = context.read<ShopState>().categories;
+    final cats = {for (final id in _filters.categories) ...(Category.findById(tree, id)?.allIds ?? {id})};
+    final price = _filters.price;
+    final filtered = _products.where((p) =>
+        (cats.isEmpty || (p.categoryId != null && cats.contains(p.categoryId))) &&
+        (_filters.stores.isEmpty || _filters.stores.contains(p.storeName)) &&
+        (price == null || (p.price >= price.start && p.price <= price.end)));
+    final sorted = [...filtered]..sort((a, b) {
         final r = rank(a).compareTo(rank(b));
         return r != 0 ? r : byNewest(a, b);
       });
@@ -84,11 +135,29 @@ class _StoresPageState extends State<StoresPage> {
                 itemBuilder: (_, i) => _TierStoreTile(_stores[i]),
               ),
               const SizedBox(height: 32),
-              const Text('Дэлгүүрүүдийн бараа', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 2),
-              Text('Gold, Silver, Bronze дэлгүүрүүдийн бараа эхэндээ', style: TextStyle(color: Colors.grey.shade600)),
+              Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('Дэлгүүрүүдийн бараа', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text('Gold, Silver, Bronze дэлгүүрүүдийн бараа эхэндээ', style: TextStyle(color: Colors.grey.shade600)),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                FilterButton(
+                  count: _filters.categories.length + _filters.stores.length + (_filters.price != null ? 1 : 0),
+                  onTap: _openFilters,
+                ),
+              ]),
               const SizedBox(height: 14),
-              ProductGrid(visible),
+              if (visible.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: borderColor)),
+                  child: Text('Шүүлтэд тохирох бараа алга.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+                )
+              else
+                ProductGrid(visible),
               if (visible.length < sorted.length) ...[
                 const SizedBox(height: 20),
                 Center(
