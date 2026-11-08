@@ -70,8 +70,32 @@ module.exports.MAIN_WIDTH = MAIN_WIDTH;
 module.exports.folderVariants = folderVariants;
 module.exports.variantName = (variant, fileName) => `${VARIANTS[variant].prefix}${fileName}`;
 
-const resize = (source, width, target) =>
-  sharp(source).rotate().resize({ width, withoutEnlargement: true }).toFile(target);
+// Хуулах зургийн дээд хэмжээ — түүнээс томыг formidable татгалзана (api/file/router.js).
+const MAX_UPLOAD_MB = 50;
+module.exports.MAX_UPLOAD_MB = MAX_UPLOAD_MB;
+module.exports.MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+module.exports.TOO_LARGE_MESSAGE = `Зураг ${MAX_UPLOAD_MB}MB-аас ихгүй байх ёстой`;
+// formidable-ийн "файл хэт том" алдаа (code 1009 / HTTP 413)
+module.exports.isTooLarge = (error) => error?.code === 1009 || error?.httpCode === 413;
+
+// Хадгалахдаа шахна: JPG — mozjpeg 80%, PNG — палитр + хамгийн их шахалт, WEBP — 80%.
+// Хэмжээ (px) нь өргөнөөр багасна, эх формат хэвээр (файлын нэр/өргөтгөл өөрчлөгдөхгүй).
+// Шахсан нь эхээсээ том гарвал (аль хэдийн шахагдсан жижиг зураг) эхийг нь хуулна.
+const QUALITY = 80;
+const encode = (image, target) => {
+  const ext = path.extname(target).toLowerCase();
+  if (ext === ".png") return image.png({ compressionLevel: 9, palette: true, quality: QUALITY, effort: 7 });
+  if (ext === ".webp") return image.webp({ quality: QUALITY, effort: 4 });
+  return image.jpeg({ quality: QUALITY, mozjpeg: true });
+};
+const resize = async (source, width, target) => {
+  const info = await encode(sharp(source).rotate().resize({ width, withoutEnlargement: true }), target).toFile(target);
+  const { size: original } = await fs.promises.stat(source);
+  const { width: sourceWidth } = await sharp(source).metadata();
+  // Хэмжээ нь багасаагүй (жижиг зураг) бөгөөд шахалт нь жинг нэмсэн бол эхийг нь үлдээнэ
+  if (sourceWidth && sourceWidth <= width && info.size > original) await fs.promises.copyFile(source, target);
+  return info;
+};
 
 // folder доторх fileName-ийн дутуу хувилбаруудыг (icon_, thumb_, grid_) үүсгэнэ — байгааг нь алгасна.
 // source — эх файл (өгөхгүй бол folder доторх main).
