@@ -21,7 +21,7 @@ class AppConfig {
   static const String appName = 'UVS SHOP';
 }
 
-/// Зургийн file id-г URL болгоно. Хэмжээ: icon 128, thumbnail 300, grid 600, original 1600.
+/// Зургийн file id-г URL болгоно. Хэмжээ (дөрвөлжин хайрцагт багтана): icon 128, thumbnail 300, grid 600, original 800.
 String? fileUrl(String? id, [String variant = 'original']) {
   final value = id?.trim();
   if (value == null || value.isEmpty || value == 'null' || value == 'undefined') return null;
