@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import StoreAvatar from "@/components/ui/store-avatar";
 import { fileUrl } from "@/lib/api/files";
 import { getProducts } from "@/lib/api/products";
-import { getStores, tierRank, type Store, type StoreTier } from "@/lib/api/stores";
+import { getStores, storeHref, tierRank, type Store, type StoreTier } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { byNewest, cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
@@ -110,7 +110,7 @@ export default function StoresPage() {
           {stores.map((store) => (
             <Link
               key={store.id}
-              href={`/search?store=${encodeURIComponent(store.name)}`}
+              href={storeHref(store.id)}
               className={cn(
                 "group relative flex flex-col items-center gap-2 rounded-2xl border-2 bg-card p-3 transition duration-300 ease-out hover:-translate-y-1 hover:brand-glow focus-visible:-translate-y-1 focus-visible:brand-glow focus-visible:outline-none",
                 TIER_RING[store.tier] ?? TIER_RING.normal

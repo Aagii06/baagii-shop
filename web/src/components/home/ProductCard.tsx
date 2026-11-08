@@ -7,6 +7,7 @@ import { formatMNT } from "@/lib/utils";
 import { useSavedStore } from "@/store/savedStore";
 import { cn } from "@/lib/utils";
 import { fileUrl } from "@/lib/api/files";
+import { storeHref } from "@/lib/api/stores";
 import { ChevronRight, Heart, MoreHorizontal, Star } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -28,9 +29,17 @@ interface Product {
   /** Seller store's name and logo file id. */
   brand?: string;
   brandLogo?: string;
+  storeId?: number;
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({
+  product,
+  hideStore = false,
+}: {
+  product: Product;
+  /** On a store's own page every card is that store's — no store pill. */
+  hideStore?: boolean;
+}) {
   const { t } = useLanguage();
   const [quickViewOpen, setQuickViewOpen] = useState(false);
 
@@ -136,9 +145,9 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         </CardContent>
 
-        {product.brand && (
+        {product.brand && !hideStore && (
           <Link
-            href={`/search?store=${encodeURIComponent(product.brand)}`}
+            href={product.storeId ? storeHref(product.storeId) : `/search?store=${encodeURIComponent(product.brand)}`}
             title={product.brand}
             className="group/store mx-3 mb-3 flex items-center gap-2 rounded-full border border-border bg-muted/40 py-1 pl-1 pr-2.5 transition-colors hover:border-primary/40 hover:bg-accent sm:mx-4 sm:mb-4"
           >

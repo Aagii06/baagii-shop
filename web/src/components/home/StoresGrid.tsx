@@ -2,7 +2,7 @@
 
 import StoreAvatar from "@/components/ui/store-avatar";
 import { fileUrl } from "@/lib/api/files";
-import { getStores, type Store } from "@/lib/api/stores";
+import { getStores, storeHref, type Store } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -65,7 +65,7 @@ export default function StoresGrid() {
           stores.map((store) => (
             <Link
               key={store.id}
-              href={`/search?store=${encodeURIComponent(store.name)}`}
+              href={storeHref(store.id)}
               title={store.name}
               className={`group ${CARD} transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:brand-glow focus-visible:-translate-y-1 focus-visible:border-primary/40 focus-visible:brand-glow focus-visible:outline-none`}
             >

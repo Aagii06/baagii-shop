@@ -18,6 +18,8 @@ export interface Product {
   categoryId?: number;
   /** The seller store's name; `brandLogo` is its logo file id. */
   brand?: string;
+  /** The seller store's id — its page is `/store?id=`. */
+  storeId?: number;
   brandLogo?: string;
   rating?: number;
   reviewCount?: number;

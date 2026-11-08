@@ -30,6 +30,7 @@ interface ApiProduct {
   categoryId?: number;
   category?: { id: number; name: string; image?: string | null };
   images?: string[];
+  /** The seller store (`/store`). */
   company?: { id: number; name: string; logo?: string | null };
   createdAt?: string;
   updatedAt?: string;
@@ -117,6 +118,7 @@ function mapApiProduct(p: ApiProduct): Product {
     description: p.note ?? undefined,
     categoryId: p.categoryId ?? p.category?.id,
     brand: p.company?.name,
+    storeId: p.company?.id,
     brandLogo: p.company?.logo ?? undefined,
     stock: p.remain !== undefined ? Number(p.remain) : undefined,
     updatedAt: p.updatedAt ?? p.createdAt,

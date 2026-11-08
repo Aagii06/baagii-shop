@@ -26,6 +26,11 @@ interface ApiStoresResponse {
   data: Store[];
 }
 
+/** A store's own page: only its products. */
+export function storeHref(id: number) {
+  return `/store?id=${id}`;
+}
+
 /** Every active store of this shop: highest tier, then most products, first. */
 export async function getStores(): Promise<Store[]> {
   const res = await apiFetch<ApiStoresResponse>("/store", { method: "GET" });

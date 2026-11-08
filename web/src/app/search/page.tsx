@@ -16,7 +16,7 @@ import {
   subtreeIds,
 } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
-import { getStores, type Store } from "@/lib/api/stores";
+import { getStores, storeHref, type Store } from "@/lib/api/stores";
 import { byNewest } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -288,10 +288,15 @@ function SearchContent() {
       : []),
   ];
 
-  // A store tile shows that store's whole catalog: every other filter
-  // (search text, category, sale, price) is cleared. Tapping the picked
-  // store again goes back to all products.
+  // A store tile opens that store's own page (`/store?id=`). A store the
+  // list doesn't know the id of (or tapping the picked one again) falls back
+  // to filtering here: its whole catalog, every other filter cleared.
   const selectStore = (store: string | undefined) => {
+    const id = store ? allStores.find((s) => s.name === store)?.id : undefined;
+    if (id) {
+      router.push(storeHref(id));
+      return;
+    }
     setFilters({ categories: [], brands: store ? [store] : [], priceRange: priceBounds });
     setSaleOnly(false);
     router.push(store ? `/search?store=${encodeURIComponent(store)}` : "/search", {
