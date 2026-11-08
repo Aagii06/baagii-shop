@@ -4,14 +4,14 @@
 //   node scripts/makeVariants.js                    — дутуу хувилбаруудыг үүсгэнэ
 //   node scripts/makeVariants.js products           — зөвхөн заасан folder(ууд)
 //   node scripts/makeVariants.js --force            — хувилбаруудыг устгаад шинэ хэмжээгээр дахин үүсгэнэ
-//   node scripts/makeVariants.js --main             — 1600px-ээс том main зургийг 1600px болгож багасгана
-//                                                     (эх зураг солигдоно — буцаах боломжгүй)
+//   node scripts/makeVariants.js --main             — 800×800-аас том main зургийг 800×800-д багтааж,
+//                                                     шахна (эх зураг солигдоно — буцаах боломжгүй)
 // Жишээ нь хуучин бараануудыг бүрэн шинэчлэх: node scripts/makeVariants.js products --force --main
 // Зургууд сервер дээр байдаг тул сервер дээр (backend/ дотроос) ажиллуулна.
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
-const { uploadsRoot, folderPath, folderVariants, makeVariants, variantName, VARIANTS, MAIN_WIDTH } = require("../helper/fileHelper");
+const { uploadsRoot, folderPath, folderVariants, makeVariants, variantName, VARIANTS, MAIN_SIZE, resizeImage } = require("../helper/fileHelper");
 
 const force = process.argv.includes("--force");
 const shrinkMain = process.argv.includes("--main");
@@ -19,12 +19,12 @@ const only = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
 const prefixes = Object.values(VARIANTS).map((v) => v.prefix);
 const RESIZABLE = /\.(jpe?g|png|webp)$/i;
 
-// main-ийг MAIN_WIDTH болгож багасгана (түр файлд бичээд сольно). Багассан бол true
+// main-ийг MAIN_SIZE×MAIN_SIZE-д багтааж шахна (түр файлд бичээд сольно). Багассан бол true
 const resizeMain = async (file) => {
-  const { width } = await sharp(file).metadata();
-  if (!width || width <= MAIN_WIDTH) return false;
-  const tmp = `${file}.tmp`;
-  await sharp(file).rotate().resize({ width: MAIN_WIDTH }).toFile(tmp);
+  const { width, height } = await sharp(file).metadata();
+  if (!width || !height || Math.max(width, height) <= MAIN_SIZE) return false;
+  const tmp = `${file}.tmp${path.extname(file)}`;
+  await resizeImage(file, MAIN_SIZE, tmp);
   await fs.promises.rename(tmp, file);
   return true;
 };

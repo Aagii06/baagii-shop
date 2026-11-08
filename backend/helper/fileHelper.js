@@ -50,23 +50,24 @@ module.exports.findFile = (fileName) => {
 const isImage = (file) => /^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.mimetype);
 module.exports.isImage = isImage;
 
-// Зураг бүр 4 файлтай (хуучин backend-ийн saveSharpConverter-ийн санаагаар), өргөнөөр нь жижигрүүлнэ:
-//   icon_<нэр>  — 128px: admin-ы жагсаалт, захиалгын мөр, жижиг лого (≤64px)
-//   thumb_<нэр> — 300px: сагс, хямдралын tile, дэлгүүрийн лого карт (≤150px)
-//   grid_<нэр>  — 600px: барааны grid карт, admin-ы зургийн засвар
-//   <нэр>       — main, 1600px: барааны дэлгэрэнгүйн зураг (эх зураг өөрөө хадгалагдахгүй)
+// Зураг бүр 4 файлтай (хуучин backend-ийн saveSharpConverter-ийн санаагаар). Тус бүр size×size
+// дөрвөлжин хайрцагт багтахаар (fit: inside — харьцаа хэвээр, урт тал нь size) жижигрүүлнэ:
+//   icon_<нэр>  — 128: admin-ы жагсаалт, захиалгын мөр, жижиг лого (≤64px)
+//   thumb_<нэр> — 300: сагс, хямдралын tile, дэлгүүрийн лого карт (≤150px)
+//   grid_<нэр>  — 600: барааны grid карт, admin-ы зургийн засвар
+//   <нэр>       — main, 800: барааны дэлгэрэнгүйн зураг (эх зураг өөрөө хадгалагдахгүй)
 // Retina дэлгэцэнд харагдах хэмжээнээс 2 дахин том. Жижиг зургийг томруулахгүй.
 // JPG/PNG/WEBP-ээс бусдыг (svg, gif) жижигрүүлэхгүй — эхээр нь хадгалж, бүх хэмжээнд эх нь харагдана.
 const VARIANTS = {
-  icon: { prefix: "icon_", width: 128 },
-  thumb: { prefix: "thumb_", width: 300 },
-  grid: { prefix: "grid_", width: 600 },
+  icon: { prefix: "icon_", size: 128 },
+  thumb: { prefix: "thumb_", size: 300 },
+  grid: { prefix: "grid_", size: 600 },
 };
-const MAIN_WIDTH = 1600;
+const MAIN_SIZE = 800;
 const RESIZABLE = /\.(jpe?g|png|webp)$/i;
 const folderVariants = () => Object.keys(VARIANTS);
 module.exports.VARIANTS = VARIANTS;
-module.exports.MAIN_WIDTH = MAIN_WIDTH;
+module.exports.MAIN_SIZE = MAIN_SIZE;
 module.exports.folderVariants = folderVariants;
 module.exports.variantName = (variant, fileName) => `${VARIANTS[variant].prefix}${fileName}`;
 
@@ -88,14 +89,16 @@ const encode = (image, target) => {
   if (ext === ".webp") return image.webp({ quality: QUALITY, effort: 4 });
   return image.jpeg({ quality: QUALITY, mozjpeg: true });
 };
-const resize = async (source, width, target) => {
-  const info = await encode(sharp(source).rotate().resize({ width, withoutEnlargement: true }), target).toFile(target);
+const fitBox = (size) => ({ width: size, height: size, fit: "inside", withoutEnlargement: true });
+const resize = async (source, size, target) => {
+  const info = await encode(sharp(source).rotate().resize(fitBox(size)), target).toFile(target);
   const { size: original } = await fs.promises.stat(source);
-  const { width: sourceWidth } = await sharp(source).metadata();
+  const { width, height } = await sharp(source).metadata();
   // Хэмжээ нь багасаагүй (жижиг зураг) бөгөөд шахалт нь жинг нэмсэн бол эхийг нь үлдээнэ
-  if (sourceWidth && sourceWidth <= width && info.size > original) await fs.promises.copyFile(source, target);
+  if (width && height && Math.max(width, height) <= size && info.size > original) await fs.promises.copyFile(source, target);
   return info;
 };
+module.exports.resizeImage = resize;
 
 // folder доторх fileName-ийн дутуу хувилбаруудыг (icon_, thumb_, grid_) үүсгэнэ — байгааг нь алгасна.
 // source — эх файл (өгөхгүй бол folder доторх main).
@@ -108,7 +111,7 @@ const makeVariants = async (folder, fileName, source) => {
       const target = path.join(dir, module.exports.variantName(variant, fileName));
       if (fs.existsSync(target)) return;
       try {
-        await resize(from, VARIANTS[variant].width, target);
+        await resize(from, VARIANTS[variant].size, target);
       } catch (error) {
         // уншиж чадахгүй бол хувилбаргүй — харуулахдаа main руу буцна
       }
@@ -126,7 +129,7 @@ module.exports.saveImage = async (file, folder = DEFAULT_FOLDER) => {
   await fs.promises.mkdir(uploadPath, { recursive: true });
   try {
     if (!RESIZABLE.test(fileName)) throw new Error("not resizable");
-    await resize(file.filepath, MAIN_WIDTH, main);
+    await resize(file.filepath, MAIN_SIZE, main);
   } catch (error) {
     await fs.promises.copyFile(file.filepath, main);
   }
