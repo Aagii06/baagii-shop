@@ -123,6 +123,7 @@ export const mn: Dict = {
   "store.backSearch": "Хайлт руу буцах",
   "store.backHome": "Нүүр рүү буцах",
   "store.backOther": "Буцах",
+  "store.noMatch": "Шүүлтэд тохирох бараа алга.",
   "store.back": "Бүх дэлгүүр",
   "store.notFound": "Дэлгүүр олдсонгүй",
   "store.notFoundDesc": "Энэ дэлгүүр хаагдсан эсвэл холбоос буруу байна.",

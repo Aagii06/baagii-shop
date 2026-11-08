@@ -123,6 +123,7 @@ export const ru: Dict = {
   "store.backSearch": "Назад к поиску",
   "store.backHome": "На главную",
   "store.backOther": "Назад",
+  "store.noMatch": "Нет товаров по этим фильтрам.",
   "store.back": "Все магазины",
   "store.notFound": "Магазин не найден",
   "store.notFoundDesc": "Магазин закрыт или ссылка неверна.",

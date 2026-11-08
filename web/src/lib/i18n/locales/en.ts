@@ -123,6 +123,7 @@ export const en: Dict = {
   "store.backSearch": "Back to search",
   "store.backHome": "Back to home",
   "store.backOther": "Back",
+  "store.noMatch": "No products match these filters.",
   "store.back": "All stores",
   "store.notFound": "Store not found",
   "store.notFoundDesc": "This store is closed or the link is wrong.",
