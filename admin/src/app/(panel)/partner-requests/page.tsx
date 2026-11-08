@@ -1,5 +1,6 @@
 "use client";
 
+import { atLeast, LOAD_MORE_MARGIN, LoadingMore } from "@/components/common/LoadMore";
 import ChipTabs from "@/components/common/ChipTabs";
 import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState } from "@/components/common/States";
@@ -247,7 +248,7 @@ export default function PartnerRequestsPage() {
     setLoadingMore(true);
     setMoreFailed(false);
     try {
-      const result = await getPartnerRequestsPage({ skip: page.rows.length, take: PAGE_SIZE, status: filter });
+      const result = await atLeast(getPartnerRequestsPage({ skip: page.rows.length, take: PAGE_SIZE, status: filter }));
       setPage((prev) =>
         prev && prev.key === key
           ? {
@@ -271,7 +272,7 @@ export default function PartnerRequestsPage() {
     const node = sentinel.current;
     if (!node || !hasMore || moreFailed) return;
     const observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
-      rootMargin: "600px 0px",
+      rootMargin: LOAD_MORE_MARGIN,
     });
     observer.observe(node);
     return () => observer.disconnect();
@@ -393,7 +394,7 @@ export default function PartnerRequestsPage() {
                   {t("common.retry")}
                 </Button>
               ) : (
-                <PartnerRequestsSkeleton rows={2} stats={false} />
+                <LoadingMore />
               )}
             </div>
           )}

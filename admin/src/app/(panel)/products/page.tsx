@@ -1,5 +1,6 @@
 "use client";
 
+import { atLeast, LOAD_MORE_MARGIN, LoadingMore } from "@/components/common/LoadMore";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { tr } from "@/lib/i18n/translations";
 import { EmptyState, ErrorState } from "@/components/common/States";
@@ -96,12 +97,12 @@ export default function ProductsPage() {
     setLoadingMore(true);
     setMoreFailed(false);
     try {
-      const result = await getPostsPage({
+      const result = await atLeast(getPostsPage({
         skip: page.rows.length,
         take: PAGE_SIZE,
         query: debouncedQuery,
         categoryIds,
-      });
+      }));
       setPage((prev) =>
         prev && prev.key === key
           ? {
@@ -124,7 +125,7 @@ export default function ProductsPage() {
     const node = sentinel.current;
     if (!node || !hasMore || moreFailed) return;
     const observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
-      rootMargin: "600px 0px",
+      rootMargin: LOAD_MORE_MARGIN,
     });
     observer.observe(node);
     return () => observer.disconnect();
@@ -206,7 +207,7 @@ export default function ProductsPage() {
                   {t("common.retry")}
                 </Button>
               ) : (
-                <ProductListSkeleton rows={3} className="border-b-0" />
+                <LoadingMore />
               )}
             </div>
           )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { atLeast, LOAD_MORE_MARGIN, LoadingMore } from "@/components/common/LoadMore";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useConfirm } from "@/components/common/Confirm";
 import ChipTabs from "@/components/common/ChipTabs";
@@ -109,12 +110,12 @@ function OrdersList() {
     setLoadingMore(true);
     setMoreFailed(false);
     try {
-      const result = await getOrdersPage({
+      const result = await atLeast(getOrdersPage({
         skip: page.rows.length,
         take: PAGE_SIZE,
         status: filter,
         phone: phone || undefined,
-      });
+      }));
       setPage((prev) =>
         prev && prev.key === key
           ? {
@@ -138,7 +139,7 @@ function OrdersList() {
     const node = sentinel.current;
     if (!node || !hasMore || moreFailed) return;
     const observer = new IntersectionObserver((entries) => entries[0]?.isIntersecting && loadMore(), {
-      rootMargin: "600px 0px",
+      rootMargin: LOAD_MORE_MARGIN,
     });
     observer.observe(node);
     return () => observer.disconnect();
@@ -310,7 +311,7 @@ function OrdersList() {
                   {t("common.retry")}
                 </Button>
               ) : (
-                <OrderListSkeleton rows={2} className="border-b-0" />
+                <LoadingMore />
               )}
             </div>
           )}
