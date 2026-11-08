@@ -31,6 +31,28 @@ export function storeHref(id: number) {
   return `/store?id=${id}`;
 }
 
+/** One store with its contacts — for its own page. */
+export interface StoreDetail extends Store {
+  phones: string[];
+  emails: string[];
+  addresses: string[];
+}
+
+/**
+ * `GET /store/{id}`. Falls back to the list entry (no contacts) if the
+ * backend doesn't have the endpoint yet; `null` for an unknown store.
+ */
+export async function getStore(id: number): Promise<StoreDetail | null> {
+  try {
+    const res = await apiFetch<{ success: boolean; data: StoreDetail | null }>(`/store/${id}`, { method: "GET" });
+    if (res.data) return res.data;
+  } catch {
+    // older backend or unknown id — see below
+  }
+  const store = (await getStores()).find((s) => s.id === id);
+  return store ? { ...store, phones: [], emails: [], addresses: [] } : null;
+}
+
 /** Every active store of this shop: highest tier, then most products, first. */
 export async function getStores(): Promise<Store[]> {
   const res = await apiFetch<ApiStoresResponse>("/store", { method: "GET" });

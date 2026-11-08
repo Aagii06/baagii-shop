@@ -119,6 +119,7 @@ export const ru: Dict = {
   "stores.tier.gold": "Gold",
   "stores.tier.silver": "Silver",
   "stores.tier.bronze": "Bronze",
+  "store.contact": "Контакты",
   "store.back": "Все магазины",
   "store.notFound": "Магазин не найден",
   "store.notFoundDesc": "Магазин закрыт или ссылка неверна.",

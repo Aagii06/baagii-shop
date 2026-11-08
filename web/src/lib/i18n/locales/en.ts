@@ -119,6 +119,7 @@ export const en: Dict = {
   "stores.tier.gold": "Gold",
   "stores.tier.silver": "Silver",
   "stores.tier.bronze": "Bronze",
+  "store.contact": "Contact",
   "store.back": "All stores",
   "store.notFound": "Store not found",
   "store.notFoundDesc": "This store is closed or the link is wrong.",

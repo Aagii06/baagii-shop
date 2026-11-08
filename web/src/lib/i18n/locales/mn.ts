@@ -119,6 +119,7 @@ export const mn: Dict = {
   "stores.tier.gold": "Gold",
   "stores.tier.silver": "Silver",
   "stores.tier.bronze": "Bronze",
+  "store.contact": "Холбоо барих",
   "store.back": "Бүх дэлгүүр",
   "store.notFound": "Дэлгүүр олдсонгүй",
   "store.notFoundDesc": "Энэ дэлгүүр хаагдсан эсвэл холбоос буруу байна.",

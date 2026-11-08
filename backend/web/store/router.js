@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { stores, products, sequelize } = require("../../models");
-const { ok, handle } = require("../../helper/helper");
+const { ok, fail, handle } = require("../../helper/helper");
 const { storeTiers } = require("../../config/constants");
 
 // gold → silver → bronze → normal
@@ -36,6 +36,32 @@ router.get(
           String(a.name).localeCompare(String(b.name)),
       );
     return ok(res, list);
+  }),
+);
+
+// Нэг дэлгүүр (дэлгүүрийн хуудас — web /store?id=): холбоо барих мэдээлэлтэй.
+// Буцаах: { id, name, logo, tier, productCount, phones, emails, addresses }
+router.get(
+  "/:id",
+  handle("storeShow", async (req, res) => {
+    const id = Number(req.params.id);
+    const row = Number.isInteger(id)
+      ? await stores.findOne({ where: { id, shop_id: req.shopId, status: "active" }, raw: true })
+      : null;
+    if (!row) return fail(res, "Дэлгүүр олдсонгүй");
+    const productCount = await products.count({
+      where: { shop_id: req.shopId, store_id: row.id, status: "active", is_active: true },
+    });
+    return ok(res, {
+      id: row.id,
+      name: row.name,
+      logo: row.logo || null,
+      tier: row.tier || "normal",
+      productCount,
+      phones: stores.listOf(row, "phones", "phone"),
+      emails: stores.listOf(row, "emails", "email"),
+      addresses: stores.listOf(row, "addresses", "address"),
+    });
   }),
 );
 
