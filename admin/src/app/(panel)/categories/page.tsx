@@ -254,7 +254,12 @@ export default function CategoriesPage() {
         if (!ok) return;
       }
       setMoveBusy("saving");
-      if (await run(() => moveCategoryTo(category.id, parent?.id ?? null, index), t("cat.moved"))) {
+      // A fast server would only flash the overlay; keep it up long enough to see.
+      const [moved] = await Promise.all([
+        run(() => moveCategoryTo(category.id, parent?.id ?? null, index), t("cat.moved")),
+        new Promise((resolve) => setTimeout(resolve, 500)),
+      ]);
+      if (moved) {
         // Show where it went.
         if (parent) setExpanded((prev) => new Set(prev).add(parent.id));
         setMoveBusy("reloading");
