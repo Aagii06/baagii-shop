@@ -343,6 +343,7 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title={t("dash.title")}
+        hideTitle
         aside={
           <span className="shrink-0 font-mono text-sm text-muted-foreground">
             {formatDate(new Date())}
