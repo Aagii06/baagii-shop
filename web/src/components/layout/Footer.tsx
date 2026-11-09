@@ -52,8 +52,14 @@ export default function Footer() {
               <span className="grid size-12 place-items-center rounded-2xl bg-white shadow-lg shadow-black/20">
                 <Image src={logo} alt="" className="h-9 w-9 object-contain" />
               </span>
-              <span className="text-xl font-bold tracking-tight text-white">
-                {t("header.brand.name")}
+              <span className="flex flex-col leading-tight">
+                <span className="text-xl font-bold tracking-tight text-white">
+                  {t("header.brand.name")}
+                </span>
+                {/* Same line as under the header logo: "Увс анхны зарын сайт". */}
+                <span className="text-sm font-medium text-amber-300">
+                  {t("header.brand.tagline")}
+                </span>
               </span>
             </Link>
             <p className="mb-5 max-w-xs text-sm leading-relaxed text-white/70">

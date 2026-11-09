@@ -416,11 +416,34 @@ class StoreTile extends StatelessWidget {
   final Store store;
   const StoreTile(this.store, {super.key});
 
+  // web-ийн StoresGrid: gold/silver/bronze дэлгүүрт өнгөт хүрээ, булангийн тууз.
+  static const _ribbon = {
+    'gold': [Color(0xFFFCD34D), Color(0xFFFACC15), Color(0xFFF59E0B)],
+    'silver': [Color(0xFFE2E8F0), Color(0xFF94A3B8)],
+    'bronze': [Color(0xFFFDBA74), Color(0xFFB45309)],
+  };
+  static const _ring = {
+    'gold': Color(0xFFFBBF24),
+    'silver': Color(0xFFCBD5E1),
+    'bronze': Color(0xFFFDBA74),
+  };
+
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final ring = _ring[store.tier];
+    final ribbon = _ribbon[store.tier];
+    return Container(
         width: 112,
-        decoration: _cardBox(16),
-        child: Material(
+        clipBehavior: Clip.antiAlias,
+        decoration: ring == null
+            ? _cardBox(16)
+            : BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: ring, width: 2),
+              ),
+        child: Stack(children: [
+          Material(
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
@@ -443,7 +466,31 @@ class StoreTile extends StatelessWidget {
             ),
           ),
         ),
+          if (ribbon != null)
+            Positioned(
+              top: 12,
+              right: -28,
+              child: IgnorePointer(
+                child: Transform.rotate(
+                  angle: 0.785398, // 45°
+                  child: Container(
+                    width: 96,
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: ribbon),
+                      boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 2, offset: Offset(0, 1))],
+                    ),
+                    child: Text(store.tier.toUpperCase(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: Color(0xFF451A03))),
+                  ),
+                ),
+              ),
+            ),
+        ]),
       );
+  }
 }
 
 class _StoreTileSkeleton extends StatelessWidget {
