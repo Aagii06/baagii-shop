@@ -15,7 +15,22 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
 /**
- * "Are you sure?" sheet that also asks for the signed-in admin's password.
+ * The admin password typed for the last delete, remembered for 15 minutes so
+ * back-to-back deletes skip the field. Memory only (never storage): a reload
+ * or sign-out forgets it.
+ */
+const PASSWORD_TTL_MS = 15 * 60 * 1000;
+let rememberedPassword: { value: string; until: number } | null = null;
+
+function getRememberedPassword() {
+  if (rememberedPassword && rememberedPassword.until > Date.now()) return rememberedPassword.value;
+  rememberedPassword = null;
+  return "";
+}
+
+/**
+ * "Are you sure?" sheet that also asks for the signed-in admin's password,
+ * unless one was entered in the last 15 minutes.
  * Stays open on a wrong password so it can be retyped.
  */
 function DeleteCustomerDialog({
@@ -32,6 +47,8 @@ function DeleteCustomerDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const errorId = useId();
+  // Read once per dialog (it is keyed by customer).
+  const [remembered, setRemembered] = useState(getRememberedPassword);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -49,18 +66,25 @@ function DeleteCustomerDialog({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!customer || busy) return;
-    if (!password) {
+    const pw = remembered || password;
+    if (!pw) {
       setError(t("cu.passwordRequired"));
       return;
     }
     setBusy(true);
     try {
-      await deleteCustomer(customer.id, password);
+      await deleteCustomer(customer.id, pw);
+      rememberedPassword = { value: pw, until: Date.now() + PASSWORD_TTL_MS };
       dialogRef.current?.close();
       show(t("cu.deleted"));
       onDeleted();
       onClose();
     } catch (err) {
+      // The remembered password may be stale (changed, or another admin): ask again.
+      if (remembered) {
+        rememberedPassword = null;
+        setRemembered("");
+      }
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setBusy(false);
@@ -97,22 +121,26 @@ function DeleteCustomerDialog({
             {" · "}
             {t("cu.deleteDesc")}
           </p>
-          <label className="mt-5 block text-sm font-semibold" htmlFor={`${titleId}-pw`}>
-            {t("cu.adminPassword")}
-          </label>
-          <Input
-            id={`${titleId}-pw`}
-            type="password"
-            autoComplete="current-password"
-            className="mt-1.5"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setError("");
-            }}
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? errorId : undefined}
-          />
+          {!remembered && (
+            <>
+            <label className="mt-5 block text-sm font-semibold" htmlFor={`${titleId}-pw`}>
+              {t("cu.adminPassword")}
+            </label>
+            <Input
+              id={`${titleId}-pw`}
+              type="password"
+              autoComplete="current-password"
+              className="mt-1.5"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? errorId : undefined}
+            />
+            </>
+          )}
           {error && (
             <p id={errorId} role="alert" className="mt-1.5 text-xs font-semibold text-destructive">
               {error}
