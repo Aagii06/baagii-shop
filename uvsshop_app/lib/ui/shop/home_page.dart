@@ -422,27 +422,60 @@ class _StoresRow extends StatelessWidget {
   }
 }
 
+/// Дэлгүүрийн түвшний хүрээний өнгө (web: TIER_BORDER).
+const tierRing = {
+  'gold': Color(0xFFFBBF24),
+  'silver': Color(0xFFCBD5E1),
+  'bronze': Color(0xFFFDBA74),
+};
+const _tierRibbon = {
+  'gold': [Color(0xFFFCD34D), Color(0xFFFACC15), Color(0xFFF59E0B)],
+  'silver': [Color(0xFFE2E8F0), Color(0xFF94A3B8)],
+  'bronze': [Color(0xFFFDBA74), Color(0xFFB45309)],
+};
+
+/// Картын баруун дээд буланд налуу тууз ("GOLD"); Stack дотор, карт нь
+/// clip хийсэн байх ёстой. Энгийн дэлгүүрт юу ч зурахгүй (web: TierRibbon).
+class TierRibbon extends StatelessWidget {
+  final String tier;
+  const TierRibbon(this.tier, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _tierRibbon[tier];
+    if (colors == null) return const SizedBox.shrink();
+    return Positioned(
+      top: 12,
+      right: -28,
+      child: IgnorePointer(
+        child: Transform.rotate(
+          angle: 0.785398, // 45°
+          child: Container(
+            width: 96,
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: colors),
+              boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 2, offset: Offset(0, 1))],
+            ),
+            child: Text(tier.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: Color(0xFF451A03))),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Дэлгүүрийн лого tile — дарвал тэр дэлгүүрийн бараагаар хайна.
 class StoreTile extends StatelessWidget {
   final Store store;
   const StoreTile(this.store, {super.key});
 
-  // web-ийн StoresGrid: gold/silver/bronze дэлгүүрт өнгөт хүрээ, булангийн тууз.
-  static const _ribbon = {
-    'gold': [Color(0xFFFCD34D), Color(0xFFFACC15), Color(0xFFF59E0B)],
-    'silver': [Color(0xFFE2E8F0), Color(0xFF94A3B8)],
-    'bronze': [Color(0xFFFDBA74), Color(0xFFB45309)],
-  };
-  static const _ring = {
-    'gold': Color(0xFFFBBF24),
-    'silver': Color(0xFFCBD5E1),
-    'bronze': Color(0xFFFDBA74),
-  };
-
   @override
   Widget build(BuildContext context) {
-    final ring = _ring[store.tier];
-    final ribbon = _ribbon[store.tier];
+    final ring = tierRing[store.tier];
     return Container(
         width: 112,
         clipBehavior: Clip.antiAlias,
@@ -477,28 +510,7 @@ class StoreTile extends StatelessWidget {
             ),
           ),
         ),
-          if (ribbon != null)
-            Positioned(
-              top: 12,
-              right: -28,
-              child: IgnorePointer(
-                child: Transform.rotate(
-                  angle: 0.785398, // 45°
-                  child: Container(
-                    width: 96,
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: ribbon),
-                      boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 2, offset: Offset(0, 1))],
-                    ),
-                    child: Text(store.tier.toUpperCase(),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: Color(0xFF451A03))),
-                  ),
-                ),
-              ),
-            ),
+          TierRibbon(store.tier),
         ]),
       );
   }

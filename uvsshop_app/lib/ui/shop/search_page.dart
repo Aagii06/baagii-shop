@@ -7,7 +7,7 @@ import '../../api/shop_models.dart';
 import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
-import 'home_page.dart' show byNewest, goldFirst;
+import 'home_page.dart' show byNewest, goldFirst, tierRing, TierRibbon;
 import 'product_card.dart';
 import 'store_page.dart';
 
@@ -210,7 +210,14 @@ class _SearchPageState extends State<SearchPage> {
         : activeCategory?.name ?? (_saleOnly ? 'Хямдрал' : 'Бүх бараа');
     final pickedStore = _filters.stores.length == 1 ? _filters.stores.first : null;
     final counts = _storeCounts;
-    final storeNames = counts.keys.toList()..sort((a, b) => counts[b]!.compareTo(counts[a]!));
+    // Дээд түвшний (gold → silver → bronze) дэлгүүр эхэнд, дараа нь бараа ихтэй нь.
+    final tierOf = {for (final s in _allStores) s.name: s.tier};
+    const rank = {'gold': 0, 'silver': 1, 'bronze': 2};
+    final storeNames = counts.keys.toList()
+      ..sort((a, b) {
+        final r = (rank[tierOf[a]] ?? 3) - (rank[tierOf[b]] ?? 3);
+        return r != 0 ? r : counts[b]!.compareTo(counts[a]!);
+      });
     final logos = _storeLogos;
 
     return Scaffold(
@@ -269,20 +276,26 @@ class _SearchPageState extends State<SearchPage> {
                       onTap: () => _selectStore(active ? null : name),
                       child: Container(
                         width: 96,
-                        padding: const EdgeInsets.all(10),
+                        clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: active ? brandColor : borderColor, width: 2),
+                          border: Border.all(color: active ? brandColor : tierRing[tierOf[name]] ?? borderColor, width: 2),
                         ),
-                        child: Column(children: [
-                          StoreAvatar(name: name, logo: logos[name], size: 52, radius: 12),
-                          const SizedBox(height: 6),
-                          Text(name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: active ? brandColor : Colors.black87)),
-                          Text('${counts[name]}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                        child: Stack(children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(children: [
+                              StoreAvatar(name: name, logo: logos[name], size: 52, radius: 12),
+                              const SizedBox(height: 6),
+                              Text(name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: active ? brandColor : Colors.black87)),
+                              Text('${counts[name]}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                            ]),
+                          ),
+                          TierRibbon(tierOf[name] ?? 'normal'),
                         ]),
                       ),
                     );

@@ -170,6 +170,11 @@ function SearchContent() {
 
   const priceBounds = useMemo(() => computePriceBounds(products), [products]);
 
+  const storeTiers = useMemo(
+    () => Object.fromEntries(allStores.map((s) => [s.name, s.tier])),
+    [allStores],
+  );
+
   const counts = useMemo(() => {
     const brand: Record<string, number> = {};
     const brandLogo: Record<string, string | undefined> = {};
@@ -318,6 +323,7 @@ function SearchContent() {
       <div className="mb-6">
         <StoreTiles
           counts={counts}
+          tiers={storeTiers}
           selected={filters.brands.length === 1 ? filters.brands[0] : undefined}
           onSelect={selectStore}
         />
