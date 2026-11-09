@@ -52,10 +52,19 @@ export interface StoreInput {
   tier: StoreTier;
 }
 
-/** By name. */
+/** By tier (gold first), then oldest first; id breaks ties. */
 export async function getStores(): Promise<Store[]> {
   const res = await apiFetch<ApiListResponse<Store>>("/store");
-  return res.data?.rows ?? [];
+  const rank = (s: Store) => {
+    const i = STORE_TIERS.indexOf(s.tier);
+    return i < 0 ? STORE_TIERS.length : i;
+  };
+  return (res.data?.rows ?? []).sort(
+    (a, b) =>
+      rank(a) - rank(b) ||
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() ||
+      a.id - b.id,
+  );
 }
 
 export async function getStore(id: number): Promise<Store | null> {
