@@ -244,7 +244,7 @@ module.exports = {
     "/web/auth/verifyOtp": {
       post: op("Web: Нэвтрэх", "Кодоор нэвтрэх (зочны сагс худалдан авагчид шилжинэ)", {
         security: web,
-        requestBody: json({ phone: str("95001122"), code: str("2222") }, ["phone", "code"]),
+        requestBody: json({ phone: str("95001122"), code: str("4821") }, ["phone", "code"]),
       }),
     },
     "/web/auth/me": { put: op("Web: Нэвтрэх", "Нэрээ солих", { security: web, requestBody: json({ name: str("Бат") }, ["name"]) }) },

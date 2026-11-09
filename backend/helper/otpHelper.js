@@ -5,8 +5,8 @@ const { now, parseAt, FORMAT } = require("./helper");
 const { isSmsConfigured, sendSms } = require("./smsHelper");
 
 // Утсаар (SMS) нэг удаагийн код. SMS-ийг Android утсан дээрх gateway app илгээнэ
-// (helper/smsHelper.js). SMS_GATEWAY_TOKEN тохируулаагүй үед л код нь бүх дугаарт
-// OTP_DEV_CODE (анхдагч 2222).
+// (helper/smsHelper.js). Код үргэлж санамсаргүй. SMS_GATEWAY_TOKEN тохируулаагүй үед
+// production-д код илгээхгүй (алдаа буцаана), dev орчинд кодыг консолд хэвлэнэ.
 const OTP_TTL_SECONDS = 10 * 60;
 const OTP_RESEND_SECONDS = 30;
 const OTP_MAX_ATTEMPTS = 5;
@@ -22,7 +22,8 @@ const purposeText = { login: "нэвтрэх код", partner: "бүртгэли
 // SMS-ээр илгээнэ. Gateway (утас) холбогдоогүй бол алдааны мессеж буцаана.
 const deliver = async (shopId, phone, purpose, code) => {
   if (!isSmsConfigured()) {
-    if (process.env.NODE_ENV !== "production") console.log(`[sms холбогдоогүй] OTP ${phone}: ${code}`);
+    if (process.env.NODE_ENV === "production") return "SMS үйлчилгээ одоогоор ажиллахгүй байна";
+    console.log(`[dev, sms холбогдоогүй] OTP ${phone}: ${code}`);
     return null;
   }
   const shop = await shops.findOne({ where: { id: shopId }, attributes: ["name"], raw: true });
@@ -37,7 +38,7 @@ const deliver = async (shopId, phone, purpose, code) => {
 
 // Код нь дэлгүүр бүрт тусдаа (нэг дугаар хоёр дэлгүүрт өөр өөр хэрэглэгч).
 // send(code) өгвөл (жишээ нь имэйл) санамсаргүй 6 оронтой кодыг түүгээр илгээнэ; false буцаавал алдаа.
-// send === null — SMS биш суваг (имэйл) тохируулаагүй: SMS руу явуулахгүй, OTP_DEV_CODE ажиллана.
+// send === null — SMS биш суваг (имэйл) тохируулаагүй (зөвхөн dev): санамсаргүй кодыг консолд хэвлэнэ.
 module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login", send) => {
   const where = { shop_id: shopId, phone, purpose };
   const existing = await phoneOtps.findOne({ where });
@@ -46,13 +47,14 @@ module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login", send) => 
 
   let code;
   if (send === null) {
-    code = process.env.OTP_DEV_CODE || "2222";
-    console.log(`[суваг тохируулаагүй] OTP ${phone}: ${code}`);
+    if (process.env.NODE_ENV === "production") return { success: false, message: "Код илгээх тохиргоо хийгдээгүй байна" };
+    code = String(crypto.randomInt(100000, 1000000));
+    console.log(`[dev, суваг тохируулаагүй] OTP ${phone}: ${code}`);
   } else if (send) {
     code = String(crypto.randomInt(100000, 1000000));
     if (!(await send(code))) return { success: false, message: "Код илгээж чадсангүй. Дахин оролдоно уу" };
   } else {
-    code = isSmsConfigured() ? newPhoneOtp() : process.env.OTP_DEV_CODE || "2222";
+    code = newPhoneOtp();
     const error = await deliver(shopId, phone, purpose, code);
     if (error) return { success: false, message: error };
   }

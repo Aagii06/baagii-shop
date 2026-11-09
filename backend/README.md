@@ -71,8 +71,8 @@ migrations/, seeders/
   худалдан авагчийн токен буцаана. Код (4 оронтой) SMS-ээр очно: Android утсан
   дээрх gateway app (`BaagiiCar/sms_gateway_app`) `GET /api/sms-gateway/pending`-ээр
   `sms_outbox`-оос татаж өөрийн SIM-ээр илгээнэ (`helper/smsHelper.js`). App-д
-  серверийн хаяг, `.env`-ийн `SMS_GATEWAY_TOKEN`-ийг оруулна. Token хоосон бол
-  код нь бүх дугаарт `OTP_DEV_CODE` (анхдагч 2222).
+  серверийн хаяг, `.env`-ийн `SMS_GATEWAY_TOKEN`-ийг оруулна. Код үргэлж
+  санамсаргүй. Token хоосон бол production-д код илгээгдэхгүй, dev-д консолд хэвлэгдэнэ.
 
 ## Захиалга
 

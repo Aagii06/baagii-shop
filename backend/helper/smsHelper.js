@@ -7,8 +7,8 @@ const { smsOutbox, op } = require("../models");
 //   2. Утас GET /api/sms-gateway/pending-ээр (long-poll) татаж аваад илгээнэ
 //   3. Утас POST /api/sms-gateway/:id/status-аар үр дүнгээ мэдээлнэ
 //
-// .env-д SMS_GATEWAY_TOKEN тохируулаагүй бол isSmsConfigured() false - утасны OTP нь
-// OTP_DEV_CODE (анхдагч "2222") тогтмол кодыг ашиглана (helper/otpHelper.js).
+// .env-д SMS_GATEWAY_TOKEN тохируулаагүй бол isSmsConfigured() false - production-д утасны OTP
+// илгээгдэхгүй, dev орчинд санамсаргүй кодыг консолд хэвлэнэ (helper/otpHelper.js).
 // Хоёр дэлгүүр нэг gateway (нэг утас)-г хуваалцана.
 
 const { now, FORMAT } = require("./helper");
