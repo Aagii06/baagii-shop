@@ -1,6 +1,7 @@
 "use client";
 
 import SafeImage from "@/components/ui/safe-image";
+import { goldFirst, type Store } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { byNewest, formatMNT } from "@/lib/utils";
 import type { Product } from "@/types/product";
@@ -37,12 +38,16 @@ function byFeatured(a: Product, b: Product) {
 /**
  * Discounted products under a countdown. With nothing on sale it shows
  * featured products instead; a short deals row is topped up with them too.
+ * Featured: gold stores' products first (newest first), then best sellers.
  */
 export default function DealsSection({
   products,
+  stores = [],
   loading = false,
 }: {
   products: Product[];
+  /** For the store tiers: gold stores' products lead the featured tiles. */
+  stores?: Store[];
   /** While products load: placeholder tiles under the live countdown. */
   loading?: boolean;
 }) {
@@ -60,9 +65,10 @@ export default function DealsSection({
     .sort((a, b) => b.discount - a.discount)
     .slice(0, TILES);
   const dealIds = new Set(deals.map((d) => d.product.id));
-  const featured = products
-    .filter((p) => !dealIds.has(p.id))
-    .sort(byFeatured)
+  const featured = goldFirst(
+    products.filter((p) => !dealIds.has(p.id)).sort(byFeatured),
+    stores,
+  )
     .slice(0, TILES - deals.length)
     .map((p) => ({ product: p, discount: 0 }));
   const tiles = [...deals, ...featured];

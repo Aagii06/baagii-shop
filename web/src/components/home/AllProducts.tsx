@@ -45,7 +45,7 @@ export default function AllProducts() {
   return (
     <>
       <StoresGrid />
-      <DealsSection products={products} loading={loading} />
+      <DealsSection products={products} stores={stores} loading={loading} />
       {/* CategoryShowcase hides itself under 4 products; hide its title too. */}
       {(loading || products.length >= 4) && (
         <section>

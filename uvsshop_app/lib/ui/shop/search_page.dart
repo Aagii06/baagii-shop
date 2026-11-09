@@ -7,7 +7,7 @@ import '../../api/shop_models.dart';
 import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
-import 'home_page.dart' show byNewest;
+import 'home_page.dart' show byNewest, goldFirst;
 import 'product_card.dart';
 import 'store_page.dart';
 
@@ -175,7 +175,8 @@ class _SearchPageState extends State<SearchPage> {
       case SearchSort.discount:
         r.sort((a, b) => (b.onSale ? b.discountPercent ?? 0 : 0).compareTo(a.onSale ? a.discountPercent ?? 0 : 0));
     }
-    return r;
+    // Gold дэлгүүрийн бараа үргэлж эхэнд (web-тэй адил).
+    return goldFirst(r, _allStores);
   }
 
   int get _visibleCount => _page * _pageSize;

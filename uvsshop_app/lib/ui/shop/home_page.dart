@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final newest = [..._products]..sort(byNewest);
+    final newest = goldFirst([..._products]..sort(byNewest), _stores);
     final shown = newest.take(_homeListSize).toList();
     final nav = context.read<ShopNav>();
 
@@ -90,7 +90,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 20),
           _StoresRow(stores: _stores, loading: _storesLoading),
           if (_storesLoading || _stores.isNotEmpty) const SizedBox(height: 20),
-          _DealsSection(products: _products, loading: _loading),
+          _DealsSection(products: _products, stores: _stores, loading: _loading),
           const SizedBox(height: 20),
           _CategoryShowcase(products: _products, loading: _loading),
           const SizedBox(height: 20),
@@ -124,6 +124,17 @@ class _HomePageState extends State<HomePage> {
 /// Сүүлд засварласан нь эхэндээ (web: byNewest).
 int byNewest(Product a, Product b) =>
     (b.updatedAt ?? DateTime(2000)).compareTo(a.updatedAt ?? DateTime(2000));
+
+/// Gold дэлгүүрийн бараа эхэнд (шинэ нь эхэндээ), бусад нь өмнөх дараалалаараа
+/// (web: goldFirst).
+List<Product> goldFirst(List<Product> products, List<Store> stores) {
+  final gold = stores.where((s) => s.tier == 'gold');
+  if (gold.isEmpty) return products;
+  final ids = {for (final s in gold) s.id};
+  final names = {for (final s in gold) s.name};
+  bool isGold(Product p) => p.storeId != null ? ids.contains(p.storeId) : names.contains(p.storeName);
+  return [...products.where(isGold).toList()..sort(byNewest), ...products.where((p) => !isGold(p))];
+}
 
 class _SectionTitle extends StatelessWidget {
   final String title;
@@ -526,8 +537,9 @@ class _Bone extends StatelessWidget {
 
 class _DealsSection extends StatefulWidget {
   final List<Product> products;
+  final List<Store> stores;
   final bool loading;
-  const _DealsSection({required this.products, required this.loading});
+  const _DealsSection({required this.products, required this.stores, required this.loading});
   @override
   State<_DealsSection> createState() => _DealsSectionState();
 }
@@ -563,7 +575,9 @@ class _DealsSectionState extends State<_DealsSection> {
       ..sort((a, b) => (b.discountPercent ?? 0).compareTo(a.discountPercent ?? 0));
     final dealTiles = deals.take(_tiles).toList();
     final dealIds = dealTiles.map((p) => p.id).toSet();
-    final featured = (products.where((p) => !dealIds.contains(p.id)).toList()..sort(byNewest)).take(_tiles - dealTiles.length);
+    // Хямдрал дутвал gold дэлгүүрийн бараагаар эхэлж нөхнө.
+    final featured = goldFirst(products.where((p) => !dealIds.contains(p.id)).toList()..sort(byNewest), widget.stores)
+        .take(_tiles - dealTiles.length);
     final tiles = [...dealTiles, ...featured];
     final featuredOnly = !widget.loading && dealTiles.isEmpty;
     if (!widget.loading && tiles.isEmpty) return const SizedBox.shrink();
