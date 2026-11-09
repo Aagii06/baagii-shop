@@ -10,7 +10,7 @@ export const en: Dict = {
   "header.menuOpen": "Open menu",
   "header.menuClose": "Close menu",
   "header.brand.name": "UVSSHOP.COM",
-  "header.brand.tagline": "Online Shop",
+  "header.brand.tagline": "Uvs's first classifieds site",
   "header.search.placeholder": "Search products, brands, categories...",
   "header.search.placeholderShort": "Search products...",
   "header.search.aria": "Search products",

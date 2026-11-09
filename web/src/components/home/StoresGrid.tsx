@@ -1,15 +1,18 @@
 "use client";
 
 import StoreAvatar from "@/components/ui/store-avatar";
+import TierRibbon, { TIER_BORDER } from "@/components/ui/tier-ribbon";
 import { fileUrl } from "@/lib/api/files";
 import { getStores, storeHref, type Store } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const SKELETON_TILES = 10;
 
-// One card per store: logo on top, then its name and product count. Fixed
+// One card per store: logo on top, then its name and product count; gold,
+// silver and bronze stores get a corner ribbon. Fixed
 // height (the name always gets two lines' room) so every card lines up.
 const CARD =
   "flex h-40 w-28 shrink-0 flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 md:h-44 md:w-32";
@@ -67,8 +70,16 @@ export default function StoresGrid() {
               key={store.id}
               href={storeHref(store.id, "/")}
               title={store.name}
-              className={`group ${CARD} transition duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:brand-glow focus-visible:-translate-y-1 focus-visible:border-primary/40 focus-visible:brand-glow focus-visible:outline-none`}
+              className={cn(
+                "group relative overflow-hidden",
+                CARD,
+                "transition duration-300 ease-out hover:-translate-y-1 hover:brand-glow focus-visible:-translate-y-1 focus-visible:brand-glow focus-visible:outline-none",
+                store.tier === "normal" || !TIER_BORDER[store.tier]
+                  ? "hover:border-primary/40 focus-visible:border-primary/40"
+                  : cn("border-2", TIER_BORDER[store.tier]),
+              )}
             >
+              <TierRibbon tier={store.tier} />
               <span className={LOGO}>
                 <StoreAvatar
                   name={store.name}

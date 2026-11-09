@@ -10,7 +10,7 @@ export const ru: Dict = {
   "header.menuOpen": "Открыть меню",
   "header.menuClose": "Закрыть меню",
   "header.brand.name": "UVSSHOP.COM",
-  "header.brand.tagline": "Онлайн Магазин",
+  "header.brand.tagline": "Первый сайт объявлений Увса",
   "header.search.placeholder": "Поиск товаров, брендов, категорий...",
   "header.search.placeholderShort": "Поиск товаров...",
   "header.search.aria": "Поиск товаров",

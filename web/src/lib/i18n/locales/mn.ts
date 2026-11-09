@@ -10,7 +10,7 @@ export const mn: Dict = {
   "header.menuOpen": "Цэс нээх",
   "header.menuClose": "Цэс хаах",
   "header.brand.name": "UVSSHOP.COM",
-  "header.brand.tagline": "Online Shop",
+  "header.brand.tagline": "Увс анхны зарын сайт",
   "header.search.placeholder": "Бараа, брэнд, ангилал хайх...",
   "header.search.placeholderShort": "Бараа хайх...",
   "header.search.aria": "Бараа хайх",

@@ -311,12 +311,12 @@ export default function Header() {
                 className="h-10 w-10 sm:h-11 sm:w-11 object-contain"
                 priority
               />
-              {/* Mobile: the name alone, small; from sm up with the tagline. */}
+              {/* The name over the tagline ("Увс анхны зарын сайт"), on every page. */}
               <span className="flex flex-col leading-none">
                 <span className="text-sm sm:text-lg font-bold tracking-tight text-primary">
                   {t("header.brand.name")}
                 </span>
-                <span className="hidden sm:block text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                <span className="mt-0.5 text-[10px] sm:text-xs font-medium text-muted-foreground whitespace-nowrap">
                   {t("header.brand.tagline")}
                 </span>
               </span>
