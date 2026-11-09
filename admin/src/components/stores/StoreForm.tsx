@@ -13,7 +13,7 @@ import { imageSizeError, uploadFile } from "@/lib/api/files";
 import Select from "@/components/common/Select";
 import { createStore, MAX_STORE_CONTACTS, STORE_TIERS, updateStore, type Store, type StoreTier } from "@/lib/api/stores";
 import { Loader2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useDirty } from "@/lib/useDirty";
 
@@ -27,6 +27,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  */
 export default function StoreForm({ store }: { store: Store | null }) {
   const router = useRouter();
+  // Opened from the user form ("New store" link): go back there, not to the list.
+  const from = useSearchParams().get("from");
+  const backHref = from?.startsWith("/users/") ? from : "/stores";
   const { t } = useLanguage();
   const { run, show } = useToast();
   const nameErrorId = useId();
@@ -91,14 +94,14 @@ export default function StoreForm({ store }: { store: Store | null }) {
       };
       await (store ? updateStore(store.id, input) : createStore(input));
     }, store ? t("common.saved") : t("st.added"));
-    if (saved) router.replace("/stores");
+    if (saved) router.replace(backHref);
     else setSaving(false);
   }
 
   return (
     <form onSubmit={onSubmit} noValidate>
       <DetailHeader
-        backHref="/stores"
+        backHref={backHref}
         title={store ? t("st.edit") : t("st.add")}
         aside={
           <Button type="submit" className="h-10 px-5" disabled={saving || !dirty}>

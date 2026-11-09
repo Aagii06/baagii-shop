@@ -129,7 +129,7 @@ export default function UserForm({ user }: { user: User | null }) {
               />
             </Field>
             <Link
-              href="/stores/new"
+              href={`/stores/new?from=${encodeURIComponent(user ? `/users/edit?id=${user.id}` : "/users/new")}`}
               className="mt-1.5 inline-block px-5 text-sm font-semibold text-primary-ink underline-offset-4 hover:underline"
             >
               {t("pr.newStore")}
