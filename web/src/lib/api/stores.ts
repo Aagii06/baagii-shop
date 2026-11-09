@@ -1,3 +1,4 @@
+import { byNewest } from "@/lib/utils";
 import { apiFetch } from "./client";
 
 /** Store tiers, highest first. Set by the shop admin only. */
@@ -60,4 +61,21 @@ export async function getStore(id: number): Promise<StoreDetail | null> {
 export async function getStores(): Promise<Store[]> {
   const res = await apiFetch<ApiStoresResponse>("/store", { method: "GET" });
   return res.data ?? [];
+}
+
+/**
+ * Gold stores' products first, newest first among them; the rest keep
+ * the order of `products`. Matches by store id, falling back to name.
+ */
+export function goldFirst<
+  P extends { id: number; storeId?: number; brand?: string; updatedAt?: string },
+>(products: P[], stores: Store[]): P[] {
+  const gold = stores.filter((s) => s.tier === "gold");
+  if (gold.length === 0) return products;
+  const ids = new Set(gold.map((s) => s.id));
+  const names = new Set(gold.map((s) => s.name));
+  const isGold = (p: P) =>
+    p.storeId !== undefined ? ids.has(p.storeId) : !!p.brand && names.has(p.brand);
+  const top = products.filter(isGold).sort(byNewest);
+  return [...top, ...products.filter((p) => !isGold(p))];
 }

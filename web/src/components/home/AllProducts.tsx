@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getProducts } from "@/lib/api/products";
+import { getStores, goldFirst, type Store } from "@/lib/api/stores";
 import type { Product } from "@/types/product";
 import { byNewest } from "@/lib/utils";
 import Link from "next/link";
@@ -19,6 +20,13 @@ export default function AllProducts() {
   const { t } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stores, setStores] = useState<Store[]>([]);
+
+  useEffect(() => {
+    getStores()
+      .then(setStores)
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     getProducts()
@@ -27,27 +35,36 @@ export default function AllProducts() {
       .finally(() => setLoading(false));
   }, []);
 
-  // The home list: the 40 most recently edited/added products.
-  const newest = useMemo(() => [...products].sort(byNewest).slice(0, HOME_LIST_SIZE), [products]);
+  // The home list: gold stores' products first (newest first), then the
+  // rest newest first; 40 in all.
+  const newest = useMemo(
+    () => goldFirst([...products].sort(byNewest), stores).slice(0, HOME_LIST_SIZE),
+    [products, stores],
+  );
 
   return (
     <>
       <StoresGrid />
       <DealsSection products={products} loading={loading} />
-      <CategoryShowcase products={products} loading={loading} />
+      {/* CategoryShowcase hides itself under 4 products; hide its title too. */}
+      {(loading || products.length >= 4) && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              {t("home.recommended.title")}
+            </h2>
+            <Link
+              href="/search?sort=new"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              {t("home.allProducts.viewAll")}
+            </Link>
+          </div>
+          <CategoryShowcase products={products} loading={loading} />
+        </section>
+      )}
 
       <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold text-foreground">
-            {t("home.recommended.title")}
-          </h2>
-          <Link
-            href="/search?sort=new"
-            className="text-sm font-medium text-primary hover:underline"
-          >
-            {t("home.allProducts.viewAll")}
-          </Link>
-        </div>
         {loading ? <ProductListSkeleton /> : <ProductList products={newest} />}
         {!loading && products.length > HOME_LIST_SIZE && (
           <div className="mt-8 flex justify-center">

@@ -16,7 +16,7 @@ import {
   subtreeIds,
 } from "@/lib/categories";
 import { getProducts } from "@/lib/api/products";
-import { getStores, storeHref, type Store } from "@/lib/api/stores";
+import { getStores, goldFirst, storeHref, type Store } from "@/lib/api/stores";
 import { byNewest } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -215,8 +215,9 @@ function SearchContent() {
         result.sort((a, b) => discountPercent(b) - discountPercent(a));
     }
 
-    return result;
-  }, [products, saleOnly, filters.brands, filters.priceRange, sort]);
+    // Gold stores' products always lead, newest first among them.
+    return goldFirst(result, allStores);
+  }, [products, saleOnly, filters.brands, filters.priceRange, sort, allStores]);
 
   // Start over from the first PAGE_SIZE whenever the list itself changes.
   useEffect(() => {
