@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { getCategoryTree, type Category } from "@/lib/api/categories";
 import { getPostsPage, isPublished, LOW_STOCK_THRESHOLD, type Post } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
-import { cn, formatMNT, formatQty, toNumber } from "@/lib/utils";
+import { cn, formatDate, formatMNT, formatQty, toNumber } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -187,6 +187,11 @@ export default function ProductsPage() {
                       <span className="mt-0.5 block truncate font-mono text-xs text-muted-foreground">
                         {category}
                       </span>
+                      {post.createdAt && (
+                        <span className="mt-0.5 block font-mono text-[11px] text-muted-foreground/70">
+                          {formatDate(post.createdAt)}
+                        </span>
+                      )}
                     </span>
                     <span className="shrink-0 text-right">
                       <span className="block font-mono text-sm font-bold">

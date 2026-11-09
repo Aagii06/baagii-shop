@@ -120,12 +120,19 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
         shape: const Border(),
         leading: NetImage(p.image, width: 52, height: 52, radius: BorderRadius.circular(8)),
         title: Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Row(children: [
-          Text(money(p.price), style: const TextStyle(fontWeight: FontWeight.w600, color: brandColor)),
-          const SizedBox(width: 8),
-          StatusChip('Үлд: ${p.remain}', stockColor),
-          const SizedBox(width: 6),
-          if (!p.isActive) StatusChip(p.status == 'draft' ? 'Ноорог' : 'Идэвхгүй', Colors.grey),
+        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Text(money(p.price), style: const TextStyle(fontWeight: FontWeight.w600, color: brandColor)),
+            const SizedBox(width: 8),
+            StatusChip('Үлд: ${p.remain}', stockColor),
+            const SizedBox(width: 6),
+            if (!p.isActive) StatusChip(p.status == 'draft' ? 'Ноорог' : 'Идэвхгүй', Colors.grey),
+          ]),
+          if (p.createdAt != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(formatDate(p.createdAt, time: false), style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+            ),
         ]),
         children: [
           if (p.storeName != null) ListTile(dense: true, leading: const Icon(Icons.store_outlined), title: Text(p.storeName!)),

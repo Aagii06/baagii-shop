@@ -129,6 +129,7 @@ class AdminProduct {
   final String status;
   final List<AdminVariant> variants;
   final int remain;
+  final String? createdAt;
 
   AdminProduct({
     required this.id,
@@ -140,6 +141,7 @@ class AdminProduct {
     required this.status,
     required this.variants,
     required this.remain,
+    this.createdAt,
   });
 
   String? get image => images.isEmpty ? null : fileUrl(images.first, 'thumbnail');
@@ -160,6 +162,7 @@ class AdminProduct {
       status: status,
       variants: variants,
       remain: variants.isEmpty ? toInt(j['qty']) : variants.fold(0, (s, v) => s + v.remain),
+      createdAt: j['createdAt']?.toString(),
     );
   }
 }
