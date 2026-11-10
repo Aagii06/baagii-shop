@@ -355,7 +355,9 @@ class _SearchPageState extends State<SearchPage> {
           child: SizedBox(
             width: 96,
             child: Stack(children: [
-              Padding(
+              // Бүтэн өргөнөөр — эс бөгөөс Column агшиж, зүүн тийш наалдана.
+              Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   StoreAvatar(name: name, logo: logo, size: 56, radius: 12),
