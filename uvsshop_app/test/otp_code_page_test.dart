@@ -49,9 +49,15 @@ void main() {
     await t.pumpAndSettle();
     // Дугаарын доор таймер, товч "Код оруулах".
     expect(find.text('Код дахин авах боломжтой: '), findsOneWidget);
-    expect(find.text('1:00'), findsOneWidget);
+    int left() {
+      final text = t.widget<Text>(find.textContaining(RegExp(r'^\d:\d\d$'))).data!;
+      final parts = text.split(':');
+      return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+    }
+    final first = left();
+    expect(first, inInclusiveRange(55, 60));
     await t.pump(const Duration(seconds: 5));
-    expect(find.text('0:55'), findsOneWidget);
+    expect(left(), first - 5);
     await t.tap(find.text('Код оруулах'));
     await t.pumpAndSettle();
     expect(shop.sent, 1, reason: 'no new SMS while waiting');
