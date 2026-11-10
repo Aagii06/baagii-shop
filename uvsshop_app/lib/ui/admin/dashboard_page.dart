@@ -424,39 +424,40 @@ class _StatTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            label,
-                            // Нэг мөрт — карт бүр ижил өндөртэй байна.
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: ink.withValues(alpha: brand ? 0.8 : 0.85),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: brand ? Colors.white.withValues(alpha: 0.2) : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(icon, size: 16, color: ink),
-                        ),
-                      ],
+                    // Дүрс дээр, гарчиг доор нь картын бүтэн өргөнөөр — урт гарчиг ч бүтнээрээ харагдана.
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: brand ? Colors.white.withValues(alpha: 0.2) : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, size: 16, color: ink),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
+                    // 2 мөр хүртэл; бүх картад 2 мөрийн зай үлдээнэ — 4 карт ижил өндөртэй.
+                    SizedBox(
+                      height: 40,
+                      child: Text(
+                        label,
+                        maxLines: 2,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                          color: ink.withValues(alpha: brand ? 0.8 : 0.85),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
                       child: Text(
                         value,
+                        // Нэг мөр; багтахгүй бол FittedBox жижгэрүүлж бүтнээр нь харуулна.
+                        maxLines: 1,
+                        softWrap: false,
                         style: TextStyle(
                           fontFamily: mono,
                           fontSize: 24,

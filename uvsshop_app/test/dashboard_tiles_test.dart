@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,7 +23,7 @@ class _FakeAdmin extends AdminState {
 }
 
 void main() {
-  for (final width in [320.0, 412.0]) {
+  for (final width in [320.0, 360.0, 412.0]) {
     testWidgets('4 stat tiles share one size at width $width', (t) async {
       SharedPreferences.setMockInitialValues({});
       t.view.physicalSize = Size(width, 900);
@@ -42,6 +43,13 @@ void main() {
       ];
       for (final s in sizes) {
         expect(s, sizes.first, reason: 'sizes: $sizes');
+      }
+      // Гарчиг, утга бүтнээрээ харагдана (таслагдахгүй). Тестийн фонтод үсэг бүр 14px
+      // дөрвөлжин тул (бодит фонтоос ~2 дахин өргөн) 360px-ээс дээш л шалгана.
+      if (width < 360) return;
+      for (final text in ['Захиалга', 'Борлуулалт', 'Дундаж дүн', 'Батлахыг хүлээж', '₮2.5сая', '₮208мянга']) {
+        final p = t.renderObject<RenderParagraph>(find.text(text));
+        expect(p.didExceedMaxLines, isFalse, reason: '"$text" is cut off');
       }
     });
   }
