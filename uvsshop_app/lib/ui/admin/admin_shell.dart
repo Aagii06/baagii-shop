@@ -3,12 +3,16 @@ import 'package:provider/provider.dart';
 
 import '../../state/admin_state.dart';
 import '../../state/app_state.dart';
+import 'admin_design.dart';
 import 'dashboard_page.dart';
 import 'orders_page.dart';
 import 'products_page.dart';
 import 'profile_page.dart';
 
-/// Админы хэсэг. Худалдагч (admin биш) зөвхөн бараа, профайлаа хардаг.
+/// Аль tab нээлттэй вэ — самбараас "Захиалга" руу шилжихэд.
+final adminTab = ValueNotifier<String>('dashboard');
+
+/// Админы хэсэг (web-ийн PanelShell). Худалдагч (admin биш) самбар, захиалгыг харахгүй.
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
   @override
@@ -16,39 +20,55 @@ class AdminShell extends StatefulWidget {
 }
 
 class _AdminShellState extends State<AdminShell> {
-  int _tab = 0;
-
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.select<AdminState, bool>((a) => a.user?.isAdmin ?? false);
-    final tabs = <(NavigationDestination, Widget)>[
-      if (isAdmin)
-        (
-          const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Самбар'),
-          const DashboardPage(),
-        ),
-      (
-        const NavigationDestination(icon: Icon(Icons.inventory_2_outlined), selectedIcon: Icon(Icons.inventory_2), label: 'Бараа'),
-        const AdminProductsPage(),
-      ),
-      if (isAdmin)
-        (
-          const NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long), label: 'Захиалга'),
-          const AdminOrdersPage(),
-        ),
-      (
-        const NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Профайл'),
-        const AdminProfilePage(),
-      ),
+    final tabs = <(String, IconData, String, Widget)>[
+      if (isAdmin) ('dashboard', Icons.bar_chart_rounded, 'Самбар', const DashboardPage()),
+      ('products', Icons.crop_square_rounded, 'Бараа', const AdminProductsPage()),
+      if (isAdmin) ('orders', Icons.receipt_long_outlined, 'Захиалга', const AdminOrdersPage()),
+      ('profile', Icons.person_outline_rounded, 'Профайл', const AdminProfilePage()),
     ];
-    final index = _tab.clamp(0, tabs.length - 1);
-    return Scaffold(
-      body: IndexedStack(index: index, children: [for (final t in tabs) t.$2]),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: [for (final t in tabs) t.$1],
-      ),
+    return ValueListenableBuilder<String>(
+      valueListenable: adminTab,
+      builder: (context, current, _) {
+        final index = tabs.indexWhere((t) => t.$1 == current).clamp(0, tabs.length - 1);
+        return Scaffold(
+          backgroundColor: AdminColors.background,
+          body: IndexedStack(index: index, children: [for (final t in tabs) t.$4]),
+          bottomNavigationBar: Container(
+            decoration: const BoxDecoration(
+              color: AdminColors.background,
+              border: Border(top: BorderSide(color: AdminColors.border)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Row(children: [
+                for (var i = 0; i < tabs.length; i++)
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => adminTab.value = tabs[i].$1,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12, bottom: 10),
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(tabs[i].$2,
+                              size: 24, color: i == index ? AdminColors.foreground : AdminColors.mutedForeground.withValues(alpha: 0.8)),
+                          const SizedBox(height: 4),
+                          Text(tabs[i].$3,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: i == index ? AdminColors.foreground : AdminColors.mutedForeground.withValues(alpha: 0.8),
+                              )),
+                        ]),
+                      ),
+                    ),
+                  ),
+              ]),
+            ),
+          ),
+        );
+      },
     );
   }
 }

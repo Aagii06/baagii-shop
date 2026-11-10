@@ -126,17 +126,49 @@ class AdminState extends ChangeNotifier {
 
   // ---------- бараа ----------
 
-  Future<({List<AdminProduct> rows, int count})> products({int skip = 0, int take = 30}) async {
+  /// [query] нэрээр, [categoryIds] категориор шүүнэ (web-ийн getPostsPage).
+  Future<({List<AdminProduct> rows, int count})> products(
+      {int skip = 0, int take = 30, String query = '', List<int> categoryIds = const []}) async {
     final sort = jsonEncode([
       {'selector': 'id', 'desc': true}
     ]);
-    final q = {'skip': '$skip', 'take': '$take', 'sort': sort};
+    final conditions = <Object>[];
+    if (query.trim().isNotEmpty) conditions.add(['name', 'contains', query.trim()]);
+    if (categoryIds.isNotEmpty) {
+      conditions.add(categoryIds.length == 1
+          ? ['categoryId', '=', categoryIds.first]
+          : [
+              for (var i = 0; i < categoryIds.length; i++) ...[
+                if (i > 0) 'or',
+                ['categoryId', '=', categoryIds[i]],
+              ],
+            ]);
+    }
+    final filter = [
+      for (var i = 0; i < conditions.length; i++) ...[if (i > 0) 'and', conditions[i]],
+    ];
+    final q = {
+      'skip': '$skip',
+      'take': '$take',
+      'sort': sort,
+      if (filter.isNotEmpty) 'filter': jsonEncode(filter.length == 1 ? filter.first : filter),
+    };
     final res = await guard(() => api.get('/product?${Uri(queryParameters: q).query}'));
     final d = res['data'] as Map<String, dynamic>? ?? {};
     return (
       rows: ((d['rows'] as List?) ?? []).map((p) => AdminProduct.fromJson(p as Map<String, dynamic>)).toList(),
       count: toInt(d['count']),
     );
+  }
+
+  /// Бүх бараа (самбарын "Нөөц дуусч байна" хэсэгт).
+  Future<List<AdminProduct>> allProducts() async {
+    final rows = <AdminProduct>[];
+    while (true) {
+      final r = await products(skip: rows.length, take: 100);
+      rows.addAll(r.rows);
+      if (r.rows.isEmpty || rows.length >= r.count) return rows;
+    }
   }
 
   // ---------- өөрийн профайл ----------

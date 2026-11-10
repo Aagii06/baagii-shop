@@ -136,6 +136,7 @@ class AdminProduct {
   final int id;
   final String name;
   final String? storeName;
+  final int? categoryId;
   final double price;
   final double mainPrice;
   final List<String> images;
@@ -148,6 +149,7 @@ class AdminProduct {
     required this.id,
     required this.name,
     this.storeName,
+    this.categoryId,
     required this.price,
     required this.mainPrice,
     required this.images,
@@ -168,7 +170,8 @@ class AdminProduct {
     return AdminProduct(
       id: toInt(j['id']),
       name: (j['name'] ?? j['title'] ?? '').toString(),
-      storeName: j['store']?['name']?.toString(),
+      storeName: (j['store']?['name'] ?? j['storeName'])?.toString(),
+      categoryId: j['categoryId'] == null ? null : toInt(j['categoryId']),
       price: toNum(j['price']),
       mainPrice: toNum(j['mainPrice']),
       images: ((j['images'] as List?) ?? []).map((e) => e.toString()).toList(),
