@@ -228,7 +228,7 @@ class CategoryAttr {
   CategoryAttr(this.id, this.name);
 }
 
-class Category {
+class AdminCategory {
   final int id;
   final int? parentId;
   final String name;
@@ -236,20 +236,20 @@ class Category {
   /// Хадгалахад өөрчлөлтгүй буцааж илгээдэг талбарууд.
   final Map<String, dynamic> raw;
   final List<CategoryAttr> attrs;
-  final List<Category> children;
+  final List<AdminCategory> children;
   int depth = 0;
 
-  Category(this.id, this.parentId, this.name, this.raw, this.attrs, this.children);
+  AdminCategory(this.id, this.parentId, this.name, this.raw, this.attrs, this.children);
 
   bool get isLeaf => children.isEmpty;
 
-  factory Category.fromJson(Map<String, dynamic> j) => Category(
+  factory AdminCategory.fromJson(Map<String, dynamic> j) => AdminCategory(
         toInt(j['id']),
         j['parentId'] == null ? null : toInt(j['parentId']),
         j['name']?.toString() ?? '',
         j,
         ((j['attrs'] as List?) ?? []).map((a) => CategoryAttr(toInt(a['id']), a['name']?.toString() ?? '')).toList(),
-        ((j['children'] as List?) ?? []).map((c) => Category.fromJson(c as Map<String, dynamic>)).toList(),
+        ((j['children'] as List?) ?? []).map((c) => AdminCategory.fromJson(c as Map<String, dynamic>)).toList(),
       );
 
   /// Өөрийн дэд модны түвшин (навч бол 1).
@@ -259,7 +259,7 @@ class Category {
 }
 
 /// Модыг эцэг → хүүхэд дарааллаар нэг жагсаалт болгож, түвшинг нь тэмдэглэнэ.
-List<Category> flattenCategories(List<Category> list, [int depth = 0]) => [
+List<AdminCategory> flattenCategories(List<AdminCategory> list, [int depth = 0]) => [
       for (final c in list) ...[
         c..depth = depth,
         ...flattenCategories(c.children, depth + 1),

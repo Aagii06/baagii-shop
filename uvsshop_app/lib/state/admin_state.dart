@@ -308,16 +308,16 @@ class AdminState extends ChangeNotifier {
 
   // ---------- категори ----------
 
-  Future<List<Category>> categoryTree() async {
+  Future<List<AdminCategory>> categoryTree() async {
     final res = await guard(() => api.get('/category/tree'));
-    return ((res['data'] as List?) ?? []).map((c) => Category.fromJson(c as Map<String, dynamic>)).toList();
+    return ((res['data'] as List?) ?? []).map((c) => AdminCategory.fromJson(c as Map<String, dynamic>)).toList();
   }
 
   Future<void> createCategory(String name, int? parentId, List<int> attrIds) =>
       guard(() => api.post('/category', body: {'name': name, 'parentId': parentId, 'attrIds': attrIds}));
 
   /// Маягтын талбаруудыг хадгална; бусад нь хэвээр буцна.
-  Future<void> updateCategory(Category c, {required String name, required int? parentId, required List<int> attrIds}) =>
+  Future<void> updateCategory(AdminCategory c, {required String name, required int? parentId, required List<int> attrIds}) =>
       guard(() => api.put('/category/${c.id}', body: {
             'name': name,
             'parentId': parentId,
@@ -329,7 +329,7 @@ class AdminState extends ChangeNotifier {
           }));
 
   /// Навч категори анхны дэд категоритой болбол өөрийн үзүүлэлтээ алдана.
-  Future<void> releaseParentAttrs(Category? parent) async {
+  Future<void> releaseParentAttrs(AdminCategory? parent) async {
     if (parent != null && parent.isLeaf && parent.attrs.isNotEmpty) {
       await updateCategory(parent, name: parent.name, parentId: parent.parentId, attrIds: []);
     }

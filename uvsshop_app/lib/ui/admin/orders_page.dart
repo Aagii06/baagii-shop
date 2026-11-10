@@ -10,7 +10,9 @@ import '../common.dart';
 import 'admin_shell.dart';
 
 class AdminOrdersPage extends StatefulWidget {
-  const AdminOrdersPage({super.key});
+  /// Худалдан авагчийн хуудаснаас нээхэд энэ утсаар шүүнэ.
+  final String? phone;
+  const AdminOrdersPage({super.key, this.phone});
   @override
   State<AdminOrdersPage> createState() => _AdminOrdersPageState();
 }
@@ -18,7 +20,7 @@ class AdminOrdersPage extends StatefulWidget {
 class _AdminOrdersPageState extends State<AdminOrdersPage> {
   static const _take = 30;
   final _scroll = ScrollController();
-  final _phone = TextEditingController();
+  late final _phone = TextEditingController(text: widget.phone ?? '');
   Timer? _debounce;
   String? _status;
   final List<AdminOrder> _rows = [];
