@@ -91,7 +91,7 @@ ThemeData _buildAdminTheme() {
       toolbarHeight: 68,
       titleSpacing: 4,
       foregroundColor: AdminColors.foreground,
-      titleTextStyle: t.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w800, color: AdminColors.foreground),
+      titleTextStyle: t.titleLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w800, color: AdminColors.foreground),
       shape: const Border(bottom: BorderSide(color: AdminColors.border)),
     ),
     actionIconTheme: ActionIconThemeData(
@@ -255,7 +255,7 @@ class AdminPageHeader extends StatelessWidget {
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.2),
+                          style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, height: 1.2),
                         ),
                 ),
                 ?aside,

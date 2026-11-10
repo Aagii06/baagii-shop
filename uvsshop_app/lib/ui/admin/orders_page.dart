@@ -124,7 +124,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         child: ListView(controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), children: [
           AdminPageHeader(
             aside: ready && _error == null
-                ? Text('$_count захиалга', style: const TextStyle(fontFamily: mono, fontSize: 14, color: AdminColors.mutedForeground))
+                ? Text('$_count захиалга', style: const TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground))
                 : null,
             children: [
               PillTabs<String?>(
