@@ -158,7 +158,11 @@ class _OtpCodePageState extends State<OtpCodePage> {
     });
     final ok = await context.read<ShopState>().verifyOtp(widget.phone, _code.text);
     if (!mounted) return;
-    if (ok) return Navigator.of(context).pop(true);
+    if (ok) {
+      final nav = Navigator.of(context);
+      await nav.push(MaterialPageRoute(builder: (_) => const OtpSuccessPage()));
+      return nav.pop(true);
+    }
     setState(() {
       _busy = false;
       _error = 'Код буруу эсвэл хугацаа дууссан байна';
@@ -192,78 +196,148 @@ class _OtpCodePageState extends State<OtpCodePage> {
   @override
   Widget build(BuildContext context) {
     final code = _code.text;
+    final grey = TextStyle(fontSize: 15, color: Colors.grey.shade600, height: 1.4);
     return Scaffold(
-      appBar: AppBar(title: const Text('Баталгаажуулах код')),
-      body: ListView(padding: const EdgeInsets.fromLTRB(24, 32, 24, 24), children: [
-        const Center(
-          child: CircleAvatar(radius: 28, backgroundColor: accentColor, child: Icon(Icons.sms_outlined, color: brandColor)),
-        ),
-        const SizedBox(height: 16),
-        const Text('Кодоо оруулна уу', textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 6),
-        Text('$_phoneLabel дугаарт ирсэн $otpLength оронтой кодыг оруулна уу',
-            textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
-        const SizedBox(height: 28),
-        // Нэг нуугдмал талбар + 4 харагдах нүд (SMS-ээс автоматаар бөглөгдөнө).
-        GestureDetector(
-          onTap: () => _focus.requestFocus(),
-          child: Stack(alignment: Alignment.center, children: [
-            Opacity(
-              opacity: 0,
-              child: TextField(
-                controller: _code,
-                focusNode: _focus,
-                autofocus: true,
-                keyboardType: TextInputType.number,
-                maxLength: otpLength,
-                autofillHints: const [AutofillHints.oneTimeCode],
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                showCursor: false,
-                enableInteractiveSelection: false,
-                decoration: const InputDecoration(counterText: '', border: InputBorder.none),
-                onChanged: (v) {
-                  setState(() => _error = null);
-                  // Сүүлийн цифрийг оруулахад шууд шалгана.
-                  if (v.length == otpLength) _verify();
-                },
-              ),
-            ),
-            ListenableBuilder(
-              listenable: _focus,
-              builder: (context, _) => Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                for (var i = 0; i < otpLength; i++) ...[
-                  if (i > 0) const SizedBox(width: 12),
-                  _CodeBox(
-                    digit: i < code.length ? code[i] : '',
-                    active: _focus.hasFocus && (i == code.length || (i == otpLength - 1 && code.length == otpLength)),
-                    error: _error != null,
-                  ),
-                ],
+      backgroundColor: Colors.white,
+      // Зөвхөн буцах товч — гарчиг нь доор том үсгээр.
+      appBar: AppBar(backgroundColor: Colors.white, surfaceTintColor: Colors.white),
+      body: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const Text('Код баталгаажуулах', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text.rich(
+              TextSpan(children: [
+                const TextSpan(text: 'Таны '),
+                TextSpan(text: _phoneLabel, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                const TextSpan(text: ' дугаарт илгээсэн $otpLength оронтой кодыг оруулна уу'),
               ]),
+              style: grey,
+            ),
+            const SizedBox(height: 32),
+            // Нэг нуугдмал талбар + 4 харагдах нүд (SMS-ээс автоматаар бөглөгдөнө).
+            GestureDetector(
+              onTap: () => _focus.requestFocus(),
+              child: Stack(children: [
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0,
+                    child: TextField(
+                      controller: _code,
+                      focusNode: _focus,
+                      autofocus: true,
+                      keyboardType: TextInputType.number,
+                      maxLength: otpLength,
+                      autofillHints: const [AutofillHints.oneTimeCode],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      showCursor: false,
+                      enableInteractiveSelection: false,
+                      decoration: const InputDecoration(counterText: '', border: InputBorder.none),
+                      onChanged: (v) {
+                        setState(() => _error = null);
+                        // Сүүлийн цифрийг оруулахад шууд шалгана.
+                        if (v.length == otpLength) _verify();
+                      },
+                    ),
+                  ),
+                ),
+                ListenableBuilder(
+                  listenable: _focus,
+                  builder: (context, _) => Row(children: [
+                    for (var i = 0; i < otpLength; i++) ...[
+                      if (i > 0) const SizedBox(width: 12),
+                      _CodeBox(
+                        digit: i < code.length ? code[i] : '',
+                        active: _focus.hasFocus && (i == code.length || (i == otpLength - 1 && code.length == otpLength)),
+                        error: _error != null,
+                      ),
+                    ],
+                  ]),
+                ),
+              ]),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+            ],
+            const SizedBox(height: 20),
+            Row(children: [
+              Text('Код ирээгүй юу? ', style: grey.copyWith(fontSize: 14)),
+              GestureDetector(
+                onTap: _sending || _cooldown > 0 ? null : _resend,
+                child: Text(
+                  _cooldown > 0 ? 'Дахин илгээх ($_cooldown)' : 'Дахин илгээх',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _cooldown > 0 || _sending ? Colors.grey : brandColor,
+                  ),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 28),
+            FilledButton(
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), shape: const StadiumBorder()),
+              onPressed: code.length == otpLength && !_busy ? _verify : null,
+              child: _busy
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Баталгаажуулах', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Дугаар солих')),
             ),
           ]),
         ),
-        const SizedBox(height: 16),
-        if (_busy)
-          const Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5)))
-        else if (_error != null)
-          Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
-        const SizedBox(height: 16),
-        Center(
-          child: TextButton(
-            onPressed: _sending || _cooldown > 0 ? null : _resend,
-            child: Text(_cooldown > 0 ? 'Код дахин авах ($_cooldown)' : 'Код дахин авах'),
-          ),
-        ),
-        Center(
-          child: TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Дугаар солих'),
-          ),
-        ),
-      ]),
+      ),
     );
   }
+}
+
+/// Амжилттай баталгаажсаны дараах дэлгэц (загварын "Verification Success").
+class OtpSuccessPage extends StatelessWidget {
+  const OtpSuccessPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [accentColor, Colors.white]),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: brandColor.withValues(alpha: 0.12)),
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: const BoxDecoration(shape: BoxShape.circle, gradient: brandGradient),
+                    child: const Icon(Icons.check_rounded, color: Colors.white, size: 36),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text('Амжилттай баталгаажлаа', textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('UVS SHOP-д тавтай морил! Та нэвтэрлээ.',
+                    textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
+                const SizedBox(height: 32),
+                FilledButton(
+                  style: FilledButton.styleFrom(minimumSize: const Size(220, 52), shape: const StadiumBorder()),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Үргэлжлүүлэх', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      );
 }
 
 class _CodeBox extends StatelessWidget {
@@ -275,14 +349,14 @@ class _CodeBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AnimatedContainer(
         duration: const Duration(milliseconds: 120),
-        width: 56,
-        height: 64,
+        width: 60,
+        height: 60,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: mutedColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: error ? Colors.red : (active ? brandColor : borderColor),
+            color: error ? Colors.red : (active ? brandColor : Colors.transparent),
             width: active || error ? 2 : 1.5,
           ),
         ),
