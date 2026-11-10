@@ -451,4 +451,27 @@ class AdminState extends ChangeNotifier {
     notifyListeners();
     await guard(() => api.post('/notification/readAll')).catchError((_) => null);
   }
+
+  // ---------- бараа нэмэх / засах (web-ийн /products/new, /products/{id}) ----------
+
+  /// `GET /product/{id}`-ийн түүхий хариу (ProductDraft уншина).
+  Future<Map<String, dynamic>?> productRaw(int id) async {
+    final d = (await guard(() => api.get('/product/$id')))['data'];
+    return d is Map<String, dynamic> ? d : null;
+  }
+
+  /// Шинэ зургуудыг хуулж, `local:N`-ийг file id-аар сольсон биеэр хадгална. [id] null бол шинэ бараа.
+  Future<void> saveProduct(int? id, Map<String, dynamic> Function(String Function(String) swap) build,
+      Map<String, (List<int>, String)> uploads) async {
+    final ids = <String, String>{};
+    for (final e in uploads.entries) {
+      ids[e.key] = await uploadImage(e.value.$1, e.value.$2, 'products');
+    }
+    final body = build((ref) => ids[ref] ?? ref);
+    if (body['categoryId'] == null) throw ApiException(200, 'Категори сонгоно уу.');
+    await guard(() => id == null ? api.post('/product', body: body) : api.put('/product/$id', body: body));
+  }
+
+  Future<void> deleteProduct(int id) => guard(() => api.delete('/product/$id'));
 }
+

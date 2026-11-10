@@ -354,9 +354,7 @@ class ProductDraft extends ChangeNotifier {
   }
 
   void addImages(String key, List<LocalImage> picked) {
-    final refs = [
-      for (final f in picked) 'local:${_nextLocal++}',
-    ];
+    final refs = List.generate(picked.length, (_) => 'local:${_nextLocal++}');
     for (var i = 0; i < refs.length; i++) {
       files[refs[i]] = picked[i];
     }
