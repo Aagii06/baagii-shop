@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -47,10 +48,49 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
   bool _busy = false;
   String? _error;
 
+  /// Сүүлд код илгээсэн дугаар ба цаг — кодын хуудас дахин илгээхэд шинэчилнэ.
+  String? _sentTo;
+  final _sentAt = ValueNotifier<DateTime?>(null);
+  Timer? _timer;
+
+  int get _remaining {
+    final at = _sentAt.value;
+    if (at == null) return 0;
+    final left = _resendSeconds - clock.now().difference(at).inSeconds;
+    return left > 0 ? left : 0;
+  }
+
+  /// Энэ дугаарт саяхан код илгээсэн бол (хүлээлт дуусаагүй).
+  bool get _waiting => _sentTo != null && _sentTo == digitsOnly(_phone.text) && _remaining > 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _sentAt.addListener(_startTimer);
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    if (_remaining <= 0) return;
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return t.cancel();
+      setState(() {});
+      if (_remaining <= 0) t.cancel();
+    });
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    _timer?.cancel();
+    _sentAt.dispose();
     _phone.dispose();
     super.dispose();
+  }
+
+  Future<void> _openCode(String phone) async {
+    final ok = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => OtpCodePage(phone: phone, sentAt: _sentAt)));
+    if (ok == true && mounted) widget.onDone();
   }
 
   Future<void> _send() async {
@@ -59,6 +99,8 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
       setState(() => _error = 'Утасны дугаар 8 оронтой байна');
       return;
     }
+    // Хүлээлт дуусаагүй бол шинэ код илгээхгүй, өмнөх кодоо оруулна.
+    if (_waiting) return _openCode(phone);
     setState(() {
       _busy = true;
       _error = null;
@@ -66,9 +108,10 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
     try {
       await context.read<ShopState>().sendOtp(phone);
       if (!mounted) return;
+      _sentTo = phone;
+      _sentAt.value = clock.now();
       setState(() => _busy = false);
-      final ok = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => OtpCodePage(phone: phone)));
-      if (ok == true && mounted) widget.onDone();
+      await _openCode(phone);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -80,39 +123,62 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
   }
 
   @override
-  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Утасны дугаараараа нэвтэрнэ үү. Таны утсанд SMS код илгээнэ.'),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _phone,
-          keyboardType: TextInputType.phone,
-          maxLength: 8,
-          onSubmitted: (_) => _send(),
-          decoration: const InputDecoration(labelText: 'Утасны дугаар', prefixIcon: Icon(Icons.phone_outlined), counterText: ''),
+  Widget build(BuildContext context) {
+    final waiting = _waiting;
+    final left = _remaining;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const Text('Утасны дугаараараа нэвтэрнэ үү. Таны утсанд SMS код илгээнэ.'),
+      const SizedBox(height: 16),
+      TextField(
+        controller: _phone,
+        keyboardType: TextInputType.phone,
+        maxLength: 8,
+        onChanged: (_) => setState(() {}),
+        onSubmitted: (_) => _send(),
+        decoration: const InputDecoration(labelText: 'Утасны дугаар', prefixIcon: Icon(Icons.phone_outlined), counterText: ''),
+      ),
+      // Кодын хуудаснаас буцахад: дахин код авах хүртэлх хугацаа.
+      if (waiting)
+        Padding(
+          padding: const EdgeInsets.only(top: 8, left: 4),
+          child: Row(children: [
+            Icon(Icons.timer_outlined, size: 16, color: Colors.grey.shade600),
+            const SizedBox(width: 6),
+            Text('Код дахин авах боломжтой: ', style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            Text(formatCountdown(left), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'monospace', color: brandColor)),
+          ]),
         ),
-        if (_error != null) ...[
-          const SizedBox(height: 8),
-          Text(_error!, style: const TextStyle(color: Colors.red)),
-        ],
-        const SizedBox(height: 16),
-        FilledButton(
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-          onPressed: _busy ? null : _send,
-          child: _busy
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Код авах'),
-        ),
-      ]);
+      if (_error != null) ...[
+        const SizedBox(height: 8),
+        Text(_error!, style: const TextStyle(color: Colors.red)),
+      ],
+      const SizedBox(height: 16),
+      FilledButton(
+        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+        onPressed: _busy ? null : _send,
+        child: _busy
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : Text(waiting ? 'Код оруулах' : 'Код авах'),
+      ),
+    ]);
+  }
 }
+
+/// 59 → "0:59".
+String formatCountdown(int seconds) => '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
 
 /// Нэвтрэх кодын урт (backend PHONE_OTP_LENGTH).
 const otpLength = 4;
-const _resendSeconds = 30;
+/// Код дахин авах хүртэл хүлээх хугацаа.
+const _resendSeconds = 60;
 
 /// SMS-ээр ирсэн 4 оронтой кодыг оруулах тусдаа хуудас. Амжилттай бол `true` буцаана.
 class OtpCodePage extends StatefulWidget {
   final String phone;
-  const OtpCodePage({super.key, required this.phone});
+
+  /// Код илгээсэн цаг — дугаар оруулах хуудастай хуваалцана (буцахад таймер үргэлжилнэ).
+  final ValueNotifier<DateTime?>? sentAt;
+  const OtpCodePage({super.key, required this.phone, this.sentAt});
   @override
   State<OtpCodePage> createState() => _OtpCodePageState();
 }
@@ -123,8 +189,17 @@ class _OtpCodePageState extends State<OtpCodePage> {
   bool _busy = false;
   bool _sending = false;
   String? _error;
-  int _cooldown = _resendSeconds;
+  late int _cooldown = _left();
   Timer? _timer;
+
+  late final DateTime _openedAt = clock.now();
+  DateTime? _resentAt;
+
+  int _left() {
+    final at = widget.sentAt?.value ?? _resentAt ?? _openedAt;
+    final left = _resendSeconds - clock.now().difference(at).inSeconds;
+    return left > 0 ? left : 0;
+  }
 
   String get _phoneLabel => '${widget.phone.substring(0, 4)} ${widget.phone.substring(4)}';
 
@@ -138,7 +213,7 @@ class _OtpCodePageState extends State<OtpCodePage> {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted || _cooldown <= 0) return t.cancel();
-      setState(() => _cooldown--);
+      setState(() => _cooldown = _left());
     });
   }
 
@@ -180,6 +255,7 @@ class _OtpCodePageState extends State<OtpCodePage> {
       await context.read<ShopState>().sendOtp(widget.phone);
       if (!mounted) return;
       showMessage(context, 'Код дахин илгээлээ');
+      widget.sentAt?.value = _resentAt = clock.now();
       setState(() {
         _cooldown = _resendSeconds;
         _code.clear();
@@ -268,7 +344,7 @@ class _OtpCodePageState extends State<OtpCodePage> {
               GestureDetector(
                 onTap: _sending || _cooldown > 0 ? null : _resend,
                 child: Text(
-                  _cooldown > 0 ? 'Дахин илгээх ($_cooldown)' : 'Дахин илгээх',
+                  _cooldown > 0 ? 'Дахин илгээх (${formatCountdown(_cooldown)})' : 'Дахин илгээх',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

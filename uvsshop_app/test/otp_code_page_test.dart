@@ -33,6 +33,36 @@ Future<bool?> _open(WidgetTester t) async {
 }
 
 void main() {
+  testWidgets('going back shows the countdown under the phone and reuses the code', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    final shop = _CountingShop();
+    await t.pumpWidget(ChangeNotifierProvider<ShopState>.value(
+      value: shop,
+      child: MaterialApp(home: Scaffold(body: ListView(children: [PhoneOtpForm(onDone: () {})]))),
+    ));
+    await t.enterText(find.byType(TextField), '99112233');
+    await t.tap(find.text('Код авах'));
+    await t.pumpAndSettle();
+    expect(shop.sent, 1);
+    expect(find.text('Код баталгаажуулах'), findsOneWidget);
+    await t.tap(find.text('Дугаар солих'));
+    await t.pumpAndSettle();
+    // Дугаарын доор таймер, товч "Код оруулах".
+    expect(find.text('Код дахин авах боломжтой: '), findsOneWidget);
+    expect(find.text('1:00'), findsOneWidget);
+    await t.pump(const Duration(seconds: 5));
+    expect(find.text('0:55'), findsOneWidget);
+    await t.tap(find.text('Код оруулах'));
+    await t.pumpAndSettle();
+    expect(shop.sent, 1, reason: 'no new SMS while waiting');
+    await t.tap(find.text('Дугаар солих'));
+    await t.pumpAndSettle();
+    await t.pump(const Duration(seconds: 60));
+    expect(find.text('Код авах'), findsOneWidget);
+    expect(find.text('Код дахин авах боломжтой: '), findsNothing);
+    expect(t.takeException(), isNull);
+  });
+
   testWidgets('4 digits verify, then success screen returns true', (t) async {
     bool? result;
     SharedPreferences.setMockInitialValues({});
@@ -68,8 +98,16 @@ void main() {
     expect(find.text('Код буруу эсвэл хугацаа дууссан байна'), findsOneWidget);
     expect(find.text('Амжилттай баталгаажлаа'), findsNothing);
     expect(t.takeException(), isNull);
-    // 30 секундын timer дуусгах
-    await t.pump(const Duration(seconds: 31));
+    expect(find.text('Дахин илгээх (1:00)'), findsOneWidget);
+    // 1 минутын хүлээлт дуусахад идэвхжинэ.
+    await t.pump(const Duration(seconds: 61));
     expect(find.text('Дахин илгээх'), findsOneWidget);
   });
 }
+
+class _CountingShop extends _FakeShop {
+  int sent = 0;
+  @override
+  Future<void> sendOtp(String phone) async => sent++;
+}
+

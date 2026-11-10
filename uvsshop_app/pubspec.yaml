@@ -40,6 +40,7 @@ dependencies:
   url_launcher: ^6.3.3
   cached_network_image: ^4.0.3
   image_picker: ^1.2.4
+  clock: ^1.1.2
 
 dev_dependencies:
   flutter_test:
