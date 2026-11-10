@@ -117,6 +117,35 @@ class ShopState extends ChangeNotifier {
     }
   }
 
+  // ---------- борлуулагч болох (web-ийн /seller) ----------
+
+  Future<void> sendSellerOtp(String phone) =>
+      _publicApi.post('/auth/register/sendOtp', body: {'phone': phone}, auth: false);
+
+  /// Утсыг баталсан 30 минутын токен.
+  Future<String> verifySellerOtp(String phone, String code) async {
+    final res = await _publicApi.post('/auth/register/verifyOtp', body: {'phone': phone, 'code': code}, auth: false);
+    return res['data']['phoneToken'].toString();
+  }
+
+  /// Хамтран ажиллах хүсэлт илгээнэ; админ батлахад дэлгүүр нээгдэнэ.
+  Future<void> registerSeller({
+    required String phone,
+    required String phoneToken,
+    required String storeName,
+    required String name,
+    String? email,
+    String? address,
+  }) =>
+      call(() => api.post('/auth/register', body: {
+            'userName': phone,
+            'phoneToken': phoneToken,
+            'storeName': storeName,
+            'name': name,
+            'email': ?email,
+            'address': ?address,
+          }));
+
   Future<void> updateName(String name) async {
     await call(() => api.put('/auth/me', body: {'name': name}));
     await refreshUser();
