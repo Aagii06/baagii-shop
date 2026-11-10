@@ -27,25 +27,37 @@ class ApiClient {
   Future<dynamic> get(String path, {bool auth = true}) => _send('GET', path, auth: auth);
   Future<dynamic> post(String path, {Object? body, bool auth = true}) => _send('POST', path, body: body, auth: auth);
   Future<dynamic> put(String path, {Object? body, bool auth = true}) => _send('PUT', path, body: body, auth: auth);
-  Future<dynamic> delete(String path, {bool auth = true}) => _send('DELETE', path, auth: auth);
+  Future<dynamic> delete(String path, {Object? body, bool auth = true}) => _send('DELETE', path, body: body, auth: auth);
+
+  /// Нэг файл multipart-аар илгээнэ (`file` талбар + бусад [fields]).
+  Future<dynamic> upload(String path, {required List<int> bytes, required String filename, Map<String, String> fields = const {}}) async {
+    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'))
+      ..fields.addAll(fields)
+      ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    return _dispatch(request, auth: true, timeout: const Duration(seconds: 120), json: false);
+  }
 
   Future<dynamic> _send(String method, String path, {Object? body, bool auth = true}) async {
-    final headers = <String, String>{
-      'Content-Type': 'application/json',
+    final request = http.Request(method, Uri.parse('$baseUrl$path'));
+    if (body != null) request.body = jsonEncode(body);
+    return _dispatch(request, auth: auth);
+  }
+
+  Future<dynamic> _dispatch(http.BaseRequest request,
+      {required bool auth, Duration timeout = const Duration(seconds: 30), bool json = true}) async {
+    request.headers.addAll({
+      if (json) 'Content-Type': 'application/json',
       'Accept': 'application/json',
       'X-Shop-Id': AppConfig.shopId,
-    };
+    });
     if (auth && tokenProvider != null) {
       final token = await tokenProvider!();
-      if (token != null) headers['Authorization'] = 'Bearer $token';
+      if (token != null) request.headers['Authorization'] = 'Bearer $token';
     }
-
-    final request = http.Request(method, Uri.parse('$baseUrl$path'))..headers.addAll(headers);
-    if (body != null) request.body = jsonEncode(body);
 
     http.Response response;
     try {
-      response = await http.Response.fromStream(await request.send().timeout(const Duration(seconds: 30)));
+      response = await http.Response.fromStream(await request.send().timeout(timeout));
     } on TimeoutException {
       throw ApiException(408, 'Сервер хариу өгсөнгүй. Дахин оролдоно уу.');
     } catch (_) {

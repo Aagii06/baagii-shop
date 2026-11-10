@@ -5,30 +5,43 @@ class AdminUser {
   final int id;
   final String name;
   final String userName;
+  final String? phone;
   final String? email;
+  final String? logo;
   final String? roleNames;
+  final int? storeId;
   final String? storeName;
-  AdminUser(this.id, this.name, this.userName, this.email, this.roleNames, this.storeName);
+  AdminUser(this.id, this.name, this.userName, this.email, this.roleNames, this.storeName,
+      {this.phone, this.logo, this.storeId});
 
   /// roleNames-д "admin" байвал админ; бусад нь өөрийн дэлгүүрийн бараатай ажилладаг худалдагч.
   bool get isAdmin => RegExp('admin', caseSensitive: false).hasMatch(roleNames ?? '');
 
-  factory AdminUser.fromJson(Map<String, dynamic> j, {Map<String, dynamic>? store}) => AdminUser(
-        toInt(j['id']),
-        j['name']?.toString() ?? '',
-        j['userName']?.toString() ?? '',
-        j['email']?.toString(),
-        j['roleNames']?.toString(),
-        (store ?? j['store'])?['name']?.toString(),
-      );
+  factory AdminUser.fromJson(Map<String, dynamic> j, {Map<String, dynamic>? store}) {
+    final s = (store ?? j['store']) as Map?;
+    String? str(dynamic v) => v == null || v.toString().isEmpty ? null : v.toString();
+    return AdminUser(
+      toInt(j['id']),
+      j['name']?.toString() ?? '',
+      j['userName']?.toString() ?? '',
+      str(j['email']),
+      str(j['roleNames']),
+      str(s?['name']),
+      phone: str(j['phone']),
+      logo: str(j['logo']),
+      storeId: s?['id'] == null ? null : toInt(s!['id']),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
         'userName': userName,
+        'phone': phone,
         'email': email,
+        'logo': logo,
         'roleNames': roleNames,
-        'store': storeName == null ? null : {'name': storeName},
+        'store': storeName == null ? null : {'id': storeId, 'name': storeName},
       };
 }
 
