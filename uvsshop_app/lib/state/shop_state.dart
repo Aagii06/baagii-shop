@@ -26,6 +26,10 @@ class ShopState extends ChangeNotifier {
   /// Хадгалсан бараа. Backend-гүй тул web-тэй адил утсан дээр, дугаар тус
   /// бүрээр (зочин бол "guest") хадгална.
   List<Product> saved = [];
+
+  /// Хадгалсан хүргэлтийн хаягууд (дугаар тус бүрээр, хамгийн ихдээ [maxAddresses]).
+  List<SavedAddress> addresses = [];
+  static const maxAddresses = 3;
   List<CartLine> cart = [];
   List<Category> categories = [];
 
@@ -131,8 +135,76 @@ class ShopState extends ChangeNotifier {
 
   String get _savedKey => 'saved_products:${customer?.phone ?? 'guest'}';
 
+  // ---------- хаягууд ----------
+
+  String get _addressKey => 'delivery_addresses:${customer?.phone ?? 'guest'}';
+
+  void _loadAddresses() {
+    try {
+      final raw = _prefs?.getString(_addressKey);
+      addresses = raw == null
+          ? []
+          : (jsonDecode(raw) as List).map((a) => SavedAddress.fromJson(a as Map<String, dynamic>)).toList();
+    } catch (_) {
+      addresses = [];
+    }
+  }
+
+  Future<void> _storeAddresses() async {
+    notifyListeners();
+    await _prefs?.setString(_addressKey, jsonEncode(addresses.map((a) => a.toJson()).toList()));
+  }
+
+  /// Эхнийх нь үндсэн болно.
+  Future<void> addAddress(SavedAddress a) async {
+    if (addresses.length >= maxAddresses) return;
+    addresses = [
+      ...addresses,
+      SavedAddress(
+        id: 'addr-${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}',
+        label: a.label,
+        address: a.address,
+        area: a.area,
+        detail: a.detail,
+        isDefault: addresses.isEmpty,
+      ),
+    ];
+    await _storeAddresses();
+  }
+
+  Future<void> updateAddress(String id, SavedAddress a) async {
+    addresses = [
+      for (final x in addresses)
+        x.id == id ? SavedAddress(id: id, label: a.label, address: a.address, area: a.area, detail: a.detail, isDefault: x.isDefault) : x,
+    ];
+    await _storeAddresses();
+  }
+
+  Future<void> removeAddress(String id) async {
+    final next = addresses.where((a) => a.id != id).toList();
+    // Үндсэн нь устсан бол эхнийхийг үндсэн болгоно.
+    if (next.isNotEmpty && !next.any((a) => a.isDefault)) next[0] = next[0].copyWith(isDefault: true);
+    addresses = next;
+    await _storeAddresses();
+  }
+
+  Future<void> setDefaultAddress(String id) async {
+    addresses = [for (final a in addresses) a.copyWith(isDefault: a.id == id)];
+    await _storeAddresses();
+  }
+
+  List<AddressType>? _addressTypes;
+
+  Future<List<AddressType>> addressTypes() async {
+    if (_addressTypes != null) return _addressTypes!;
+    final res = await call(() => api.get('/customerAddress/addressTypes'));
+    return _addressTypes =
+        ((res['data']?['rows'] as List?) ?? []).map((t) => AddressType.fromJson(t as Map<String, dynamic>)).toList();
+  }
+
   Future<void> _loadSaved() async {
     final prefs = _prefs ??= await SharedPreferences.getInstance();
+    _loadAddresses();
     try {
       final raw = prefs.getString(_savedKey);
       saved = raw == null

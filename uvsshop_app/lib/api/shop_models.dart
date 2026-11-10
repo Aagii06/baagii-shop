@@ -391,6 +391,78 @@ class AddressArea {
   factory AddressArea.fromJson(Map<String, dynamic> j) => AddressArea(toInt(j['id']), j['code']?.toString(), j['name']?.toString() ?? '');
 }
 
+/// Хаягийн төрөл (Гэр, Ажил…), сонгоход харагдах өнгөтэй.
+class AddressType {
+  final int id;
+  final String name;
+  final String? bgColor;
+  final String? txtColor;
+  AddressType(this.id, this.name, this.bgColor, this.txtColor);
+  factory AddressType.fromJson(Map<String, dynamic> j) => AddressType(toInt(j['id']), j['name']?.toString() ?? '',
+      j['style']?['bgColor']?.toString(), j['style']?['txtColor']?.toString());
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'style': {'bgColor': bgColor, 'txtColor': txtColor}};
+}
+
+/// Хаягийн сонгосон хэсгүүд: төрөл + Аймаг/Сум/Баг.
+class AddressAreaPick {
+  final AddressType? type;
+  final AddressArea? city;
+  final AddressArea? district;
+  final AddressArea? subDistrict;
+  const AddressAreaPick({this.type, this.city, this.district, this.subDistrict});
+
+  AddressAreaPick copyWith({AddressType? type}) => AddressAreaPick(type: type, city: city, district: district, subDistrict: subDistrict);
+
+  /// "Улаанбаатар, Баянзүрх, 1-р хороо, 5-р байр".
+  String format(String? detail) => [city?.name, district?.name, subDistrict?.name, detail]
+      .map((p) => p?.trim())
+      .whereType<String>()
+      .where((p) => p.isNotEmpty)
+      .join(', ');
+
+  static Map<String, dynamic>? _area(AddressArea? a) => a == null ? null : {'id': a.id, 'code': a.code, 'name': a.name};
+  static AddressArea? _readArea(dynamic j) => j is Map<String, dynamic> ? AddressArea.fromJson(j) : null;
+
+  Map<String, dynamic> toJson() =>
+      {'addressType': type?.toJson(), 'city': _area(city), 'district': _area(district), 'subDistrict': _area(subDistrict)};
+
+  factory AddressAreaPick.fromJson(Map<String, dynamic> j) => AddressAreaPick(
+        type: j['addressType'] is Map<String, dynamic> ? AddressType.fromJson(j['addressType'] as Map<String, dynamic>) : null,
+        city: _readArea(j['city']),
+        district: _readArea(j['district']),
+        subDistrict: _readArea(j['subDistrict']),
+      );
+}
+
+/// Хадгалсан хүргэлтийн хаяг (web-ийн addressStore-той ижил бүтэц, утсан дээр хадгална).
+class SavedAddress {
+  final String id;
+  final String label;
+  final String address;
+  final AddressAreaPick? area;
+  final String? detail;
+  final bool isDefault;
+  SavedAddress({required this.id, required this.label, required this.address, this.area, this.detail, this.isDefault = false});
+
+  /// Төрлөөс нь (байхгүй бол хадгалсан нэрээс) нэр.
+  String get displayLabel => area?.type?.name ?? (area != null ? 'Хаяг' : label);
+
+  SavedAddress copyWith({bool? isDefault}) =>
+      SavedAddress(id: id, label: label, address: address, area: area, detail: detail, isDefault: isDefault ?? this.isDefault);
+
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'label': label, 'address': address, 'area': area?.toJson(), 'detail': detail, 'isDefault': isDefault};
+
+  factory SavedAddress.fromJson(Map<String, dynamic> j) => SavedAddress(
+        id: j['id']?.toString() ?? '',
+        label: j['label']?.toString() ?? 'Хаяг',
+        address: j['address']?.toString() ?? '',
+        area: j['area'] is Map<String, dynamic> ? AddressAreaPick.fromJson(j['area'] as Map<String, dynamic>) : null,
+        detail: j['detail']?.toString(),
+        isDefault: j['isDefault'] == true,
+      );
+}
+
 /// Худалдагчийн дэлгүүр (`/store`): эхлээд түвшин, дараа нь бараа ихтэй нь.
 /// Холбоо барих мэдээлэл зөвхөн `/store/{id}`-д ирнэ.
 class Store {
