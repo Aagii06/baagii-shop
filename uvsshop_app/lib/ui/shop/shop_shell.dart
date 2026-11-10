@@ -5,6 +5,7 @@ import '../../state/admin_state.dart';
 import '../../state/app_state.dart';
 import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
+import '../common.dart';
 import 'account_page.dart';
 import 'cart_page.dart';
 import 'home_page.dart';
@@ -35,30 +36,13 @@ class ShopShell extends StatelessWidget {
     ];
     final current = tabs.contains(tab) ? tab : ShopTab.home;
 
-    Widget badge(int n, IconData icon) => Badge(
-          isLabelVisible: n > 0,
-          label: Text(n > 99 ? '99+' : '$n'),
-          child: Icon(icon),
-        );
-
-    NavigationDestination dest(ShopTab t) => switch (t) {
-          ShopTab.home => const NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Нүүр'),
-          ShopTab.search => const NavigationDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search), label: 'Хайх'),
-          ShopTab.cart => NavigationDestination(
-              icon: badge(cartCount, Icons.shopping_cart_outlined),
-              selectedIcon: badge(cartCount, Icons.shopping_cart),
-              label: 'Сагс',
-            ),
-          ShopTab.saved => NavigationDestination(
-              icon: badge(savedCount, Icons.favorite_border),
-              selectedIcon: badge(savedCount, Icons.favorite),
-              label: 'Хадгалсан',
-            ),
-          ShopTab.profile => NavigationDestination(
-              icon: const Icon(Icons.person_outline),
-              selectedIcon: const Icon(Icons.person),
-              label: signedIn ? 'Профайл' : 'Нэвтрэх',
-            ),
+    // web-ийн MobileBottomNav-ийн дүрс, нэр, тоо.
+    (IconData, String, int) item(ShopTab t) => switch (t) {
+          ShopTab.home => (Icons.home_outlined, 'Нүүр', 0),
+          ShopTab.search => (Icons.search, 'Хайх', 0),
+          ShopTab.cart => (Icons.shopping_cart_outlined, 'Сагс', cartCount),
+          ShopTab.saved => (Icons.favorite_border, 'Хадгалсан', savedCount),
+          ShopTab.profile => (Icons.person_outline, signedIn ? 'Профайл' : 'Нэвтрэх', 0),
         };
 
     return Scaffold(
@@ -78,12 +62,63 @@ class ShopShell extends StatelessWidget {
               label: const Text('Админ'),
             )
           : null,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: tabs.indexOf(current),
-        onDestinationSelected: (i) => open(tabs[i]),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: [for (final t in tabs) dest(t)],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xF2FFFFFF),
+          border: Border(top: BorderSide(color: borderColor)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 64,
+            child: Row(children: [
+              for (final t in tabs)
+                Expanded(child: _NavItem(item: item(t), active: t == current, onTap: () => open(t))),
+            ]),
+          ),
+        ),
       ),
+    );
+  }
+}
+
+/// web-ийн MobileBottomNav-ийн нэг товч: идэвхтэй нь ягаан, тоо нь улаан badge.
+class _NavItem extends StatelessWidget {
+  final (IconData, String, int) item;
+  final bool active;
+  final VoidCallback onTap;
+  const _NavItem({required this.item, required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, label, count) = item;
+    final color = active ? brandColor : const Color(0xFF6B7280);
+    return InkWell(
+      onTap: onTap,
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Stack(clipBehavior: Clip.none, children: [
+          Icon(icon, size: 22, color: color),
+          if (count > 0)
+            Positioned(
+              top: -6,
+              right: -10,
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 16),
+                height: 16,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: Colors.red.shade600, borderRadius: BorderRadius.circular(8)),
+                child: Text(count > 99 ? '99+' : '$count',
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1)),
+              ),
+            ),
+        ]),
+        const SizedBox(height: 4),
+        Text(label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11, color: color, fontWeight: active ? FontWeight.w600 : FontWeight.w400)),
+      ]),
     );
   }
 }
