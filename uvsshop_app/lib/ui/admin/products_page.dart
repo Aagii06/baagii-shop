@@ -10,6 +10,7 @@ import '../common.dart';
 import 'admin_design.dart';
 import 'admin_widgets.dart';
 import 'dashboard_page.dart' show lowStockThreshold;
+import 'product_form_page.dart';
 
 /// web-ийн /products: хайлт, категори шүүлтүүр, гүйлгэхэд цааш ачаална.
 class AdminProductsPage extends StatefulWidget {
@@ -95,6 +96,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
           AdminPageHeader(
             title: 'Бараа',
             count: ready && _error == null ? _count : null,
+            aside: AdminSmallButton(label: 'Нэмэх', onPressed: () => _openForm(null)),
             children: [
               TextField(
                 onChanged: (v) {
@@ -150,7 +152,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
         ? ('Ноорог', AdminColors.mutedForeground.withValues(alpha: 0.7))
         : ('${p.remain} нөөц', p.remain <= lowStockThreshold ? AdminColors.destructive : AdminColors.mutedForeground);
     return InkWell(
-      onTap: () => _showDetail(p),
+      onTap: () => _openForm(p.id),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(children: [
@@ -186,48 +188,11 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
     );
   }
 
-  /// Барааны сонголт тус бүрийн үнэ, үлдэгдэл.
-  void _showDetail(AdminProduct p) => showModalBottomSheet<void>(
-        context: context,
-        showDragHandle: true,
-        isScrollControlled: true,
-        builder: (ctx) => ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.75),
-          child: ListView(shrinkWrap: true, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
-            Row(children: [
-              ImageBox(fileId: p.images.isEmpty ? null : p.images.first, size: 64),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(p.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  if (p.storeName != null) Text(p.storeName!, style: const TextStyle(color: AdminColors.mutedForeground)),
-                  Text(mnt(p.price), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
-                ]),
-              ),
-            ]),
-            const SizedBox(height: 16),
-            const Text('Сонголт, тоо', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            AdminCard(
-              child: Column(children: [
-                for (final (i, v) in p.variants.indexed) ...[
-                  if (i > 0) const Divider(height: 1, color: AdminColors.border),
-                  ListTile(
-                    dense: true,
-                    title: Text(v.name.isEmpty ? p.name : v.name),
-                    subtitle: Text(mnt(v.price), style: const TextStyle(fontFamily: mono)),
-                    trailing: Text('${v.remain} ш',
-                        style: TextStyle(
-                            fontFamily: mono, fontWeight: FontWeight.bold, color: v.remain <= lowStockThreshold ? AdminColors.destructive : null)),
-                  ),
-                ],
-                if (p.variants.isEmpty)
-                  ListTile(dense: true, title: const Text('Үлдэгдэл'), trailing: Text('${p.remain} ш', style: const TextStyle(fontFamily: mono))),
-              ]),
-            ),
-          ]),
-        ),
-      );
+  /// Бараа нэмэх ([id] null) эсвэл засах маягт; хадгалсан/устгасан бол жагсаалтыг шинэчилнэ.
+  Future<void> _openForm(int? id) async {
+    final changed = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => ProductFormPage(productId: id)));
+    if (changed == true) _reload();
+  }
 }
 
 /// web-ийн CategoryFilter: мод бүтэцтэй sheet-ээс олон категори сонгоно.
