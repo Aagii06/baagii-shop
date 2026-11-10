@@ -99,8 +99,8 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
       setState(() => _error = 'Утасны дугаар 8 оронтой байна');
       return;
     }
-    // Хүлээлт дуусаагүй бол шинэ код илгээхгүй, өмнөх кодоо оруулна.
-    if (_waiting) return _openCode(phone);
+    // Хүлээлт дуусаагүй бол шинэ код илгээхгүй (товч идэвхгүй).
+    if (_waiting) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -155,10 +155,11 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
       const SizedBox(height: 16),
       FilledButton(
         style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-        onPressed: _busy ? null : _send,
+        // Таймер гүйж байхад идэвхгүй.
+        onPressed: _busy || waiting ? null : _send,
         child: _busy
             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : Text(waiting ? 'Код оруулах' : 'Код авах'),
+            : const Text('Код авах'),
       ),
     ]);
   }

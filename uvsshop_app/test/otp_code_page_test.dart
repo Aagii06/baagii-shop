@@ -33,7 +33,7 @@ Future<bool?> _open(WidgetTester t) async {
 }
 
 void main() {
-  testWidgets('going back shows the countdown under the phone and reuses the code', (t) async {
+  testWidgets('going back shows the countdown under the phone; button disabled meanwhile', (t) async {
     SharedPreferences.setMockInitialValues({});
     final shop = _CountingShop();
     await t.pumpWidget(ChangeNotifierProvider<ShopState>.value(
@@ -58,12 +58,14 @@ void main() {
     expect(first, inInclusiveRange(55, 60));
     await t.pump(const Duration(seconds: 5));
     expect(left(), first - 5);
-    await t.tap(find.text('Код оруулах'));
+    // Таймер гүйж байхад "Код авах" идэвхгүй.
+    final button = find.widgetWithText(FilledButton, 'Код авах');
+    expect(t.widget<FilledButton>(button).onPressed, isNull);
+    await t.tap(button);
     await t.pumpAndSettle();
     expect(shop.sent, 1, reason: 'no new SMS while waiting');
-    await t.tap(find.text('Дугаар солих'));
-    await t.pumpAndSettle();
     await t.pump(const Duration(seconds: 60));
+    expect(t.widget<FilledButton>(button).onPressed, isNotNull);
     expect(find.text('Код авах'), findsOneWidget);
     expect(find.text('Код дахин авах боломжтой: '), findsNothing);
     expect(t.takeException(), isNull);
