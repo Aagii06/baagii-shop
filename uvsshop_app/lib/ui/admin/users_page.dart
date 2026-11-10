@@ -74,7 +74,7 @@ class _UsersPageState extends State<UsersPage> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(62),
           child: ChipTabs<String>(
             value: _role,
             onChanged: (v) => setState(() => _role = v),

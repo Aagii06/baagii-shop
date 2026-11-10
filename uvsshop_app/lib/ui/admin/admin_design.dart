@@ -61,6 +61,62 @@ String mntCompact(num v) {
 
 const mono = 'monospace';
 
+/// Админ горимын theme: дэд хуудсууд web-ийн DetailHeader шиг (хүрээтэй дугуй
+/// буцах товч, тод гарчиг), товч, талбарууд бөөрөнхий.
+final adminTheme = ThemeData(
+  useMaterial3: true,
+  colorScheme: ColorScheme.fromSeed(seedColor: AdminColors.primary, primary: AdminColors.primary, surface: Colors.white),
+  scaffoldBackgroundColor: AdminColors.background,
+  dividerColor: AdminColors.border,
+  dividerTheme: const DividerThemeData(color: AdminColors.border, space: 1, thickness: 1),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: AdminColors.background,
+    surfaceTintColor: Colors.transparent,
+    scrolledUnderElevation: 0,
+    centerTitle: false,
+    toolbarHeight: 68,
+    titleSpacing: 4,
+    foregroundColor: AdminColors.foreground,
+    titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AdminColors.foreground),
+    shape: Border(bottom: BorderSide(color: AdminColors.border)),
+  ),
+  actionIconTheme: ActionIconThemeData(
+    backButtonIconBuilder: (_) => Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AdminColors.border)),
+      child: const Icon(Icons.arrow_back, size: 20),
+    ),
+  ),
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      shape: const StadiumBorder(),
+      minimumSize: const Size(0, 44),
+      textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+    ),
+  ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      shape: const StadiumBorder(),
+      minimumSize: const Size(0, 44),
+      foregroundColor: AdminColors.foreground,
+      side: const BorderSide(color: AdminColors.border),
+      textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+    ),
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: Colors.white,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: const BorderSide(color: AdminColors.border)),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: const BorderSide(color: AdminColors.primary, width: 1.5)),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
+  ),
+  snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
+  bottomSheetTheme: const BottomSheetThemeData(backgroundColor: Colors.white, surfaceTintColor: Colors.transparent),
+  dialogTheme: const DialogThemeData(backgroundColor: Colors.white, surfaceTintColor: Colors.transparent),
+);
+
 /// Tab хуудсуудын дээд талын брэнд (лого + UVS SHOP / ADMIN).
 class AdminBrandBar extends StatelessWidget {
   const AdminBrandBar({super.key});

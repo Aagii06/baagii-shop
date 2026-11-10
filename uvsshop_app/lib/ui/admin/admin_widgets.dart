@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../api/api_client.dart';
 import '../../config.dart';
 import '../common.dart';
+import 'admin_design.dart';
 
 // Админы профайл цэсний хуудсуудад давтагддаг хэсгүүд (web-ийн
 // DetailHeader, Confirm, Toast, Field, PasswordInput, код асуух sheet).
@@ -104,7 +105,6 @@ InputDecoration fieldDecoration(String label, {String? hint, String? error, Widg
       suffixIcon: suffix,
       filled: true,
       fillColor: Colors.white,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     );
 
 /// Нууц үг, харуулах/нуух товчтой.
@@ -203,30 +203,27 @@ class Panel extends StatelessWidget {
       );
 }
 
-/// Шүүлтүүрийн chip-үүд (web-ийн ChipTabs).
+/// Шүүлтүүрийн товчнууд (web-ийн ChipTabs) — [PillTabs]-ийг ашиглана.
 class ChipTabs<T> extends StatelessWidget {
   final T value;
   final List<(T, String, int?)> options;
   final ValueChanged<T> onChanged;
-  const ChipTabs({super.key, required this.value, required this.options, required this.onChanged});
+
+  /// Утга бүрийн өнгө (жишээ нь төлөв).
+  final Map<T, Tone>? tones;
+  const ChipTabs({super.key, required this.value, required this.options, required this.onChanged, this.tones});
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 44,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          children: [
+  Widget build(BuildContext context) => Container(
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AdminColors.border))),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: PillTabs<T>(
+          value: value,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          onChanged: onChanged,
+          options: [
             for (final (v, label, count) in options)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  showCheckmark: false,
-                  label: Text(count != null && count > 0 ? '$label ($count)' : label),
-                  selected: v == value,
-                  onSelected: (_) => onChanged(v),
-                ),
-              ),
+              PillOption(v, label, count: count, tone: tones?[v], badgeColor: tones?[v] != null ? AdminColors.warning : null),
           ],
         ),
       );

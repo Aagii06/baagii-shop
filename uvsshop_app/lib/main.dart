@@ -6,6 +6,7 @@ import 'state/admin_state.dart';
 import 'state/app_state.dart';
 import 'state/shop_nav.dart';
 import 'state/shop_state.dart';
+import 'ui/admin/admin_design.dart';
 import 'ui/admin/admin_shell.dart';
 import 'ui/common.dart';
 import 'ui/shop/shop_shell.dart';
@@ -35,7 +36,8 @@ class UvsShopApp extends StatelessWidget {
     return MaterialApp(
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+      // Админ хэсэг вэбийн админы загвартай (admin_design.dart).
+      theme: mode == AppMode.admin ? adminTheme : ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: brandColor, primary: brandColor),
         useMaterial3: true,
         scaffoldBackgroundColor: const Color(0xFFF7F7F9),

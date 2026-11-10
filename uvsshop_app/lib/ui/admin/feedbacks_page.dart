@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../api/admin_manage_models.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
+import 'admin_design.dart';
 import 'admin_widgets.dart';
 
 /// web-ийн /feedbacks: вэбийн "Бидэнд бичнэ үү" маягтаар ирсэн захидал.
@@ -81,10 +82,11 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
       appBar: AppBar(
         title: const Text('Санал хүсэлт'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(62),
           child: ChipTabs<String>(
             value: _status,
             onChanged: (v) => setState(() => _status = v),
+            tones: {'new': orderTones['pending']!, 'read': orderTones['delivered']!},
             options: [('all', 'Бүгд', null), ('new', 'Шинэ', newCount), ('read', 'Уншсан', null)],
           ),
         ),

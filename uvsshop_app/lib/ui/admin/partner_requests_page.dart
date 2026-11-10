@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../api/admin_manage_models.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
+import 'admin_design.dart';
 import 'admin_widgets.dart';
 import 'stores_page.dart';
 
@@ -138,13 +139,14 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
       appBar: AppBar(
         title: const Text('Хамтран ажиллах хүсэлт'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(62),
           child: ChipTabs<String>(
             value: _status,
             onChanged: (v) {
               _status = v;
               _reload();
             },
+            tones: {'pending': orderTones['pending']!, 'approved': orderTones['delivered']!, 'rejected': orderTones['returned']!},
             options: [
               ('all', 'Бүгд', null),
               for (final e in partnerStatusLabel.entries) (e.key, e.value, e.key == 'pending' ? pending : null),
