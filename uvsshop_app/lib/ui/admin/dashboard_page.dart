@@ -162,61 +162,65 @@ class _DashboardPageState extends State<DashboardPage> {
     }
     final s = _sales!;
     return [
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: _StatTile(
-              tone: _TileTone.blue,
-              icon: Icons.shopping_bag_outlined,
-              label: 'Захиалга',
-              value: '${s.orders}',
-              delta: _delta(s.orders, s.prevOrders, against: _vs[_range]),
+      IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _StatTile(
+                tone: _TileTone.blue,
+                icon: Icons.shopping_bag_outlined,
+                label: 'Захиалга',
+                value: '${s.orders}',
+                delta: _delta(s.orders, s.prevOrders, against: _vs[_range]),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _StatTile(
-              tone: _TileTone.brand,
-              icon: Icons.account_balance_wallet_outlined,
-              label: 'Борлуулалт',
-              value: mntCompact(s.revenue),
-              delta: _delta(s.revenue, s.prevRevenue),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatTile(
+                tone: _TileTone.brand,
+                icon: Icons.account_balance_wallet_outlined,
+                label: 'Борлуулалт',
+                value: mntCompact(s.revenue),
+                delta: _delta(s.revenue, s.prevRevenue),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       const SizedBox(height: 12),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: _StatTile(
-              tone: _TileTone.mint,
-              icon: Icons.receipt_outlined,
-              label: 'Дундаж дүн',
-              value: mntCompact(s.orders == 0 ? 0 : s.revenue / s.orders),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _StatTile(
-              tone: _TileTone.peach,
-              icon: Icons.schedule,
-              label: 'Батлахыг хүлээж',
-              value: _pending == null ? '—' : '$_pending',
-              footer: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Харах', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                  SizedBox(width: 4),
-                  Icon(Icons.arrow_forward, size: 14),
-                ],
+      IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _StatTile(
+                tone: _TileTone.mint,
+                icon: Icons.receipt_outlined,
+                label: 'Дундаж дүн',
+                value: mntCompact(s.orders == 0 ? 0 : s.revenue / s.orders),
               ),
-              onTap: () => adminTab.value = 'orders',
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatTile(
+                tone: _TileTone.peach,
+                icon: Icons.schedule,
+                label: 'Батлахыг хүлээж',
+                value: _pending == null ? '—' : '$_pending',
+                footer: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Харах', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    SizedBox(width: 4),
+                    Icon(Icons.arrow_forward, size: 14),
+                  ],
+                ),
+                onTap: () => adminTab.value = 'orders',
+              ),
+            ),
+          ],
+        ),
       ),
       const SizedBox(height: 12),
       _SalesChart(s),
@@ -426,6 +430,9 @@ class _StatTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             label,
+                            // Нэг мөрт — карт бүр ижил өндөртэй байна.
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
