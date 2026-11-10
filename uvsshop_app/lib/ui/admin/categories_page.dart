@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../api/admin_manage_models.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
+import 'admin_design.dart';
 import 'admin_widgets.dart';
 import 'attrs_page.dart';
 
@@ -17,8 +18,11 @@ bool _canMoveUnder(AdminCategory moving, AdminCategory? target) {
   return target.depth + moving.height <= maxCategoryDepth - 1;
 }
 
-/// web-ийн /categories: категорийн мод. Мөр бүрээс засах, дэд категори нэмэх,
-/// дээш/доош зөөх, өөр категори руу шилжүүлэх, устгах.
+/// Чирсэн категорийг хаана тавих вэ: мөрийн дээр/доор/дотор, эсвэл дээд түвшинд (`id == null`).
+typedef _Drop = ({int? id, String place});
+
+/// web-ийн /categories: категорийн мод. Бариулаас нь чирж дээр/доор/дотор нь
+/// тавьж зөөнө; мөр бүрээс засах, дэд категори нэмэх, устгах.
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({super.key});
   @override
@@ -30,6 +34,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Object? _error;
   final Set<int> _expanded = {};
   bool _busy = false;
+  final Set<int> _deleting = {};
+
+  /// Чирж буй категори ба одоо хаана тавигдах гэж байгаа.
+  AdminCategory? _dragging;
+  _Drop? _over;
 
   List<AdminCategory> get _flat => _tree == null ? [] : flattenCategories(_tree!);
 
@@ -60,13 +69,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
     if (saved == true) _load();
   }
 
-  Future<void> _withBusy(Future<bool> Function() fn) async {
-    setState(() => _busy = true);
-    final ok = await fn();
-    if (ok) await _load();
-    if (mounted) setState(() => _busy = false);
-  }
-
   Future<void> _delete(AdminCategory c) async {
     final ok = await confirmAction(context,
         title: 'Категори устгах уу?',
@@ -75,73 +77,70 @@ class _CategoriesPageState extends State<CategoriesPage> {
         confirmLabel: 'Устгах',
         danger: true);
     if (!ok || !mounted) return;
-    await _withBusy(() => runAction(context, () => context.read<AdminState>().deleteCategory(c.id), 'Категорийг устгалаа'));
+    setState(() => _deleting.add(c.id));
+    final done = await runAction(context, () => context.read<AdminState>().deleteCategory(c.id), 'Категорийг устгалаа');
+    if (!mounted) return;
+    setState(() => _deleting.remove(c.id));
+    if (done) _load();
   }
 
-  List<AdminCategory> _siblingsOf(AdminCategory c) {
-    final byId = {for (final x in _flat) x.id: x};
-    return c.parentId == null ? _tree! : (byId[c.parentId]?.children ?? []);
+  /// Тавих газрын шинэ эцэг (null = дээд түвшин) ба ах дүүсийн дундах байр; юу ч өөрчлөгдөхгүй бол null.
+  ({AdminCategory? parent, int index})? _placement(AdminCategory dragged, _Drop drop) {
+    final byId = {for (final c in _flat) c.id: c};
+    List<AdminCategory> childrenOf(AdminCategory? p) => (p?.children ?? _tree!).where((c) => c.id != dragged.id).toList();
+    AdminCategory? parent;
+    int index;
+    if (drop.id == null) {
+      parent = null;
+      index = childrenOf(null).length;
+    } else {
+      final target = byId[drop.id];
+      if (target == null || target.id == dragged.id) return null;
+      if (drop.place == 'inside') {
+        parent = target;
+        index = _expanded.contains(target.id) ? 0 : childrenOf(target).length;
+      } else {
+        parent = target.parentId == null ? null : byId[target.parentId];
+        index = childrenOf(parent).indexWhere((c) => c.id == target.id) + (drop.place == 'after' ? 1 : 0);
+      }
+    }
+    if (parent != null && !_canMoveUnder(dragged, parent)) return null;
+    final current = (parent?.children ?? _tree!).indexWhere((c) => c.id == dragged.id);
+    if (parent?.id == dragged.parentId && current == index) return null;
+    return (parent: parent, index: index);
   }
 
-  /// Ижил эцгийн дотор нэг байр дээш/доош.
-  Future<void> _shift(AdminCategory c, int dir) async {
-    final siblings = _siblingsOf(c);
-    final i = siblings.indexWhere((s) => s.id == c.id);
-    final target = i + dir;
-    if (target < 0 || target >= siblings.length) return;
-    await _withBusy(
-        () => runAction(context, () => context.read<AdminState>().moveCategory(c.id, c.parentId, target), 'Категорийг шилжүүллээ'));
+  /// Хуруу [local] байрлалд байхад [target] мөрөнд хаана тавигдах вэ.
+  _Drop? _dropAt(AdminCategory dragged, AdminCategory target, double at) {
+    // Хамгийн доод түвшин дэд категори авахгүй — хоёр хуваана.
+    final nests = _canMoveUnder(dragged, target);
+    var place = nests ? (at < 0.25 ? 'before' : (at > 0.75 ? 'after' : 'inside')) : (at < 0.5 ? 'before' : 'after');
+    // Нээлттэй эцгийн доор гэдэг нь эхний хүүхдийнх нь дээр — дотор нь тавина.
+    if (place == 'after' && _expanded.contains(target.id) && nests) place = 'inside';
+    final drop = (id: target.id, place: place);
+    return _placement(dragged, drop) == null ? null : drop;
   }
 
-  /// Өөр эцэг рүү (эсвэл дээд түвшин рүү) шилжүүлж, төгсгөлд нь байрлуулна.
-  Future<void> _moveTo(AdminCategory c) async {
-    final flat = _flat;
-    final options = flat.where((t) => t.id != c.parentId && _canMoveUnder(c, t)).toList();
-    final picked = await showModalBottomSheet<({AdminCategory? target})>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (ctx) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.75),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: Text('“${c.name}”-г хаана шилжүүлэх вэ?', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-          ),
-          Flexible(
-            child: ListView(shrinkWrap: true, children: [
-              if (c.parentId != null)
-                ListTile(
-                  leading: const Icon(Icons.vertical_align_top),
-                  title: const Text('Дээд түвшин', style: TextStyle(fontWeight: FontWeight.bold)),
-                  onTap: () => Navigator.pop(ctx, (target: null)),
-                ),
-              for (final t in options)
-                ListTile(
-                  contentPadding: EdgeInsets.only(left: 16 + t.depth * 20.0, right: 16),
-                  leading: Icon(t.isLeaf ? Icons.label_outline : Icons.folder_outlined, size: 20),
-                  title: Text(t.name, style: TextStyle(fontWeight: t.depth == 0 ? FontWeight.bold : FontWeight.w500)),
-                  onTap: () => Navigator.pop(ctx, (target: t)),
-                ),
-            ]),
-          ),
-        ]),
-      ),
-    );
-    if (picked == null || !mounted) return;
-    final parent = picked.target;
-    // Навч анхны дэд категоритой болбол өөрийн сонголтуудаа алдана.
-    if (parent != null && parent.isLeaf && parent.attrs.isNotEmpty) {
+  Future<void> _onDrop(AdminCategory c, _Drop drop) async {
+    final spot = _placement(c, drop);
+    if (spot == null) return;
+    final parent = spot.parent;
+    if (parent != null && parent.id != c.parentId && parent.isLeaf && parent.attrs.isNotEmpty) {
       final ok = await confirmAction(context,
           title: 'Категори шилжүүлэх үү?',
           description: '“${parent.name}” дэд категоритой болох тул түүний сонголтууд (өнгө, хэмжээ…) устна.',
           confirmLabel: 'Шилжүүлэх');
       if (!ok || !mounted) return;
     }
-    final index = (parent?.children ?? _tree!).where((x) => x.id != c.id).length;
-    await _withBusy(() => runAction(
-        context, () => context.read<AdminState>().moveCategory(c.id, parent?.id, index), 'Категорийг шилжүүллээ'));
-    if (parent != null && mounted) setState(() => _expanded.add(parent.id));
+    setState(() => _busy = true);
+    final moved = await runAction(
+        context, () => context.read<AdminState>().moveCategory(c.id, parent?.id, spot.index), 'Категорийг шилжүүллээ');
+    if (moved) {
+      // Хаашаа орсныг харуулна.
+      if (parent != null) _expanded.add(parent.id);
+      await _load();
+    }
+    if (mounted) setState(() => _busy = false);
   }
 
   @override
@@ -154,13 +153,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
     }
 
     final visible = flat.where(shown).toList();
+    final dragging = _dragging;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Категори'),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilledButton.icon(onPressed: () => _openForm(), icon: const Icon(Icons.add), label: const Text('Нэмэх')),
+            padding: const EdgeInsets.only(right: 12),
+            child: AdminSmallButton(label: 'Нэмэх', onPressed: () => _openForm()),
           ),
         ],
       ),
@@ -173,13 +173,39 @@ class _CategoriesPageState extends State<CategoriesPage> {
             onRetry: _load,
             emptyIcon: Icons.grid_view,
             emptyText: 'Категори алга\n“Нэмэх” товчоор шинэ категори нэмнэ үү.',
-            builder: (rows) => ListView.separated(
-              itemCount: rows.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
-              itemBuilder: (_, i) => _row(rows[i]),
-            ),
+            builder: (rows) => ListView(padding: const EdgeInsets.only(bottom: 120), children: [AdminList(children: [for (final c in rows) _row(c)])]),
           ),
         ),
+        // Энд тавибал дээд түвшин болно.
+        if (dragging != null && dragging.parentId != null)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: DragTarget<AdminCategory>(
+              onWillAcceptWithDetails: (_) => true,
+              onMove: (_) {
+                if (_over?.id != null || _over == null) setState(() => _over = (id: null, place: 'root'));
+              },
+              onLeave: (_) => setState(() => _over = null),
+              onAcceptWithDetails: (d) => _onDrop(d.data, (id: null, place: 'root')),
+              builder: (_, _, _) {
+                final on = _over != null && _over!.id == null;
+                return Container(
+                  height: 56,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: on ? AdminColors.primarySoft : AdminColors.background.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: on ? AdminColors.primary : AdminColors.border, width: 2),
+                    boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 12)],
+                  ),
+                  child: Text('Энд тавивал дээд түвшин болно',
+                      style: TextStyle(fontWeight: FontWeight.w600, color: on ? AdminColors.primaryInk : AdminColors.mutedForeground)),
+                );
+              },
+            ),
+          ),
         if (_busy)
           const Positioned.fill(
             child: ColoredBox(color: Colors.black26, child: Center(child: CircularProgressIndicator(color: Colors.white))),
@@ -191,86 +217,175 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Widget _row(AdminCategory c) {
     final open = _expanded.contains(c.id);
     final hasKids = c.children.isNotEmpty;
-    final siblings = _siblingsOf(c);
-    final idx = siblings.indexWhere((s) => s.id == c.id);
     void toggle() => setState(() => open ? _expanded.remove(c.id) : _expanded.add(c.id));
+    final over = _over != null && _over!.id == c.id ? _over!.place : null;
+    final isDragged = _dragging?.id == c.id;
 
-    return Material(
-      color: Colors.white,
-      child: InkWell(
-        onTap: hasKids ? toggle : null,
-        child: Padding(
-          padding: EdgeInsets.only(left: 8 + c.depth * 20.0, right: 4, top: 6, bottom: 6),
-          child: Row(children: [
-            SizedBox(
-              width: 36,
-              child: hasKids
-                  ? IconButton(
-                      visualDensity: VisualDensity.compact,
-                      tooltip: open ? 'Хураах' : 'Дэлгэх',
-                      onPressed: toggle,
-                      icon: AnimatedRotation(turns: open ? 0.25 : 0, duration: const Duration(milliseconds: 150), child: const Icon(Icons.chevron_right)),
-                    )
-                  : null,
+    final content = Padding(
+      padding: EdgeInsets.only(left: 8 + c.depth * 20.0, right: 12, top: 10, bottom: 10),
+      child: Row(children: [
+        SizedBox(
+          width: 32,
+          child: hasKids
+              ? IconButton(
+                  padding: EdgeInsets.zero,
+                  tooltip: open ? 'Хураах' : 'Дэлгэх',
+                  onPressed: toggle,
+                  icon: AnimatedRotation(
+                      turns: open ? 0.25 : 0,
+                      duration: const Duration(milliseconds: 150),
+                      child: const Icon(Icons.chevron_right, color: AdminColors.mutedForeground)),
+                )
+              : null,
+        ),
+        // Чирэх бариул.
+        Draggable<AdminCategory>(
+          data: c,
+          dragAnchorStrategy: pointerDragAnchorStrategy,
+          onDragStarted: () => setState(() => _dragging = c),
+          onDragEnd: (_) => setState(() {
+            _dragging = null;
+            _over = null;
+          }),
+          feedback: FractionalTranslation(
+            translation: const Offset(-0.5, -1.4),
+            child: Material(
+              color: AdminColors.foreground,
+              shape: const StadiumBorder(),
+              elevation: 6,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 240),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(c.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+              ),
             ),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(c.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15, fontWeight: c.depth == 0 ? FontWeight.bold : FontWeight.w600)),
-                Text(
-                  hasKids ? '${c.children.length} дэд категори' : attrsSummary(c.attrs.map((a) => a.name).toList()),
+          ),
+          child: const SizedBox(
+            width: 32,
+            height: 40,
+            child: Icon(Icons.drag_indicator, color: AdminColors.mutedForeground),
+          ),
+        ),
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: hasKids ? toggle : null,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(c.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: !hasKids && c.attrs.isNotEmpty ? brandColor : Colors.grey.shade600,
-                    fontWeight: !hasKids && c.attrs.isNotEmpty ? FontWeight.w600 : null,
-                  ),
+                  style: TextStyle(fontSize: 15, fontWeight: c.depth == 0 ? FontWeight.bold : FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(
+                hasKids ? '${c.children.length} дэд категори' : attrsSummary(c.attrs.map((a) => a.name).toList()),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: !hasKids && c.attrs.isNotEmpty ? AdminColors.primaryInk : AdminColors.mutedForeground,
+                  fontWeight: !hasKids && c.attrs.isNotEmpty ? FontWeight.w600 : null,
                 ),
-              ]),
-            ),
-            IconButton.outlined(
-              tooltip: 'Засах',
-              visualDensity: VisualDensity.compact,
-              onPressed: () => _openForm(category: c),
-              icon: const Icon(Icons.edit_outlined, size: 18),
-            ),
-            PopupMenuButton<String>(
-              tooltip: 'Бусад',
-              onSelected: (v) => switch (v) {
-                'sub' => _openForm(parentId: c.id),
-                'up' => _shift(c, -1),
-                'down' => _shift(c, 1),
-                'move' => _moveTo(c),
-                'delete' => _delete(c),
-                _ => null,
-              },
-              itemBuilder: (_) => [
-                if (_canNestUnder(c))
-                  const PopupMenuItem(value: 'sub', child: ListTile(leading: Icon(Icons.add), title: Text('Дэд категори нэмэх'))),
-                PopupMenuItem(
-                    value: 'up', enabled: idx > 0, child: const ListTile(leading: Icon(Icons.arrow_upward), title: Text('Дээш зөөх'))),
-                PopupMenuItem(
-                    value: 'down',
-                    enabled: idx < siblings.length - 1,
-                    child: const ListTile(leading: Icon(Icons.arrow_downward), title: Text('Доош зөөх'))),
-                const PopupMenuItem(value: 'move', child: ListTile(leading: Icon(Icons.drive_file_move_outline), title: Text('Шилжүүлэх'))),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: Icon(Icons.delete_outline, color: Colors.red.shade600),
-                    title: Text('Устгах', style: TextStyle(color: Colors.red.shade600)),
-                  ),
-                ),
-              ],
-            ),
-          ]),
+              ),
+            ]),
+          ),
         ),
-      ),
+        _iconBtn(Icons.edit_outlined, 'Засах', () => _openForm(category: c),
+            bg: Colors.white, fg: AdminColors.foreground, border: AdminColors.border),
+        const SizedBox(width: 6),
+        // Хамгийн доод түвшин дэд категори авахгүй — товчнууд эгнээндээ үлдэнэ.
+        _canNestUnder(c)
+            ? _iconBtn(Icons.add, 'Дэд категори нэмэх', () => _openForm(parentId: c.id),
+                bg: AdminColors.primarySoft, fg: AdminColors.primaryInk)
+            : const SizedBox(width: 36),
+        const SizedBox(width: 6),
+        _deleting.contains(c.id)
+            ? const SizedBox(width: 36, height: 36, child: Padding(padding: EdgeInsets.all(9), child: CircularProgressIndicator(strokeWidth: 2)))
+            : _iconBtn(Icons.delete_outline, 'Устгах', () => _delete(c),
+                bg: AdminColors.destructive.withValues(alpha: 0.1), fg: AdminColors.destructive),
+      ]),
+    );
+
+    return _DropRow(
+      onMove: (at) {
+        final d = _dragging;
+        if (d == null) return;
+        final drop = _dropAt(d, c, at);
+        if (drop?.id != _over?.id || drop?.place != _over?.place) setState(() => _over = drop);
+      },
+      onLeave: () {
+        if (_over?.id == c.id) setState(() => _over = null);
+      },
+      onDrop: (dragged) {
+        final drop = _over;
+        if (drop != null && drop.id == c.id) _onDrop(dragged, drop);
+      },
+      child: Stack(children: [
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 120),
+          opacity: isDragged ? 0.4 : 1,
+          child: Container(
+            decoration: over == 'inside'
+                ? BoxDecoration(color: AdminColors.primarySoft, border: Border.all(color: AdminColors.primary, width: 2))
+                : const BoxDecoration(color: Colors.white),
+            child: content,
+          ),
+        ),
+        // Тавигдах зураас — энэ мөрийн догол дээр.
+        if (over == 'before' || over == 'after')
+          Positioned(
+            left: 16 + c.depth * 20.0,
+            right: 16,
+            top: over == 'before' ? 0 : null,
+            bottom: over == 'after' ? 0 : null,
+            child: Container(height: 2.5, decoration: BoxDecoration(color: AdminColors.primary, borderRadius: BorderRadius.circular(2))),
+          ),
+      ]),
     );
   }
+
+  Widget _iconBtn(IconData icon, String tooltip, VoidCallback onTap, {required Color bg, required Color fg, Color? border}) => Tooltip(
+        message: tooltip,
+        child: Material(
+          color: bg,
+          shape: CircleBorder(side: border == null ? BorderSide.none : BorderSide(color: border)),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: SizedBox(width: 36, height: 36, child: Icon(icon, size: 17, color: fg)),
+          ),
+        ),
+      );
+}
+
+/// Чирсэн категорийг хүлээн авах мөр: хуруу мөрийн аль өндөрт (0–1) байгааг [onMove]-д өгнө.
+class _DropRow extends StatefulWidget {
+  final Widget child;
+  final ValueChanged<double> onMove;
+  final VoidCallback onLeave;
+  final ValueChanged<AdminCategory> onDrop;
+  const _DropRow({required this.child, required this.onMove, required this.onLeave, required this.onDrop});
+  @override
+  State<_DropRow> createState() => _DropRowState();
+}
+
+class _DropRowState extends State<_DropRow> {
+  @override
+  Widget build(BuildContext context) => DragTarget<AdminCategory>(
+        onWillAcceptWithDetails: (_) => true,
+        onMove: (d) {
+          final box = context.findRenderObject() as RenderBox?;
+          if (box == null || !box.hasSize) return;
+          widget.onMove((box.globalToLocal(d.offset).dy / box.size.height).clamp(0.0, 1.0));
+        },
+        onLeave: (_) => widget.onLeave(),
+        onAcceptWithDetails: (d) => widget.onDrop(d.data),
+        builder: (_, _, _) => widget.child,
+      );
 }
 
 /// Категори нэмэх / засах: нэр, эцэг (зөвхөн харах), барааны сонголт (хамгийн сүүлийн түвшинд).

@@ -261,46 +261,16 @@ class _SearchPageState extends State<SearchPage> {
         child: CustomScrollView(controller: _scroll, physics: const AlwaysScrollableScrollPhysics(), slivers: [
           if (storeNames.isNotEmpty)
             SliverToBoxAdapter(
-              child: SizedBox(
-                height: 128,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  itemCount: storeNames.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 10),
-                  itemBuilder: (_, i) {
-                    final name = storeNames[i];
-                    final active = name == pickedStore;
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () => _selectStore(active ? null : name),
-                      child: Container(
-                        width: 96,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: active ? brandColor : tierRing[tierOf[name]] ?? borderColor, width: 2),
-                        ),
-                        child: Stack(children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(children: [
-                              StoreAvatar(name: name, logo: logos[name], size: 52, radius: 12),
-                              const SizedBox(height: 6),
-                              Text(name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: active ? brandColor : Colors.black87)),
-                              Text('${counts[name]}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                            ]),
-                          ),
-                          TierRibbon(tierOf[name] ?? 'normal'),
-                        ]),
-                      ),
-                    );
-                  },
-                ),
+              // Өндрийг тогтоохгүй — карт агуулгаасаа (үсгийн хэмжээ томорсон ч) өөрөө өндөрсөнө.
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  for (final (i, name) in storeNames.indexed) ...[
+                    if (i > 0) const SizedBox(width: 10),
+                    _storeTile(name, active: name == pickedStore, logo: logos[name], count: counts[name] ?? 0, tier: tierOf[name]),
+                  ],
+                ]),
               ),
             ),
           SliverPadding(
@@ -371,6 +341,38 @@ class _SearchPageState extends State<SearchPage> {
       ),
     );
   }
+
+  /// web-ийн StoreTiles: 96px өргөн, 56px лого, доор нь нэр, тоо.
+  Widget _storeTile(String name, {required bool active, String? logo, required int count, String? tier}) => Material(
+        color: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: active ? brandColor : tierRing[tier] ?? borderColor, width: 2),
+        ),
+        child: InkWell(
+          onTap: () => _selectStore(active ? null : name),
+          child: SizedBox(
+            width: 96,
+            child: Stack(children: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  StoreAvatar(name: name, logo: logo, size: 56, radius: 12),
+                  const SizedBox(height: 6),
+                  Text(name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: active ? brandColor : Colors.black87)),
+                  Text('$count', style: TextStyle(fontSize: 11, height: 1.2, color: Colors.grey.shade600)),
+                ]),
+              ),
+              TierRibbon(tier ?? 'normal'),
+            ]),
+          ),
+        ),
+      );
 
   Future<void> _openFilters(List<Category> categories, List<String> stores, Map<String, String?> logos) async {
     final result = await showModalBottomSheet<SearchFilters>(
