@@ -89,8 +89,10 @@ class _AccountPageState extends State<AccountPage> {
                   subtitle: 'Дэлгүүрийнхээ мэдээллийг үлдээж, утсаа баталгаажуулна уу. Хүсэлт батлагдвал таны дэлгүүр нээгдэнэ.',
                   onTap: () => _push(const SellerPage()),
                 ),
-                const SizedBox(height: 16),
-                _adminLink(),
+                if (shop.isStaff) ...[
+                  const SizedBox(height: 16),
+                  _adminLink(),
+                ],
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
@@ -118,11 +120,10 @@ class _AccountPageState extends State<AccountPage> {
             textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
         const SizedBox(height: 24),
         Center(child: FilledButton(onPressed: () => _push(const SignInPage()), child: const Text('Нэвтрэх'))),
-        const SizedBox(height: 32),
-        _adminLink(),
       ]);
 
-  /// Апп дээрх нэмэлт: админ / худалдагч хэсэг рүү орох.
+  /// Апп дээрх нэмэлт: худалдан авагчийн утсаар админ / дэлгүүрийн хэрэглэгч
+  /// бүртгэлтэй (isStaff) үед л харагдана.
   Widget _adminLink() {
     final admin = context.watch<AdminState>();
     return admin.signedIn

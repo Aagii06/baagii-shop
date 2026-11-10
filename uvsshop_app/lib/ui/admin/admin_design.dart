@@ -336,23 +336,25 @@ class OrderStatusBadge extends StatelessWidget {
   }
 }
 
-/// web-ийн Card: цагаан, нимгэн хүрээ, дугуй булан.
+/// web-ийн Card: цагаан, нимгэн хүрээ, дугуй булан. Material тул доторх
+/// ListTile, InkWell зөв зурагдана.
 class AdminCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   const AdminCard({super.key, required this.child, this.padding = EdgeInsets.zero});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: padding,
-        clipBehavior: Clip.antiAlias,
+  Widget build(BuildContext context) => DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AdminColors.border),
           boxShadow: const [BoxShadow(color: Color(0x0A000000), blurRadius: 6, offset: Offset(0, 1))],
         ),
-        child: child,
+        child: Material(
+          color: Colors.white,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AdminColors.border)),
+          child: Padding(padding: padding, child: child),
+        ),
       );
 }
 
@@ -362,8 +364,9 @@ class AdminList extends StatelessWidget {
   const AdminList({super.key, required this.children});
 
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: const BoxDecoration(color: Colors.white, border: Border(bottom: BorderSide(color: AdminColors.border))),
+  Widget build(BuildContext context) => Material(
+        color: Colors.white,
+        shape: const Border(bottom: BorderSide(color: AdminColors.border)),
         child: Column(children: [
           for (var i = 0; i < children.length; i++) ...[
             if (i > 0) const Divider(height: 1, thickness: 1, color: AdminColors.border),

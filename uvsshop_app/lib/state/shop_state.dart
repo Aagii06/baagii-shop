@@ -23,6 +23,10 @@ class ShopState extends ChangeNotifier {
 
   Customer? customer;
 
+  /// Нэвтэрсэн худалдан авагчийн утсаар админ эсвэл дэлгүүрийн хэрэглэгч
+  /// бүртгэлтэй эсэх — тэр үед л "Админ хэсэг рүү орох" харагдана.
+  bool isStaff = false;
+
   /// Хадгалсан бараа. Backend-гүй тул web-тэй адил утсан дээр, дугаар тус
   /// бүрээр (зочин бол "guest") хадгална.
   List<Product> saved = [];
@@ -90,8 +94,10 @@ class ShopState extends ChangeNotifier {
       final res = await call(() => api.get('/auth/getUserData'));
       final c = res['data']?['customer'];
       customer = c == null ? null : Customer.fromJson(c as Map<String, dynamic>);
+      isStaff = customer != null && res['data']?['isStaff'] == true;
     } catch (_) {
       customer = null;
+      isStaff = false;
     }
     await _loadSaved();
     notifyListeners();
@@ -110,7 +116,8 @@ class ShopState extends ChangeNotifier {
       customer = Customer.fromJson(res['data']['customer'] as Map<String, dynamic>);
       await _loadSaved();
       notifyListeners();
-      await refreshCart();
+      // isStaff-ийг getUserData-аас авна.
+      await Future.wait([refreshCart(), refreshUser()]);
       return true;
     } catch (_) {
       return false;
@@ -154,6 +161,7 @@ class ShopState extends ChangeNotifier {
   Future<void> signOut() async {
     await _clearToken();
     customer = null;
+    isStaff = false;
     cart = [];
     await _loadSaved();
     notifyListeners();

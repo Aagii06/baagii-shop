@@ -184,22 +184,19 @@ class MenuTile extends StatelessWidget {
       );
 }
 
-/// Цагаан, дугуй булантай карт.
+/// Цагаан, дугуй булантай карт. Material тул доторх ListTile, InkWell-ийн
+/// дэвсгэр, долгион зөв зурагдана.
 class Panel extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   const Panel({super.key, required this.child, this.padding = EdgeInsets.zero});
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: padding,
+  Widget build(BuildContext context) => Material(
+        color: Colors.white,
         clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor),
-        ),
-        child: child,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: borderColor)),
+        child: Padding(padding: padding, child: child),
       );
 }
 

@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { customers, partnerRequests, sequelize } = require("../../models");
+const { customers, partnerRequests, users, sequelize } = require("../../models");
 const { partnerStatuses } = require("../../config/constants");
 const { signWeb, signPhoneProof, readPhoneProof } = require("../../middleware/auth");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
@@ -16,12 +16,16 @@ module.exports.loginGuest = handle("loginGuest", async (req, res) => {
   return ok(res, { token: signWeb({ shopId: req.shopId, guestId }), guestId });
 });
 
-// Зочны токенд `{}`, утсаар нэвтэрсэн бол `{ customer }`
+// Зочны токенд `{}`, утсаар нэвтэрсэн бол `{ customer, isStaff }`.
+// isStaff — энэ утсаар админ эсвэл дэлгүүрийн (shopper) хэрэглэгч бүртгэлтэй эсэх;
+// апп зөвхөн тэр үед "Админ хэсэг рүү орох"-ыг харуулна.
 module.exports.getUserData = handle("getUserData", async (req, res) => {
   const { customerId } = req.session;
   if (!customerId) return ok(res, {});
   const customer = await customers.findOne({ where: { id: customerId, shop_id: req.shopId, status: "active" } });
-  return ok(res, customer ? { customer: toCustomer(customer) } : {});
+  if (!customer) return ok(res, {});
+  const isStaff = (await users.count({ where: { shop_id: req.shopId, phone: customer.phone, status: "active" } })) > 0;
+  return ok(res, { customer: toCustomer(customer), isStaff });
 });
 
 module.exports.sendOtp = handle("sendOtp", async (req, res) => {
