@@ -24,7 +24,7 @@ class _AdminShellState extends State<AdminShell> {
     final tabs = <(NavigationDestination, Widget)>[
       if (isAdmin)
         (
-          const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Тайлан'),
+          const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Самбар'),
           const DashboardPage(),
         ),
       (

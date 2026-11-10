@@ -161,11 +161,11 @@ class MenuTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 46,
+              height: 46,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
+                shape: BoxShape.circle,
                 border: Border.all(color: color.withValues(alpha: 0.25)),
               ),
               child: Icon(icon, color: color, size: 22),
