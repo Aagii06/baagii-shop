@@ -14,6 +14,10 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Профайл болон дэлгүүрийн лого сонгоход зураг хэрэгтэй.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Лого авахад камер хэрэгтэй.</string>
 	<key>CFBundleName</key>
 	<string>uvsshop_app</string>
 	<key>CFBundlePackageType</key>
