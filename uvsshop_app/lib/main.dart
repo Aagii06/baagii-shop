@@ -36,6 +36,9 @@ class UvsShopApp extends StatelessWidget {
     return MaterialApp(
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
+      // Дэлгүүр ↔ админ шилжихэд theme-ийг шууд солино. Хөдөлгөөнтэй шилжвэл хоёр
+      // theme-ийн TextStyle-уудыг холих гэж "different inherit values" алдаа шиддэг.
+      themeAnimationDuration: Duration.zero,
       // Админ хэсэг вэбийн админы загвартай (admin_design.dart).
       theme: mode == AppMode.admin ? adminTheme : ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: brandColor, primary: brandColor),

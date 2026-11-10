@@ -14,6 +14,7 @@ import 'package:uvsshop_app/ui/admin/categories_page.dart';
 import 'package:uvsshop_app/ui/admin/customers_page.dart';
 import 'package:uvsshop_app/ui/admin/delivery_notes_page.dart';
 import 'package:uvsshop_app/ui/admin/feedbacks_page.dart';
+import 'package:uvsshop_app/ui/admin/notification_bell.dart';
 import 'package:uvsshop_app/ui/admin/partner_requests_page.dart';
 import 'package:uvsshop_app/ui/admin/password_page.dart';
 import 'package:uvsshop_app/ui/admin/payment_page.dart';
@@ -69,6 +70,7 @@ void main() {
     'partners': const PartnerRequestsPage(),
     'profileEdit': const ProfileEditPage(),
     'password': const PasswordPage(),
+    'notifications': const NotificationsPage(),
   };
   pages.forEach((name, page) => testWidgets('admin page $name', (t) => pumpPage(t, page)));
   testWidgets('shop account', (t) => pumpPage(t, const AccountPage(), theme: ThemeData()));

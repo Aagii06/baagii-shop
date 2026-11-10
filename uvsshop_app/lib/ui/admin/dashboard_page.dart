@@ -460,49 +460,56 @@ class _StatTile extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (d != null) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: brand ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              d.positive ? Icons.trending_up : Icons.trending_down,
-                              size: 12,
-                              color: brand ? Colors.white : (d.positive ? AdminColors.success : AdminColors.destructive),
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                d.text,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: brand ? Colors.white : (d.positive ? AdminColors.success : AdminColors.destructive),
+                    // Доод мөр үргэлж ижил өндөртэй (хоосон ч гэсэн) — 4 карт ижил хэмжээтэй.
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 20,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: d != null
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: brand ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      d.positive ? Icons.trending_up : Icons.trending_down,
+                                      size: 12,
+                                      color: brand ? Colors.white : (d.positive ? AdminColors.success : AdminColors.destructive),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        d.text,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: brand
+                                              ? Colors.white
+                                              : (d.positive ? AdminColors.success : AdminColors.destructive),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : footer != null
+                            ? DefaultTextStyle.merge(
+                                style: TextStyle(color: ink),
+                                child: IconTheme.merge(
+                                  data: IconThemeData(color: ink),
+                                  child: footer!,
+                                ),
+                              )
+                            : null,
                       ),
-                    ],
-                    if (footer != null) ...[
-                      const SizedBox(height: 12),
-                      DefaultTextStyle.merge(
-                        style: TextStyle(color: ink),
-                        child: IconTheme.merge(
-                          data: IconThemeData(color: ink),
-                          child: footer!,
-                        ),
-                      ),
-                    ],
+                    ),
                   ],
                 ),
               ),

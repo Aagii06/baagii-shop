@@ -14,9 +14,9 @@ export function getRole(user: LoginUser | null): Role {
   return /admin/i.test(user?.roleNames ?? "") ? "admin" : "shopper";
 }
 
-const SHOPPER_PATHS = ["/products", "/profile"];
+const SHOPPER_PATHS = ["/products", "/profile", "/notifications"];
 
-/** Shoppers only get products (add, stock) and their profile. */
+/** Shoppers only get products (add, stock), their profile and their notifications. */
 export function canAccess(role: Role, pathname: string) {
   if (role === "admin") return true;
   return SHOPPER_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

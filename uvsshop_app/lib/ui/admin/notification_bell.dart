@@ -25,12 +25,7 @@ class NotificationBell extends StatelessWidget {
           shape: const CircleBorder(side: BorderSide(color: AdminColors.border)),
           child: InkWell(
             customBorder: const CircleBorder(),
-            onTap: () => showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              showDragHandle: true,
-              builder: (_) => const _NotificationSheet(),
-            ),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsPage())),
             child: const SizedBox(width: 40, height: 40, child: Icon(Icons.notifications_none_rounded, size: 22)),
           ),
         ),
@@ -65,13 +60,15 @@ const _icons = {
   'low_stock': (Icons.inventory_2_outlined, Color(0x1ADC2626), AdminColors.destructive),
 };
 
-class _NotificationSheet extends StatefulWidget {
-  const _NotificationSheet();
+/// web-ийн /notifications: бүтэн дэлгэц, дээрээ буцах товчтой. Мөр дээр дарахад
+/// уншсан болж, тухайн захиалга / хүсэлт / санал хүсэлт рүү орно.
+class NotificationsPage extends StatefulWidget {
+  const NotificationsPage({super.key});
   @override
-  State<_NotificationSheet> createState() => _NotificationSheetState();
+  State<NotificationsPage> createState() => _NotificationsPageState();
 }
 
-class _NotificationSheetState extends State<_NotificationSheet> {
+class _NotificationsPageState extends State<NotificationsPage> {
   List<AdminNotification>? _rows;
   int _count = 0;
   Object? _error;
@@ -133,12 +130,13 @@ class _NotificationSheetState extends State<_NotificationSheet> {
     } else if (link.startsWith('/feedbacks')) {
       page = const FeedbacksPage();
     } else if (link.startsWith('/products')) {
+      // Барааны tab руу буцна.
       nav.pop();
       adminTab.value = 'products';
       return;
     }
     if (page == null) return;
-    nav.pop();
+    // Буцахад мэдэгдлийн жагсаалт руу эргэж ирнэ.
     nav.push(MaterialPageRoute(builder: (_) => page!));
   }
 
@@ -146,47 +144,45 @@ class _NotificationSheetState extends State<_NotificationSheet> {
   Widget build(BuildContext context) {
     final unread = context.select<AdminState, int>((a) => a.unreadNotifications);
     final rows = _rows;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 8, 8),
-          child: Row(children: [
-            const Expanded(child: Text('Мэдэгдэл', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-            if (unread > 0)
-              TextButton(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Мэдэгдэл'),
+        actions: [
+          if (unread > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: TextButton(
                 onPressed: () {
                   setState(() => _rows = [for (final r in _rows ?? <AdminNotification>[]) r.asRead()]);
                   context.read<AdminState>().markAllNotificationsRead();
                 },
                 child: const Text('Бүгдийг уншсан'),
               ),
-            IconButton(tooltip: 'Хаах', onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
-          ]),
-        ),
-        const Divider(height: 1, color: AdminColors.border),
-        Flexible(
-          child: rows == null && _error != null
-              ? Padding(padding: const EdgeInsets.all(24), child: ErrorText(_error!, onRetry: _load))
-              : rows == null
-                  ? const Padding(padding: EdgeInsets.all(40), child: Center(child: CircularProgressIndicator()))
-                  : rows.isEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(Icons.notifications_none_rounded, size: 40, color: AdminColors.mutedForeground),
-                            SizedBox(height: 12),
-                            Text('Мэдэгдэл алга', style: TextStyle(fontWeight: FontWeight.w600)),
-                            SizedBox(height: 4),
-                            Text('Шинэ захиалга, хүсэлт, санал хүсэлт ирэхэд энд харагдана.',
-                                textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
-                          ]),
-                        )
-                      : ListView(shrinkWrap: true, padding: const EdgeInsets.only(bottom: 16), children: [
-                          for (final (i, n) in rows.indexed) ...[
-                            if (i > 0) const Divider(height: 1, color: AdminColors.border),
-                            _item(n),
-                          ],
+            ),
+        ],
+      ),
+      body: rows == null && _error != null
+          ? Center(child: Padding(padding: const EdgeInsets.all(24), child: ErrorText(_error!, onRetry: _load)))
+          : rows == null
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: rows.isEmpty
+                      ? ListView(children: const [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+                            child: Column(children: [
+                              Icon(Icons.notifications_none_rounded, size: 40, color: AdminColors.mutedForeground),
+                              SizedBox(height: 12),
+                              Text('Мэдэгдэл алга', style: TextStyle(fontWeight: FontWeight.w600)),
+                              SizedBox(height: 4),
+                              Text('Шинэ захиалга, хүсэлт, санал хүсэлт ирэхэд энд харагдана.',
+                                  textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
+                            ]),
+                          ),
+                        ])
+                      : ListView(padding: const EdgeInsets.only(bottom: 24), children: [
+                          AdminList(children: [for (final n in rows) _item(n)]),
                           if (rows.length < _count)
                             Padding(
                               padding: const EdgeInsets.all(16),
@@ -198,8 +194,7 @@ class _NotificationSheetState extends State<_NotificationSheet> {
                               ),
                             ),
                         ]),
-        ),
-      ]),
+                ),
     );
   }
 
@@ -210,7 +205,7 @@ class _NotificationSheetState extends State<_NotificationSheet> {
       child: InkWell(
         onTap: () => _open(n),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
               width: 40,
