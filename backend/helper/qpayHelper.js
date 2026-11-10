@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const { paymentSettings, qpayInvoices, orders } = require("../models");
 const { findOrder } = require("./orderHelper");
 const { now, toNumber } = require("./helper");
+const { notify } = require("./notificationHelper");
 
 // QPay merchant API v2. Тохиргоо нь дэлгүүр бүрийн paymentSettings-д (админ самбараас).
 // Нэхэмжлэх үүсгээд QR/банкны холбоосыг вэбд өгнө; төлөгдсөнийг payment/check-ээр
@@ -128,10 +129,19 @@ const checkInvoice = async (invoice) => {
 
   const at = now();
   await invoice.update({ status: "paid", payment_id: String(paid[0].payment_id), paid_at: at, updated_at: at });
-  await orders.update(
+  const [changed] = await orders.update(
     { payment_method: "qpay", paid_at: at, updated_at: at },
     { where: { id: invoice.order_id, shop_id: invoice.shop_id, paid_at: null } },
   );
+  // Анх төлөгдөхөд л (дахин шалгахад давтахгүй)
+  if (changed > 0)
+    notify({
+      shopId: invoice.shop_id,
+      type: "order_paid",
+      title: `Захиалга #${invoice.order_id} төлөгдлөө`,
+      body: `QPay · ₮${Math.round(toNumber(invoice.amount)).toLocaleString("en-US")}`,
+      link: `/orders/${invoice.order_id}`,
+    });
   return invoice;
 };
 module.exports.checkInvoice = checkInvoice;

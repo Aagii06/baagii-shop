@@ -4,6 +4,7 @@ const { orderStatuses, unpaidCancelHours } = require("../config/constants");
 const { toIso, toNumber, now, parseAt } = require("./helper");
 const { variantImage, sellingPrice } = require("./productHelper");
 const { saveLog } = require("../utils/logHelper");
+const { LOW_STOCK, notifyLowStock } = require("./notificationHelper");
 
 module.exports.itemsInclude = [{ model: orderItems, as: "items" }];
 
@@ -108,6 +109,7 @@ module.exports.placeOrder = async ({ shopId, lines, info, by = null, transaction
 
     const at = now();
     const items = [];
+    const lowStock = [];
     for (const [variantId, line] of merged) {
       const variant = await productVariants.findOne({
         where: { id: variantId, status: "active" },
@@ -118,7 +120,11 @@ module.exports.placeOrder = async ({ shopId, lines, info, by = null, transaction
       if (!variant) throw "Захиалсан бараа олдсонгүй эсвэл устгагдсан байна";
       const name = variant.name && variant.name !== variant.product.name ? `${variant.product.name} · ${variant.name}` : variant.product.name;
       if (variant.remain < line.qty) throw `"${name}" барааны үлдэгдэл хүрэлцэхгүй байна (үлдэгдэл: ${variant.remain})`;
-      await variant.update({ remain: variant.remain - line.qty }, { transaction: t });
+      const before = variant.remain;
+      await variant.update({ remain: before - line.qty }, { transaction: t });
+      // Энэ захиалгаар LOW_STOCK-оос доош шинээр орсон бол мэдэгдэнэ
+      if (before > LOW_STOCK && before - line.qty <= LOW_STOCK)
+        lowStock.push({ name, productId: variant.product_id, storeId: variant.product.store_id, remain: before - line.qty });
       items.push({
         product_id: variant.product_id,
         variant_id: variant.id,
@@ -138,6 +144,8 @@ module.exports.placeOrder = async ({ shopId, lines, info, by = null, transaction
     await orderItems.bulkCreate(items.map((item) => ({ ...item, order_id: order.id })), { transaction: t });
     await saveLog({ shop_id: shopId, object_name: "orders", object_id: order.id, log_action: "created", modify_data: JSON.stringify({ lines, info }), created_by: by, created_at: at }, t);
 
+    // Гүйлгээ амжилттай дууссаны дараа л мэдэгдэнэ (дуудагчийн гүйлгээ ч бай)
+    if (lowStock.length > 0) t.afterCommit(() => notifyLowStock(shopId, lowStock));
     if (!transaction) await t.commit();
     return order.id;
   } catch (error) {

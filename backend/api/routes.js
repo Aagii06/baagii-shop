@@ -13,6 +13,8 @@ Router.use("/order", protect, require("./order/router"));
 Router.use("/partnerRequest", protect, require("./partnerRequest/router"));
 // Вэбийн "Бидэнд бичнэ үү" маягтаар ирсэн санал хүсэлт (ADMIN)
 Router.use("/feedback", protect, require("./feedback/router"));
+// Толгойн 🔔 мэдэгдэл (ADMIN, SHOPPER — өөрийнх нь)
+Router.use("/notification", protect, require("./notification/router"));
 Router.use("/blog", protect, require("./blog/router"));
 Router.use("/store", protect, require("./store/router"));
 Router.use("/user", protect, require("./user/router"));

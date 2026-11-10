@@ -4,6 +4,7 @@ const { partnerStatuses } = require("../../config/constants");
 const { signWeb, signPhoneProof, readPhoneProof } = require("../../middleware/auth");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
 const { mergeGuestCart } = require("../../helper/cartHelper");
+const { notify } = require("../../helper/notificationHelper");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
 
 // Анх бүртгүүлсэн худалдан авагчийн нэр (web/src/store/authStore.ts DEFAULT_PROFILE_NAME)
@@ -108,6 +109,13 @@ module.exports.register = handle("register", async (req, res) => {
     address: address?.trim() || null,
     status: partnerStatuses.pending,
     created_at: now(),
+  });
+  notify({
+    shopId: req.shopId,
+    type: "partner",
+    title: "Хамтран ажиллах шинэ хүсэлт",
+    body: `${storeName.trim()} · ${name.trim()} · ${phone}`,
+    link: "/partner-requests",
   });
   return ok(res, null, "Хүсэлтийг хүлээн авлаа");
 });

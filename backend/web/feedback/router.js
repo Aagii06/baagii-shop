@@ -2,6 +2,7 @@ const router = require("express").Router();
 const { feedbacks } = require("../../models");
 const { feedbackStatuses } = require("../../config/constants");
 const { ok, handle, now, phoneDigits } = require("../../helper/helper");
+const { notify } = require("../../helper/notificationHelper");
 
 // "Бидэнд бичнэ үү" (вэбийн /contact) маягт — нэвтрэхгүйгээр илгээнэ.
 // { name, email, message, subject?, phone? } — baagii-shop гарчиг, AjrugShop утас асуудаг
@@ -46,6 +47,13 @@ router.post(
 
     const at = now();
     await feedbacks.create({ shop_id: req.shopId, ...body, status: feedbackStatuses.new, ip, created_at: at, updated_at: at });
+    notify({
+      shopId: req.shopId,
+      type: "feedback",
+      title: body.subject ? `Санал хүсэлт: ${body.subject}` : "Шинэ санал хүсэлт",
+      body: `${body.name} · ${body.message.slice(0, 120)}`,
+      link: "/feedbacks",
+    });
     return ok(res, null, "Таны санал хүсэлтийг хүлээн авлаа");
   }),
 );

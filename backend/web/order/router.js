@@ -3,6 +3,7 @@ const { cartDetails, orders, sequelize } = require("../../models");
 const { shopSettings, orderStatuses } = require("../../config/constants");
 const { findCart, detailInclude, isActiveLine } = require("../../helper/cartHelper");
 const { placeOrder, findOrder, toWebOrder, itemsInclude } = require("../../helper/orderHelper");
+const { notify } = require("../../helper/notificationHelper");
 const { sellingPrice } = require("../../helper/productHelper");
 const { createInvoice, checkOrder, toWebInvoice } = require("../../helper/qpayHelper");
 const { paymentSettings } = require("../../models");
@@ -76,7 +77,16 @@ router.post(
       await cartDetails.destroy({ where: { cart_id: cart.id }, transaction: t });
       await cart.update({ status: "ordered", updated_at: now() }, { transaction: t });
       await t.commit();
-      return ok(res, toWebOrder(await findOrder({ id, shop_id: req.shopId })));
+      const order = await findOrder({ id, shop_id: req.shopId });
+      const web = toWebOrder(order);
+      notify({
+        shopId: req.shopId,
+        type: "order",
+        title: `Шинэ захиалга #${id}`,
+        body: `${s.fullName.trim()} · ${lines.length} бараа · ₮${Math.round(subtotal).toLocaleString("en-US")}`,
+        link: `/orders/${id}`,
+      });
+      return ok(res, web);
     } catch (error) {
       await t.rollback();
       throw error;
