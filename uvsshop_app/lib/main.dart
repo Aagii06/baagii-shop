@@ -66,13 +66,8 @@ class _Splash extends StatelessWidget {
   const _Splash();
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Image.asset('assets/logo.png', width: 140),
-            const SizedBox(height: 24),
-            const CircularProgressIndicator(),
-          ]),
-        ),
+        backgroundColor: const Color(0xFFF9FAFC),
+        // web-ийн админы FullScreenLoader-тэй адил.
+        body: const Center(child: LogoLoader()),
       );
 }

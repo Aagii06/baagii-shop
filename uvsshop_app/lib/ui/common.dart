@@ -306,3 +306,76 @@ Color orderStatusColor(String status, {bool paid = false}) {
       return paid ? Colors.blue : Colors.orange;
   }
 }
+
+/// web-ийн админы FullScreenLoader: голд нь лого, гадуур нь ягаан нум эргэлдэнэ
+/// (саарал цагираг дээр, 1.1 секундэд нэг эргэлт).
+class LogoLoader extends StatefulWidget {
+  final double size;
+  const LogoLoader({super.key, this.size = 112});
+  @override
+  State<LogoLoader> createState() => _LogoLoaderState();
+}
+
+class _LogoLoaderState extends State<LogoLoader> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.size;
+    return Semantics(
+      label: 'Ачаалж байна',
+      child: SizedBox(
+        width: s,
+        height: s,
+        child: Stack(alignment: Alignment.center, children: [
+          RotationTransition(
+            turns: _c,
+            child: CustomPaint(size: Size.square(s), painter: _ArcPainter()),
+          ),
+          // Лого: цагираг дотор (web: 112px дотор 80px).
+          Container(
+            width: s * 80 / 112,
+            height: s * 80 / 112,
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: Color(0x14000000), blurRadius: 2, offset: Offset(0, 1))],
+            ),
+            child: Image.asset('assets/logo.png', fit: BoxFit.contain),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// web-ийн SVG: r=46 (100-ын дотор), зузаан 4; саарал бүтэн цагираг + 72/289 урттай ягаан нум.
+class _ArcPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = size.width / 100;
+    final rect = Rect.fromCircle(center: size.center(Offset.zero), radius: 46 * scale);
+    final stroke = 4 * scale;
+    canvas.drawArc(rect, 0, 2 * 3.141592653589793, false,
+        Paint()
+          ..color = mutedColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke);
+    canvas.drawArc(rect, -3.141592653589793 / 2, 2 * 3.141592653589793 * 72 / 289, false,
+        Paint()
+          ..color = brandColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke
+          ..strokeCap = StrokeCap.round);
+  }
+
+  @override
+  bool shouldRepaint(_ArcPainter oldDelegate) => false;
+}
