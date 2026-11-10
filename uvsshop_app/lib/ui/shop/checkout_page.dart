@@ -4,11 +4,10 @@ import 'package:provider/provider.dart';
 import '../../api/shop_models.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'address_fields.dart';
 import 'pay_page.dart';
 import 'sign_in_page.dart';
 
-/// Шинэ хаягт урьдчилан сонгох аймгийн ҮСХ-ны код (85 — Увс).
-const _defaultCityCode = '85';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -25,16 +24,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final _note = TextEditingController();
   final _coupon = TextEditingController();
 
-  List<AddressArea> _cities = [], _districts = [], _subs = [];
-  AddressArea? _city, _district, _sub;
+  AddressAreaPick _area = const AddressAreaPick();
+
+  /// Сонгосон хадгалсан хаяг; `_custom` бол шинэ хаяг гараар оруулна.
+  String? _selectedId;
+  bool _custom = false;
+  bool _attempted = false;
   bool _placing = false;
   bool _prefilled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCities();
-  }
 
   @override
   void dispose() {
@@ -44,55 +41,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
     super.dispose();
   }
 
-  Future<void> _loadCities() async {
-    try {
-      final cities = await context.read<ShopState>().cities();
-      if (!mounted) return;
-      setState(() => _cities = cities);
-      final def = cities.where((c) => c.code == _defaultCityCode).firstOrNull;
-      if (def != null) _pickCity(def);
-    } catch (_) {}
-  }
-
-  Future<void> _pickCity(AddressArea? c) async {
-    setState(() {
-      _city = c;
-      _district = null;
-      _sub = null;
-      _districts = [];
-      _subs = [];
-    });
-    if (c == null) return;
-    try {
-      final d = await context.read<ShopState>().districts(c.id);
-      if (mounted && _city?.id == c.id) setState(() => _districts = d);
-    } catch (_) {}
-  }
-
-  Future<void> _pickDistrict(AddressArea? d) async {
-    setState(() {
-      _district = d;
-      _sub = null;
-      _subs = [];
-    });
-    if (d == null) return;
-    try {
-      final s = await context.read<ShopState>().subDistricts(d.id);
-      if (mounted && _district?.id == d.id) setState(() => _subs = s);
-    } catch (_) {}
-  }
-
   Future<void> _submit() async {
-    if (!_form.currentState!.validate()) return;
+    final shop = context.read<ShopState>();
+    final selected = shop.addresses.where((a) => a.id == _selectedId).firstOrNull;
+    final useSaved = !_custom && selected != null;
+    setState(() => _attempted = true);
+    final formOk = _form.currentState!.validate();
+    if (!formOk || (!useSaved && _area.city == null)) return;
     setState(() => _placing = true);
-    final parts = [_city?.name, _district?.name, _sub?.name, _address.text.trim()].whereType<String>().where((s) => s.isNotEmpty);
+    final area = useSaved ? selected.area : _area;
     try {
-      final order = await context.read<ShopState>().placeOrder({
-        'addressLabel': 'Хаяг',
-        'address': parts.join(', '),
-        if (_city != null) 'cityId': _city!.id,
-        if (_district != null) 'districtId': _district!.id,
-        if (_sub != null) 'subDistrictId': _sub!.id,
+      final order = await shop.placeOrder({
+        'addressLabel': useSaved ? selected.displayLabel : (_area.type?.name ?? 'Бусад хаяг'),
+        'address': useSaved ? selected.address : _area.format(_address.text),
+        if (area?.type != null) 'addressTypeId': area!.type!.id,
+        if (area?.city != null) 'cityId': area!.city!.id,
+        if (area?.district != null) 'districtId': area!.district!.id,
+        if (area?.subDistrict != null) 'subDistrictId': area!.subDistrict!.id,
         'fullName': _name.text.trim(),
         'phone': digitsOnly(_phone.text),
         if (_extraPhone.text.trim().isNotEmpty) 'extraPhone': digitsOnly(_extraPhone.text),
@@ -128,6 +93,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
       _phone.text = shop.customer!.phone;
       _name.text = shop.customer!.name ?? '';
     }
+    // Хадгалсан хаягаас үндсэнийг нь урьдчилан сонгоно.
+    if (shop.addresses.isNotEmpty && !shop.addresses.any((a) => a.id == _selectedId)) {
+      _selectedId = (shop.addresses.where((a) => a.isDefault).firstOrNull ?? shop.addresses.first).id;
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Хүргэлтийн мэдээлэл')),
@@ -157,21 +126,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               return d.isNotEmpty && d.length != 8 ? 'Утасны дугаар 8 оронтой байна' : null;
             },
           ),
-          _section('Хаяг'),
-          _dropdown('Аймаг / Хот', _city, _cities, _pickCity),
-          const SizedBox(height: 12),
-          _dropdown('Сум / Дүүрэг', _district, _districts, _pickDistrict),
-          if (_subs.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _dropdown('Баг / Хороо', _sub, _subs, (s) => setState(() => _sub = s)),
-          ],
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _address,
-            maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Дэлгэрэнгүй хаяг *', hintText: 'Байр, орц, давхар, тоот'),
-            validator: (v) => (v ?? '').trim().isEmpty ? 'Хаяг оруулна уу' : null,
-          ),
+          _addressSection(shop),
           const SizedBox(height: 12),
           TextFormField(controller: _note, maxLines: 2, decoration: const InputDecoration(labelText: 'Тэмдэглэл')),
           const SizedBox(height: 12),
@@ -226,13 +181,57 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: Text(t, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
       );
 
-  Widget _dropdown(String label, AddressArea? value, List<AddressArea> items, ValueChanged<AddressArea?> onChanged) =>
-      DropdownButtonFormField<int>(
-        key: ValueKey('$label-${value?.id}-${items.length}'),
-        initialValue: value?.id,
-        isExpanded: true,
-        decoration: InputDecoration(labelText: label),
-        items: [for (final a in items) DropdownMenuItem(value: a.id, child: Text(a.name))],
-        onChanged: items.isEmpty ? null : (id) => onChanged(items.where((a) => a.id == id).firstOrNull),
-      );
+  /// web-ийн ShippingForm-ийн хаягийн хэсэг: хадгалсан хаягаас сонгох, эсвэл шинээр оруулах.
+  Widget _addressSection(ShopState shop) {
+    final saved = shop.addresses;
+    final usingCustom = saved.isEmpty || _custom;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 16, bottom: 10),
+        child: Row(children: [
+          const Expanded(child: Text('Хүргэлтийн хаяг', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16))),
+          if (saved.isNotEmpty)
+            TextButton.icon(
+              onPressed: () => setState(() => _custom = !_custom),
+              icon: const Icon(Icons.add, size: 16),
+              label: Text(_custom ? 'Хадгалсан хаягууд' : 'Шинэ хаяг нэмэх'),
+            ),
+        ]),
+      ),
+      if (!usingCustom)
+        for (final a in saved)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Material(
+              color: a.id == _selectedId ? accentColor.withValues(alpha: 0.4) : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: a.id == _selectedId ? brandColor : borderColor, width: 2),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => setState(() => _selectedId = a.id),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(a.displayLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text(a.address, style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4)),
+                  ]),
+                ),
+              ),
+            ),
+          )
+      else ...[
+        AddressFields(value: _area, onChanged: (v) => setState(() => _area = v), showErrors: _attempted),
+        const SizedBox(height: 12),
+        TextFormField(
+          controller: _address,
+          maxLines: 3,
+          decoration: const InputDecoration(labelText: 'Дэлгэрэнгүй хаяг', hintText: 'Байр, орц, давхар, тоот...'),
+          validator: (v) => (v ?? '').trim().isEmpty ? 'Хаяг оруулна уу' : null,
+        ),
+      ],
+    ]);
+  }
 }

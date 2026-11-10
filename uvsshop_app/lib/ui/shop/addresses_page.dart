@@ -45,7 +45,7 @@ class _AddressesPageState extends State<AddressesPage> {
     final shop = context.read<ShopState>();
     final a = SavedAddress(
       id: '',
-      label: _area.type?.name ?? 'Хаяг',
+      label: _area.type?.name ?? 'Бусад хаяг',
       address: _area.format(_detail.text),
       area: _area,
       detail: _detail.text.trim(),

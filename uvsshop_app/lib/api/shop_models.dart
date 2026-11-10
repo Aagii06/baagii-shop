@@ -445,7 +445,7 @@ class SavedAddress {
   SavedAddress({required this.id, required this.label, required this.address, this.area, this.detail, this.isDefault = false});
 
   /// Төрлөөс нь (байхгүй бол хадгалсан нэрээс) нэр.
-  String get displayLabel => area?.type?.name ?? (area != null ? 'Хаяг' : label);
+  String get displayLabel => area?.type?.name ?? (area != null ? 'Бусад хаяг' : label);
 
   SavedAddress copyWith({bool? isDefault}) =>
       SavedAddress(id: id, label: label, address: address, area: area, detail: detail, isDefault: isDefault ?? this.isDefault);

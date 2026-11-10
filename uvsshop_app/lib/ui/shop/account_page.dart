@@ -7,11 +7,13 @@ import '../../state/app_state.dart';
 import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'addresses_page.dart';
 import 'orders_page.dart';
+import 'seller_page.dart';
 import 'sign_in_page.dart';
 
-/// Web-ийн /profile-тэй адил: мэдээллийн карт + ✏️ засах товч, доор нь
-/// цэс (Миний захиалгууд, Сагс), бүтэн өргөнтэй "Гарах".
+/// web-ийн /profile (утасны харагдац): гарчиг, мэдээллийн карт + ✏️, цэс
+/// (захиалга, сагс, хадгалсан, хаяг), "Хамтран ажиллах", "Гарах".
 class AccountPage extends StatefulWidget {
   /// Доод цэсний таб руу шилжүүлнэ (Сагс, Хадгалсан).
   final ValueChanged<ShopTab>? onOpenTab;
@@ -20,6 +22,9 @@ class AccountPage extends StatefulWidget {
   @override
   State<AccountPage> createState() => _AccountPageState();
 }
+
+/// "99112233" → "9911 2233".
+String _formatPhone(String p) => p.length > 4 ? '${p.substring(0, 4)} ${p.substring(4)}' : p;
 
 class _AccountPageState extends State<AccountPage> {
   final _name = TextEditingController();
@@ -33,10 +38,7 @@ class _AccountPageState extends State<AccountPage> {
     super.dispose();
   }
 
-  void _startEdit(Customer c) {
-    _name.text = c.name ?? '';
-    setState(() => _editing = true);
-  }
+  void _push(Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
 
   Future<void> _save(Customer c) async {
     final name = _name.text.trim();
@@ -59,90 +61,97 @@ class _AccountPageState extends State<AccountPage> {
     }
   }
 
+  static final _box = BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: borderColor));
+
   @override
   Widget build(BuildContext context) {
     final shop = context.watch<ShopState>();
-    final admin = context.watch<AdminState>();
     final c = shop.customer;
     if (c == null && _editing) _editing = false;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Профайл тохиргоо')),
-      body: ListView(padding: const EdgeInsets.all(12), children: [
-        if (c == null) _guestCard() else if (_editing) _editForm(c) else _profileCard(c),
-        const SizedBox(height: 12),
-        _menu([
-          if (c != null)
-            _MenuItem(Icons.receipt_long_outlined, 'Миний захиалгууд',
-                () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OrdersPage()))),
-          _MenuItem(Icons.shopping_cart_outlined, 'Миний сагс', () => widget.onOpenTab?.call(ShopTab.cart), badge: shop.cartCount),
-          if (c != null)
-            _MenuItem(Icons.favorite_border, 'Хадгалсан', () => widget.onOpenTab?.call(ShopTab.saved), badge: shop.saved.length),
-          if (admin.signedIn)
-            _MenuItem(Icons.admin_panel_settings_outlined, 'Админ хэсэг рүү орох', () => context.read<AppState>().openAdmin(),
-                subtitle: admin.user?.name)
-          else
-            _MenuItem(
-              Icons.admin_panel_settings_outlined,
-              'Админ / Худалдагч нэвтрэх',
-              () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SignInPage(initialTab: 1))),
-            ),
-        ]),
-        if (c != null) ...[
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              minimumSize: const Size.fromHeight(48),
-              side: BorderSide(color: Colors.grey.shade300),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            onPressed: () => context.read<ShopState>().signOut(),
-            icon: const Icon(Icons.logout),
-            label: const Text('Гарах'),
-          ),
-        ],
-      ]),
+      body: SafeArea(
+        bottom: false,
+        child: c == null
+            ? _signInPrompt()
+            : ListView(padding: const EdgeInsets.fromLTRB(16, 24, 16, 24), children: [
+                const Text('Профайл тохиргоо', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('Хувийн мэдээлэл болон бүртгэлээ энд шинэчилнэ.', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                const SizedBox(height: 24),
+                _editing ? _editForm(c) : _profileCard(c),
+                const SizedBox(height: 16),
+                _menu(shop),
+                const SizedBox(height: 16),
+                _linkCard(
+                  icon: Icons.storefront_outlined,
+                  title: 'Хамтран ажиллах',
+                  subtitle: 'Дэлгүүрийнхээ мэдээллийг үлдээж, утсаа баталгаажуулна уу. Хүсэлт батлагдвал таны дэлгүүр нээгдэнэ.',
+                  onTap: () => _push(const SellerPage()),
+                ),
+                const SizedBox(height: 16),
+                _adminLink(),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red.shade600,
+                    minimumSize: const Size.fromHeight(44),
+                    side: const BorderSide(color: borderColor),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: () => context.read<ShopState>().signOut(),
+                  icon: const Icon(Icons.logout, size: 16),
+                  label: const Text('Гарах'),
+                ),
+              ]),
+      ),
     );
   }
 
-  BoxDecoration get _box => BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      );
+  /// web: нэвтрээгүй үед "Та нэвтрээгүй байна".
+  Widget _signInPrompt() => ListView(padding: const EdgeInsets.fromLTRB(16, 40, 16, 24), children: [
+        Icon(Icons.person_outline, size: 48, color: Colors.grey.shade500),
+        const SizedBox(height: 16),
+        const Text('Та нэвтрээгүй байна', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Text('Профайл тохиргоогоо үзэхийн тулд эхлээд нэвтэрнэ үү.',
+            textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+        const SizedBox(height: 24),
+        Center(child: FilledButton(onPressed: () => _push(const SignInPage()), child: const Text('Нэвтрэх'))),
+        const SizedBox(height: 32),
+        _adminLink(),
+      ]);
+
+  /// Апп дээрх нэмэлт: админ / худалдагч хэсэг рүү орох.
+  Widget _adminLink() {
+    final admin = context.watch<AdminState>();
+    return admin.signedIn
+        ? _linkCard(
+            icon: Icons.admin_panel_settings_outlined,
+            title: 'Админ хэсэг рүү орох',
+            subtitle: admin.user?.name ?? '',
+            onTap: () => context.read<AppState>().openAdmin(),
+          )
+        : _linkCard(
+            icon: Icons.admin_panel_settings_outlined,
+            title: 'Админ / Худалдагч нэвтрэх',
+            subtitle: 'Дэлгүүрийн админ хэсэгт нэвтэрнэ',
+            onTap: () => _push(const SignInPage(initialTab: 1)),
+          );
+  }
 
   Widget _avatar(String? name) {
     final n = name?.trim() ?? '';
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: brandColor.withValues(alpha: 0.1),
-      foregroundColor: brandColor,
+    return Container(
+      width: 56,
+      height: 56,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(color: accentColor, shape: BoxShape.circle),
       child: n.isEmpty
-          ? const Icon(Icons.person_outline)
-          : Text(n.characters.first.toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          ? const Icon(Icons.person_outline, color: brandColor)
+          : Text(n.characters.first.toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: brandColor)),
     );
   }
-
-  Widget _guestCard() => Container(
-        decoration: _box,
-        padding: const EdgeInsets.all(16),
-        child: Row(children: [
-          _avatar(null),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Зочин', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-              SizedBox(height: 2),
-              Text('Утасны дугаараараа нэвтэрнэ үү', style: TextStyle(color: Colors.grey)),
-            ]),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SignInPage())),
-            child: const Text('Нэвтрэх'),
-          ),
-        ]),
-      );
 
   Widget _profileCard(Customer c) {
     final hasName = c.name?.trim().isNotEmpty == true;
@@ -157,120 +166,158 @@ class _AccountPageState extends State<AccountPage> {
             Text(hasName ? c.name!.trim() : 'Нэр оруулаагүй',
                 maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
-            Text(c.phone, style: TextStyle(color: Colors.grey.shade600, fontFamily: 'monospace')),
+            Text(_formatPhone(c.phone), style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontFamily: 'monospace')),
             if (_justSaved)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Row(children: [
                   Icon(Icons.check, size: 16, color: Colors.green.shade600),
                   const SizedBox(width: 4),
-                  Text('Хадгалагдлаа', style: TextStyle(color: Colors.green.shade600, fontSize: 13)),
+                  Text('Хадгалагдлаа', style: TextStyle(color: Colors.green.shade600, fontSize: 14)),
                 ]),
               ),
           ]),
         ),
         IconButton.outlined(
           tooltip: 'Засах',
-          onPressed: () => _startEdit(c),
-          icon: const Icon(Icons.edit_outlined, size: 20),
+          style: IconButton.styleFrom(side: const BorderSide(color: borderColor)),
+          onPressed: () {
+            _name.text = c.name ?? '';
+            setState(() => _editing = true);
+          },
+          icon: const Icon(Icons.edit_outlined, size: 16),
         ),
       ]),
     );
   }
 
-  Widget _editForm(Customer c) {
+  Widget _editForm(Customer c) => Container(
+        decoration: _box,
+        padding: const EdgeInsets.all(16),
+        child: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _name,
+          builder: (context, value, _) {
+            final trimmed = value.text.trim();
+            final canSave = trimmed.isNotEmpty && trimmed != (c.name ?? '') && !_saving;
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              const Text('Хувийн мэдээлэл', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 20),
+              const Text('Нэр', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _name,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(hintText: 'Нэрээ оруулна уу'),
+                onSubmitted: (_) => _save(c),
+              ),
+              const SizedBox(height: 20),
+              const Text('Утасны дугаар', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 6),
+              TextFormField(
+                initialValue: _formatPhone(c.phone),
+                enabled: false,
+                decoration: const InputDecoration(helperText: 'Утасны дугаарыг өөрчлөх боломжгүй.'),
+              ),
+              const SizedBox(height: 20),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+                    onPressed: _saving ? null : () => setState(() => _editing = false),
+                    child: const Text('Болих'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+                    onPressed: canSave ? () => _save(c) : null,
+                    child: _saving
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Хадгалах'),
+                  ),
+                ),
+              ]),
+            ]);
+          },
+        ),
+      );
+
+  /// web-ийн OrdersSidebar (menu): Миний захиалга, Сагс, Хадгалсан бараа, Хүргэлтийн хаяг.
+  Widget _menu(ShopState shop) {
+    final items = [
+      (Icons.assignment_outlined, 'Миний захиалга', 0, () => _push(const OrdersPage())),
+      (Icons.shopping_cart_outlined, 'Сагс', shop.cartCount, () => widget.onOpenTab?.call(ShopTab.cart)),
+      (Icons.favorite_border, 'Хадгалсан бараа', shop.saved.length, () => widget.onOpenTab?.call(ShopTab.saved)),
+      (Icons.location_on_outlined, 'Хүргэлтийн хаяг', 0, () => _push(const AddressesPage())),
+    ];
     return Container(
       decoration: _box,
-      padding: const EdgeInsets.all(16),
-      child: ValueListenableBuilder<TextEditingValue>(
-        valueListenable: _name,
-        builder: (context, value, _) {
-          final trimmed = value.text.trim();
-          final canSave = trimmed.isNotEmpty && trimmed != (c.name ?? '') && !_saving;
-          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('Хувийн мэдээлэл', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _name,
-              autofocus: true,
-              textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(labelText: 'Нэр', hintText: 'Нэрээ оруулна уу'),
-              onSubmitted: (_) => _save(c),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              initialValue: c.phone,
-              enabled: false,
-              decoration: const InputDecoration(
-                labelText: 'Утасны дугаар',
-                helperText: 'Утасны дугаарыг өөрчлөх боломжгүй.',
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(children: [
-              Expanded(
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
-                  onPressed: _saving ? null : () => setState(() => _editing = false),
-                  child: const Text('Болих'),
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const Divider(height: 1, color: borderColor),
+          InkWell(
+            onTap: items[i].$4,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(12)),
+                  child: Icon(items[i].$1, size: 16, color: brandColor),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
-                  onPressed: canSave ? () => _save(c) : null,
-                  child: _saving
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Хадгалах'),
-                ),
-              ),
-            ]),
-          ]);
-        },
-      ),
+                const SizedBox(width: 12),
+                Expanded(child: Text(items[i].$2, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
+                if (items[i].$3 > 0)
+                  Container(
+                    constraints: const BoxConstraints(minWidth: 20),
+                    height: 20,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: brandColor, borderRadius: BorderRadius.circular(10)),
+                    child: Text(items[i].$3 > 99 ? '99+' : '${items[i].$3}',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                  ),
+                const SizedBox(width: 8),
+                Icon(Icons.chevron_right, size: 16, color: Colors.grey.shade500),
+              ]),
+            ),
+          ),
+        ],
+      ]),
     );
   }
 
-  Widget _menu(List<_MenuItem> items) => Container(
-        decoration: _box,
+  Widget _linkCard({required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) => Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: borderColor)),
         clipBehavior: Clip.antiAlias,
-        child: Column(children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) Divider(height: 1, color: Colors.grey.shade200),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              leading: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(color: brandColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: Icon(items[i].icon, size: 20, color: brandColor),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, size: 20, color: brandColor),
               ),
-              title: Text(items[i].label, style: const TextStyle(fontWeight: FontWeight.w500)),
-              subtitle: items[i].subtitle == null ? null : Text(items[i].subtitle!),
-              trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                if (items[i].badge > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(color: brandColor, borderRadius: BorderRadius.circular(10)),
-                    child: Text(items[i].badge > 99 ? '99+' : '${items[i].badge}',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                  ),
-                const SizedBox(width: 4),
-                Icon(Icons.chevron_right, color: Colors.grey.shade500),
-              ]),
-              onTap: items[i].onTap,
-            ),
-          ],
-        ]),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  if (subtitle.isNotEmpty)
+                    Text(subtitle,
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                ]),
+              ),
+              Icon(Icons.chevron_right, color: Colors.grey.shade500),
+            ]),
+          ),
+        ),
       );
-}
-
-class _MenuItem {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final String? subtitle;
-  final int badge;
-  _MenuItem(this.icon, this.label, this.onTap, {this.subtitle, this.badge = 0});
 }
