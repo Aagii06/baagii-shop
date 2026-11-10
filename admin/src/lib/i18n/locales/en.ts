@@ -543,4 +543,11 @@ export const en: Dict = {
   "pw.changed": "Password changed",
   "pw.show": "Show password",
   "pw.hide": "Hide password",
+  "nt.title": "Notifications",
+  "nt.open": "Notifications ({count} unread)",
+  "nt.empty": "No notifications",
+  "nt.emptyHint": "New orders, requests and messages show up here.",
+  "nt.readAll": "Mark all read",
+  "nt.close": "Close",
+  "nt.more": "Show more",
 };
