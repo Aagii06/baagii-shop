@@ -7,7 +7,8 @@ import '../../api/admin_models.dart';
 import '../../config.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
-import 'admin_shell.dart';
+import 'admin_design.dart';
+import 'admin_widgets.dart';
 
 class AdminOrdersPage extends StatefulWidget {
   /// Худалдан авагчийн хуудаснаас нээхэд энэ утсаар шүүнэ.
@@ -17,17 +18,21 @@ class AdminOrdersPage extends StatefulWidget {
   State<AdminOrdersPage> createState() => _AdminOrdersPageState();
 }
 
+/// web-ийн /orders: төлвөөр шүүх, утсаар хайх, мөр бүрээс батлах / хүргэсэн / буцаах.
 class _AdminOrdersPageState extends State<AdminOrdersPage> {
-  static const _take = 30;
+  static const _take = 20;
   final _scroll = ScrollController();
   late final _phone = TextEditingController(text: widget.phone ?? '');
   Timer? _debounce;
   String? _status;
   final List<AdminOrder> _rows = [];
-  int _count = 0;
+  int? _count;
   int _pending = 0;
   bool _loading = false;
   Object? _error;
+  int _version = 0;
+  // Төлөв нь солигдож буй захиалга ба аль төлөв рүү — тэр товч эргэлдэнэ.
+  ({int id, String to})? _busy;
 
   @override
   void initState() {
@@ -47,138 +52,229 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   }
 
   Future<void> _reload() async {
+    _version++;
     setState(() {
       _rows.clear();
-      _count = 0;
+      _count = null;
       _error = null;
+      _loading = false;
     });
     await _loadMore(force: true);
   }
 
   Future<void> _loadMore({bool force = false}) async {
-    if (_loading || (!force && _rows.length >= _count)) return;
+    if (_loading || (!force && (_count == null || _rows.length >= _count!))) return;
+    final version = _version;
     setState(() => _loading = true);
     try {
-      final r = await context.read<AdminState>().orders(skip: _rows.length, take: _take, status: _status, phone: digitsOnly(_phone.text));
-      if (!mounted) return;
+      final r = await context
+          .read<AdminState>()
+          .orders(skip: _rows.length, take: _take, status: _status, phone: digitsOnly(_phone.text));
+      if (!mounted || version != _version) return;
       setState(() {
-        _rows.addAll(r.rows);
+        _rows.addAll(r.rows.where((n) => !_rows.any((o) => o.id == n.id)));
         _count = r.count;
         _pending = r.pending;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e);
+      if (mounted && version == _version) setState(() => _error = e);
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted && version == _version) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _changeStatus(AdminOrder o, String to, String success) async {
+    setState(() => _busy = (id: o.id, to: to));
+    final done = await runAction(context, () => context.read<AdminState>().setOrderStatus(o.id, to), success);
+    if (!mounted) return;
+    setState(() => _busy = null);
+    if (done) _reload();
+  }
+
+  Future<void> _return(AdminOrder o) async {
+    final ok = await confirmAction(context,
+        title: '#${o.id} захиалгыг буцаах уу?',
+        description: o.paidAt != null
+            ? 'Үлдсэн бүх бараа үлдэгдэлд буцна. Төлбөр төлөгдсөн тул мөнгийг нь харилцагчид буцаан олгоно уу.'
+            : 'Үлдсэн бүх бараа үлдэгдэлд буцна.',
+        confirmLabel: 'Буцаалт',
+        danger: true);
+    if (ok && mounted) await _changeStatus(o, 'returned', 'Захиалгыг буцаалаа');
+  }
+
+  Future<void> _cancel(AdminOrder o) async {
+    final ok = await confirmAction(context,
+        title: '#${o.id} захиалгыг цуцлах уу?', description: 'Бараанууд үлдэгдэлд буцна.', confirmLabel: 'Цуцлах', danger: true);
+    if (!ok || !mounted) return;
+    setState(() => _busy = (id: o.id, to: 'cancelled'));
+    final done = await runAction(context, () => context.read<AdminState>().cancelOrder(o.id), 'Захиалгыг цуцаллаа');
+    if (!mounted) return;
+    setState(() => _busy = null);
+    if (done) _reload();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_pending > 0 ? 'Захиалга ($_pending хүлээгдэж буй)' : 'Захиалга'),
-        actions: const [VisitShopButton()],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(104),
-          child: Column(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
-              child: TextField(
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-                onChanged: (_) {
-                  _debounce?.cancel();
-                  _debounce = Timer(const Duration(milliseconds: 500), _reload);
+    final ready = _count != null;
+    final phone = digitsOnly(_phone.text);
+    return AdminTabScaffold(
+      pushedTitle: widget.phone != null ? 'Захиалга' : null,
+      body: RefreshIndicator(
+        onRefresh: _reload,
+        child: ListView(controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), children: [
+          AdminPageHeader(
+            title: 'Захиалга',
+            aside: ready && _error == null
+                ? Text('$_count захиалга', style: const TextStyle(fontFamily: mono, fontSize: 14, color: AdminColors.mutedForeground))
+                : null,
+            children: [
+              PillTabs<String?>(
+                value: _status,
+                onChanged: (v) {
+                  _status = v;
+                  _reload();
                 },
-                decoration: InputDecoration(
-                  hintText: 'Утасны дугаараар хайх',
-                  prefixIcon: const Icon(Icons.search),
-                  fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 46,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                children: [
-                  for (final s in [null, ...orderStatusLabel.keys])
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        showCheckmark: false,
-                        label: Text(s == null ? 'Бүгд' : orderStatusLabel[s]!),
-                        selected: _status == s,
-                        onSelected: (_) {
-                          _status = s;
-                          _reload();
-                        },
-                      ),
-                    ),
+                options: [
+                  const PillOption(null, 'Бүгд'),
+                  for (final e in orderStatusLabel.entries)
+                    PillOption(e.key, e.value,
+                        tone: orderTones[e.key], count: e.key == 'pending' ? _pending : null, badgeColor: AdminColors.warning),
                 ],
               ),
-            ),
-          ]),
-        ),
+              TextField(
+                controller: _phone,
+                keyboardType: TextInputType.phone,
+                maxLength: 8,
+                style: const TextStyle(fontFamily: mono),
+                onChanged: (_) {
+                  _debounce?.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 300), _reload);
+                },
+                decoration: adminSearchDecoration('Утасны дугаараар хайх', icon: Icons.phone_outlined).copyWith(counterText: ''),
+              ),
+            ],
+          ),
+          if (!ready && _error == null)
+            const LoadingView(count: 5)
+          else if (_error != null && _rows.isEmpty)
+            Padding(padding: const EdgeInsets.only(top: 16), child: ErrorView(_error!, onRetry: _reload))
+          else if (_rows.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 40),
+              child: EmptyView(
+                icon: Icons.receipt_long_outlined,
+                text: phone.isNotEmpty
+                    ? '${formatPhone(phone)} дугаартай захиалга алга'
+                    : _status == null
+                        ? 'Захиалга алга'
+                        : '“${orderStatusLabel[_status]}” захиалга алга',
+              ),
+            )
+          else ...[
+            AdminList(children: [for (final o in _rows) _row(o)]),
+            if (_rows.length < (_count ?? 0))
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: _error != null && !_loading
+                      ? OutlinedButton(onPressed: _loadMore, child: const Text('Дахин оролдох'))
+                      : const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
+                ),
+              ),
+          ],
+        ]),
       ),
-      body: RefreshIndicator(onRefresh: _reload, child: _body()),
     );
   }
 
-  Widget _body() {
-    if (_rows.isEmpty && _loading) return const LoadingView();
-    if (_rows.isEmpty && _error != null) return ListView(children: [SizedBox(height: 400, child: ErrorView(_error!, onRetry: _reload))]);
-    if (_rows.isEmpty) {
-      return ListView(children: const [SizedBox(height: 400, child: EmptyView(icon: Icons.receipt_long_outlined, text: 'Захиалга алга'))]);
-    }
-    return ListView.separated(
-      controller: _scroll,
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(12),
-      itemCount: _rows.length + (_loading ? 1 : 0),
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, i) {
-        if (i >= _rows.length) return const Padding(padding: EdgeInsets.all(16), child: LoadingView(count: 2));
-        final o = _rows[i];
-        return Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: InkWell(
-            onTap: () async {
-              final changed = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => AdminOrderPage(orderId: o.id)));
-              if (changed == true) _reload();
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(14),
+  Widget _actionButton(AdminOrder o, String label, Color bg, Color fg, String to, VoidCallback onTap) {
+    final busy = _busy?.id == o.id;
+    return FilledButton(
+      style: FilledButton.styleFrom(
+        backgroundColor: bg,
+        foregroundColor: fg,
+        minimumSize: const Size.fromHeight(40),
+        shape: const StadiumBorder(),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      onPressed: busy ? null : onTap,
+      child: busy && _busy!.to == to
+          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
+          : Text(label),
+    );
+  }
+
+  Widget _row(AdminOrder o) {
+    final isAdmin = context.read<AdminState>().user?.isAdmin ?? false;
+    final buttons = <Widget>[
+      if (o.status == 'pending')
+        _actionButton(o, 'Батлах', orderTones['confirmed']!.solid, Colors.white, 'confirmed',
+            () => _changeStatus(o, 'confirmed', 'Захиалгыг баталлаа')),
+      if (o.status == 'confirmed')
+        _actionButton(o, 'Хүргэсэн', orderTones['delivered']!.solid, Colors.white, 'delivered',
+            () => _changeStatus(o, 'delivered', 'Төлөв шинэчлэгдлээ')),
+      if (o.canReturn)
+        _actionButton(o, 'Буцаалт', AdminColors.destructive.withValues(alpha: 0.1), AdminColors.destructive, 'returned', () => _return(o)),
+    ];
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        InkWell(
+          onTap: () async {
+            final changed = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => AdminOrderPage(orderId: o.id)));
+            if (changed == true) _reload();
+          },
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  Text('#${o.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('#${o.id}', style: const TextStyle(fontFamily: mono, fontSize: 14, color: AdminColors.mutedForeground)),
                   const SizedBox(width: 8),
-                  Text(formatDate(o.createdAt), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                  const Spacer(),
-                  if (o.overdue) const Padding(padding: EdgeInsets.only(right: 6), child: Icon(Icons.warning_amber, color: Colors.orange, size: 18)),
-                  StatusChip(orderStatusLabel[o.status] ?? o.status, orderStatusColor(o.status)),
+                  OrderStatusBadge(o.status, orderStatusLabel[o.status] ?? o.status),
                 ]),
                 const SizedBox(height: 6),
-                Text('${o.customerName.isEmpty ? 'Нэргүй' : o.customerName} · ${o.phone}'),
-                Text(o.address, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                const SizedBox(height: 6),
-                Row(children: [
-                  Text('${o.items.length} бараа', style: TextStyle(color: Colors.grey.shade700)),
-                  if (o.paidAt != null) ...[
-                    const SizedBox(width: 8),
-                    const StatusChip('Төлөгдсөн', Colors.green),
-                  ],
-                  const Spacer(),
-                  Text(money(o.total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                ]),
+                Text(o.customerName.isEmpty ? 'Нэргүй' : o.customerName,
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text('${formatWhen(o.createdAt)} · ${o.items.length} бараа',
+                    style: const TextStyle(fontSize: 14, color: AdminColors.mutedForeground)),
               ]),
             ),
+            const SizedBox(width: 12),
+            Text(mnt(o.total), style: const TextStyle(fontFamily: mono, fontSize: 15, fontWeight: FontWeight.bold)),
+          ]),
+        ),
+        if (o.overdue) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AdminColors.warningSoft, borderRadius: BorderRadius.circular(16)),
+            child: Row(children: [
+              const Icon(Icons.warning_amber_rounded, color: AdminColors.warning),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text('Удаан хугацаанд төлбөр төлөгдөөгүй байна',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AdminColors.warning)),
+              ),
+              if (isAdmin)
+                SizedBox(
+                  width: 90,
+                  child: _actionButton(o, 'Цуцлах', AdminColors.destructive.withValues(alpha: 0.1), AdminColors.destructive, 'cancelled',
+                      () => _cancel(o)),
+                ),
+            ]),
           ),
-        );
-      },
+        ],
+        if (buttons.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Row(children: [
+            for (var i = 0; i < buttons.length; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              Expanded(child: buttons[i]),
+            ],
+          ]),
+        ],
+      ]),
     );
   }
 }

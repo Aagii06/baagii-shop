@@ -1,14 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../api/admin_manage_models.dart';
 import '../../api/admin_models.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
-import 'admin_shell.dart';
+import 'admin_design.dart';
+import 'admin_widgets.dart';
+import 'dashboard_page.dart' show lowStockThreshold;
 
-/// Үлдэгдэл энэ тооноос бага бол "дуусах дөхсөн" гэж тэмдэглэнэ.
-const _lowStock = 5;
-
+/// web-ийн /products: хайлт, категори шүүлтүүр, гүйлгэхэд цааш ачаална.
 class AdminProductsPage extends StatefulWidget {
   const AdminProductsPage({super.key});
   @override
@@ -16,13 +19,18 @@ class AdminProductsPage extends StatefulWidget {
 }
 
 class _AdminProductsPageState extends State<AdminProductsPage> {
-  static const _take = 30;
+  static const _take = 20;
   final _scroll = ScrollController();
   final List<AdminProduct> _rows = [];
+  Timer? _debounce;
   String _query = '';
-  int _count = 0;
+  List<int> _picked = [];
+  List<AdminCategory>? _tree;
+  int? _count;
   bool _loading = false;
   Object? _error;
+  // Хайлт солигдоход хуучин хариуг хаяна.
+  int _version = 0;
 
   @override
   void initState() {
@@ -31,119 +39,327 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 400) _loadMore();
     });
     _reload();
+    context.read<AdminState>().categoryTree().then((t) {
+      if (mounted) setState(() => _tree = t);
+    }, onError: (_) {});
   }
 
   @override
   void dispose() {
     _scroll.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
   Future<void> _reload() async {
+    _version++;
     setState(() {
       _rows.clear();
-      _count = 0;
+      _count = null;
       _error = null;
+      _loading = false;
     });
     await _loadMore(force: true);
   }
 
   Future<void> _loadMore({bool force = false}) async {
-    if (_loading || (!force && _rows.length >= _count)) return;
+    if (_loading || (!force && (_count == null || _rows.length >= _count!))) return;
+    final version = _version;
     setState(() => _loading = true);
     try {
-      final r = await context.read<AdminState>().products(skip: _rows.length, take: _take);
-      if (!mounted) return;
+      final r = await context
+          .read<AdminState>()
+          .products(skip: _rows.length, take: _take, query: _query, categoryIds: _picked);
+      if (!mounted || version != _version) return;
       setState(() {
-        _rows.addAll(r.rows);
+        _rows.addAll(r.rows.where((n) => !_rows.any((o) => o.id == n.id)));
         _count = r.count;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e);
+      if (mounted && version == _version) setState(() => _error = e);
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted && version == _version) setState(() => _loading = false);
     }
   }
 
+  Map<int, String> get _categoryNames => {for (final c in flattenCategories(_tree ?? [])) c.id: c.name};
+
   @override
   Widget build(BuildContext context) {
-    final q = _query.toLowerCase();
-    final rows = q.isEmpty ? _rows : _rows.where((p) => p.name.toLowerCase().contains(q)).toList();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_count > 0 ? 'Бараа ($_count)' : 'Бараа'),
-        actions: const [VisitShopButton()],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-            child: TextField(
-              onChanged: (v) => setState(() => _query = v),
-              decoration: InputDecoration(
-                hintText: 'Ачаалсан бараанаас хайх',
-                prefixIcon: const Icon(Icons.search),
-                fillColor: Colors.grey.shade100,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-              ),
-            ),
-          ),
-        ),
-      ),
+    final names = _categoryNames;
+    final ready = _count != null;
+    return AdminTabScaffold(
       body: RefreshIndicator(
         onRefresh: _reload,
-        child: _rows.isEmpty && _loading
-            ? const LoadingView()
-            : _rows.isEmpty && _error != null
-                ? ListView(children: [SizedBox(height: 400, child: ErrorView(_error!, onRetry: _reload))])
-                : rows.isEmpty
-                    ? ListView(children: const [SizedBox(height: 400, child: EmptyView(icon: Icons.inventory_2_outlined, text: 'Бараа алга'))])
-                    : ListView.separated(
-                        controller: _scroll,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(12),
-                        itemCount: rows.length + (_loading ? 1 : 0),
-                        separatorBuilder: (_, _) => const SizedBox(height: 8),
-                        itemBuilder: (context, i) {
-                          if (i >= rows.length) return const Padding(padding: EdgeInsets.all(16), child: LoadingView(count: 2));
-                          return _tile(rows[i]);
-                        },
-                      ),
+        child: ListView(controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), children: [
+          AdminPageHeader(
+            title: 'Бараа',
+            count: ready && _error == null ? _count : null,
+            children: [
+              TextField(
+                onChanged: (v) {
+                  _debounce?.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 300), () {
+                    _query = v;
+                    _reload();
+                  });
+                },
+                textInputAction: TextInputAction.search,
+                decoration: adminSearchDecoration('Бараа хайх'),
+              ),
+              if (_tree != null && _tree!.isNotEmpty)
+                CategoryFilter(
+                  tree: _tree!,
+                  value: _picked,
+                  onChanged: (v) {
+                    _picked = v;
+                    _reload();
+                  },
+                ),
+            ],
+          ),
+          if (!ready && _error == null)
+            const LoadingView(count: 6)
+          else if (_error != null && _rows.isEmpty)
+            Padding(padding: const EdgeInsets.only(top: 16), child: ErrorView(_error!, onRetry: _reload))
+          else if (_rows.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: EmptyView(icon: Icons.search_off, text: 'Бараа олдсонгүй\nХайлт эсвэл категориа өөрчилж үзнэ үү.'),
+            )
+          else ...[
+            AdminList(children: [for (final p in _rows) _row(p, names)]),
+            if (_rows.length < (_count ?? 0))
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: _error != null && !_loading
+                      ? OutlinedButton(onPressed: _loadMore, child: const Text('Дахин оролдох'))
+                      : const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
+                ),
+              ),
+          ],
+        ]),
       ),
     );
   }
 
-  Widget _tile(AdminProduct p) {
-    final stockColor = p.remain <= 0 ? Colors.red : (p.remain <= _lowStock ? Colors.orange : Colors.green);
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        shape: const Border(),
-        leading: NetImage(p.image, width: 52, height: 52, radius: BorderRadius.circular(8)),
-        title: Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Text(money(p.price), style: const TextStyle(fontWeight: FontWeight.w600, color: brandColor)),
-            const SizedBox(width: 8),
-            StatusChip('Үлд: ${p.remain}', stockColor),
-            const SizedBox(width: 6),
-            if (!p.isActive) StatusChip(p.status == 'draft' ? 'Ноорог' : 'Идэвхгүй', Colors.grey),
+  Widget _row(AdminProduct p, Map<int, String> names) {
+    final category = [if (p.categoryId != null) ?names[p.categoryId], ?p.storeName].join(' · ');
+    final (String stock, Color stockColor) = !p.isActive
+        ? ('Ноорог', AdminColors.mutedForeground.withValues(alpha: 0.7))
+        : ('${p.remain} нөөц', p.remain <= lowStockThreshold ? AdminColors.destructive : AdminColors.mutedForeground);
+    return InkWell(
+      onTap: () => _showDetail(p),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(children: [
+          ImageBox(fileId: p.images.isEmpty ? null : p.images.first, size: 52),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              if (category.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(category,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground)),
+                ),
+              if (p.createdAt != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(formatDate(p.createdAt),
+                      style: TextStyle(fontFamily: mono, fontSize: 11, color: AdminColors.mutedForeground.withValues(alpha: 0.7))),
+                ),
+            ]),
+          ),
+          const SizedBox(width: 12),
+          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Text(mnt(p.price), style: const TextStyle(fontFamily: mono, fontSize: 14, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 2),
+            Text(stock, style: TextStyle(fontSize: 12, color: stockColor)),
           ]),
-          if (p.createdAt != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(formatDate(p.createdAt, time: false), style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
-            ),
         ]),
-        children: [
-          if (p.storeName != null) ListTile(dense: true, leading: const Icon(Icons.store_outlined), title: Text(p.storeName!)),
-          for (final v in p.variants)
-            ListTile(
-              dense: true,
-              title: Text(v.name.isEmpty ? p.name : v.name),
-              subtitle: Text(money(v.price)),
-              trailing: Text('${v.remain} ш', style: TextStyle(fontWeight: FontWeight.w600, color: v.remain <= 0 ? Colors.red : null)),
+      ),
+    );
+  }
+
+  /// Барааны сонголт тус бүрийн үнэ, үлдэгдэл.
+  void _showDetail(AdminProduct p) => showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (ctx) => ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.75),
+          child: ListView(shrinkWrap: true, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
+            Row(children: [
+              ImageBox(fileId: p.images.isEmpty ? null : p.images.first, size: 64),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(p.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  if (p.storeName != null) Text(p.storeName!, style: const TextStyle(color: AdminColors.mutedForeground)),
+                  Text(mnt(p.price), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
+                ]),
+              ),
+            ]),
+            const SizedBox(height: 16),
+            const Text('Сонголт, тоо', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            AdminCard(
+              child: Column(children: [
+                for (final (i, v) in p.variants.indexed) ...[
+                  if (i > 0) const Divider(height: 1, color: AdminColors.border),
+                  ListTile(
+                    dense: true,
+                    title: Text(v.name.isEmpty ? p.name : v.name),
+                    subtitle: Text(mnt(v.price), style: const TextStyle(fontFamily: mono)),
+                    trailing: Text('${v.remain} ш',
+                        style: TextStyle(
+                            fontFamily: mono, fontWeight: FontWeight.bold, color: v.remain <= lowStockThreshold ? AdminColors.destructive : null)),
+                  ),
+                ],
+                if (p.variants.isEmpty)
+                  ListTile(dense: true, title: const Text('Үлдэгдэл'), trailing: Text('${p.remain} ш', style: const TextStyle(fontFamily: mono))),
+              ]),
             ),
-        ],
+          ]),
+        ),
+      );
+}
+
+/// web-ийн CategoryFilter: мод бүтэцтэй sheet-ээс олон категори сонгоно.
+/// Категори сонгоход доорх бүгд сонгогдоно. Хоосон бол бүх категори.
+class CategoryFilter extends StatelessWidget {
+  final List<AdminCategory> tree;
+  final List<int> value;
+  final ValueChanged<List<int>> onChanged;
+  const CategoryFilter({super.key, required this.tree, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final flat = flattenCategories(tree);
+    final picked = value.toSet();
+    final names = flat.where((c) => picked.contains(c.id) && !(c.parentId != null && picked.contains(c.parentId))).map((c) => c.name).toList();
+    final label = names.isEmpty ? 'Бүх категори' : (names.length <= 2 ? names.join(', ') : '${names.length} категори');
+    return Material(
+      color: Colors.white,
+      shape: StadiumBorder(side: BorderSide(color: names.isEmpty ? AdminColors.border : AdminColors.primary.withValues(alpha: 0.5))),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: () async {
+          final next = await showModalBottomSheet<List<int>>(
+            context: context,
+            isScrollControlled: true,
+            showDragHandle: true,
+            builder: (_) => _TreeSheet(flat: flat, value: value),
+          );
+          if (next != null) onChanged(next);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(children: [
+            Expanded(
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: names.isEmpty ? AdminColors.mutedForeground : AdminColors.foreground,
+                    fontWeight: names.isEmpty ? null : FontWeight.w600,
+                  )),
+            ),
+            const Icon(Icons.keyboard_arrow_down, size: 18, color: AdminColors.mutedForeground),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _TreeSheet extends StatefulWidget {
+  final List<AdminCategory> flat;
+  final List<int> value;
+  const _TreeSheet({required this.flat, required this.value});
+  @override
+  State<_TreeSheet> createState() => _TreeSheetState();
+}
+
+class _TreeSheetState extends State<_TreeSheet> {
+  late final Set<int> _picked = widget.value.toSet();
+  String _q = '';
+
+  List<int> _subtree(AdminCategory c) => [c.id, for (final ch in c.children) ..._subtree(ch)];
+
+  bool? _stateOf(AdminCategory c) {
+    final ids = _subtree(c);
+    final n = ids.where(_picked.contains).length;
+    return n == ids.length ? true : (n > 0 ? null : false);
+  }
+
+  void _toggle(AdminCategory c) => setState(() {
+        final on = _stateOf(c) != true;
+        for (final id in _subtree(c)) {
+          on ? _picked.add(id) : _picked.remove(id);
+        }
+        // Бүх хүүхэд нь сонгогдсон эцэг ч сонгогдоно.
+        for (final p in widget.flat.reversed) {
+          if (p.children.isEmpty) continue;
+          if (p.children.every((ch) => _picked.contains(ch.id))) {
+            _picked.add(p.id);
+          } else {
+            _picked.remove(p.id);
+          }
+        }
+      });
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _q.trim().toLowerCase();
+    final rows = q.isEmpty ? widget.flat : widget.flat.where((c) => c.name.toLowerCase().contains(q)).toList();
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Text('Категори', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          if (widget.flat.length >= 12)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: TextField(onChanged: (v) => setState(() => _q = v), decoration: adminSearchDecoration('Хайх', icon: Icons.search)),
+            ),
+          Flexible(
+            child: ListView(shrinkWrap: true, children: [
+              for (final c in rows)
+                CheckboxListTile(
+                  tristate: true,
+                  value: _stateOf(c),
+                  onChanged: (_) => _toggle(c),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.only(left: 12 + (q.isEmpty ? c.depth * 20.0 : 0), right: 16),
+                  title: Text(c.name, style: TextStyle(fontWeight: c.depth == 0 ? FontWeight.bold : FontWeight.w500)),
+                ),
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Row(children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _picked.isEmpty ? null : () => setState(_picked.clear),
+                  child: const Text('Цэвэрлэх'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: FilledButton(onPressed: () => Navigator.pop(context, _picked.toList()), child: const Text('Болсон'))),
+            ]),
+          ),
+        ]),
       ),
     );
   }
