@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'notification_bell.dart';
+
 // Админ вэбийн (admin/src/app/globals.css) өнгө, загварын хэсгүүд — апп
 // вэбийн админаас ялгаагүй харагдана.
 
@@ -147,6 +149,8 @@ class AdminBrandBar extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 11, fontWeight: FontWeight.w700, color: AdminColors.primaryInk, letterSpacing: 2.2, height: 1.3)),
           ]),
+          const Spacer(),
+          const NotificationBell(),
         ]),
       );
 }
@@ -183,9 +187,10 @@ class AdminPageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AdminColors.border))),
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+        padding: EdgeInsets.fromLTRB(16, title == null && aside == null ? 16 : 20, 16, 16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          ConstrainedBox(
+          // Гарчиг ч, aside ч байхгүй бол (самбар) мөр нь зай эзлэхгүй.
+          if (title != null || aside != null) ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 40),
             child: Row(children: [
               Expanded(
@@ -208,7 +213,10 @@ class AdminPageHeader extends StatelessWidget {
               ?aside,
             ]),
           ),
-          for (final c in children) ...[const SizedBox(height: 16), c],
+          for (final (i, c) in children.indexed) ...[
+            if (i > 0 || title != null || aside != null) const SizedBox(height: 16),
+            c,
+          ],
         ]),
       );
 }

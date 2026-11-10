@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BrandMark from "./BrandMark";
+import NotificationBell from "./NotificationBell";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { isActivePath, NAV_ITEMS, navItemsFor } from "./nav";
 
@@ -59,6 +60,7 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
             <Link href="/" aria-label={t("nav.dashboardLink")}>
               <BrandMark />
             </Link>
+            <NotificationBell />
           </header>
         )}
 

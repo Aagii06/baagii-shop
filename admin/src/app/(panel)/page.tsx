@@ -23,7 +23,6 @@ import { getPosts, isPublished, LOW_STOCK_THRESHOLD } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
 import {
   cn,
-  formatDate,
   formatMNT,
   formatMNTCompact,
   formatQty,
@@ -344,11 +343,6 @@ export default function DashboardPage() {
       <PageHeader
         title={t("dash.title")}
         hideTitle
-        aside={
-          <span className="shrink-0 font-mono text-sm text-muted-foreground">
-            {formatDate(new Date())}
-          </span>
-        }
       >
         <ChipTabs label={t("dash.range.label")} value={range} options={RANGES.map((r) => ({ value: r.value, label: t(r.labelKey) }))} onChange={setRange} />
       </PageHeader>

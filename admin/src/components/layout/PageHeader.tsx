@@ -19,7 +19,8 @@ export default function PageHeader({
 }) {
   return (
     <div className="-mx-4 mb-1 space-y-4 border-b border-border px-4 pb-4 pt-5">
-      <div className="flex min-h-10 items-center justify-between gap-3">
+      {/* A hidden title with nothing beside it takes no room (the dashboard: just the range chips). */}
+      <div className={hideTitle && !aside ? "contents" : "flex min-h-10 items-center justify-between gap-3"}>
         <h1 className={hideTitle ? "sr-only" : "min-w-0 truncate text-[22px] font-extrabold leading-tight"}>
           {title}
           {count != null && (

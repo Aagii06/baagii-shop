@@ -18,6 +18,9 @@ class AdminState extends ChangeNotifier {
   String? _token;
   AdminUser? user;
 
+  /// Толгойн 🔔-ийн уншаагүй мэдэгдлийн тоо (AdminShell 30 секунд тутам шинэчилнэ).
+  int unreadNotifications = 0;
+
   late final ApiClient api = ApiClient(AppConfig.adminApi, tokenProvider: () async => _token);
 
   bool get signedIn => _token != null && user != null;
@@ -412,4 +415,40 @@ class AdminState extends ChangeNotifier {
   }
 
   Future<void> deleteAttr(int id) => guard(() => api.delete('/attr/$id'));
+
+  // ---------- мэдэгдэл ----------
+
+  Future<void> refreshUnread() async {
+    if (!signedIn) return;
+    try {
+      final res = await guard(() => api.get('/notification/unread'));
+      final n = toInt(res['data']?['unread']);
+      if (n != unreadNotifications) {
+        unreadNotifications = n;
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<({List<AdminNotification> rows, int count})> notifications({int skip = 0, int take = 30}) async {
+    final res = await guard(() => api.get('/notification?skip=$skip&take=$take'));
+    final d = res['data'] as Map<String, dynamic>? ?? {};
+    unreadNotifications = toInt(d['unread']);
+    notifyListeners();
+    return (rows: _rowsOf(res).map(AdminNotification.fromJson).toList(), count: toInt(d['count']));
+  }
+
+  Future<void> markNotificationRead(int id) async {
+    if (unreadNotifications > 0) {
+      unreadNotifications--;
+      notifyListeners();
+    }
+    await guard(() => api.post('/notification/$id/read')).catchError((_) => null);
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    unreadNotifications = 0;
+    notifyListeners();
+    await guard(() => api.post('/notification/readAll')).catchError((_) => null);
+  }
 }

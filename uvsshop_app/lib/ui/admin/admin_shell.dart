@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +21,32 @@ class AdminShell extends StatefulWidget {
   State<AdminShell> createState() => _AdminShellState();
 }
 
-class _AdminShellState extends State<AdminShell> {
+class _AdminShellState extends State<AdminShell> with WidgetsBindingObserver {
+  Timer? _poll;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Толгойн 🔔-ийн тоог 30 секунд тутам шинэчилнэ (вэбийнхтэй ижил).
+    final admin = context.read<AdminState>();
+    admin.refreshUnread();
+    _poll = Timer.periodic(const Duration(seconds: 30), (_) => admin.refreshUnread());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Апп дахин нээгдэхэд шууд шалгана.
+    if (state == AppLifecycleState.resumed) context.read<AdminState>().refreshUnread();
+  }
+
+  @override
+  void dispose() {
+    _poll?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.select<AdminState, bool>((a) => a.user?.isAdmin ?? false);

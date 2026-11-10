@@ -316,3 +316,28 @@ class Area {
   final String name;
   Area(this.id, this.name);
 }
+
+// ---------- мэдэгдэл ----------
+
+class AdminNotification {
+  final int id;
+  final String type;
+  final String title;
+  final String? body;
+  final String? link;
+  final bool read;
+  final String createdAt;
+  AdminNotification(this.id, this.type, this.title, this.body, this.link, this.read, this.createdAt);
+
+  AdminNotification asRead() => AdminNotification(id, type, title, body, link, true, createdAt);
+
+  factory AdminNotification.fromJson(Map<String, dynamic> j) => AdminNotification(
+        toInt(j['id']),
+        j['type']?.toString() ?? 'order',
+        j['title']?.toString() ?? '',
+        _str(j['body']),
+        _str(j['link']),
+        j['read'] == true,
+        j['createdAt']?.toString() ?? '',
+      );
+}

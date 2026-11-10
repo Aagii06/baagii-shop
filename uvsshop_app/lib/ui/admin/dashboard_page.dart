@@ -90,8 +90,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    String two(int n) => n.toString().padLeft(2, '0');
     return AdminTabScaffold(
       body: RefreshIndicator(
         onRefresh: _reloadAll,
@@ -99,10 +97,6 @@ class _DashboardPageState extends State<DashboardPage> {
           padding: EdgeInsets.zero,
           children: [
             AdminPageHeader(
-              aside: Text(
-                '${now.year}.${two(now.month)}.${two(now.day)}',
-                style: const TextStyle(fontFamily: mono, fontSize: 14, color: AdminColors.mutedForeground),
-              ),
               children: [
                 PillTabs<String>(
                   value: _range,
