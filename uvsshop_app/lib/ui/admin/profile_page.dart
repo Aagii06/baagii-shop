@@ -71,7 +71,6 @@ class AdminProfilePage extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const AdminPageHeader(title: 'Профайл'),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             child: Column(
