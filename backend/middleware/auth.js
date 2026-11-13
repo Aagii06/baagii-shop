@@ -43,11 +43,25 @@ module.exports.readToken = readToken;
 const unauthorized = (res) =>
   res.status(401).json({ success: false, errorType: "authentication", message: "Систем рүү нэвтэрнэ үү" });
 
-// Админ / борлуулагч. Вэбийн токен энд хүчингүй.
-module.exports.protect = (req, res, next) => {
+// Админ / борлуулагч. Вэбийн токен энд хүчингүй. Утсаа хугацаанд нь баталгаажуулаагүй
+// (helper/phoneVerify.js) хэрэглэгчийн токен хүчингүй — 401-ээр гаргана.
+module.exports.protect = async (req, res, next) => {
   const payload = readToken(req);
   if (!payload?.user) return unauthorized(res);
   req.loggedUser = payload.user;
+  try {
+    const { users } = require("../models");
+    const { isPhoneBlocked, PHONE_BLOCKED_MESSAGE } = require("../helper/phoneVerify");
+    const user = await users.findOne({
+      where: { id: payload.user.id, shop_id: req.shopId, status: "active" },
+      attributes: ["id", "role", "phone_verified_at", "phone_verify_deadline"],
+    });
+    if (user && isPhoneBlocked(user)) {
+      return res.status(401).json({ success: false, errorType: "authentication", message: PHONE_BLOCKED_MESSAGE });
+    }
+  } catch (error) {
+    return next(error);
+  }
   next();
 };
 

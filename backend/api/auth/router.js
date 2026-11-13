@@ -3,7 +3,7 @@ const { body } = require("express-validator");
 const { protect } = require("../../middleware/auth");
 const { validate } = require("../../utils/validationHelper");
 const { isPhone } = require("../../helper/helper");
-const { login, getUserData, sendPhoneOtp, updateMe, sendPasswordOtp, changePassword, sendEmailOtp, changeEmail } = require("./controller");
+const { login, getUserData, sendPhoneOtp, updateMe, sendPasswordOtp, changePassword, sendEmailOtp, changeEmail, sendVerifyPhoneOtp, verifyPhone } = require("./controller");
 
 router.post(
   "/login",
@@ -28,6 +28,9 @@ router.put(
   ]),
   updateMe,
 );
+// Одоогийн утасны дугаараа SMS кодоор баталгаажуулна (баталгаажуулаагүй бол хугацааны дараа хаагдана)
+router.post("/me/phone/sendOtp", protect, sendVerifyPhoneOtp);
+router.put("/me/phone/verify", protect, validate([body("code").trim().notEmpty().withMessage("Код оруулна уу")]), verifyPhone);
 // Нууц үг солих: одоогийн password, шинэ newPassword (6+ тэмдэгт), түүнтэй ижил confirmPassword шалгаад бүртгэлтэй имэйл рүү код
 // илгээнэ (/me/password/sendOtp), тэр кодоор солино (/me/password)
 const passwordRules = [

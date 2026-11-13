@@ -28,6 +28,9 @@ const constant = {
   },
   // Төлөгдөөгүй pending захиалга энэ хэдэн цагаас хойш admin-д анхааруулга болж, цуцлах боломжтой болно
   unpaidCancelHours: 24,
+  // Админ самбарын хэрэглэгч утасны дугаараа энэ хэдэн хоногт (SMS кодоор) баталгаажуулахгүй бол
+  // эрх нь хаагдана (helper/phoneVerify.js). ADMIN-ийг хаахгүй — зөвхөн сануулна
+  phoneVerifyDays: 7,
   // Дэлгүүр бүрийн (shops.id) хүргэлтийн сонголт, хөнгөлөлтийн код — вэбийн
   // web/src/lib/pricing.ts (DELIVERY_OPTIONS / SHIPPING_FEE, VALID_COUPONS)-тэй ижил байна.
   // freeAbove: дэд дүн үүнээс их бол тухайн хүргэлт үнэгүй

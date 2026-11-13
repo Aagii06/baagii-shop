@@ -70,6 +70,8 @@ module.exports.approve = handle("partnerApprove", async (req, res) => {
         email: row.email,
         password: await bcrypt.hash(String(password), 10),
         role: roles.shopper,
+        // Хүсэлт илгээхдээ утсаа SMS кодоор баталгаажуулсан
+        phone_verified_at: at,
         ...audit,
       },
       { transaction: t },

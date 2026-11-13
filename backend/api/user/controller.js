@@ -4,6 +4,7 @@ const { roles } = require("../../config/constants");
 const { findStore } = require("../../helper/storeHelper");
 const { saveLog } = require("../../utils/logHelper");
 const { ok, fail, handle, toIso, phoneDigits } = require("../../helper/helper");
+const { phoneVerifyFields, verifyDeadlineFrom } = require("../../helper/phoneVerify");
 
 // Админ самбарын хэрэглэгчид: ADMIN (бүгдийг удирдана) эсвэл SHOPPER (дэлгүүр — зөвхөн
 // өөрийн дэлгүүрийн бараа). admin/src/lib/api/users.ts-ийн User
@@ -15,6 +16,7 @@ const toRecord = (user) => ({
   email: user.email,
   role: roleName(user.role),
   store: user.store ? { id: user.store.id, name: user.store.name } : null,
+  ...phoneVerifyFields(user),
   createdAt: toIso(user.created_at),
 });
 
@@ -58,6 +60,8 @@ module.exports.create = handle("userCreate", async (req, res) => {
     password: await bcrypt.hash(String(password), 10),
     shop_id: req.shopId,
     status: "active",
+    // Утсаа phoneVerifyDays хоногт баталгаажуулна (helper/phoneVerify.js)
+    phone_verify_deadline: verifyDeadlineFrom(at),
     created_by: by,
     created_at: at,
   });
@@ -76,10 +80,23 @@ module.exports.update = handle("userUpdate", async (req, res) => {
   await user.update({
     ...values,
     ...(password && { password: await bcrypt.hash(String(password), 10) }),
+    // Админ дугаарыг нь сольсон бол шинэ дугаараа дахин баталгаажуулна
+    ...(values.phone !== user.phone && { phone_verified_at: null, phone_verify_deadline: verifyDeadlineFrom(at) }),
     updated_by: by,
     updated_at: at,
   });
   await saveLog({ shop_id: req.shopId, object_name: "users", object_id: user.id, log_action: "updated", created_by: by, created_at: at });
+  return ok(res, toRecord(await findUser(req, user.id)));
+});
+
+// Утсаа баталгаажуулаагүйгээс хаагдсан (эсвэл хугацаа нь дуусах гэж буй) хэрэглэгчид дахин phoneVerifyDays хоног өгнө
+module.exports.extendPhoneVerify = handle("userExtendPhoneVerify", async (req, res) => {
+  const { by, at } = req.body;
+  const user = await findUser(req, req.params.id);
+  if (!user) return fail(res, "Хэрэглэгч олдсонгүй");
+  if (user.phone_verified_at) return fail(res, "Утасны дугаар нь баталгаажсан байна");
+  await user.update({ phone_verify_deadline: verifyDeadlineFrom(at), updated_by: by, updated_at: at });
+  await saveLog({ shop_id: req.shopId, object_name: "users", object_id: user.id, log_action: "phoneVerifyExtended", created_by: by, created_at: at });
   return ok(res, toRecord(await findUser(req, user.id)));
 });
 

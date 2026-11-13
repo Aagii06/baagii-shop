@@ -28,6 +28,10 @@ module.exports = (sequelize, DataTypes) => {
       // Профайлын лого (файлын id)
       logo: { type: DataTypes.STRING },
       role: { type: DataTypes.STRING },
+      // Утасны дугаараа SMS кодоор баталгаажуулсан огноо; null бол баталгаажаагүй
+      phone_verified_at: { type: DataTypes.STRING },
+      // Энэ огнооноос хойш баталгаажаагүй бол эрх хаагдана (helper/phoneVerify.js); null бол хаахгүй
+      phone_verify_deadline: { type: DataTypes.STRING },
       ...auditFields(DataTypes),
     },
     { sequelize, tableName: "users", modelName: "users", timestamps: false },

@@ -6,8 +6,11 @@ const { Op } = require("sequelize");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
 const { sendCodeMail } = require("../../helper/mailHelper");
+const { isPhoneBlocked, phoneVerifyFields, PHONE_BLOCKED_MESSAGE } = require("../../helper/phoneVerify");
 
 const PHONE_CHANGE_OTP = "adminPhone";
+// Одоогийн утасны дугаараа баталгаажуулах код (helper/phoneVerify.js)
+const PHONE_VERIFY_OTP = "adminPhoneVerify";
 // Имэйлийн кодыг phoneOtps-д имэйл хаягаар нь (phone баганад) хадгална
 const EMAIL_CHANGE_OTP = "adminEmail";
 // Нууц үг солих код — хэрэглэгчийн бүртгэлтэй имэйл рүү (имэйл хаягаар нь хадгална)
@@ -22,6 +25,7 @@ const toUser = (user) => ({
   phone: user.phone,
   email: user.email,
   logo: user.logo ?? null,
+  ...phoneVerifyFields(user),
   roles: [],
   roleNames: user.role === roles.admin ? "admin" : "shopper",
   // SHOPPER-ийн дэлгүүр (include: store-оор ачаалсан үед)
@@ -36,6 +40,7 @@ module.exports.login = handle("login", async (req, res) => {
   const user = await users.findOne({ where: { shop_id: req.shopId, phone: phoneDigits(phone), status: "active" }, include: withStore });
   const matches = user?.password && (await bcrypt.compare(password, user.password));
   if (!matches) return fail(res, "Утасны дугаар эсвэл нууц үг буруу байна");
+  if (isPhoneBlocked(user)) return fail(res, PHONE_BLOCKED_MESSAGE);
   return ok(res, { token: signUser(user), user: toUser(user) });
 });
 
@@ -84,9 +89,33 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
   if (phone !== user.phone) {
     const result = await verifyPhoneOtp(req.shopId, phone, req.body.code ?? "", PHONE_CHANGE_OTP);
     if (!result.success) return fail(res, result.message);
+    // Шинэ дугаар кодоор баталгаажсан
+    changes.phone_verified_at = changes.updated_at;
   }
   await user.update(changes);
   return ok(res, toUser(user));
+});
+
+// Одоогийн утасны дугаар руу баталгаажуулах код илгээнэ; verifyPhone-д code-оор баталгаажуулна
+module.exports.sendVerifyPhoneOtp = handle("sendVerifyPhoneOtp", async (req, res) => {
+  const user = await findMe(req);
+  if (!user) return notFound(res);
+  if (user.phone_verified_at) return fail(res, "Таны утасны дугаар баталгаажсан байна");
+  const result = await sendPhoneOtp(req.shopId, user.phone, PHONE_VERIFY_OTP);
+  return res.status(200).json({ ...result, data: null });
+});
+
+// { code } — одоогийн утсанд ирсэн кодоор дугаарыг баталгаажуулна
+module.exports.verifyPhone = handle("verifyPhone", async (req, res) => {
+  const user = await findMe(req);
+  if (!user) return notFound(res);
+  if (!user.phone_verified_at) {
+    const result = await verifyPhoneOtp(req.shopId, user.phone, req.body.code ?? "", PHONE_VERIFY_OTP);
+    if (!result.success) return fail(res, result.message);
+    const at = now();
+    await user.update({ phone_verified_at: at, updated_by: user.id, updated_at: at });
+  }
+  return ok(res, toUser(user), "Утасны дугаар баталгаажлаа");
 });
 
 // Нууц үг солих: одоогийн нууц үг зөв, шинэ нь өөр, имэйл бүртгэлтэй эсэхийг шалгана. Алдааг string-ээр шиднэ.

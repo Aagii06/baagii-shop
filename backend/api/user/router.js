@@ -15,6 +15,7 @@ const saveValidation = validate([
 
 router.use(isAdmin);
 router.route("/").get(controller.list).post(saveValidation, byAndAt, controller.create);
+router.put("/:id/extendPhoneVerify", byAndAt, controller.extendPhoneVerify);
 router.route("/:id").get(controller.show).put(saveValidation, byAndAt, controller.update).delete(byAndAt, controller.destroy);
 
 module.exports = router;
