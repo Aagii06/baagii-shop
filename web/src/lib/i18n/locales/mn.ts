@@ -271,7 +271,7 @@ export const mn: Dict = {
   "checkout.recipient.note": "Нэмэлт тайлбар",
   "checkout.recipient.notePlaceholder": "Жишээ: хаалганы код 1234",
   "checkout.delivery.title": "Хүргэлт",
-  "checkout.delivery.standard": "Хот дотор хүргэлт",
+  "checkout.delivery.standard": "Улаангом дотор хүргэлт",
   "checkout.delivery.standardDesc": "1-3 хоног",
   "checkout.summary.title": "Захиалгын дүн",
   "checkout.summary.continue": "Үргэлжлүүлэх",
@@ -393,7 +393,7 @@ export const mn: Dict = {
   "orders.detailPage.note": "Тайлбар: {note}",
   "orders.detailPage.notFound": "Захиалга олдсонгүй",
   "orders.detailPage.goToOrders": "Захиалгууд руу очих",
-  "orders.delivery.standard": "Хот дотор хүргэлт, 1-3 хоног",
+  "orders.delivery.standard": "Улаангом дотор хүргэлт, 1-3 хоног",
 
   "profile.title": "Профайл тохиргоо",
   "profile.subtitle": "Хувийн мэдээлэл болон бүртгэлээ энд шинэчилнэ.",
