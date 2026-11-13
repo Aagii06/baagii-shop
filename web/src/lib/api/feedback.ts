@@ -7,6 +7,8 @@ export interface FeedbackInput {
   phone?: string;
   subject?: string;
   message: string;
+  /** Google reCAPTCHA v2 token, when the checkbox is turned on. */
+  recaptchaToken?: string;
 }
 
 // "Бидэнд бичнэ үү" (/contact): `POST /feedback` on ../backend's /web, no

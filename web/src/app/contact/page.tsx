@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import Recaptcha, { recaptchaEnabled, type RecaptchaHandle } from "@/components/ui/recaptcha";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api/errors";
 import { sendFeedback } from "@/lib/api/feedback";
@@ -19,10 +20,10 @@ import {
   Send,
   Shield,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export default function Contact() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -32,6 +33,8 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<RecaptchaHandle>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -42,12 +45,18 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (recaptchaEnabled && !captchaToken) {
+      setSubmitError(t("contact.form.captchaRequired"));
+      return;
+    }
     setIsSubmitting(true);
     setSubmitError("");
 
     try {
-      await sendFeedback(formData);
+      await sendFeedback({ ...formData, recaptchaToken: captchaToken ?? undefined });
     } catch (error) {
+      // A token works only once, so a fresh tick is needed to retry.
+      captchaRef.current?.reset();
       setSubmitError(
         error instanceof ApiError && error.message ? error.message : t("contact.form.error")
       );
@@ -57,6 +66,7 @@ export default function Contact() {
 
     setIsSubmitting(false);
     setIsSubmitted(true);
+    captchaRef.current?.reset();
 
     setTimeout(() => {
       setIsSubmitted(false);
@@ -209,6 +219,15 @@ export default function Contact() {
                       className="resize-none"
                     />
                   </div>
+
+                  <Recaptcha
+                    ref={captchaRef}
+                    lang={locale}
+                    onChange={(token) => {
+                      setCaptchaToken(token);
+                      if (token) setSubmitError("");
+                    }}
+                  />
 
                   {submitError && (
                     <p role="alert" className="text-sm font-medium text-destructive">
