@@ -9,11 +9,11 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { deleteUser, getUsers, type User, type UserRole } from "@/lib/api/users";
+import { deleteUser, extendPhoneVerify, getUsers, type User, type UserRole } from "@/lib/api/users";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useApi } from "@/lib/useApi";
-import { formatPhone } from "@/lib/utils";
-import { Pencil, Plus, Trash2, Users } from "lucide-react";
+import { formatDate, formatPhone } from "@/lib/utils";
+import { Pencil, Plus, Trash2, Unlock, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -40,18 +40,53 @@ function UserRow({ user, onChanged }: { user: User; onChanged: () => void }) {
     }
   }
 
+  const [extending, setExtending] = useState(false);
+  async function onExtend() {
+    setExtending(true);
+    try {
+      if (await run(() => extendPhoneVerify(user.id), t("us.pvExtended"))) onChanged();
+    } finally {
+      setExtending(false);
+    }
+  }
+
   return (
     <li className="flex items-center gap-2 px-4 py-3.5">
       <span className="min-w-0 grow">
         <span className="flex items-center gap-2">
           <span className="truncate text-[15px] font-bold">{name}</span>
           <Badge className="shrink-0 px-2 py-0.5">{t(`us.role.${user.role}`)}</Badge>
+          {user.phoneBlocked ? (
+            <Badge variant="dark" className="shrink-0 px-2 py-0.5">{t("us.pvBlocked")}</Badge>
+          ) : (
+            user.phoneVerified === false && (
+              <Badge variant="peach" className="shrink-0 px-2 py-0.5">{t("us.pvPending")}</Badge>
+            )
+          )}
         </span>
         <span className="mt-0.5 block truncate text-xs text-muted-foreground">
           <span className="font-mono">{formatPhone(user.phone)}</span>
           {user.role === "shopper" && ` · ${user.store?.name ?? t("us.noStore")}`}
         </span>
+        {user.phoneVerifyDeadline && !user.phoneBlocked && (
+          <span className="mt-0.5 block truncate text-xs text-warning">
+            {t("us.pvUntil", { date: formatDate(user.phoneVerifyDeadline) })}
+          </span>
+        )}
       </span>
+      {user.phoneBlocked && (
+        <Button
+          variant="outline"
+          size="icon-sm"
+          className="shrink-0"
+          aria-label={t("us.pvExtendAria", { name })}
+          title={t("us.pvExtend")}
+          loading={extending}
+          onClick={onExtend}
+        >
+          <Unlock />
+        </Button>
+      )}
       <Button asChild variant="outline" size="icon-sm" className="shrink-0">
         <Link href={`/users/edit?id=${user.id}`} aria-label={t("us.editAria", { name })} title={t("common.edit")}>
           <Pencil />

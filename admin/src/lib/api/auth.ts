@@ -13,6 +13,10 @@ export interface LoginUser {
   logo?: string | null;
   /** The phone number the user signs in with. */
   userName: string;
+  /** Whether `phone` was confirmed with an SMS code. */
+  phoneVerified?: boolean;
+  /** ISO time after which an unverified non-admin is blocked; null for admins and verified users. */
+  phoneVerifyDeadline?: string | null;
   customerId?: number | null;
   /** Filled from `/auth/getUserData`, not by login. */
   roles?: number[];
@@ -87,6 +91,17 @@ export async function sendPhoneOtp(phone: string) {
 /** Saves the signed-in admin's own details; a new phone needs its SMS `code`. */
 export async function updateMe(input: ProfileInput) {
   const res = await apiFetch<ApiItemResponse<LoginUser>>("/auth/me", { method: "PUT", body: input });
+  return res.data;
+}
+
+// Confirms the user's current number: `sendVerifyPhoneOtp` texts a code to it,
+// `verifyPhone` checks it. An unverified number blocks the account after a deadline.
+export async function sendVerifyPhoneOtp() {
+  await apiFetch<ApiItemResponse<null>>("/auth/me/phone/sendOtp", { method: "POST" });
+}
+
+export async function verifyPhone(code: string) {
+  const res = await apiFetch<ApiItemResponse<LoginUser>>("/auth/me/phone/verify", { method: "PUT", body: { code } });
   return res.data;
 }
 

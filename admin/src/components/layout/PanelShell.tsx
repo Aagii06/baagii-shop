@@ -10,6 +10,7 @@ import BrandMark from "./BrandMark";
 import NotificationBell from "./NotificationBell";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { isActivePath, NAV_ITEMS, navItemsFor } from "./nav";
+import PhoneVerifyNotice from "@/components/users/PhoneVerifyNotice";
 
 // Tab pages get the brand header and bottom nav; pages below a tab (product
 // edit, order detail, the profile menu's pages) bring their own back-button
@@ -70,6 +71,7 @@ export default function PanelShell({ children }: { children: React.ReactNode }) 
             isTabPage ? "pb-[calc(6rem+env(safe-area-inset-bottom))]" : "pb-8"
           )}
         >
+          {isTabPage && <PhoneVerifyNotice compact />}
           {children}
         </main>
 

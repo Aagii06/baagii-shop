@@ -5,6 +5,7 @@ import Field from "@/components/common/Field";
 import Thumb from "@/components/common/Thumb";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
+import PhoneVerifyNotice from "@/components/users/PhoneVerifyNotice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { changeEmail, sendEmailOtp, sendPhoneOtp, updateMe } from "@/lib/api/auth";
@@ -224,6 +225,9 @@ export default function EditProfilePage() {
         />
 
         <div className="space-y-4">
+          {/* Not while switching numbers: the new one is confirmed with its own code. */}
+          {!phoneChanged && <PhoneVerifyNotice />}
+
           <div role="group" aria-label={t("profile.photo")} className="flex flex-col items-center gap-3 pb-2">
             <div className="relative">
               <label className="group relative block cursor-pointer rounded-full focus-within:ring-4 focus-within:ring-primary/15">

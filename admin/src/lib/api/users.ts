@@ -6,6 +6,7 @@ import { apiFetch, type ApiItemResponse, type ApiListResponse } from "./client";
 //   GET    /user/{id}
 //   POST   /user       UserInput
 //   PUT    /user/{id}  UserInput — an empty password keeps the current one
+//   PUT    /user/{id}/extendPhoneVerify
 //   DELETE /user/{id}
 
 export type UserRole = "admin" | "shopper";
@@ -18,6 +19,12 @@ export interface User {
   role: UserRole;
   /** A shopper's store. */
   store: { id: number; name: string } | null;
+  /** Confirmed their phone with an SMS code. */
+  phoneVerified: boolean;
+  /** ISO; an unverified shopper is blocked after it. Null for admins / verified. */
+  phoneVerifyDeadline: string | null;
+  /** Past the deadline unverified — can't sign in until extended. */
+  phoneBlocked: boolean;
   createdAt: string;
 }
 
@@ -48,6 +55,11 @@ export async function createUser(input: UserInput): Promise<void> {
 
 export async function updateUser(id: number, input: UserInput): Promise<void> {
   await apiFetch(`/user/${id}`, { method: "PUT", body: input });
+}
+
+/** Gives an unverified (or blocked) user another stretch of days to verify their phone. */
+export async function extendPhoneVerify(id: number): Promise<void> {
+  await apiFetch(`/user/${id}/extendPhoneVerify`, { method: "PUT" });
 }
 
 export async function deleteUser(id: number): Promise<void> {
