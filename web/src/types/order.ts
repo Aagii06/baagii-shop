@@ -28,7 +28,8 @@ export interface ShippingInfo {
   deliveryFee: number;
 }
 
-export type OrderStatus = "pending" | "confirmed" | "cancelled";
+// "returned": the shop took the order back (set from the admin panel).
+export type OrderStatus = "pending" | "confirmed" | "cancelled" | "returned";
 
 // "card" and "cash" are temporarily disabled in the checkout UI but kept
 // in the type so existing orders still parse and re-enabling is a one-liner.

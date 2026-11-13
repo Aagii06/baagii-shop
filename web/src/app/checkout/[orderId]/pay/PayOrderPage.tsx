@@ -76,14 +76,14 @@ export default function PayOrderPage() {
     );
   }
 
-  if (order.status === "cancelled") {
+  if (order.status === "cancelled" || order.status === "returned") {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          {t("checkout.payment.cancelled.title")}
+          {t(`checkout.payment.${order.status}.title`)}
         </h1>
         <p className="text-muted-foreground mb-6">
-          {t("checkout.payment.cancelled.desc", { id: order.id })}
+          {t(`checkout.payment.${order.status}.desc`, { id: order.id })}
         </p>
         <Button asChild>
           <Link href={`/orders/${order.id}`}>

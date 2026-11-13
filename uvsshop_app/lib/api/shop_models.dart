@@ -297,6 +297,7 @@ class ShopOrder {
 
   bool get isPaid => paidAt != null;
   bool get isCancelled => status == 'cancelled';
+  bool get isReturned => status == 'returned';
 
   /// Худалдан авагчид харагдах төлөв.
   String get label {

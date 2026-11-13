@@ -17,7 +17,8 @@ export default function OrderProgress({
     t("orders.progress.paid"),
     t("orders.progress.delivering"),
   ];
-  const filled = status === "confirmed" ? 2 : status === "cancelled" ? 0 : 1;
+  const closed = status === "cancelled" || status === "returned";
+  const filled = status === "confirmed" ? 2 : closed ? 0 : 1;
 
   return (
     <div>
@@ -34,7 +35,7 @@ export default function OrderProgress({
       </div>
       <div className="flex items-center justify-between mt-2">
         <span className="text-xs text-muted-foreground">
-          {status === "cancelled" ? t("orders.status.cancelledBadge") : stageLabels[filled - 1]}
+          {closed ? t(`orders.status.${status}Badge`) : stageLabels[filled - 1]}
         </span>
         <span className="text-xs text-muted-foreground">{caption}</span>
       </div>

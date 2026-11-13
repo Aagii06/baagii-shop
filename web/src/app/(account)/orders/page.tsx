@@ -12,7 +12,7 @@ import { Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-type Tab = "all" | "active" | "delivered" | "cancelled";
+type Tab = "all" | "active" | "delivered" | "cancelled" | "returned";
 
 export default function OrdersPage() {
   const { t, locale } = useLanguage();
@@ -25,6 +25,7 @@ export default function OrdersPage() {
     { id: "active", label: t("orders.tabs.active") },
     { id: "delivered", label: t("orders.tabs.delivered") },
     { id: "cancelled", label: t("orders.tabs.cancelled") },
+    { id: "returned", label: t("orders.tabs.returned") },
   ];
 
   const filtered = orders.filter((order) =>
@@ -34,7 +35,9 @@ export default function OrdersPage() {
       ? order.status === "pending"
       : tab === "delivered"
       ? order.status === "confirmed"
-      : order.status === "cancelled"
+      : tab === "cancelled"
+      ? order.status === "cancelled"
+      : order.status === "returned"
   );
 
   if (!ordersLoaded) {
@@ -62,7 +65,7 @@ export default function OrdersPage() {
         <h1 className="text-2xl font-bold text-foreground">
           {t("orders.title")}
         </h1>
-        <div className="flex items-center gap-1 rounded-full bg-muted p-1">
+        <div className="flex flex-wrap items-center gap-1 rounded-full bg-muted p-1">
           {tabs.map((tabOption) => (
             <button
               key={tabOption.id}

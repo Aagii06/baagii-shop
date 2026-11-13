@@ -49,7 +49,7 @@ class _PayPageState extends State<PayPage> {
         _methods = results[1] as PaymentMethods;
         _method ??= _methods!.qpay ? 'qpay' : (_methods!.bank != null ? 'bank' : null);
       });
-      if (_method == 'qpay' && !_order!.isPaid && !_order!.isCancelled) _startQpay();
+      if (_method == 'qpay' && !_order!.isPaid && !_order!.isCancelled && !_order!.isReturned) _startQpay();
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }
@@ -114,6 +114,9 @@ class _PayPageState extends State<PayPage> {
   }
 
   Widget _body(ShopOrder o) {
+    if (o.isReturned) {
+      return const EmptyView(icon: Icons.undo, text: 'Энэ захиалга буцаагдсан байна.');
+    }
     if (o.isPaid) {
       return EmptyView(
         icon: Icons.check_circle,

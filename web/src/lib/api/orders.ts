@@ -26,13 +26,19 @@ interface ApiOrder extends Omit<Order, "status" | "confirmedAt" | "paymentMethod
   paidAt: string | null;
 }
 
-// The shop's own `status` is about payment: "confirmed" once paid, or
-// "cancelled" when the shop cancelled it for going unpaid too long.
+// The shop's own `status` is about payment: "confirmed" once paid,
+// "cancelled" when the shop cancelled it for going unpaid too long, or
+// "returned" when the shop took it back.
 function toOrder(o: ApiOrder): Order {
   return {
     ...o,
     items: o.items.map((item) => ({ ...item, image: fileUrl(item.image, "icon") ?? "" })),
-    status: o.status === "cancelled" ? "cancelled" : o.paidAt ? "confirmed" : "pending",
+    status:
+      o.status === "cancelled" || o.status === "returned"
+        ? o.status
+        : o.paidAt
+        ? "confirmed"
+        : "pending",
     paymentMethod: o.paymentMethod ?? undefined,
     confirmedAt: o.paidAt ?? undefined,
   };

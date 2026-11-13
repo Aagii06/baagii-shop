@@ -15,6 +15,14 @@ export default function OrderStatusBadge({ status }: { status: OrderStatus }) {
     );
   }
 
+  if (status === "returned") {
+    return (
+      <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 border-transparent">
+        {t("orders.status.returnedBadge")}
+      </Badge>
+    );
+  }
+
   if (status === "confirmed") {
     return (
       <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-transparent">
