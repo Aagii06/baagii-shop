@@ -12,3 +12,10 @@ export const SHOP_ID = process.env.NEXT_PUBLIC_SHOP_ID ?? "1";
  * сонгогдоно (Увс — 85, Улаанбаатар — 11). Хоосон бол сонгохгүй.
  */
 export const DEFAULT_CITY_CODE = process.env.NEXT_PUBLIC_DEFAULT_CITY_CODE ?? "";
+
+/**
+ * Сум/Дүүргийн ҮСХ-ны код — DEFAULT_CITY_CODE сонгогдсон үед урьдчилан
+ * сонгогдоно (Улаангом — 8501). Хоосон бол сонгохгүй.
+ */
+export const DEFAULT_DISTRICT_CODE =
+  process.env.NEXT_PUBLIC_DEFAULT_DISTRICT_CODE ?? "";

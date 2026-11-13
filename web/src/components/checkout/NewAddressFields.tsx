@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_CITY_CODE } from "@/lib/api/config";
+import { DEFAULT_CITY_CODE, DEFAULT_DISTRICT_CODE } from "@/lib/api/config";
 import {
   getAddressTypes,
   getCities,
@@ -151,6 +151,19 @@ export default function NewAddressFields({
     const city = cities.items.find((c) => c.code === DEFAULT_CITY_CODE);
     if (city) onChange((v) => (v.city ? v : { ...v, city }));
   }, [cities.items, onChange]);
+
+  // Then the shop's own sum, once, if the city is still the default one.
+  const districtDefaulted = useRef(false);
+  useEffect(() => {
+    if (districtDefaulted.current || districts.items.length === 0) return;
+    districtDefaulted.current = true;
+    if (value.city?.code !== DEFAULT_CITY_CODE) return;
+    const district = districts.items.find(
+      (d) => d.code === DEFAULT_DISTRICT_CODE
+    );
+    if (district)
+      onChange((v) => (v.district ? v : { ...v, district, subDistrict: null }));
+  }, [districts.items, value.city?.code, onChange]);
 
   return (
     <div className="space-y-4">
