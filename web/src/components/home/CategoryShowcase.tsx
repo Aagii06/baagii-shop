@@ -70,7 +70,7 @@ export default function CategoryShowcase({
               src={[product.thumbnail, product.image]}
               alt=""
               fallback="sm"
-              className="h-[72px] w-[72px] shrink-0 self-end rounded-md bg-transparent object-contain transition-transform group-hover:scale-105"
+              className="h-[72px] w-[72px] shrink-0 self-end rounded-md bg-transparent object-cover transition-transform group-hover:scale-105"
             />
           </Link>
         ))}

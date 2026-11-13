@@ -151,7 +151,7 @@ export default function DealsSection({
                 src={[product.thumbnail, product.image]}
                 alt={product.name}
                 fallback="sm"
-                className="h-28 w-28 rounded-md bg-transparent object-contain transition-transform group-hover:scale-105 sm:h-32 sm:w-32"
+                className="h-28 w-28 rounded-md bg-transparent object-cover transition-transform group-hover:scale-105 sm:h-32 sm:w-32"
               />
               <span className="line-clamp-1 text-sm text-foreground">
                 {product.name}
