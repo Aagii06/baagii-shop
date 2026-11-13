@@ -3,9 +3,10 @@ const { feedbacks } = require("../../models");
 const { feedbackStatuses } = require("../../config/constants");
 const { ok, handle, now, phoneDigits } = require("../../helper/helper");
 const { notify } = require("../../helper/notificationHelper");
+const { verifyRecaptcha } = require("../../helper/recaptchaHelper");
 
 // "Бидэнд бичнэ үү" (вэбийн /contact) маягт — нэвтрэхгүйгээр илгээнэ.
-// { name, email, message, subject?, phone? } — baagii-shop гарчиг, AjrugShop утас асуудаг
+// { name, email, message, subject?, phone?, recaptchaToken } — baagii-shop гарчиг, AjrugShop утас асуудаг
 const LIMITS = { name: 100, email: 150, phone: 20, subject: 200, message: 5000 };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -44,6 +45,7 @@ router.post(
 
     const ip = clientIp(req);
     if (tooMany(ip)) throw "Хэт олон удаа илгээлээ. Түр хүлээгээд дахин оролдоно уу";
+    await verifyRecaptcha(req.body?.recaptchaToken, ip);
 
     const at = now();
     await feedbacks.create({ shop_id: req.shopId, ...body, status: feedbackStatuses.new, ip, created_at: at, updated_at: at });

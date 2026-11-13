@@ -1,7 +1,6 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Thumb from "@/components/common/Thumb";
@@ -63,8 +62,6 @@ export default function ProfilePage() {
 
   return (
     <>
-      <PageHeader title={t("profile.title")} />
-
       <div className="space-y-3 pt-4">
         {/* The account card wears the brand gradient, with soft light blobs for depth. */}
         <section className="brand-gradient relative isolate flex items-center gap-4 overflow-hidden rounded-2xl p-5 text-white shadow-soft">
