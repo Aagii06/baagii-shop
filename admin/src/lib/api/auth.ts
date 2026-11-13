@@ -63,6 +63,31 @@ export async function login(phone: string, password: string) {
   return { token: res.data.token, user: res.data.user ?? null };
 }
 
+// Forgotten password, signed out: `sendResetOtp` texts a code to a registered
+// number, `verifyResetOtp` checks it and returns a short-lived reset token,
+// `resetPassword` sets the new password with that token.
+export async function sendResetOtp(phone: string) {
+  await apiFetch<ApiItemResponse<null>>("/auth/forgot/sendOtp", { method: "POST", auth: false, body: { phone } });
+}
+
+export async function verifyResetOtp(phone: string, code: string) {
+  const res = await apiFetch<ApiItemResponse<{ resetToken: string } | null>>("/auth/forgot/verify", {
+    method: "PUT",
+    auth: false,
+    body: { phone, code },
+  });
+  if (!res.data?.resetToken) throw new Error(res.message || tr("login.failed"));
+  return res.data.resetToken;
+}
+
+export async function resetPassword(resetToken: string, newPassword: string, confirmPassword: string) {
+  await apiFetch<ApiItemResponse<null>>("/auth/forgot/reset", {
+    method: "PUT",
+    auth: false,
+    body: { resetToken, newPassword, confirmPassword },
+  });
+}
+
 // Validates the stored token and returns the user + permission maps. A guest
 // token (`/auth/loginGuest`) passes too but comes back with no `user`.
 export async function getUserData() {

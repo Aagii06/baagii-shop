@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -108,6 +109,15 @@ export default function LoginForm() {
               </button>
             </div>
           </label>
+
+          <div className="-mt-1 text-right">
+            <Link
+              href={phone ? `/forgot-password?phone=${phone}` : "/forgot-password"}
+              className="text-sm font-semibold text-primary-ink hover:underline"
+            >
+              {t("forgot.link")}
+            </Link>
+          </div>
 
           {error && (
             <p
