@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const { users, stores } = require("../../models");
-const { signUser } = require("../../middleware/auth");
+const { signUser, signPhoneProof, readPhoneProof } = require("../../middleware/auth");
 const { roles } = require("../../config/constants");
 const { Op } = require("sequelize");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
@@ -11,6 +11,8 @@ const { isPhoneBlocked, phoneVerifyFields, PHONE_BLOCKED_MESSAGE } = require("..
 const PHONE_CHANGE_OTP = "adminPhone";
 // Одоогийн утасны дугаараа баталгаажуулах код (helper/phoneVerify.js)
 const PHONE_VERIFY_OTP = "adminPhoneVerify";
+// Нэвтрэх хуудаснаас нууц үгээ сэргээх код (бүртгэлтэй утас руу SMS)
+const PASSWORD_RESET_OTP = "adminPasswordReset";
 // Имэйлийн кодыг phoneOtps-д имэйл хаягаар нь (phone баганад) хадгална
 const EMAIL_CHANGE_OTP = "adminEmail";
 // Нууц үг солих код — хэрэглэгчийн бүртгэлтэй имэйл рүү (имэйл хаягаар нь хадгална)
@@ -42,6 +44,43 @@ module.exports.login = handle("login", async (req, res) => {
   if (!matches) return fail(res, "Утасны дугаар эсвэл нууц үг буруу байна");
   if (isPhoneBlocked(user)) return fail(res, PHONE_BLOCKED_MESSAGE);
   return ok(res, { token: signUser(user), user: toUser(user) });
+});
+
+// { phone } — нууц үгээ мартсан: бүртгэлтэй бол тэр дугаар руу код илгээнэ. Бүртгэл байгаа эсэхийг
+// задруулахгүйн тулд олдоогүй ч ижил хариу өгнө.
+module.exports.sendResetOtp = handle("sendResetOtp", async (req, res) => {
+  const phone = phoneDigits(req.body.phone);
+  const user = await users.findOne({ where: { shop_id: req.shopId, phone, status: "active" }, attributes: ["id"] });
+  if (!user) return ok(res, null, "Код илгээлээ");
+  const result = await sendPhoneOtp(req.shopId, phone, PASSWORD_RESET_OTP);
+  return res.status(200).json({ ...result, data: null });
+});
+
+// { phone, code } — кодыг шалгаад нууц үг солих 30 минутын токен (resetToken) буцаана
+module.exports.verifyResetOtp = handle("verifyResetOtp", async (req, res) => {
+  const phone = phoneDigits(req.body.phone);
+  const user = await users.findOne({ where: { shop_id: req.shopId, phone, status: "active" }, attributes: ["id"] });
+  if (!user) return fail(res, "Код буруу байна");
+  const result = await verifyPhoneOtp(req.shopId, phone, req.body.code ?? "", PASSWORD_RESET_OTP);
+  if (!result.success) return fail(res, result.message);
+  return ok(res, { resetToken: signPhoneProof({ shopId: req.shopId, phone, purpose: PASSWORD_RESET_OTP }) });
+});
+
+// { resetToken, newPassword, confirmPassword } — баталгаажсан утасны хэрэглэгчийн нууц үгийг солино. Код утсанд
+// ирсэн тул дугаарыг мөн баталгаажсан гэж тооцно (helper/phoneVerify.js).
+module.exports.resetPassword = handle("resetPassword", async (req, res) => {
+  const phone = readPhoneProof(req.body.resetToken, req.shopId, PASSWORD_RESET_OTP);
+  if (!phone) return fail(res, "Хугацаа дууссан байна. Дахин код авна уу");
+  const user = await users.findOne({ where: { shop_id: req.shopId, phone, status: "active" } });
+  if (!user) return fail(res, "Хэрэглэгч олдсонгүй");
+  const at = now();
+  await user.update({
+    password: await bcrypt.hash(String(req.body.newPassword), 10),
+    ...(!user.phone_verified_at && { phone_verified_at: at }),
+    updated_by: user.id,
+    updated_at: at,
+  });
+  return ok(res, null, "Нууц үг шинэчлэгдлээ. Шинэ нууц үгээрээ нэвтэрнэ үү");
 });
 
 module.exports.getUserData = handle("getUserData", async (req, res) => {

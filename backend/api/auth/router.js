@@ -3,7 +3,7 @@ const { body } = require("express-validator");
 const { protect } = require("../../middleware/auth");
 const { validate } = require("../../utils/validationHelper");
 const { isPhone } = require("../../helper/helper");
-const { login, getUserData, sendPhoneOtp, updateMe, sendPasswordOtp, changePassword, sendEmailOtp, changeEmail, sendVerifyPhoneOtp, verifyPhone } = require("./controller");
+const { login, getUserData, sendPhoneOtp, updateMe, sendPasswordOtp, changePassword, sendEmailOtp, changeEmail, sendVerifyPhoneOtp, verifyPhone, sendResetOtp, verifyResetOtp, resetPassword } = require("./controller");
 
 router.post(
   "/login",
@@ -12,6 +12,21 @@ router.post(
     body("password").notEmpty().withMessage("Нууц үг оруулна уу"),
   ]),
   login,
+);
+// Нууц үгээ мартсан: бүртгэлтэй утас руу SMS код илгээж, түүгээр шинэ нууц үг тохируулна
+const phoneRule = body("phone").custom((v) => isPhone(v)).withMessage("Утасны дугаар 8 оронтой байна");
+router.post("/forgot/sendOtp", validate([phoneRule]), sendResetOtp);
+router.put("/forgot/verify", validate([phoneRule, body("code").trim().notEmpty().withMessage("Код оруулна уу")]), verifyResetOtp);
+router.put(
+  "/forgot/reset",
+  validate([
+    body("resetToken").notEmpty().withMessage("Дахин код авна уу"),
+    body("newPassword").isLength({ min: 6 }).withMessage("Нууц үг 6-аас дээш тэмдэгттэй байна"),
+    body("confirmPassword")
+      .custom((value, { req }) => value === req.body.newPassword)
+      .withMessage("Шинэ нууц үг таарахгүй байна"),
+  ]),
+  resetPassword,
 );
 router.get("/getUserData", protect, getUserData);
 // Утас солихын өмнө шинэ дугаар руу код илгээнэ
