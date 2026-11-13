@@ -171,14 +171,15 @@ function OrdersList() {
     <>
       <PageHeader
         title={t("orders.title")}
+        hideTitle
         aside={
-          <div className="flex items-center gap-3">
+          <div className="flex grow items-center justify-between gap-3">
             {ready && !page.error && (
-              <span className="shrink-0 font-mono text-sm text-muted-foreground">
+              <span className="shrink-0 text-lg font-bold">
                 {t("orders.count", { count: page.count })}
               </span>
             )}
-            <Button asChild size="sm" className="px-4">
+            <Button asChild size="sm" className="ml-auto px-4">
               <Link href="/orders/new">
                 <Plus />
                 {t("common.add")}
