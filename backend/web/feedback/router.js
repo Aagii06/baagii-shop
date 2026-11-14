@@ -4,6 +4,7 @@ const { feedbackStatuses } = require("../../config/constants");
 const { ok, handle, now, phoneDigits } = require("../../helper/helper");
 const { notify } = require("../../helper/notificationHelper");
 const { verifyRecaptcha } = require("../../helper/recaptchaHelper");
+const { clientIp } = require("../../middleware/rateLimit");
 
 // "Бидэнд бичнэ үү" (вэбийн /contact) маягт — нэвтрэхгүйгээр илгээнэ.
 // { name, email, message, subject?, phone?, recaptchaToken } — baagii-shop гарчиг, AjrugShop утас асуудаг
@@ -15,8 +16,6 @@ const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
 const recent = new Map();
 
-const clientIp = (req) =>
-  String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim() || req.socket?.remoteAddress || "";
 
 const tooMany = (ip) => {
   const since = Date.now() - WINDOW_MS;

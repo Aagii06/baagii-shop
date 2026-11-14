@@ -2,6 +2,7 @@ const router = require("express").Router();
 const { body } = require("express-validator");
 const { protect } = require("../../middleware/auth");
 const { validate } = require("../../utils/validationHelper");
+const { otpLimiter } = require("../../middleware/rateLimit");
 const { isPhone } = require("../../helper/helper");
 const { login, getUserData, sendPhoneOtp, updateMe, sendPasswordOtp, changePassword, sendEmailOtp, changeEmail, sendVerifyPhoneOtp, verifyPhone, sendResetOtp, verifyResetOtp, resetPassword } = require("./controller");
 
@@ -15,7 +16,7 @@ router.post(
 );
 // Нууц үгээ мартсан: бүртгэлтэй утас руу SMS код илгээж, түүгээр шинэ нууц үг тохируулна
 const phoneRule = body("phone").custom((v) => isPhone(v)).withMessage("Утасны дугаар 8 оронтой байна");
-router.post("/forgot/sendOtp", validate([phoneRule]), sendResetOtp);
+router.post("/forgot/sendOtp", otpLimiter, validate([phoneRule]), sendResetOtp);
 router.put("/forgot/verify", validate([phoneRule, body("code").trim().notEmpty().withMessage("Код оруулна уу")]), verifyResetOtp);
 router.put(
   "/forgot/reset",
@@ -30,7 +31,7 @@ router.put(
 );
 router.get("/getUserData", protect, getUserData);
 // Утас солихын өмнө шинэ дугаар руу код илгээнэ
-router.post("/me/sendOtp", protect, validate([body("phone").custom((v) => isPhone(v)).withMessage("Утасны дугаар 8 оронтой байна")]), sendPhoneOtp);
+router.post("/me/sendOtp", protect, otpLimiter, validate([body("phone").custom((v) => isPhone(v)).withMessage("Утасны дугаар 8 оронтой байна")]), sendPhoneOtp);
 // Нэвтэрсэн админ өөрийн мэдээллээ засна; утас солибол code шаардана
 router.put(
   "/me",
@@ -44,7 +45,7 @@ router.put(
   updateMe,
 );
 // Одоогийн утасны дугаараа SMS кодоор баталгаажуулна (баталгаажуулаагүй бол хугацааны дараа хаагдана)
-router.post("/me/phone/sendOtp", protect, sendVerifyPhoneOtp);
+router.post("/me/phone/sendOtp", protect, otpLimiter, sendVerifyPhoneOtp);
 router.put("/me/phone/verify", protect, validate([body("code").trim().notEmpty().withMessage("Код оруулна уу")]), verifyPhone);
 // Нууц үг солих: одоогийн password, шинэ newPassword (6+ тэмдэгт), түүнтэй ижил confirmPassword шалгаад бүртгэлтэй имэйл рүү код
 // илгээнэ (/me/password/sendOtp), тэр кодоор солино (/me/password)
@@ -55,11 +56,11 @@ const passwordRules = [
     .custom((value, { req }) => value === req.body.newPassword)
     .withMessage("Шинэ нууц үг таарахгүй байна"),
 ];
-router.post("/me/password/sendOtp", protect, validate(passwordRules), sendPasswordOtp);
+router.post("/me/password/sendOtp", protect, otpLimiter, validate(passwordRules), sendPasswordOtp);
 router.put("/me/password", protect, validate([...passwordRules, body("code").trim().notEmpty().withMessage("Код оруулна уу")]), changePassword);
 // Имэйл солихын өмнө шинэ имэйл рүү код илгээж, кодоор нь солино
 const isEmail = body("email").trim().isEmail().withMessage("Имэйл буруу байна");
-router.post("/me/email/sendOtp", protect, validate([isEmail]), sendEmailOtp);
+router.post("/me/email/sendOtp", protect, otpLimiter, validate([isEmail]), sendEmailOtp);
 router.put("/me/email", protect, validate([isEmail, body("code").trim().notEmpty().withMessage("Код оруулна уу")]), changeEmail);
 
 module.exports = router;

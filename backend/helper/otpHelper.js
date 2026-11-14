@@ -39,7 +39,21 @@ const deliver = async (shopId, phone, purpose, code) => {
 // Код нь дэлгүүр бүрт тусдаа (нэг дугаар хоёр дэлгүүрт өөр өөр хэрэглэгч).
 // send(code) өгвөл (жишээ нь имэйл) санамсаргүй 6 оронтой кодыг түүгээр илгээнэ; false буцаавал алдаа.
 // send === null — SMS биш суваг (имэйл) тохируулаагүй (зөвхөн dev): санамсаргүй кодыг консолд хэвлэнэ.
+// Нэг дугаар руу зэрэг ирсэн хүсэлтүүд cooldown шалгалтыг хамт давж олон код илгээхээс сэргийлнэ
+const inFlight = new Set();
+
 module.exports.sendPhoneOtp = async (shopId, phone, purpose = "login", send) => {
+  const key = `${shopId}:${phone}:${purpose}`;
+  if (inFlight.has(key)) return { success: false, message: `${OTP_RESEND_SECONDS} секундын дараа дахин код авна уу` };
+  inFlight.add(key);
+  try {
+    return await sendOtp(shopId, phone, purpose, send);
+  } finally {
+    inFlight.delete(key);
+  }
+};
+
+const sendOtp = async (shopId, phone, purpose, send) => {
   const where = { shop_id: shopId, phone, purpose };
   const existing = await phoneOtps.findOne({ where });
   const wait = OTP_RESEND_SECONDS - secondsSince(existing?.sent_at);

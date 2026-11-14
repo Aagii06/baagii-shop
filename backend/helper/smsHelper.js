@@ -22,6 +22,12 @@ const SENDING_TIMEOUT_SECONDS = 2 * 60;
 const MAX_ATTEMPTS = 3;
 // Утас сүүлд ийм хугацаанд холбогдоогүй бол gateway салсан гэж үзнэ
 const GATEWAY_ONLINE_SECONDS = 90;
+// Спамаас: нэг дугаар руу 24 цагт, бүх дугаар руу нийт 1 цагт илгээх дээд хэмжээ
+// (хоёр дэлгүүр нэг SIM хуваалцана — оператор спам гэж хаахаас сэргийлнэ)
+const MAX_PER_PHONE_PER_DAY = 6;
+const MAX_TOTAL_PER_HOUR = 100;
+// Монголын гар утасны дугаар (5,6,7,8,9-өөр эхэлсэн 8 оронтой)
+const MOBILE = /^[5-9]\d{7}$/;
 
 module.exports.isSmsConfigured = () => Boolean(process.env.SMS_GATEWAY_TOKEN);
 
@@ -91,7 +97,15 @@ module.exports.reportSms = async (id, status, error) => {
 // phonenumber: 8 оронтой дугаар. Gateway холбогдоогүй бол алдаа шиднэ.
 // Дараалалд хийгээд шууд буцна - утас хэдэн секундын дотор илгээнэ.
 module.exports.sendSms = async (phonenumber, text) => {
+  if (!MOBILE.test(String(phonenumber))) throw new Error("Гар утасны дугаар оруулна уу");
   if (!isGatewayOnline()) throw new Error("SMS илгээх утас холбогдоогүй байна. Түр хүлээгээд дахин оролдоно уу");
+  const perPhone = await smsOutbox.count({ where: { phonenumber, created_at: { [op.gte]: ago(24 * 60 * 60) } } });
+  if (perPhone >= MAX_PER_PHONE_PER_DAY) throw new Error("Энэ дугаар руу өнөөдөр хэт олон код илгээсэн байна. Маргааш дахин оролдоно уу");
+  const total = await smsOutbox.count({ where: { created_at: { [op.gte]: ago(60 * 60) } } });
+  if (total >= MAX_TOTAL_PER_HOUR) {
+    console.error(`[sms] Цагийн хязгаар (${MAX_TOTAL_PER_HOUR}) хүрлээ — SMS түр зогсоов`);
+    throw new Error("SMS үйлчилгээ түр ачаалалтай байна. Хэсэг хугацааны дараа дахин оролдоно уу");
+  }
   const at = now();
   await smsOutbox.create({ phonenumber, text, status: "pending", attempts: 0, created_at: at, updated_at: at });
   wakeGateway();

@@ -46,6 +46,13 @@ export default function OrdersSidebar({ variant = "sidebar" }: { variant?: "side
 
   const items: SidebarItem[] = [
     {
+      href: "/profile",
+      label: t("orders.sidebar.settings"),
+      icon: Settings,
+      active: true,
+      match: (path) => path.startsWith("/profile"),
+    },
+    {
       href: "/orders",
       label: t("orders.sidebar.myOrders"),
       icon: ClipboardList,
@@ -88,13 +95,6 @@ export default function OrdersSidebar({ variant = "sidebar" }: { variant?: "side
       label: t("orders.sidebar.coupons"),
       icon: Ticket,
       active: false,
-    },
-    {
-      href: "/profile",
-      label: t("orders.sidebar.settings"),
-      icon: Settings,
-      active: true,
-      match: (path) => path.startsWith("/profile"),
     },
   ];
   const visibleItems = isAuthed ? items : items.filter((item) => item.public);

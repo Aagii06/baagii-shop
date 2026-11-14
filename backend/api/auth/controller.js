@@ -46,12 +46,12 @@ module.exports.login = handle("login", async (req, res) => {
   return ok(res, { token: signUser(user), user: toUser(user) });
 });
 
-// { phone } — нууц үгээ мартсан: бүртгэлтэй бол тэр дугаар руу код илгээнэ. Бүртгэл байгаа эсэхийг
-// задруулахгүйн тулд олдоогүй ч ижил хариу өгнө.
+// { phone } — нууц үгээ мартсан: бүртгэлтэй бол тэр дугаар руу код илгээнэ. Бүртгэлгүй бол
+// код илгээхгүй, шинээр бүртгүүлэхийг сануулна.
 module.exports.sendResetOtp = handle("sendResetOtp", async (req, res) => {
   const phone = phoneDigits(req.body.phone);
   const user = await users.findOne({ where: { shop_id: req.shopId, phone, status: "active" }, attributes: ["id"] });
-  if (!user) return ok(res, null, "Код илгээлээ");
+  if (!user) return fail(res, "Энэ утасны дугаар бүртгэлгүй байна. Шинээр бүртгүүлнэ үү");
   const result = await sendPhoneOtp(req.shopId, phone, PASSWORD_RESET_OTP);
   return res.status(200).json({ ...result, data: null });
 });

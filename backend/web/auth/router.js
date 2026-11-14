@@ -2,6 +2,7 @@ const router = require("express").Router();
 const { body } = require("express-validator");
 const { protectWeb, requireCustomer } = require("../../middleware/auth");
 const { validate } = require("../../utils/validationHelper");
+const { otpLimiter } = require("../../middleware/rateLimit");
 const { isPhone } = require("../../helper/helper");
 const controller = require("./controller");
 
@@ -10,11 +11,11 @@ const phone = (field) => body(field).custom((v) => isPhone(v)).withMessage("Ут
 router.post("/loginGuest", controller.loginGuest);
 router.get("/getUserData", protectWeb, controller.getUserData);
 // Утас + SMS кодоор нэвтрэх. Зочны токеноор дуудвал зочны сагс худалдан авагчид шилжинэ.
-router.post("/sendOtp", validate([phone("phone")]), controller.sendOtp);
+router.post("/sendOtp", otpLimiter, validate([phone("phone")]), controller.sendOtp);
 router.post("/verifyOtp", protectWeb, validate([phone("phone"), body("code").trim().notEmpty().withMessage("Код оруулна уу")]), controller.verifyOtp);
 router.put("/me", protectWeb, requireCustomer, validate([body("name").trim().notEmpty().withMessage("Нэр оруулна уу")]), controller.updateMe);
 // Хамтран ажиллах хүсэлт (вэбийн /seller): утсаа OTP-оор баталгаажуулж, дэлгүүрийн мэдээллээ илгээнэ
-router.post("/register/sendOtp", validate([phone("phone")]), controller.sendRegisterOtp);
+router.post("/register/sendOtp", otpLimiter, validate([phone("phone")]), controller.sendRegisterOtp);
 router.post(
   "/register/verifyOtp",
   validate([phone("phone"), body("code").trim().notEmpty().withMessage("Код оруулна уу")]),
