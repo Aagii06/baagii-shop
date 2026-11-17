@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import Honeypot from "@/components/ui/honeypot";
 import Recaptcha, { recaptchaEnabled, type RecaptchaHandle } from "@/components/ui/recaptcha";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api/errors";
@@ -35,6 +36,7 @@ export default function Contact() {
   const [submitError, setSubmitError] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const captchaRef = useRef<RecaptchaHandle>(null);
+  const openedAt = useRef(Date.now());
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -43,8 +45,9 @@ export default function Contact() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     if (recaptchaEnabled && !captchaToken) {
       setSubmitError(t("contact.form.captchaRequired"));
       return;
@@ -53,7 +56,12 @@ export default function Contact() {
     setSubmitError("");
 
     try {
-      await sendFeedback({ ...formData, recaptchaToken: captchaToken ?? undefined });
+      await sendFeedback({
+        ...formData,
+        recaptchaToken: captchaToken ?? undefined,
+        website: String(new FormData(form).get("website") ?? ""),
+        fillMs: Date.now() - openedAt.current,
+      });
     } catch (error) {
       // A token works only once, so a fresh tick is needed to retry.
       captchaRef.current?.reset();
@@ -219,6 +227,8 @@ export default function Contact() {
                       className="resize-none"
                     />
                   </div>
+
+                  <Honeypot />
 
                   <Recaptcha
                     ref={captchaRef}

@@ -9,6 +9,10 @@ export interface FeedbackInput {
   message: string;
   /** Google reCAPTCHA v2 token, when the checkbox is turned on. */
   recaptchaToken?: string;
+  /** Hidden honeypot field; must stay empty. */
+  website?: string;
+  /** Milliseconds between opening the page and submitting (bots are faster than 3s). */
+  fillMs?: number;
 }
 
 // "Бидэнд бичнэ үү" (/contact): `POST /feedback` on ../backend's /web, no
