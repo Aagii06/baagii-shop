@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+// import { Separator } from "@/components/ui/separator"; // "Яагаад бидэнтэй холбогдох вэ?" картад
 import Honeypot from "@/components/ui/honeypot";
 import Recaptcha, { recaptchaEnabled, type RecaptchaHandle } from "@/components/ui/recaptcha";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,13 +13,13 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import {
   CheckCircle,
   // Clock, // "Ажиллах цаг"-ийг буцааж нээхэд
-  Headset,
+  // Headset, // "Яагаад бидэнтэй холбогдох вэ?" картыг буцааж нээхэд
   Mail,
   MapPin,
-  MessageSquare,
+  // MessageSquare, // "Яагаад бидэнтэй холбогдох вэ?" картыг буцааж нээхэд
   Phone,
   Send,
-  Shield,
+  // Shield, // "Яагаад бидэнтэй холбогдох вэ?" картыг буцааж нээхэд
 } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -110,23 +110,24 @@ export default function Contact() {
     // },
   ];
 
-  const features = [
-    {
-      icon: Headset,
-      title: t("contact.why.support247.title"),
-      description: t("contact.why.support247.desc"),
-    },
-    {
-      icon: MessageSquare,
-      title: t("contact.why.quickReply.title"),
-      description: t("contact.why.quickReply.desc"),
-    },
-    {
-      icon: Shield,
-      title: t("contact.why.secure.title"),
-      description: t("contact.why.secure.desc"),
-    },
-  ];
+  // TODO: түр нуусан — "Яагаад бидэнтэй холбогдох вэ?" картын өгөгдөл
+  // const features = [
+  //   {
+  //     icon: Headset,
+  //     title: t("contact.why.support247.title"),
+  //     description: t("contact.why.support247.desc"),
+  //   },
+  //   {
+  //     icon: MessageSquare,
+  //     title: t("contact.why.quickReply.title"),
+  //     description: t("contact.why.quickReply.desc"),
+  //   },
+  //   {
+  //     icon: Shield,
+  //     title: t("contact.why.secure.title"),
+  //     description: t("contact.why.secure.desc"),
+  //   },
+  // ];
 
   const faqs = [
     { question: t("contact.faq.q1"), answer: t("contact.faq.a1") },
@@ -301,6 +302,7 @@ export default function Contact() {
                 </div>
               </div>
 
+              {/* TODO: түр нуусан — "Яагаад бидэнтэй холбогдох вэ?" карт
               <div className="rounded-2xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4">
                   {t("contact.why.title")}
@@ -327,7 +329,7 @@ export default function Contact() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
