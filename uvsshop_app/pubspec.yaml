@@ -41,6 +41,9 @@ dependencies:
   cached_network_image: ^4.0.3
   image_picker: ^1.2.4
   clock: ^1.1.2
+  firebase_core: ^5.2.0
+  firebase_messaging: ^17.1.0
+  flutter_local_notifications: ^23.0.2
 
 dev_dependencies:
   flutter_test:

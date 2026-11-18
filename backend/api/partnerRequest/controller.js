@@ -3,6 +3,30 @@ const { partnerRequests, products, stores, users, sequelize, op } = require("../
 const { roles, partnerStatuses } = require("../../config/constants");
 const { saveLog } = require("../../utils/logHelper");
 const { ok, handle, toIso } = require("../../helper/helper");
+const { notify, notifyCustomerByPhone } = require("../../helper/notificationHelper");
+
+// Хүсэлт шийдвэрлэгдэхэд: илгээгчид (тэр утсаар нэвтэрсэн худалдан авагч) ба бусад админд
+const notifyDecision = (req, row, approved) => {
+  const store = row.store_name || row.name || row.phone;
+  notifyCustomerByPhone({
+    shopId: req.shopId,
+    phone: row.phone,
+    type: approved ? "partner_approved" : "partner_rejected",
+    title: approved ? "Хамтран ажиллах хүсэлт батлагдлаа" : "Хамтран ажиллах хүсэлт татгалзагдлаа",
+    body: approved
+      ? `"${store}" дэлгүүр нээгдлээ. Профайл → "Админ / Худалдагч нэвтрэх"-ээр орж бараагаа нэмнэ үү.`
+      : "Дэлгэрэнгүйг манай ажилтнаас лавлана уу.",
+    link: null,
+  });
+  notify({
+    shopId: req.shopId,
+    type: "partner",
+    title: approved ? `Хүсэлт батлагдлаа: ${store}` : `Хүсэлт татгалзагдлаа: ${store}`,
+    body: `${row.name || ""} · ${row.phone}`.replace(/^ · /, ""),
+    link: "/partner-requests",
+    except: req.body.by,
+  });
+};
 
 // "Хамтран ажиллах" хүсэлт: вэбийн /seller хуудаснаас (POST /web/auth/register) утсаа OTP-оор
 // баталгаажуулж, дэлгүүрийн мэдээллээ үлдээнэ. Батлахад тэр мэдээллээр дэлгүүр (stores),
@@ -82,6 +106,7 @@ module.exports.approve = handle("partnerApprove", async (req, res) => {
     );
     await saveLog({ shop_id: req.shopId, object_name: "partnerRequests", object_id: row.id, log_action: partnerStatuses.approved, created_by: by, created_at: at }, t);
     await t.commit();
+    notifyDecision(req, row, true);
     return ok(res, toRecord(row));
   } catch (error) {
     await t.rollback();
@@ -130,5 +155,6 @@ module.exports.reject = handle("partnerReject", async (req, res) => {
   if (row.status !== partnerStatuses.pending) throw "Хүсэлтийг аль хэдийн шийдвэрлэсэн байна";
   await row.update({ status: partnerStatuses.rejected, decided_by: by, decided_at: at, updated_at: at });
   await saveLog({ shop_id: req.shopId, object_name: "partnerRequests", object_id: row.id, log_action: partnerStatuses.rejected, created_by: by, created_at: at });
+  notifyDecision(req, row, false);
   return ok(res, toRecord(row));
 });

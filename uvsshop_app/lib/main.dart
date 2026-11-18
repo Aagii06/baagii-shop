@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'config.dart';
+import 'push/push_service.dart';
 import 'state/admin_state.dart';
 import 'state/app_state.dart';
 import 'state/shop_nav.dart';
@@ -16,6 +17,8 @@ void main() {
   final shop = ShopState();
   final admin = AdminState();
   final app = AppState(shop, admin)..init();
+  // Firebase тохируулаагүй бол юу ч хийхгүй (lib/firebase_options.dart).
+  PushService.init(app, navigatorKey);
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: shop),
@@ -27,6 +30,9 @@ void main() {
   ));
 }
 
+/// Push мэдэгдэл дээр дарахад хуудас нээхэд.
+final navigatorKey = GlobalKey<NavigatorState>();
+
 class UvsShopApp extends StatelessWidget {
   const UvsShopApp({super.key});
 
@@ -35,6 +41,7 @@ class UvsShopApp extends StatelessWidget {
     final mode = context.select<AppState, AppMode>((a) => a.mode);
     return MaterialApp(
       title: AppConfig.appName,
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       // Дэлгүүр ↔ админ шилжихэд theme-ийг шууд солино. Хөдөлгөөнтэй шилжвэл хоёр
       // theme-ийн TextStyle-уудыг холих гэж "different inherit values" алдаа шиддэг.

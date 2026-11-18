@@ -337,6 +337,15 @@ export const mn: Dict = {
   "orders.sidebar.payment": "Төлбөрийн хэрэгсэл",
   "orders.sidebar.coupons": "Купон, урамшуулал",
   "orders.sidebar.settings": "Тохиргоо",
+  "orders.sidebar.notifications": "Мэдэгдэл",
+
+  "notifications.title": "Мэдэгдэл",
+  "notifications.readAll": "Бүгдийг уншсан",
+  "notifications.empty": "Мэдэгдэл алга",
+  "notifications.emptyHint": "Захиалгын төлөв өөрчлөгдөхөд энд харагдана.",
+  "notifications.more": "Цааш үзэх",
+  "notifications.error": "Мэдэгдлийг ачаалж чадсангүй.",
+  "notifications.retry": "Дахин оролдох",
 
   "saved.title": "Хадгалсан бараа",
   "saved.count": "{count} бараа",

@@ -336,6 +336,15 @@ export const en: Dict = {
   "orders.sidebar.payment": "Payment methods",
   "orders.sidebar.coupons": "Coupons & promotions",
   "orders.sidebar.settings": "Settings",
+  "orders.sidebar.notifications": "Notifications",
+
+  "notifications.title": "Notifications",
+  "notifications.readAll": "Mark all read",
+  "notifications.empty": "No notifications",
+  "notifications.emptyHint": "Updates about your orders show up here.",
+  "notifications.more": "Show more",
+  "notifications.error": "Could not load notifications.",
+  "notifications.retry": "Try again",
 
   "saved.title": "Saved items",
   "saved.count": "{count} items",

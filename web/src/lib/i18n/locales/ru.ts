@@ -336,6 +336,15 @@ export const ru: Dict = {
   "orders.sidebar.payment": "Способы оплаты",
   "orders.sidebar.coupons": "Купоны и акции",
   "orders.sidebar.settings": "Настройки",
+  "orders.sidebar.notifications": "Уведомления",
+
+  "notifications.title": "Уведомления",
+  "notifications.readAll": "Прочитать все",
+  "notifications.empty": "Уведомлений нет",
+  "notifications.emptyHint": "Здесь появятся новости о ваших заказах.",
+  "notifications.more": "Показать ещё",
+  "notifications.error": "Не удалось загрузить уведомления.",
+  "notifications.retry": "Повторить",
 
   "saved.title": "Избранные товары",
   "saved.count": "{count} товаров",

@@ -7,7 +7,15 @@ import { apiFetch, type ApiItemResponse } from "./client";
 //   POST /notification/{id}/read
 //   POST /notification/readAll
 
-export type NotificationType = "order" | "order_paid" | "partner" | "feedback" | "low_stock";
+export type NotificationType =
+  | "order"
+  | "order_paid"
+  | "order_cancelled"
+  | "order_returned"
+  | "order_overdue"
+  | "partner"
+  | "feedback"
+  | "low_stock";
 
 export interface AppNotification {
   id: number;

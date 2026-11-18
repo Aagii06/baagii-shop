@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,8 +16,36 @@ import 'search_page.dart';
 
 /// Худалдан авагчийн доод цэс — web-ийн MobileBottomNav-тай адил:
 /// Нүүр · Хайх · Сагс · Хадгалсан (нэвтэрсэн үед) · Профайл / Нэвтрэх.
-class ShopShell extends StatelessWidget {
+class ShopShell extends StatefulWidget {
   const ShopShell({super.key});
+  @override
+  State<ShopShell> createState() => _ShopShellState();
+}
+
+class _ShopShellState extends State<ShopShell> with WidgetsBindingObserver {
+  Timer? _poll;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Профайлын мэдэгдлийн тоо — минут тутам, апп дахин нээгдэхэд.
+    final shop = context.read<ShopState>();
+    shop.refreshUnread();
+    _poll = Timer.periodic(const Duration(minutes: 1), (_) => shop.refreshUnread());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) context.read<ShopState>().refreshUnread();
+  }
+
+  @override
+  void dispose() {
+    _poll?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +55,7 @@ class ShopShell extends StatelessWidget {
     final cartCount = context.select<ShopState, int>((s) => s.cartCount);
     final savedCount = context.select<ShopState, int>((s) => s.saved.length);
     final signedIn = context.select<ShopState, bool>((s) => s.signedIn);
+    final unread = context.select<ShopState, int>((s) => s.unreadNotifications);
     final isAdmin = context.select<AdminState, bool>((a) => a.signedIn);
 
     final tabs = [
@@ -42,7 +73,7 @@ class ShopShell extends StatelessWidget {
           ShopTab.search => (Icons.search, 'Хайх', 0),
           ShopTab.cart => (Icons.shopping_cart_outlined, 'Сагс', cartCount),
           ShopTab.saved => (Icons.favorite_border, 'Хадгалсан', savedCount),
-          ShopTab.profile => (Icons.person_outline, signedIn ? 'Профайл' : 'Нэвтрэх', 0),
+          ShopTab.profile => (Icons.person_outline, signedIn ? 'Профайл' : 'Нэвтрэх', unread),
         };
 
     return Scaffold(

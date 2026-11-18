@@ -32,3 +32,8 @@ app.get("/", (req, res) => res.send("UVS shop backend"));
 app.listen(PORT, () => {
   console.log("UVS shop backend start:", moment().format("YYYY-MM-DD HH:mm:ss"), "port", PORT);
 });
+
+// Удаан төлөгдөөгүй захиалгыг админд сануулна (helper/notificationHelper.js)
+const { scanOverdueOrders } = require("./helper/notificationHelper");
+setTimeout(scanOverdueOrders, 60 * 1000);
+setInterval(scanOverdueOrders, 10 * 60 * 1000);

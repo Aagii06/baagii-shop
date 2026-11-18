@@ -7,6 +7,7 @@ import '../api/admin_manage_models.dart';
 import '../api/admin_models.dart';
 import '../api/api_client.dart';
 import '../config.dart';
+import '../push/push_service.dart';
 
 /// Админ/худалдагчийн сесс. Нэвтэрсэн хэрэглэгчийг апп нээгдэхэд таньж шууд
 /// админ хэсэг рүү оруулна (`AppState.mode`).
@@ -74,6 +75,13 @@ class AdminState extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    // Энэ утас руу дахин push илгээхгүй. guard-гүй — токен хүчингүй бол зүгээр л бүтэлгүйтнэ.
+    final push = PushService.token;
+    if (push != null && _token != null) {
+      try {
+        await api.post('/notification/device/remove', body: {'token': push}).timeout(const Duration(seconds: 5));
+      } catch (_) {}
+    }
     _token = null;
     user = null;
     await _prefs?.remove(_tokenKey);
@@ -445,6 +453,9 @@ class AdminState extends ChangeNotifier {
     }
     await guard(() => api.post('/notification/$id/read')).catchError((_) => null);
   }
+
+  Future<void> registerPush(String token, String platform) =>
+      api.post('/notification/device', body: {'token': token, 'platform': platform});
 
   Future<void> markAllNotificationsRead() async {
     unreadNotifications = 0;

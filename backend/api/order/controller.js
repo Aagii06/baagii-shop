@@ -3,6 +3,7 @@ const { orders, orderItems, customers, paymentSettings, sequelize, op } = requir
 const { orderStatuses, orderTransitions, unpaidCancelHours } = require("../../config/constants");
 const { itemsInclude, toAdminOrder, placeOrder, restock, findOrder, revenueOf, isOverdue } = require("../../helper/orderHelper");
 const { saveLog } = require("../../utils/logHelper");
+const { notifyOrderCustomer, notifyOrderStaff } = require("../../helper/notificationHelper");
 const { ok, fail, handle, toNumber, phoneDigits, isPhone, FORMAT } = require("../../helper/helper");
 
 // Захиалгууд: хүлээгдэж буй нь эхэндээ, дараа нь шинэ нь эхэндээ.
@@ -83,6 +84,8 @@ module.exports.setStatus = handle("orderStatus", async (req, res) => {
     await order.update({ status, [stampOf[status]]: at, ...paid, updated_by: by, updated_at: at }, { transaction: t });
     await saveLog({ shop_id: req.shopId, object_name: "orders", object_id: order.id, log_action: status, created_by: by, created_at: at }, t);
     await t.commit();
+    notifyOrderCustomer(order, status);
+    if (status === orderStatuses.returned) notifyOrderStaff(order, "returned", { by });
     return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
   } catch (error) {
     await t.rollback();
@@ -106,6 +109,8 @@ module.exports.cancel = handle("orderCancel", async (req, res) => {
     await order.update({ status: orderStatuses.cancelled, cancelled_at: at, updated_by: by, updated_at: at }, { transaction: t });
     await saveLog({ shop_id: req.shopId, object_name: "orders", object_id: order.id, log_action: "cancelled", created_by: by, created_at: at }, t);
     await t.commit();
+    notifyOrderCustomer(order, "cancelled");
+    notifyOrderStaff(order, "cancelled", { by });
     return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
   } catch (error) {
     await t.rollback();
@@ -137,6 +142,13 @@ module.exports.returnItem = handle("orderReturn", async (req, res) => {
       t,
     );
     await t.commit();
+    if (order.status === orderStatuses.returned) {
+      notifyOrderCustomer(order, "returned");
+      notifyOrderStaff(order, "returned", { by });
+    } else {
+      notifyOrderCustomer(order, "itemReturned", item, count);
+      notifyOrderStaff(order, "itemReturned", { by, item, qty: count });
+    }
     return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
   } catch (error) {
     await t.rollback();

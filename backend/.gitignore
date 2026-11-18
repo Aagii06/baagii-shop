@@ -10,3 +10,6 @@ npm-debug.log*
 
 /tmpFile/*
 !/tmpFile/.gitkeep
+
+# Firebase service account (FIREBASE_SERVICE_ACCOUNT)
+firebase-service-account*.json

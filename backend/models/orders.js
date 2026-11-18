@@ -40,6 +40,8 @@ module.exports = (sequelize, DataTypes) => {
       delivered_at: { type: DataTypes.STRING },
       returned_at: { type: DataTypes.STRING },
       cancelled_at: { type: DataTypes.STRING },
+      // Удаан төлөгдөөгүй гэж админд сануулсан цаг (нэг л удаа)
+      overdue_notified_at: { type: DataTypes.STRING },
       created_by: { type: DataTypes.INTEGER },
       updated_by: { type: DataTypes.INTEGER },
       created_at: { type: DataTypes.STRING },

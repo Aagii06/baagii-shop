@@ -14,5 +14,7 @@ Router.use("/payment", require("./payment/router"));
 Router.use("/feedback", require("./feedback/router"));
 Router.use("/cart", protectWeb, require("./cart/router"));
 Router.use("/order", protectWeb, requireCustomer, require("./order/router"));
+// Худалдан авагчийн мэдэгдэл, апп-ын push токен
+Router.use("/notification", protectWeb, requireCustomer, require("./notification/router"));
 
 module.exports = Router;

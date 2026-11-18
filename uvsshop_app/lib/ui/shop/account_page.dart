@@ -8,6 +8,7 @@ import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'addresses_page.dart';
+import 'notifications_page.dart';
 import 'orders_page.dart';
 import 'seller_page.dart';
 import 'sign_in_page.dart';
@@ -248,6 +249,7 @@ class _AccountPageState extends State<AccountPage> {
   /// web-ийн OrdersSidebar (menu): Миний захиалга, Сагс, Хадгалсан бараа, Хүргэлтийн хаяг.
   Widget _menu(ShopState shop) {
     final items = [
+      (Icons.notifications_none, 'Мэдэгдэл', shop.unreadNotifications, () => _push(const ShopNotificationsPage())),
       (Icons.assignment_outlined, 'Миний захиалга', 0, () => _push(const OrdersPage())),
       (Icons.shopping_cart_outlined, 'Сагс', shop.cartCount, () => widget.onOpenTab?.call(ShopTab.cart)),
       (Icons.favorite_border, 'Хадгалсан бараа', shop.saved.length, () => widget.onOpenTab?.call(ShopTab.saved)),

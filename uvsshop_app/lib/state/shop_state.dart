@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../api/admin_manage_models.dart' show AdminNotification;
 import '../api/api_client.dart';
 import '../api/shop_models.dart';
 import '../config.dart';
+import '../push/push_service.dart';
 
 /// Дэлгүүрийн тал: зочны/худалдан авагчийн токен, сагс, захиалга.
 /// Сагс нь сервер дээр (`/cart`) хадгалагдана; утсаар нэвтрэхэд backend
@@ -26,6 +28,9 @@ class ShopState extends ChangeNotifier {
   /// Нэвтэрсэн худалдан авагчийн утсаар админ эсвэл дэлгүүрийн хэрэглэгч
   /// бүртгэлтэй эсэх — тэр үед л "Админ хэсэг рүү орох" харагдана.
   bool isStaff = false;
+
+  /// Профайлын "Мэдэгдэл"-ийн уншаагүй тоо (захиалгын төлөв, хүсэлтийн хариу).
+  int unreadNotifications = 0;
 
   /// Хадгалсан бараа. Backend-гүй тул web-тэй адил утсан дээр, дугаар тус
   /// бүрээр (зочин бол "guest") хадгална.
@@ -159,14 +164,67 @@ class ShopState extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    // Энэ утас руу дахин push илгээхгүй (токен цэвэрлэхээс өмнө).
+    final push = PushService.token;
+    if (push != null && customer != null) {
+      try {
+        await api.post('/notification/device/remove', body: {'token': push}).timeout(const Duration(seconds: 5));
+      } catch (_) {}
+    }
     await _clearToken();
     customer = null;
     isStaff = false;
+    unreadNotifications = 0;
     cart = [];
     await _loadSaved();
     notifyListeners();
     await _ensureToken();
   }
+
+  // ---------- мэдэгдэл ----------
+
+  /// Нэвтэрсэн үед л (зочны токеноор /notification 401 буцаана).
+  Future<void> refreshUnread() async {
+    if (!signedIn) return;
+    try {
+      final res = await api.get('/notification/unread');
+      final n = toInt(res['data']?['unread']);
+      if (n != unreadNotifications) {
+        unreadNotifications = n;
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<({List<AdminNotification> rows, int count})> notifications({int skip = 0, int take = 30}) async {
+    final res = await api.get('/notification?skip=$skip&take=$take');
+    final d = (res['data'] as Map?) ?? {};
+    unreadNotifications = toInt(d['unread']);
+    notifyListeners();
+    final rows = ((d['rows'] as List?) ?? []).map((r) => AdminNotification.fromJson(r as Map<String, dynamic>)).toList();
+    return (rows: rows, count: toInt(d['count']));
+  }
+
+  Future<void> markNotificationRead(int id) async {
+    if (unreadNotifications > 0) {
+      unreadNotifications--;
+      notifyListeners();
+    }
+    try {
+      await api.post('/notification/$id/read');
+    } catch (_) {}
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    unreadNotifications = 0;
+    notifyListeners();
+    try {
+      await api.post('/notification/readAll');
+    } catch (_) {}
+  }
+
+  Future<void> registerPush(String token, String platform) =>
+      api.post('/notification/device', body: {'token': token, 'platform': platform});
 
   // ---------- хадгалсан ----------
 
