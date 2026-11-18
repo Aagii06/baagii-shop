@@ -1,5 +1,6 @@
 import '../config.dart';
 import 'api_client.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 class AdminUser {
   final int id;
@@ -45,13 +46,15 @@ class AdminUser {
       };
 }
 
-const orderStatusLabel = {
+const _orderStatusLabelMn = {
   'pending': 'Хүлээгдэж буй',
   'confirmed': 'Баталгаажсан',
   'delivered': 'Хүргэгдсэн',
   'returned': 'Буцаагдсан',
   'cancelled': 'Цуцлагдсан',
 };
+/// Shown in the chosen language (i18n.dart).
+Map<String, String> get orderStatusLabel => {for (final e in _orderStatusLabelMn.entries) e.key: tr(e.value)};
 
 /// Захиалгыг урагшлуулах ганц үйлдэл.
 const nextOrderAction = {

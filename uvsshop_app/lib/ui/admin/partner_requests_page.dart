@@ -7,6 +7,7 @@ import '../common.dart';
 import 'admin_design.dart';
 import 'admin_widgets.dart';
 import 'stores_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 const _minPassword = 6;
 const _take = 20;
@@ -93,40 +94,40 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
 
   Future<bool> _approve(PartnerRequest r, String storeName, String password) async {
     final ok = await confirmAction(context,
-        title: '#${r.id} хүсэлтийг батлах уу?',
-        description: 'Дэлгүүр, түүний хэрэглэгч үүсч, ${formatPhone(r.phone)} дугаар энэ нууц үгээр админд нэвтэрнэ.',
-        confirmLabel: 'Батлах');
+        title: tr('#{id} хүсэлтийг батлах уу?', {'id': r.id}),
+        description: tr('Дэлгүүр, түүний хэрэглэгч үүсч, {phone} дугаар энэ нууц үгээр админд нэвтэрнэ.', {'phone': formatPhone(r.phone)}),
+        confirmLabel: tr('Батлах'));
     if (!ok || !mounted) return false;
     final done = await _decide(
-        r, 'approve', () => context.read<AdminState>().approvePartner(r.id, password, storeName), 'Хүсэлтийг баталлаа');
+        r, 'approve', () => context.read<AdminState>().approvePartner(r.id, password, storeName), tr('Хүсэлтийг баталлаа'));
     if (done) _approving.remove(r.id);
     return done;
   }
 
   Future<void> _reject(PartnerRequest r) async {
     final ok = await confirmAction(context,
-        title: '#${r.id} хүсэлтээс татгалзах уу?',
-        description: 'Татгалзсан хүсэлтийг дараа нь буцааж, дахин шийдвэрлэж болно.',
-        confirmLabel: 'Татгалзах',
+        title: tr('#{id} хүсэлтээс татгалзах уу?', {'id': r.id}),
+        description: tr('Татгалзсан хүсэлтийг дараа нь буцааж, дахин шийдвэрлэж болно.'),
+        confirmLabel: tr('Татгалзах'),
         danger: true);
-    if (ok && mounted) await _decide(r, 'reject', () => context.read<AdminState>().rejectPartner(r.id), 'Хүсэлтээс татгалзлаа');
+    if (ok && mounted) await _decide(r, 'reject', () => context.read<AdminState>().rejectPartner(r.id), tr('Хүсэлтээс татгалзлаа'));
   }
 
   Future<void> _revert(PartnerRequest r) async {
     final ok = await confirmAction(context,
-        title: '#${r.id} хүсэлтийн шийдвэрийг буцаах уу?',
+        title: tr('#{id} хүсэлтийн шийдвэрийг буцаах уу?', {'id': r.id}),
         description: r.status == 'approved'
-            ? 'Батлахад үүссэн дэлгүүр, түүний хэрэглэгч устаж, хүсэлт дахин хүлээгдэж буй болно. Дэлгүүрт бараа бүртгэлтэй бол буцаах боломжгүй.'
-            : 'Хүсэлт дахин хүлээгдэж буй болж, дахин батлах эсвэл татгалзах боломжтой.',
-        confirmLabel: 'Шийдвэрийг буцаах',
+            ? tr('Батлахад үүссэн дэлгүүр, түүний хэрэглэгч устаж, хүсэлт дахин хүлээгдэж буй болно. Дэлгүүрт бараа бүртгэлтэй бол буцаах боломжгүй.')
+            : tr('Хүсэлт дахин хүлээгдэж буй болж, дахин батлах эсвэл татгалзах боломжтой.'),
+        confirmLabel: tr('Шийдвэрийг буцаах'),
         danger: true);
-    if (ok && mounted) await _decide(r, 'revert', () => context.read<AdminState>().revertPartner(r.id), 'Шийдвэрийг буцаалаа');
+    if (ok && mounted) await _decide(r, 'revert', () => context.read<AdminState>().revertPartner(r.id), tr('Шийдвэрийг буцаалаа'));
   }
 
   Future<void> _openStore(int id) async {
     final store = await context.read<AdminState>().store(id).catchError((_) => null);
     if (!mounted) return;
-    if (store == null) return showMessage(context, 'Дэлгүүр олдсонгүй', error: true);
+    if (store == null) return showMessage(context, tr('Дэлгүүр олдсонгүй'), error: true);
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => StoreFormPage(store: store)));
   }
 
@@ -137,7 +138,7 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
     final pending = stats == null ? null : stats['pending'];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Хамтран ажиллах хүсэлт'),
+        title: Text(tr('Хамтран ажиллах хүсэлт')),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(62),
           child: ChipTabs<String>(
@@ -148,7 +149,7 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
             },
             tones: {'pending': orderTones['pending']!, 'approved': orderTones['delivered']!, 'rejected': orderTones['returned']!},
             options: [
-              ('all', 'Бүгд', null),
+              ('all', tr('Бүгд'), null),
               for (final e in partnerStatusLabel.entries) (e.key, e.value, e.key == 'pending' ? pending : null),
             ],
           ),
@@ -161,7 +162,7 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
             Panel(
               child: IntrinsicHeight(
                 child: Row(children: [
-                  _Stat('Нийт хүсэлт', total, null),
+                  _Stat(tr('Нийт хүсэлт'), total, null),
                   for (final e in partnerStatusLabel.entries) ...[
                     const VerticalDivider(width: 1),
                     _Stat(e.value, stats[e.key] ?? 0, _statusColor[e.key]),
@@ -179,7 +180,7 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
               padding: const EdgeInsets.only(top: 40),
               child: EmptyView(
                 icon: Icons.handshake_outlined,
-                text: _status == 'all' ? 'Хүсэлт алга' : '“${partnerStatusLabel[_status]}” хүсэлт алга',
+                text: _status == 'all' ? tr('Хүсэлт алга') : tr('“{_status}” хүсэлт алга', {'_status': partnerStatusLabel[_status]}),
               ),
             )
           else ...[
@@ -208,7 +209,7 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
                 child: Center(
                   child: _loading
                       ? const CircularProgressIndicator()
-                      : OutlinedButton(onPressed: _loadMore, child: const Text('Дахин оролдох')),
+                      : OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох'))),
                 ),
               ),
           ],
@@ -309,7 +310,7 @@ class _RequestRowState extends State<_RequestRow> {
           const Spacer(),
           if (r.status != 'pending')
             IconButton(
-              tooltip: 'Шийдвэрийг буцаах',
+              tooltip: tr('Шийдвэрийг буцаах'),
               style: IconButton.styleFrom(backgroundColor: Colors.red.shade50, foregroundColor: Colors.red.shade600),
               onPressed: widget.locked ? null : widget.onRevert,
               icon: widget.busy == 'revert'
@@ -320,11 +321,11 @@ class _RequestRowState extends State<_RequestRow> {
         const SizedBox(height: 6),
         Table(columnWidths: const {0: IntrinsicColumnWidth(), 1: FlexColumnWidth()}, children: [
           TableRow(children: [
-            Padding(padding: const EdgeInsets.only(right: 12), child: Text('Дэлгүүр', style: grey)),
+            Padding(padding: const EdgeInsets.only(right: 12), child: Text(tr('Дэлгүүр'), style: grey)),
             Text(r.storeName ?? '—', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           ]),
           TableRow(children: [
-            Padding(padding: const EdgeInsets.only(right: 12), child: Text('Утасны дугаар', style: grey)),
+            Padding(padding: const EdgeInsets.only(right: 12), child: Text(tr('Утасны дугаар'), style: grey)),
             Text(formatPhone(r.phone), style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w600)),
           ]),
         ]),
@@ -335,7 +336,7 @@ class _RequestRowState extends State<_RequestRow> {
           TextButton(
             style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
             onPressed: () => widget.onOpenStore(r.storeId!),
-            child: const Text('Дэлгүүрийг харах'),
+            child: Text(tr('Дэлгүүрийг харах')),
           ),
         if (r.status == 'pending') ...[
           const SizedBox(height: 10),
@@ -344,20 +345,20 @@ class _RequestRowState extends State<_RequestRow> {
               controller: _storeName,
               autofocus: true,
               onChanged: (_) => setState(() {}),
-              decoration: fieldDecoration('Дэлгүүрийн нэр',
-                  error: _tried && _storeName.text.trim().isEmpty ? 'Дэлгүүрийн нэр оруулна уу' : null),
+              decoration: fieldDecoration(tr('Дэлгүүрийн нэр'),
+                  error: _tried && _storeName.text.trim().isEmpty ? tr('Дэлгүүрийн нэр оруулна уу') : null),
             ),
             const SizedBox(height: 10),
             PasswordField(
               controller: _password,
-              label: 'Нууц үг',
-              helper: 'Дэлгүүрийн хэрэглэгч утас, энэ нууц үгээр админд нэвтэрнэ',
-              error: _tried && _password.text.length < _minPassword ? 'Нууц үг $_minPassword-аас дээш тэмдэгттэй байна' : null,
+              label: tr('Нууц үг'),
+              helper: tr('Дэлгүүрийн хэрэглэгч утас, энэ нууц үгээр админд нэвтэрнэ'),
+              error: _tried && _password.text.length < _minPassword ? tr('Нууц үг {_minPassword}-аас дээш тэмдэгттэй байна', {'_minPassword': _minPassword}) : null,
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 10),
             Row(children: [
-              Expanded(child: OutlinedButton(onPressed: () => widget.onApproving(false), child: const Text('Болих'))),
+              Expanded(child: OutlinedButton(onPressed: () => widget.onApproving(false), child: Text(tr('Болих')))),
               const SizedBox(width: 10),
               Expanded(
                 child: FilledButton(
@@ -365,7 +366,7 @@ class _RequestRowState extends State<_RequestRow> {
                   onPressed: widget.locked ? null : _confirm,
                   child: widget.busy == 'approve'
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Батлах'),
+                      : Text(tr('Батлах')),
                 ),
               ),
             ]),
@@ -375,7 +376,7 @@ class _RequestRowState extends State<_RequestRow> {
                 child: FilledButton(
                   style: FilledButton.styleFrom(backgroundColor: green),
                   onPressed: widget.locked ? null : () => widget.onApproving(true),
-                  child: const Text('Батлах'),
+                  child: Text(tr('Батлах')),
                 ),
               ),
               const SizedBox(width: 10),
@@ -385,7 +386,7 @@ class _RequestRowState extends State<_RequestRow> {
                   onPressed: widget.locked ? null : widget.onReject,
                   child: widget.busy == 'reject'
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Татгалзах'),
+                      : Text(tr('Татгалзах')),
                 ),
               ),
             ]),

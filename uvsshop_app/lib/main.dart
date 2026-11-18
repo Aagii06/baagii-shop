@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'config.dart';
+import 'i18n.dart';
 import 'push/push_service.dart';
 import 'state/admin_state.dart';
 import 'state/app_state.dart';
@@ -39,7 +40,9 @@ class UvsShopApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mode = context.select<AppState, AppMode>((a) => a.mode);
-    return MaterialApp(
+    return ListenableBuilder(
+      listenable: appLang,
+      builder: (context, _) => MaterialApp(
       title: AppConfig.appName,
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
@@ -62,9 +65,11 @@ class UvsShopApp extends StatelessWidget {
       ),
       home: switch (mode) {
         AppMode.loading => const _Splash(),
-        AppMode.admin => const AdminShell(key: ValueKey('admin')),
-        AppMode.shop => const ShopShell(key: ValueKey('shop')),
+        // A new language remounts the screens (keyed by it), so every tr() runs again.
+        AppMode.admin => AdminShell(key: ValueKey('admin|${appLang.code}')),
+        AppMode.shop => ShopShell(key: ValueKey('shop|${appLang.code}')),
       },
+      ),
     );
   }
 }

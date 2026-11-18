@@ -9,6 +9,7 @@ import '../../state/admin_state.dart';
 import '../../state/app_state.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Нэвтрэх хуудас. Энгийн үед зөвхөн худалдан авагч утасны кодоор нэвтэрнэ.
 /// "Админ / Худалдагч" таб нь зөвхөн утас нь админ/худалдагчаар бүртгэлтэй
@@ -23,14 +24,14 @@ class SignInPage extends StatelessWidget {
     final showAdmin = admin && context.select<ShopState, bool>((s) => s.isStaff);
     if (!showAdmin) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Нэвтрэх')),
+        appBar: AppBar(title: Text(tr('Нэвтрэх'))),
         body: ListView(padding: const EdgeInsets.all(20), children: [
           PhoneOtpForm(onDone: () => Navigator.of(context).pop(true)),
         ]),
       );
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Админ / Худалдагч нэвтрэх')),
+      appBar: AppBar(title: Text(tr('Админ / Худалдагч нэвтрэх'))),
       body: ListView(padding: const EdgeInsets.all(20), children: const [AdminLoginForm()]),
     );
   }
@@ -97,7 +98,7 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
   Future<void> _send() async {
     final phone = digitsOnly(_phone.text);
     if (phone.length != 8) {
-      setState(() => _error = 'Утасны дугаар 8 оронтой байна');
+      setState(() => _error = tr('Утасны дугаар 8 оронтой байна'));
       return;
     }
     // Хүлээлт дуусаагүй бол шинэ код илгээхгүй (товч идэвхгүй).
@@ -128,7 +129,7 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
     final waiting = _waiting;
     final left = _remaining;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Text('Утасны дугаараараа нэвтэрнэ үү. Таны утсанд SMS код илгээнэ.'),
+      Text(tr('Утасны дугаараараа нэвтэрнэ үү. Таны утсанд SMS код илгээнэ.')),
       const SizedBox(height: 16),
       TextField(
         controller: _phone,
@@ -136,7 +137,7 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
         maxLength: 8,
         onChanged: (_) => setState(() {}),
         onSubmitted: (_) => _send(),
-        decoration: const InputDecoration(labelText: 'Утасны дугаар', prefixIcon: Icon(Icons.phone_outlined), counterText: ''),
+        decoration: InputDecoration(labelText: tr('Утасны дугаар'), prefixIcon: Icon(Icons.phone_outlined), counterText: ''),
       ),
       // Кодын хуудаснаас буцахад: дахин код авах хүртэлх хугацаа.
       if (waiting)
@@ -145,7 +146,7 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
           child: Row(children: [
             Icon(Icons.timer_outlined, size: 16, color: Colors.grey.shade600),
             const SizedBox(width: 6),
-            Text('Код дахин авах боломжтой: ', style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            Text(tr('Код дахин авах боломжтой: '), style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
             Text(formatCountdown(left), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'monospace', color: brandColor)),
           ]),
         ),
@@ -160,7 +161,7 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
         onPressed: _busy || waiting ? null : _send,
         child: _busy
             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : const Text('Код авах'),
+            : Text(tr('Код авах')),
       ),
     ]);
   }
@@ -242,7 +243,7 @@ class _OtpCodePageState extends State<OtpCodePage> {
     }
     setState(() {
       _busy = false;
-      _error = 'Код буруу эсвэл хугацаа дууссан байна';
+      _error = tr('Код буруу эсвэл хугацаа дууссан байна');
       _code.clear();
     });
     _focus.requestFocus();
@@ -256,7 +257,7 @@ class _OtpCodePageState extends State<OtpCodePage> {
     try {
       await context.read<ShopState>().sendOtp(widget.phone);
       if (!mounted) return;
-      showMessage(context, 'Код дахин илгээлээ');
+      showMessage(context, tr('Код дахин илгээлээ'));
       widget.sentAt?.value = _resentAt = clock.now();
       setState(() {
         _cooldown = _resendSeconds;
@@ -284,13 +285,13 @@ class _OtpCodePageState extends State<OtpCodePage> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('Код баталгаажуулах', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+            Text(tr('Код баталгаажуулах'), style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Text.rich(
               TextSpan(children: [
-                const TextSpan(text: 'Таны '),
+                TextSpan(text: tr('Таны ')),
                 TextSpan(text: _phoneLabel, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-                const TextSpan(text: ' дугаарт илгээсэн $otpLength оронтой кодыг оруулна уу'),
+                TextSpan(text: tr(' дугаарт илгээсэн {otpLength} оронтой кодыг оруулна уу', {'otpLength': otpLength})),
               ]),
               style: grey,
             ),
@@ -342,11 +343,11 @@ class _OtpCodePageState extends State<OtpCodePage> {
             ],
             const SizedBox(height: 20),
             Row(children: [
-              Text('Код ирээгүй юу? ', style: grey.copyWith(fontSize: 14)),
+              Text(tr('Код ирээгүй юу? '), style: grey.copyWith(fontSize: 14)),
               GestureDetector(
                 onTap: _sending || _cooldown > 0 ? null : _resend,
                 child: Text(
-                  _cooldown > 0 ? 'Дахин илгээх (${formatCountdown(_cooldown)})' : 'Дахин илгээх',
+                  _cooldown > 0 ? tr('Дахин илгээх ({_cooldown})', {'_cooldown': formatCountdown(_cooldown)}) : tr('Дахин илгээх'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -361,11 +362,11 @@ class _OtpCodePageState extends State<OtpCodePage> {
               onPressed: code.length == otpLength && !_busy ? _verify : null,
               child: _busy
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Баталгаажуулах', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  : Text(tr('Баталгаажуулах'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
             const SizedBox(height: 8),
             Center(
-              child: TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Дугаар солих')),
+              child: TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(tr('Дугаар солих'))),
             ),
           ]),
         ),
@@ -401,15 +402,15 @@ class OtpSuccessPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text('Амжилттай баталгаажлаа', textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(tr('Амжилттай баталгаажлаа'), textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text('UVS SHOP-д тавтай морил! Та нэвтэрлээ.',
+                Text(tr('UVS SHOP-д тавтай морил! Та нэвтэрлээ.'),
                     textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
                 const SizedBox(height: 32),
                 FilledButton(
                   style: FilledButton.styleFrom(minimumSize: const Size(220, 52), shape: const StadiumBorder()),
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Үргэлжлүүлэх', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  child: Text(tr('Үргэлжлүүлэх'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
               ]),
             ),
@@ -465,7 +466,7 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
   Future<void> _login() async {
     final phone = digitsOnly(_phone.text);
     if (phone.length != 8 || _password.text.isEmpty) {
-      setState(() => _error = 'Утасны дугаар (8 орон) болон нууц үгээ оруулна уу');
+      setState(() => _error = tr('Утасны дугаар (8 орон) болон нууц үгээ оруулна уу'));
       return;
     }
     setState(() {
@@ -487,13 +488,13 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
 
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Админ болон худалдагч утасны дугаар, нууц үгээрээ нэвтэрнэ.'),
+        Text(tr('Админ болон худалдагч утасны дугаар, нууц үгээрээ нэвтэрнэ.')),
         const SizedBox(height: 16),
         TextField(
           controller: _phone,
           keyboardType: TextInputType.phone,
           maxLength: 8,
-          decoration: const InputDecoration(labelText: 'Утасны дугаар', prefixIcon: Icon(Icons.phone_outlined), counterText: ''),
+          decoration: InputDecoration(labelText: tr('Утасны дугаар'), prefixIcon: Icon(Icons.phone_outlined), counterText: ''),
         ),
         const SizedBox(height: 12),
         TextField(
@@ -501,7 +502,7 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
           obscureText: _obscure,
           onSubmitted: (_) => _login(),
           decoration: InputDecoration(
-            labelText: 'Нууц үг',
+            labelText: tr('Нууц үг'),
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
               icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -519,7 +520,7 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
           onPressed: _busy ? null : _login,
           child: _busy
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Нэвтрэх'),
+              : Text(tr('Нэвтрэх')),
         ),
       ]);
 }

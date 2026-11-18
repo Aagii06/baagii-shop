@@ -5,6 +5,7 @@ import '../../api/admin_manage_models.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн /delivery-notes: захиалгад сонгох хүргэлтийн заавар (зөвхөн харах).
 class DeliveryNotesPage extends StatefulWidget {
@@ -40,7 +41,7 @@ class _DeliveryNotesPageState extends State<DeliveryNotesPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: const Text('Хүргэлтийн тэмдэглэл'),
+          title: Text(tr('Хүргэлтийн тэмдэглэл')),
           actions: [
             if (_data != null)
               Padding(
@@ -54,7 +55,7 @@ class _DeliveryNotesPageState extends State<DeliveryNotesPage> {
             width: double.infinity,
             color: Colors.white,
             padding: const EdgeInsets.all(16),
-            child: Text('Худалдан авагч захиалга хийхдээ сонгох боломжтой хүргэлтийн заавар.',
+            child: Text(tr('Худалдан авагч захиалга хийхдээ сонгох боломжтой хүргэлтийн заавар.'),
                 style: TextStyle(color: Colors.grey.shade600)),
           ),
           const Divider(height: 1),
@@ -66,7 +67,7 @@ class _DeliveryNotesPageState extends State<DeliveryNotesPage> {
                 error: _error,
                 onRetry: _load,
                 emptyIcon: Icons.edit_note,
-                emptyText: 'Тэмдэглэл алга',
+                emptyText: tr('Тэмдэглэл алга'),
                 builder: (rows) => ListView.separated(
                   itemCount: rows.length,
                   separatorBuilder: (_, _) => const Divider(height: 1),

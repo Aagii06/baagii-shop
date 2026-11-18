@@ -11,6 +11,7 @@ import 'product_card.dart';
 import 'store_page.dart';
 import 'product_page.dart';
 import 'stores_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн app/page.tsx (утасны харагдац, header/footer-гүй):
 /// ангиллын чип → hero carousel → манай дэлгүүрүүд → хямдрал →
@@ -74,7 +75,7 @@ class _HomePageState extends State<HomePage> {
             const Text('UVSSHOP.COM',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: brandColor, letterSpacing: -0.3)),
             const SizedBox(height: 2),
-            Text('Увс анхны зарын сайт',
+            Text(tr('Увс анхны зарын сайт'),
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey.shade600)),
           ]),
         ]),
@@ -96,7 +97,7 @@ class _HomePageState extends State<HomePage> {
           _CategoryShowcase(products: _products, loading: _loading),
           const SizedBox(height: 20),
           _SectionTitle(
-            'Санал болгох бараа',
+            tr('Санал болгох бараа'),
             onViewAll: () => nav.openSearch(const SearchRequest(sort: SearchSort.newest)),
             large: true,
           ),
@@ -112,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () => nav.openSearch(const SearchRequest(sort: SearchSort.newest)),
-                child: const Text('Цааш үзэх'),
+                child: Text(tr('Цааш үзэх')),
               ),
             ),
           ],
@@ -156,7 +157,7 @@ class _SectionTitle extends StatelessWidget {
         if (onViewAll != null)
           GestureDetector(
             onTap: onViewAll,
-            child: const Text('Бүгдийг үзэх', style: TextStyle(color: brandColor, fontWeight: FontWeight.w500, fontSize: 14)),
+            child: Text(tr('Бүгдийг үзэх'), style: TextStyle(color: brandColor, fontWeight: FontWeight.w500, fontSize: 14)),
           ),
       ]);
 }
@@ -197,7 +198,7 @@ class _CategoryScrollRow extends StatelessWidget {
     return SizedBox(
       height: 36,
       child: ListView(scrollDirection: Axis.horizontal, clipBehavior: Clip.none, children: [
-        chip('Хямдрал', () => nav.openSearch(const SearchRequest(sale: true)), sale: true),
+        chip(tr('Хямдрал'), () => nav.openSearch(const SearchRequest(sale: true)), sale: true),
         for (final c in categories) chip(c.name, () => nav.openSearch(SearchRequest(categoryId: c.id))),
       ]),
     );
@@ -259,7 +260,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
     final categories = context.watch<ShopState>().categories;
     final s = _slides[_index];
     final category = Category.findByCode(categories, s.code);
-    final text = category != null && category.children.isNotEmpty ? category.children.map((c) => c.name).join(' · ') : s.text;
+    final text = category != null && category.children.isNotEmpty ? category.children.map((c) => c.name).join(' · ') : tr(s.text);
 
     return Container(
       decoration: _cardBox(),
@@ -298,13 +299,13 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                     key: ValueKey(_index),
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text((category?.name ?? s.kicker).toUpperCase(),
+                      Text((category?.name ?? tr(s.kicker)).toUpperCase(),
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 2, color: Colors.black.withValues(alpha: 0.6))),
                       const SizedBox(height: 8),
                       Text.rich(
                         TextSpan(children: [
-                          TextSpan(text: '${s.light} ', style: const TextStyle(fontWeight: FontWeight.w300)),
-                          TextSpan(text: s.bold, style: const TextStyle(fontWeight: FontWeight.bold, color: brandColor)),
+                          TextSpan(text: '${tr(s.light)} ', style: const TextStyle(fontWeight: FontWeight.w300)),
+                          TextSpan(text: tr(s.bold), style: const TextStyle(fontWeight: FontWeight.bold, color: brandColor)),
                         ]),
                         style: const TextStyle(fontSize: 30, height: 1.2, color: Colors.black87),
                       ),
@@ -322,9 +323,9 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(6),
                             onTap: () => context.read<ShopNav>().openSearch(SearchRequest(categoryId: category?.id)),
-                            child: const Padding(
+                            child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-                              child: Text('Дэлгэрэнгүй үзэх',
+                              child: Text(tr('Дэлгэрэнгүй үзэх'),
                                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
                             ),
                           ),
@@ -406,7 +407,7 @@ class _StoresRow extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!loading && stores.isEmpty) return const SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _SectionTitle('Манай дэлгүүрүүд',
+      _SectionTitle(tr('Манай дэлгүүрүүд'),
           onViewAll: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StoresPage()))),
       const SizedBox(height: 12),
       SizedBox(
@@ -506,7 +507,7 @@ class StoreTile extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, height: 1.25)),
                 ),
-                Text('${store.productCount} бараа', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                Text(tr('{productCount} бараа', {'productCount': store.productCount}), style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
               ]),
             ),
           ),
@@ -597,10 +598,10 @@ class _DealsSectionState extends State<_DealsSection> {
 
     final secs = _left.inSeconds;
     final units = [
-      (0, 'Өдөр'),
-      (secs ~/ 3600, 'Цаг'),
-      ((secs % 3600) ~/ 60, 'Мин'),
-      (secs % 60, 'Сек'),
+      (0, tr('Өдөр')),
+      (secs ~/ 3600, tr('Цаг')),
+      ((secs % 3600) ~/ 60, tr('Мин')),
+      (secs % 60, tr('Сек')),
     ];
 
     return Container(
@@ -613,10 +614,10 @@ class _DealsSectionState extends State<_DealsSection> {
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(featuredOnly ? 'Онцлох бараа' : 'Хямдрал, урамшуулал',
+                Text(featuredOnly ? tr('Онцлох бараа') : tr('Хямдрал, урамшуулал'),
                     style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text(featuredOnly ? 'Хамгийн их эрэлттэй бараанууд' : 'Өнөөдрийн онцлох хямдрал',
+                Text(featuredOnly ? tr('Хамгийн их эрэлттэй бараанууд') : tr('Өнөөдрийн онцлох хямдрал'),
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
               ]),
             ),
@@ -629,7 +630,7 @@ class _DealsSectionState extends State<_DealsSection> {
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                 ),
                 onPressed: () => context.read<ShopNav>().openSearch(),
-                child: const Text('Бүгдийг үзэх'),
+                child: Text(tr('Бүгдийг үзэх')),
               )
             else
               Row(children: [
@@ -771,7 +772,7 @@ class _CategoryShowcase extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5)),
                       const SizedBox(height: 4),
-                      Text('Үнэ\n${money(p.price)}', style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600, height: 1.35)),
+                      Text(tr('Үнэ\n{price}', {'price': money(p.price)}), style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600, height: 1.35)),
                     ]),
                   ),
                   const SizedBox(width: 4),

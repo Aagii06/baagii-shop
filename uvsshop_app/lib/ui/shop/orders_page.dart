@@ -7,6 +7,7 @@ import '../../state/shop_state.dart';
 import '../common.dart';
 import 'pay_page.dart';
 import 'sign_in_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -28,14 +29,14 @@ class _OrdersPageState extends State<OrdersPage> {
       _future = customer == null ? null : context.read<ShopState>().myOrders();
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Миний захиалгууд')),
+      appBar: AppBar(title: Text(tr('Миний захиалгууд'))),
       body: customer == null
           ? EmptyView(
               icon: Icons.receipt_long_outlined,
-              text: 'Захиалгаа харахын тулд нэвтэрнэ үү',
+              text: tr('Захиалгаа харахын тулд нэвтэрнэ үү'),
               action: FilledButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SignInPage())),
-                child: const Text('Нэвтрэх'),
+                child: Text(tr('Нэвтрэх')),
               ),
             )
           : RefreshIndicator(
@@ -47,7 +48,7 @@ class _OrdersPageState extends State<OrdersPage> {
                   if (snap.hasError) return ListView(children: [SizedBox(height: 400, child: ErrorView(snap.error!, onRetry: _reload))]);
                   final orders = snap.data ?? [];
                   if (orders.isEmpty) {
-                    return ListView(children: const [SizedBox(height: 400, child: EmptyView(icon: Icons.receipt_long_outlined, text: 'Захиалга алга'))]);
+                    return ListView(children: [SizedBox(height: 400, child: EmptyView(icon: Icons.receipt_long_outlined, text: tr('Захиалга алга')))]);
                   }
                   return ListView.separated(
                     padding: const EdgeInsets.all(12),
@@ -98,7 +99,7 @@ class _OrderCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Row(children: [
-              Text('${o.items.fold<int>(0, (s, i) => s + i.quantity)} бараа', style: TextStyle(color: Colors.grey.shade700)),
+              Text(tr('{quantity} бараа', {'quantity': o.items.fold<int>(0, (s, i) => s + i.quantity)}), style: TextStyle(color: Colors.grey.shade700)),
               const Spacer(),
               Text(money(o.total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ]),
@@ -110,7 +111,7 @@ class _OrderCard extends StatelessWidget {
                   await Navigator.of(context).push(MaterialPageRoute(builder: (_) => PayPage(orderId: o.id)));
                   onChanged();
                 },
-                child: const Text('Төлбөр төлөх'),
+                child: Text(tr('Төлбөр төлөх')),
               ),
             ],
           ]),
@@ -135,7 +136,7 @@ class OrderDetailPage extends StatelessWidget {
           ]),
         );
     return Scaffold(
-      appBar: AppBar(title: Text('Захиалга #${o.id}')),
+      appBar: AppBar(title: Text(tr('Захиалга #{id}', {'id': o.id}))),
       body: ListView(padding: const EdgeInsets.all(12), children: [
         Card(
           child: ListTile(
@@ -161,16 +162,16 @@ class OrderDetailPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Хүргэлт', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(tr('Хүргэлт'), style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               Text('${o.fullName} · ${o.phone}'),
               Text(o.address),
-              if (o.note != null && o.note!.isNotEmpty) Text('Тэмдэглэл: ${o.note}'),
+              if (o.note != null && o.note!.isNotEmpty) Text(tr('Тэмдэглэл: {note}', {'note': o.note})),
               const Divider(height: 24),
-              sum('Барааны дүн', o.subtotal),
-              sum('Хүргэлт', o.shipping),
-              if (o.coupon > 0) sum('Хөнгөлөлт', -o.coupon),
-              sum('Нийт', o.total, bold: true),
+              sum(tr('Барааны дүн'), o.subtotal),
+              sum(tr('Хүргэлт'), o.shipping),
+              if (o.coupon > 0) sum(tr('Хөнгөлөлт'), -o.coupon),
+              sum(tr('Нийт'), o.total, bold: true),
             ]),
           ),
         ),

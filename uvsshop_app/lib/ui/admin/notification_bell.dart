@@ -9,6 +9,7 @@ import 'admin_widgets.dart';
 import 'feedbacks_page.dart';
 import 'orders_page.dart';
 import 'partner_requests_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн NotificationBell: толгойн баруун талын 🔔, уншаагүйн тоо улаан badge-аар.
 class NotificationBell extends StatelessWidget {
@@ -18,7 +19,7 @@ class NotificationBell extends StatelessWidget {
   Widget build(BuildContext context) {
     final unread = context.select<AdminState, int>((a) => a.unreadNotifications);
     return Tooltip(
-      message: unread > 0 ? 'Мэдэгдэл ($unread уншаагүй)' : 'Мэдэгдэл',
+      message: unread > 0 ? tr('Мэдэгдэл ({unread} уншаагүй)', {'unread': unread}) : tr('Мэдэгдэл'),
       child: Stack(clipBehavior: Clip.none, children: [
         Material(
           color: Colors.white,
@@ -149,7 +150,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final rows = _rows;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Мэдэгдэл'),
+        title: Text(tr('Мэдэгдэл')),
         actions: [
           if (unread > 0)
             Padding(
@@ -159,7 +160,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   setState(() => _rows = [for (final r in _rows ?? <AdminNotification>[]) r.asRead()]);
                   context.read<AdminState>().markAllNotificationsRead();
                 },
-                child: const Text('Бүгдийг уншсан'),
+                child: Text(tr('Бүгдийг уншсан')),
               ),
             ),
         ],
@@ -171,15 +172,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
               : RefreshIndicator(
                   onRefresh: _load,
                   child: rows.isEmpty
-                      ? ListView(children: const [
+                      ? ListView(children: [
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 80),
                             child: Column(children: [
                               Icon(Icons.notifications_none_rounded, size: 40, color: AdminColors.mutedForeground),
                               SizedBox(height: 12),
-                              Text('Мэдэгдэл алга', style: TextStyle(fontWeight: FontWeight.w600)),
+                              Text(tr('Мэдэгдэл алга'), style: TextStyle(fontWeight: FontWeight.w600)),
                               SizedBox(height: 4),
-                              Text('Шинэ захиалга, хүсэлт, санал хүсэлт ирэхэд энд харагдана.',
+                              Text(tr('Шинэ захиалга, хүсэлт, санал хүсэлт ирэхэд энд харагдана.'),
                                   textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
                             ]),
                           ),
@@ -193,7 +194,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 onPressed: _loadingMore ? null : _more,
                                 child: _loadingMore
                                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                                    : const Text('Цааш үзэх'),
+                                    : Text(tr('Цааш үзэх')),
                               ),
                             ),
                         ]),
@@ -253,6 +254,6 @@ class ErrorText extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(mainAxisSize: MainAxisSize.min, children: [
         Text(errorText(error), textAlign: TextAlign.center, style: const TextStyle(color: AdminColors.destructive)),
-        TextButton(onPressed: onRetry, child: const Text('Дахин оролдох')),
+        TextButton(onPressed: onRetry, child: Text(tr('Дахин оролдох'))),
       ]);
 }

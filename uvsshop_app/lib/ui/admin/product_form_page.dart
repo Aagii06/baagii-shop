@@ -10,6 +10,7 @@ import '../../state/product_draft.dart';
 import '../common.dart';
 import 'admin_design.dart';
 import 'admin_widgets.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 // web-ийн /products/new ба /products/{id} (ProductForm) болон
 // /products/{id}/variants (ProductVariantsForm) — ижил талбар, дараалал.
@@ -95,9 +96,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
     final draft = _draft;
     if (draft == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.productId == null ? 'Бараа нэмэх' : 'Бараа засах')),
+        appBar: AppBar(title: Text(widget.productId == null ? tr('Бараа нэмэх') : tr('Бараа засах'))),
         body: _notFound
-            ? EmptyView(icon: Icons.inventory_2_outlined, text: 'Бараа олдсонгүй\n#${widget.productId} дугаартай бараа байхгүй байна.')
+            ? EmptyView(icon: Icons.inventory_2_outlined, text: tr('Бараа олдсонгүй\n#{productId} дугаартай бараа байхгүй байна.', {'productId': widget.productId}))
             : _error != null
                 ? ErrorView(_error!, onRetry: _load)
                 : const LoadingView(kind: SkeletonKind.detail),
@@ -150,7 +151,7 @@ class _ProductFormState extends State<_ProductForm> {
     final admin = context.read<AdminState>();
     setState(() => _saving = true);
     final uploads = {for (final r in d.pendingUploads) r: (d.files[r]!.bytes.toList(), d.files[r]!.name)};
-    final ok = await runAction(context, () => admin.saveProduct(d.id, d.body, uploads), 'Хадгаллаа');
+    final ok = await runAction(context, () => admin.saveProduct(d.id, d.body, uploads), tr('Хадгаллаа'));
     if (!mounted) return;
     if (ok && d.id == null) return Navigator.pop(context, true);
     if (ok) {
@@ -162,10 +163,10 @@ class _ProductFormState extends State<_ProductForm> {
 
   Future<void> _delete() async {
     final ok = await confirmAction(context,
-        title: 'Бараа устгах уу?', description: '“${d.name}” барааг устгана. Буцаах боломжгүй.', confirmLabel: 'Устгах', danger: true);
+        title: tr('Бараа устгах уу?'), description: tr('“{name}” барааг устгана. Буцаах боломжгүй.', {'name': d.name}), confirmLabel: tr('Устгах'), danger: true);
     if (!ok || !mounted) return;
     setState(() => _deleting = true);
-    final done = await runAction(context, () => context.read<AdminState>().deleteProduct(d.id!), 'Барааг устгалаа');
+    final done = await runAction(context, () => context.read<AdminState>().deleteProduct(d.id!), tr('Барааг устгалаа'));
     if (!mounted) return;
     if (done) return Navigator.pop(context, true);
     setState(() => _deleting = false);
@@ -201,7 +202,7 @@ class _ProductFormState extends State<_ProductForm> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(d.id == null ? 'Бараа нэмэх' : 'Бараа засах'),
+          title: Text(d.id == null ? tr('Бараа нэмэх') : tr('Бараа засах')),
           actions: [SaveAction(enabled: d.dirty, busy: _saving, onPressed: _save)],
         ),
         body: ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 32), children: [
@@ -211,7 +212,7 @@ class _ProductFormState extends State<_ProductForm> {
             onTapOutside: (_) {
               if (!_touchedName && _name.text.isNotEmpty) setState(() => _touchedName = true);
             },
-            decoration: fieldDecoration('Нэр', error: _touchedName ? d.nameError : null),
+            decoration: fieldDecoration(tr('Нэр'), error: _touchedName ? d.nameError : null),
           ),
           const SizedBox(height: 14),
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -225,7 +226,7 @@ class _ProductFormState extends State<_ProductForm> {
                   _touchedPrice = true;
                   d.setPrice(v);
                 },
-                decoration: fieldDecoration('Үнэ (₮)', error: _touchedPrice ? d.priceError : null),
+                decoration: fieldDecoration(tr('Үнэ (₮)'), error: _touchedPrice ? d.priceError : null),
               ),
             ),
             const SizedBox(width: 12),
@@ -237,7 +238,7 @@ class _ProductFormState extends State<_ProductForm> {
                 style: const TextStyle(fontFamily: mono),
                 onChanged: d.setSalePrice,
                 // Хоосон бол үнээрээ хадгалагдана.
-                decoration: fieldDecoration('Хямдрал (₮)', hint: d.price, error: d.salePriceError),
+                decoration: fieldDecoration(tr('Хямдрал (₮)'), hint: d.price, error: d.salePriceError),
               ),
             ),
           ]),
@@ -246,15 +247,15 @@ class _ProductFormState extends State<_ProductForm> {
             Panel(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Хямдралын хугацаа', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                Text(tr('Хямдралын хугацаа'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Row(children: [
-                  Expanded(child: _dateField('Эхлэх өдөр', d.saleStart, () => _pickDate(true), periodError != null)),
+                  Expanded(child: _dateField(tr('Эхлэх өдөр'), d.saleStart, () => _pickDate(true), periodError != null)),
                   const SizedBox(width: 12),
-                  Expanded(child: _dateField('Дуусах өдөр', d.saleEnd, () => _pickDate(false), periodError != null)),
+                  Expanded(child: _dateField(tr('Дуусах өдөр'), d.saleEnd, () => _pickDate(false), periodError != null)),
                 ]),
                 const SizedBox(height: 6),
-                Text(periodError ?? 'Хугацаа дуусахад бараа үндсэн үнээрээ зарагдана.',
+                Text(periodError ?? tr('Хугацаа дуусахад бараа үндсэн үнээрээ зарагдана.'),
                     style: TextStyle(fontSize: 13, color: periodError != null ? AdminColors.destructive : Colors.grey.shade600)),
               ]),
             ),
@@ -264,9 +265,9 @@ class _ProductFormState extends State<_ProductForm> {
             DropdownButtonFormField<int?>(
               initialValue: widget.stores.any((s) => s.id == d.storeId) ? d.storeId : null,
               isExpanded: true,
-              decoration: fieldDecoration('Дэлгүүр', helper: 'Бараа аль дэлгүүрийнх вэ — вэб дээр брэнд болж харагдана'),
+              decoration: fieldDecoration(tr('Дэлгүүр'), helper: tr('Бараа аль дэлгүүрийнх вэ — вэб дээр брэнд болж харагдана')),
               items: [
-                const DropdownMenuItem<int?>(value: null, child: Text('Үндсэн дэлгүүр (сонгоогүй)')),
+                DropdownMenuItem<int?>(value: null, child: Text(tr('Үндсэн дэлгүүр (сонгоогүй)'))),
                 for (final s in widget.stores) DropdownMenuItem<int?>(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis)),
               ],
               onChanged: (v) => d.update(() => d.storeId = v),
@@ -275,8 +276,8 @@ class _ProductFormState extends State<_ProductForm> {
             // Худалдагчийн бараа үргэлж өөрийнх нь дэлгүүрт орно (backend тавина).
             TextField(
               enabled: false,
-              controller: TextEditingController(text: admin.user?.storeName ?? 'Дэлгүүр оноогоогүй — админд хандана уу'),
-              decoration: fieldDecoration('Дэлгүүр', helper: 'Таны нэмсэн бараа өөрийн тань дэлгүүрт орно'),
+              controller: TextEditingController(text: admin.user?.storeName ?? tr('Дэлгүүр оноогоогүй — админд хандана уу')),
+              decoration: fieldDecoration(tr('Дэлгүүр'), helper: tr('Таны нэмсэн бараа өөрийн тань дэлгүүрт орно')),
             ),
           const SizedBox(height: 14),
           _CategoryPicker(
@@ -286,8 +287,8 @@ class _ProductFormState extends State<_ProductForm> {
             hint: attrs.isNotEmpty
                 ? null
                 : d.categoryId != null
-                    ? 'Энэ категорийн бараа сонголтгүй — зөвхөн тоо ширхэгээ оруулна.'
-                    : 'Категори сонговол өнгө, хэмжээ зэрэг сонголтын хэсэг гарна.',
+                    ? tr('Энэ категорийн бараа сонголтгүй — зөвхөн тоо ширхэгээ оруулна.')
+                    : tr('Категори сонговол өнгө, хэмжээ зэрэг сонголтын хэсэг гарна.'),
           ),
           if (!d.picked) ...[
             const SizedBox(height: 14),
@@ -299,8 +300,8 @@ class _ProductFormState extends State<_ProductForm> {
               style: const TextStyle(fontFamily: mono),
               onTap: () => _qty.selection = TextSelection(baseOffset: 0, extentOffset: _qty.text.length),
               onChanged: (v) => d.updateVariant(variants.first, qty: v),
-              decoration: fieldDecoration('Тоо ширхэг',
-                  hint: '0', helper: attrs.isNotEmpty ? '${_attrsTitle(attrs)} сонговол тоог тус бүрээр нь оруулна.' : null),
+              decoration: fieldDecoration(tr('Тоо ширхэг'),
+                  hint: '0', helper: attrs.isNotEmpty ? tr('{attrs} сонговол тоог тус бүрээр нь оруулна.', {'attrs': _attrsTitle(attrs)}) : null),
             ),
           ],
           if (attrs.isNotEmpty) ...[
@@ -316,7 +317,7 @@ class _ProductFormState extends State<_ProductForm> {
           // Сонголтын дараа: өнгө сонгосны дараа л өнгөнд зураг оруулна.
           const _ProductImages(),
           const SizedBox(height: 18),
-          Text('Тайлбар', style: label),
+          Text(tr('Тайлбар'), style: label),
           const SizedBox(height: 6),
           TextField(
             controller: _note,
@@ -336,7 +337,7 @@ class _ProductFormState extends State<_ProductForm> {
               onPressed: _deleting ? null : _delete,
               child: _deleting
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Барааг устгах'),
+                  : Text(tr('Барааг устгах')),
             ),
           ],
         ]),
@@ -361,7 +362,7 @@ class _ProductFormState extends State<_ProductForm> {
   /// "Өнгө, хэмжээ, тоо оруулах" — нэр, үнэ бөглөсний дараа нээгдэнэ.
   Widget _variantsCard(List<PAttr> attrs, List<VariantRow> variants) {
     final icon = attrs.first.isColor ? Icons.palette_outlined : Icons.sell_outlined;
-    final title = '${_attrsTitle(attrs)}, тоо оруулах';
+    final title = tr('{attrs}, тоо оруулах', {'attrs': _attrsTitle(attrs)});
     if (!d.hasBasics) {
       return Material(
         color: AdminColors.muted.withValues(alpha: 0.4),
@@ -377,7 +378,7 @@ class _ProductFormState extends State<_ProductForm> {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AdminColors.mutedForeground)),
-                  const Text('Эхлээд барааны нэр, үнээ оруулна уу', style: TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
+                  Text(tr('Эхлээд барааны нэр, үнээ оруулна уу'), style: TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
                 ]),
               ),
             ]),
@@ -407,7 +408,7 @@ class _ProductFormState extends State<_ProductForm> {
                       TextSpan(children: [
                         TextSpan(text: '${a.name}: ', style: const TextStyle(color: AdminColors.mutedForeground)),
                         a.values.isEmpty
-                            ? const TextSpan(text: 'сонгоогүй', style: TextStyle(color: AdminColors.mutedForeground))
+                            ? TextSpan(text: tr('сонгоогүй'), style: TextStyle(color: AdminColors.mutedForeground))
                             : TextSpan(text: a.values.map((v) => v.value).join(', ')),
                       ]),
                       maxLines: 1,
@@ -416,7 +417,7 @@ class _ProductFormState extends State<_ProductForm> {
                     ),
                   ),
                 const SizedBox(height: 4),
-                Text(d.picked ? '${sold.length} хувилбар · нийт $total ширхэг' : 'Оруулаагүй',
+                Text(d.picked ? tr('{sold} хувилбар · нийт {total} ширхэг', {'sold': sold.length, 'total': total}) : tr('Оруулаагүй'),
                     style: const TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground)),
               ]),
             ),
@@ -452,7 +453,7 @@ class _CategoryPicker extends StatelessWidget {
       if (options.isNotEmpty) levels.add((options, i < path.length ? path[i].id : null));
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('Категори', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+      Text(tr('Категори'), style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
       const SizedBox(height: 6),
       for (final (i, (options, sel)) in levels.indexed)
         Padding(
@@ -463,7 +464,7 @@ class _CategoryPicker extends StatelessWidget {
             isExpanded: true,
             decoration: fieldDecoration('').copyWith(labelText: null),
             items: [
-              DropdownMenuItem<int?>(value: null, child: Text(i == 0 ? 'Сонгоогүй' : 'Дэд категори сонгох')),
+              DropdownMenuItem<int?>(value: null, child: Text(i == 0 ? tr('Сонгоогүй') : tr('Дэд категори сонгох'))),
               for (final c in options) DropdownMenuItem<int?>(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis)),
             ],
             // Түвшинг цэвэрлэвэл дээд түвшин рүүгээ буцна.
@@ -471,12 +472,12 @@ class _CategoryPicker extends StatelessWidget {
           ),
         ),
       if (isLeaf)
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: Row(children: [
             Icon(Icons.check_circle_outline, size: 16, color: AdminColors.success),
             SizedBox(width: 6),
-            Text('Категори сонгогдлоо', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AdminColors.success)),
+            Text(tr('Категори сонгогдлоо'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AdminColors.success)),
           ]),
         )
       else if (hint != null)
@@ -503,14 +504,14 @@ class _ProductImagesState extends State<_ProductImages> {
     try {
       files = await ImagePicker().pickMultiImage(maxWidth: 1600, maxHeight: 1600, imageQuality: 90);
     } catch (e) {
-      if (mounted) showMessage(context, 'Зураг сонгож чадсангүй: $e', error: true);
+      if (mounted) showMessage(context, tr('Зураг сонгож чадсангүй: {e}', {'e': e}), error: true);
       return;
     }
     final ok = <LocalImage>[];
     for (final f in files) {
       final bytes = await f.readAsBytes();
       if (bytes.length > maxImageMb * 1024 * 1024) {
-        if (mounted) showMessage(context, '«${f.name}» зураг $maxImageMb MB-аас том байна', error: true);
+        if (mounted) showMessage(context, tr('«{name}» зураг {maxImageMb} MB-аас том байна', {'name': f.name, 'maxImageMb': maxImageMb}), error: true);
         continue;
       }
       ok.add(LocalImage(bytes, f.name));
@@ -523,7 +524,7 @@ class _ProductImagesState extends State<_ProductImages> {
     final d = context.watch<ProductDraft>();
     final colorAttr = d.attrs.where((a) => a.isColor).firstOrNull;
     final groups = <(String, String, String?)>[
-      ('', 'Ерөнхий', null),
+      ('', tr('Ерөнхий'), null),
       if (colorAttr != null) for (final v in colorAttr.values) (imageKey(colorAttr.key, v.value), v.value, v.color),
     ];
     // Сонголтоос хасагдсан өнгө зургаа хадгалах ч tab-гүй болно.
@@ -532,12 +533,12 @@ class _ProductImagesState extends State<_ProductImages> {
     final hint = colorAttr == null
         ? null
         : group.$1.isNotEmpty
-            ? 'Худалдан авагч “${group.$2}” өнгийг сонгоход харагдана. Эхний зураг нь өнгөний нүүр зураг.'
+            ? tr('Худалдан авагч “{group}” өнгийг сонгоход харагдана. Эхний зураг нь өнгөний нүүр зураг.', {'group': group.$2})
             : groups.length > 1
-                ? 'Өнгө сонгоогүй үед дэлгүүрт харагдана.'
-                : 'Өнгө сонговол өнгө бүрт тусад нь зураг оруулж болно.';
+                ? tr('Өнгө сонгоогүй үед дэлгүүрт харагдана.')
+                : tr('Өнгө сонговол өнгө бүрт тусад нь зураг оруулж болно.');
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('Зураг', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+      Text(tr('Зураг'), style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
       if (groups.length > 1) ...[
         const SizedBox(height: 8),
         SingleChildScrollView(
@@ -587,7 +588,7 @@ class _ProductImagesState extends State<_ProductImages> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(20)),
-                    child: const Text('Нүүр', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                    child: Text(tr('Нүүр'), style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                   ),
                 ),
               Positioned(
@@ -614,7 +615,7 @@ class _ProductImagesState extends State<_ProductImages> {
                 color: AdminColors.muted.withValues(alpha: 0.5),
               ),
               alignment: Alignment.center,
-              child: const Text('+ зураг', style: TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground)),
+              child: Text(tr('+ зураг'), style: TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground)),
             ),
           ),
         ],
@@ -640,11 +641,11 @@ class ProductVariantsPage extends StatelessWidget {
           if (d.name.trim().isNotEmpty)
             Text(d.name.trim(), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: AdminColors.mutedForeground)),
         ]),
-        actions: [SaveAction(enabled: true, busy: false, label: 'Болсон', onPressed: () => Navigator.pop(context))],
+        actions: [SaveAction(enabled: true, busy: false, label: tr('Болсон'), onPressed: () => Navigator.pop(context))],
       ),
       body: ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 32), children: [
         for (final (i, a) in attrs.indexed) ...[
-          _StepTitle(i + 1, '${a.name} сонгох'),
+          _StepTitle(i + 1, tr('{name} сонгох', {'name': a.name})),
           if (!d.inCategory(a.key))
             // Өмнөх категорийн үлдсэн сонголт.
             Container(
@@ -653,21 +654,21 @@ class ProductVariantsPage extends StatelessWidget {
               decoration: BoxDecoration(color: AdminColors.warningSoft, borderRadius: BorderRadius.circular(12)),
               child: Row(children: [
                 Expanded(
-                  child: Text('Энэ категорид “${a.name}” сонголт байхгүй.',
+                  child: Text(tr('Энэ категорид “{name}” сонголт байхгүй.', {'name': a.name}),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
-                OutlinedButton(onPressed: () => d.setAttrValues(a.key, []), child: const Text('Хасах')),
+                OutlinedButton(onPressed: () => d.setAttrValues(a.key, []), child: Text(tr('Хасах'))),
               ]),
             ),
           _AttrPicker(attr: a),
           const SizedBox(height: 24),
         ],
-        _StepTitle(attrs.length + 1, 'Тоо, үнэ'),
+        _StepTitle(attrs.length + 1, tr('Тоо, үнэ')),
         if (picked.isEmpty)
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(color: AdminColors.muted, borderRadius: BorderRadius.circular(16)),
-            child: Text('Дээрээс ${title.toLowerCase()} сонгоно уу.',
+            child: Text(tr('Дээрээс {toLowerCase} сонгоно уу.', {'toLowerCase': title.toLowerCase()}),
                 textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
           )
         else
@@ -787,7 +788,7 @@ class _AttrPickerState extends State<_AttrPicker> {
         if (!attr.isColor && offered.length > 3)
           TextButton(
             onPressed: () => d.setAttrValues(attr.key, allPicked ? [] : offered),
-            child: Text(allPicked ? 'Бүгдийг болих' : 'Бүгдийг сонгох'),
+            child: Text(allPicked ? tr('Бүгдийг болих') : tr('Бүгдийг сонгох')),
           ),
         const SizedBox(height: 10),
       ],
@@ -825,14 +826,14 @@ class _AttrPickerState extends State<_AttrPicker> {
             controller: _draft,
             onChanged: (_) => setState(() {}),
             onSubmitted: (_) => add(),
-            decoration: fieldDecoration('').copyWith(labelText: null, hintText: attr.isColor ? 'Өөр өнгө нэмэх' : 'Өөр утга нэмэх'),
+            decoration: fieldDecoration('').copyWith(labelText: null, hintText: attr.isColor ? tr('Өөр өнгө нэмэх') : tr('Өөр утга нэмэх')),
           ),
         ),
         const SizedBox(width: 8),
         OutlinedButton.icon(
           onPressed: _draft.text.trim().isEmpty ? null : add,
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Нэмэх'),
+          label: Text(tr('Нэмэх')),
         ),
       ]),
     ]);
@@ -859,12 +860,12 @@ class _VariantTable extends StatelessWidget {
     return Panel(
       padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Row(children: [
-          SizedBox(width: 72, child: Text('Тоо (ш)', textAlign: TextAlign.center, style: head)),
+        Row(children: [
+          SizedBox(width: 72, child: Text(tr('Тоо (ш)'), textAlign: TextAlign.center, style: head)),
           SizedBox(width: 6),
-          Expanded(child: Text('Үнэ (₮)', textAlign: TextAlign.center, style: head)),
+          Expanded(child: Text(tr('Үнэ (₮)'), textAlign: TextAlign.center, style: head)),
           SizedBox(width: 6),
-          Expanded(child: Text('Хямдрал (₮)', textAlign: TextAlign.center, style: head)),
+          Expanded(child: Text(tr('Хямдрал (₮)'), textAlign: TextAlign.center, style: head)),
         ]),
         for (final r in variants) ...[
           const SizedBox(height: 12),
@@ -881,7 +882,7 @@ class _VariantTable extends StatelessWidget {
             ),
             IconButton(
               visualDensity: VisualDensity.compact,
-              tooltip: r.off ? '${label(r)} — буцааж нэмэх' : '${label(r)} — хасах',
+              tooltip: r.off ? tr('{r} — буцааж нэмэх', {'r': label(r)}) : tr('{r} — хасах', {'r': label(r)}),
               onPressed: () => d.updateVariant(r, off: !r.off),
               icon: Icon(r.off ? Icons.undo : Icons.delete_outline, size: 18, color: AdminColors.mutedForeground),
             ),
@@ -892,7 +893,7 @@ class _VariantTable extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 10),
               alignment: Alignment.center,
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: AdminColors.border)),
-              child: const Text('Зарахгүй', style: TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
+              child: Text(tr('Зарахгүй'), style: TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
             )
           else
             Row(children: [
@@ -914,8 +915,8 @@ class _VariantTable extends StatelessWidget {
         ],
         const Divider(height: 28, color: AdminColors.border),
         Row(children: [
-          Expanded(child: Text('Нийт ${sold.length} хувилбар', style: const TextStyle(color: AdminColors.mutedForeground))),
-          Text('$total ширхэг', style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
+          Expanded(child: Text(tr('Нийт {sold} хувилбар', {'sold': sold.length}), style: const TextStyle(color: AdminColors.mutedForeground))),
+          Text(tr('{total} ширхэг', {'total': total}), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
         ]),
       ]),
     );

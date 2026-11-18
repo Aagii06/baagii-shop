@@ -7,6 +7,7 @@ import '../common.dart';
 import 'admin_design.dart';
 import 'admin_widgets.dart';
 import 'attrs_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// [parent]-ийн доор дэд категори нэмбэл түвшний хязгаарт багтах эсэх.
 bool _canNestUnder(AdminCategory parent) => parent.depth + 2 <= maxCategoryDepth;
@@ -71,14 +72,15 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   Future<void> _delete(AdminCategory c) async {
     final ok = await confirmAction(context,
-        title: 'Категори устгах уу?',
-        description: '“${c.name}” категорийг устгана.'
-            '${c.children.isNotEmpty ? ' Энэ категори ${c.children.length} дэд категоритой.' : ''} Буцаах боломжгүй.',
-        confirmLabel: 'Устгах',
+        title: tr('Категори устгах уу?'),
+        description: '${tr('“{name}” категорийг устгана.', {'name': c.name})}'
+            '${c.children.isNotEmpty ? ' ${tr('Энэ категори {n} дэд категоритой.', {'n': c.children.length})}' : ''}'
+            ' ${tr('Буцаах боломжгүй.')}',
+        confirmLabel: tr('Устгах'),
         danger: true);
     if (!ok || !mounted) return;
     setState(() => _deleting.add(c.id));
-    final done = await runAction(context, () => context.read<AdminState>().deleteCategory(c.id), 'Категорийг устгалаа');
+    final done = await runAction(context, () => context.read<AdminState>().deleteCategory(c.id), tr('Категорийг устгалаа'));
     if (!mounted) return;
     setState(() => _deleting.remove(c.id));
     if (done) _load();
@@ -127,14 +129,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
     final parent = spot.parent;
     if (parent != null && parent.id != c.parentId && parent.isLeaf && parent.attrs.isNotEmpty) {
       final ok = await confirmAction(context,
-          title: 'Категори шилжүүлэх үү?',
-          description: '“${parent.name}” дэд категоритой болох тул түүний сонголтууд (өнгө, хэмжээ…) устна.',
-          confirmLabel: 'Шилжүүлэх');
+          title: tr('Категори шилжүүлэх үү?'),
+          description: tr('“{name}” дэд категоритой болох тул түүний сонголтууд (өнгө, хэмжээ…) устна.', {'name': parent.name}),
+          confirmLabel: tr('Шилжүүлэх'));
       if (!ok || !mounted) return;
     }
     setState(() => _busy = true);
     final moved = await runAction(
-        context, () => context.read<AdminState>().moveCategory(c.id, parent?.id, spot.index), 'Категорийг шилжүүллээ');
+        context, () => context.read<AdminState>().moveCategory(c.id, parent?.id, spot.index), tr('Категорийг шилжүүллээ'));
     if (moved) {
       // Хаашаа орсныг харуулна.
       if (parent != null) _expanded.add(parent.id);
@@ -156,11 +158,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
     final dragging = _dragging;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Категори'),
+        title: Text(tr('Категори')),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: AdminSmallButton(label: 'Нэмэх', onPressed: () => _openForm()),
+            child: AdminSmallButton(label: tr('Нэмэх'), onPressed: () => _openForm()),
           ),
         ],
       ),
@@ -172,7 +174,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             error: _error,
             onRetry: _load,
             emptyIcon: Icons.grid_view,
-            emptyText: 'Категори алга\n“Нэмэх” товчоор шинэ категори нэмнэ үү.',
+            emptyText: tr('Категори алга\n“Нэмэх” товчоор шинэ категори нэмнэ үү.'),
             builder: (rows) => ListView(padding: const EdgeInsets.only(bottom: 120), children: [AdminList(children: [for (final c in rows) _row(c)])]),
           ),
         ),
@@ -200,7 +202,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     border: Border.all(color: on ? AdminColors.primary : AdminColors.border, width: 2),
                     boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 12)],
                   ),
-                  child: Text('Энд тавивал дээд түвшин болно',
+                  child: Text(tr('Энд тавивал дээд түвшин болно'),
                       style: TextStyle(fontWeight: FontWeight.w600, color: on ? AdminColors.primaryInk : AdminColors.mutedForeground)),
                 );
               },
@@ -229,7 +231,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
           child: hasKids
               ? IconButton(
                   padding: EdgeInsets.zero,
-                  tooltip: open ? 'Хураах' : 'Дэлгэх',
+                  tooltip: open ? tr('Хураах') : tr('Дэлгэх'),
                   onPressed: toggle,
                   icon: AnimatedRotation(
                       turns: open ? 0.25 : 0,
@@ -282,7 +284,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   style: TextStyle(fontSize: 15, fontWeight: c.depth == 0 ? FontWeight.bold : FontWeight.w600)),
               const SizedBox(height: 2),
               Text(
-                hasKids ? '${c.children.length} дэд категори' : attrsSummary(c.attrs.map((a) => a.name).toList()),
+                hasKids ? tr('{children} дэд категори', {'children': c.children.length}) : attrsSummary(c.attrs.map((a) => a.name).toList()),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -294,18 +296,18 @@ class _CategoriesPageState extends State<CategoriesPage> {
             ]),
           ),
         ),
-        _iconBtn(Icons.edit_outlined, 'Засах', () => _openForm(category: c),
+        _iconBtn(Icons.edit_outlined, tr('Засах'), () => _openForm(category: c),
             bg: Colors.white, fg: AdminColors.foreground, border: AdminColors.border),
         const SizedBox(width: 6),
         // Хамгийн доод түвшин дэд категори авахгүй — товчнууд эгнээндээ үлдэнэ.
         _canNestUnder(c)
-            ? _iconBtn(Icons.add, 'Дэд категори нэмэх', () => _openForm(parentId: c.id),
+            ? _iconBtn(Icons.add, tr('Дэд категори нэмэх'), () => _openForm(parentId: c.id),
                 bg: AdminColors.primarySoft, fg: AdminColors.primaryInk)
             : const SizedBox(width: 36),
         const SizedBox(width: 6),
         _deleting.contains(c.id)
             ? const SizedBox(width: 36, height: 36, child: Padding(padding: EdgeInsets.all(9), child: CircularProgressIndicator(strokeWidth: 2)))
-            : _iconBtn(Icons.delete_outline, 'Устгах', () => _delete(c),
+            : _iconBtn(Icons.delete_outline, tr('Устгах'), () => _delete(c),
                 bg: AdminColors.destructive.withValues(alpha: 0.1), fg: AdminColors.destructive),
       ]),
     );
@@ -465,7 +467,7 @@ class _CategoryFormPageState extends State<CategoryFormPage> {
       } else {
         await admin.updateCategory(c, name: _name.text.trim(), parentId: _parentId, attrIds: attrs);
       }
-    }, widget.category == null ? 'Категори нэмлээ' : 'Хадгаллаа');
+    }, widget.category == null ? tr('Категори нэмлээ') : tr('Хадгаллаа'));
     if (!mounted) return;
     if (saved) {
       Navigator.pop(context, true);
@@ -477,7 +479,7 @@ class _CategoryFormPageState extends State<CategoryFormPage> {
   @override
   Widget build(BuildContext context) {
     final c = widget.category;
-    final title = c != null ? 'Категори засах' : (_parentId != null ? 'Дэд категори нэмэх' : 'Категори нэмэх');
+    final title = c != null ? tr('Категори засах') : (_parentId != null ? tr('Дэд категори нэмэх') : tr('Категори нэмэх'));
     final nameOf = {for (final a in _catalogue ?? <AttrRecord>[]) a.id: a.name};
     return Scaffold(
       appBar: AppBar(title: Text(title), actions: [SaveAction(enabled: _dirty, busy: _saving, onPressed: _save)]),
@@ -486,26 +488,26 @@ class _CategoryFormPageState extends State<CategoryFormPage> {
           controller: _name,
           onChanged: (_) => setState(() {}),
           onEditingComplete: () => setState(() => _nameTouched = true),
-          decoration: fieldDecoration('Нэр', error: _nameTouched && _name.text.trim().isEmpty ? 'Категорийн нэр оруулна уу' : null),
+          decoration: fieldDecoration(tr('Нэр'), error: _nameTouched && _name.text.trim().isEmpty ? tr('Категорийн нэр оруулна уу') : null),
         ),
         if (c != null || _parent != null) ...[
           const SizedBox(height: 14),
           TextField(
             enabled: false,
-            controller: TextEditingController(text: _parent?.name ?? 'Дээд түвшин'),
-            decoration: fieldDecoration('Эцэг категори'),
+            controller: TextEditingController(text: _parent?.name ?? tr('Дээд түвшин')),
+            decoration: fieldDecoration(tr('Эцэг категори')),
           ),
         ],
         const SizedBox(height: 16),
         Panel(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Барааны сонголт', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            Text(tr('Барааны сонголт'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
             Text(
               _isLeaf
-                  ? 'Худалдан авагч юугаар нь сонгож авах вэ? Бараа бүртгэхэд эдгээрийг оруулах хэсэг гарна.'
-                  : 'Дэд категоритой тул сонголтыг хамгийн сүүлийн түвшний дэд категориуд дээр нь сонгоно.',
+                  ? tr('Худалдан авагч юугаар нь сонгож авах вэ? Бараа бүртгэхэд эдгээрийг оруулах хэсэг гарна.')
+                  : tr('Дэд категоритой тул сонголтыг хамгийн сүүлийн түвшний дэд категориуд дээр нь сонгоно.'),
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
             if (_isLeaf) ...[
@@ -519,7 +521,7 @@ class _CategoryFormPageState extends State<CategoryFormPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(color: mutedColor, borderRadius: BorderRadius.circular(12)),
-                  child: Text('Сонголтын жагсаалт хоосон байна.', style: TextStyle(color: Colors.grey.shade600)),
+                  child: Text(tr('Сонголтын жагсаалт хоосон байна.'), style: TextStyle(color: Colors.grey.shade600)),
                 )
               else
                 LayoutBuilder(
@@ -529,17 +531,17 @@ class _CategoryFormPageState extends State<CategoryFormPage> {
                 ),
               const SizedBox(height: 10),
               Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
-                Text('Дарсан дарааллаар нь оруулна. Хамгийн ихдээ $maxCategoryAttrs сонголт. Шинэ сонголтыг ',
+                Text(tr('Дарсан дарааллаар нь оруулна. Хамгийн ихдээ {maxCategoryAttrs} сонголт. Шинэ сонголтыг ', {'maxCategoryAttrs': maxCategoryAttrs}),
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                 InkWell(
                   onTap: () async {
                     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AttrsPage()));
                     _loadCatalogue();
                   },
-                  child: const Text('Үзүүлэлт',
+                  child: Text(tr('Үзүүлэлт'),
                       style: TextStyle(fontSize: 12, color: brandColor, fontWeight: FontWeight.w600, decoration: TextDecoration.underline)),
                 ),
-                Text(' хэсэгт нэмнэ.', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                Text(tr(' хэсэгт нэмнэ.'), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
               ]),
               const SizedBox(height: 10),
               // Бараа бүртгэх маягт юу асуухыг харуулна.
@@ -552,14 +554,14 @@ class _CategoryFormPageState extends State<CategoryFormPage> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _attrs.isEmpty
-                        ? const Text.rich(TextSpan(children: [
-                            TextSpan(text: 'Сонголтгүй', style: TextStyle(fontWeight: FontWeight.bold)),
-                            TextSpan(text: ' — бараа нэг л хувилбартай, зөвхөн тоо ширхэгээ оруулна (ж: хүнс, ном).'),
+                        ? Text.rich(TextSpan(children: [
+                            TextSpan(text: tr('Сонголтгүй'), style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(text: tr(' — бараа нэг л хувилбартай, зөвхөн тоо ширхэгээ оруулна (ж: хүнс, ном).')),
                           ]))
                         : Text.rich(TextSpan(children: [
-                            const TextSpan(text: 'Бараа бүртгэхэд: '),
+                            TextSpan(text: tr('Бараа бүртгэхэд: ')),
                             TextSpan(
-                              text: '${_attrs.map((id) => '${nameOf[id] ?? '#$id'} сонгох').join(' → ')} → тоо, үнэ',
+                              text: tr('{id} → тоо, үнэ', {'id': _attrs.map((id) => tr('{name} сонгох', {'name': nameOf[id] ?? '#$id'})).join(' → ')}),
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ])),

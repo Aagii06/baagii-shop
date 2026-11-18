@@ -7,6 +7,7 @@ import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
 import 'stores_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 const _minPassword = 6;
 
@@ -50,10 +51,10 @@ class _UsersPageState extends State<UsersPage> {
 
   Future<void> _delete(PanelUser u, String name) async {
     final ok = await confirmAction(context,
-        title: 'Хэрэглэгч устгах уу?', description: '“$name” нэвтрэх боломжгүй болно.', confirmLabel: 'Устгах', danger: true);
+        title: tr('Хэрэглэгч устгах уу?'), description: tr('“{name}” нэвтрэх боломжгүй болно.', {'name': name}), confirmLabel: tr('Устгах'), danger: true);
     if (!ok || !mounted) return;
     setState(() => _deleting.add(u.id));
-    final done = await runAction(context, () => context.read<AdminState>().deleteUser(u.id), 'Хэрэглэгчийг устгалаа');
+    final done = await runAction(context, () => context.read<AdminState>().deleteUser(u.id), tr('Хэрэглэгчийг устгалаа'));
     if (!mounted) return;
     setState(() => _deleting.remove(u.id));
     if (done) _load();
@@ -66,11 +67,11 @@ class _UsersPageState extends State<UsersPage> {
     final rows = _data?.where((u) => u.id != me && (_role == 'all' || u.role == _role)).toList();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Хэрэглэгчид'),
+        title: Text(tr('Хэрэглэгчид')),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: FilledButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('Нэмэх')),
+            child: FilledButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(tr('Нэмэх'))),
           ),
         ],
         bottom: PreferredSize(
@@ -78,7 +79,7 @@ class _UsersPageState extends State<UsersPage> {
           child: ChipTabs<String>(
             value: _role,
             onChanged: (v) => setState(() => _role = v),
-            options: [('all', 'Бүгд', null), for (final e in userRoleLabel.entries) (e.key, e.value, null)],
+            options: [('all', tr('Бүгд'), null), for (final e in userRoleLabel.entries) (e.key, e.value, null)],
           ),
         ),
       ),
@@ -89,7 +90,7 @@ class _UsersPageState extends State<UsersPage> {
           error: _error,
           onRetry: _load,
           emptyIcon: Icons.group_outlined,
-          emptyText: 'Хэрэглэгч алга',
+          emptyText: tr('Хэрэглэгч алга'),
           builder: (rows) => ListView.separated(
             itemCount: rows.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
@@ -111,14 +112,14 @@ class _UsersPageState extends State<UsersPage> {
                         StatusChip(userRoleLabel[u.role]!, u.role == 'admin' ? brandColor : Colors.grey.shade700),
                       ]),
                       Text(
-                        '${formatPhone(u.phone)}${u.role == 'shopper' ? ' · ${u.storeName ?? 'дэлгүүргүй'}' : ''}',
+                        '${formatPhone(u.phone)}${u.role == 'shopper' ? ' · ${u.storeName ?? tr('дэлгүүргүй')}' : ''}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                       ),
                     ]),
                   ),
-                  IconButton.outlined(tooltip: 'Засах', onPressed: () => _edit(u), icon: const Icon(Icons.edit_outlined, size: 18)),
+                  IconButton.outlined(tooltip: tr('Засах'), onPressed: () => _edit(u), icon: const Icon(Icons.edit_outlined, size: 18)),
                   DeleteIconButton(busy: _deleting.contains(u.id), onPressed: () => _delete(u, name)),
                 ]),
               );
@@ -206,7 +207,7 @@ class _UserFormPageState extends State<UserFormPage> {
         'storeId': _role == 'shopper' ? _storeId : null,
         'password': _password.text,
       }),
-      widget.user == null ? 'Хэрэглэгчийг нэмлээ' : 'Хадгаллаа',
+      widget.user == null ? tr('Хэрэглэгчийг нэмлээ') : tr('Хадгаллаа'),
     );
     if (!mounted) return;
     if (saved) {
@@ -228,14 +229,14 @@ class _UserFormPageState extends State<UserFormPage> {
     final email = _email.text.trim();
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.user == null ? 'Хэрэглэгч нэмэх' : 'Хэрэглэгч засах'),
+        title: Text(widget.user == null ? tr('Хэрэглэгч нэмэх') : tr('Хэрэглэгч засах')),
         actions: [SaveAction(enabled: _dirty, busy: _saving, onPressed: _save)],
       ),
       body: ListView(padding: const EdgeInsets.all(16), children: [
-        Text('Эрх', style: TextStyle(color: Colors.grey.shade600)),
+        Text(tr('Эрх'), style: TextStyle(color: Colors.grey.shade600)),
         const SizedBox(height: 6),
         if (isMe)
-          Text('Өөрийнхөө эрхийг өөрчлөх боломжгүй', style: TextStyle(color: Colors.grey.shade600))
+          Text(tr('Өөрийнхөө эрхийг өөрчлөх боломжгүй'), style: TextStyle(color: Colors.grey.shade600))
         else
           SegmentedButton<String>(
             segments: [for (final e in userRoleLabel.entries) ButtonSegment(value: e.key, label: Text(e.value))],
@@ -251,21 +252,21 @@ class _UserFormPageState extends State<UserFormPage> {
               key: ValueKey('store-${_stores!.length}'),
               initialValue: _stores!.any((s) => s.id == _storeId) ? _storeId : null,
               isExpanded: true,
-              decoration: fieldDecoration('Дэлгүүр',
-                  hint: 'Дэлгүүр сонгох', error: _submitted && _storeId == null ? 'Дэлгүүр сонгоно уу' : null),
+              decoration: fieldDecoration(tr('Дэлгүүр'),
+                  hint: tr('Дэлгүүр сонгох'), error: _submitted && _storeId == null ? tr('Дэлгүүр сонгоно уу') : null),
               items: [for (final s in _stores!) DropdownMenuItem(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis))],
               onChanged: (v) => setState(() => _storeId = v),
             ),
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton(onPressed: _newStore, child: const Text('+ Шинэ дэлгүүр бүртгэх')),
+            child: TextButton(onPressed: _newStore, child: Text(tr('+ Шинэ дэлгүүр бүртгэх'))),
           ),
           const SizedBox(height: 8),
         ],
         TextField(
           controller: _name,
           onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration('Нэр', error: _submitted && _name.text.trim().isEmpty ? 'Нэр оруулна уу' : null),
+          decoration: fieldDecoration(tr('Нэр'), error: _submitted && _name.text.trim().isEmpty ? tr('Нэр оруулна уу') : null),
         ),
         const SizedBox(height: 14),
         TextField(
@@ -275,9 +276,9 @@ class _UserFormPageState extends State<UserFormPage> {
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           style: const TextStyle(fontFamily: 'monospace'),
           onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration('Утасны дугаар',
-                  helper: 'Энэ дугаар, нууц үгээр нэвтэрнэ',
-                  error: _submitted && _phone.text.length < 8 ? 'Утасны дугаар 8 оронтой байна' : null)
+          decoration: fieldDecoration(tr('Утасны дугаар'),
+                  helper: tr('Энэ дугаар, нууц үгээр нэвтэрнэ'),
+                  error: _submitted && _phone.text.length < 8 ? tr('Утасны дугаар 8 оронтой байна') : null)
               .copyWith(counterText: ''),
         ),
         const SizedBox(height: 14),
@@ -286,15 +287,15 @@ class _UserFormPageState extends State<UserFormPage> {
           keyboardType: TextInputType.emailAddress,
           autocorrect: false,
           onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration('Имэйл',
-              error: _submitted && email.isNotEmpty && !emailRe.hasMatch(email) ? 'Имэйл буруу байна' : null),
+          decoration: fieldDecoration(tr('Имэйл'),
+              error: _submitted && email.isNotEmpty && !emailRe.hasMatch(email) ? tr('Имэйл буруу байна') : null),
         ),
         const SizedBox(height: 14),
         PasswordField(
           controller: _password,
-          label: widget.user != null ? 'Шинэ нууц үг' : 'Нууц үг',
-          helper: widget.user != null ? 'Хоосон бол хуучнаараа үлдэнэ' : 'Дэлгүүрийн хэрэглэгч утас, энэ нууц үгээр админд нэвтэрнэ',
-          error: _submitted && _passwordShort ? 'Нууц үг $_minPassword-аас дээш тэмдэгттэй байна' : null,
+          label: widget.user != null ? tr('Шинэ нууц үг') : tr('Нууц үг'),
+          helper: widget.user != null ? tr('Хоосон бол хуучнаараа үлдэнэ') : tr('Дэлгүүрийн хэрэглэгч утас, энэ нууц үгээр админд нэвтэрнэ'),
+          error: _submitted && _passwordShort ? tr('Нууц үг {_minPassword}-аас дээш тэмдэгттэй байна', {'_minPassword': _minPassword}) : null,
           onChanged: (_) => setState(() {}),
         ),
       ]),

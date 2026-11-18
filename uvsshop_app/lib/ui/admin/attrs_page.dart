@@ -5,6 +5,7 @@ import '../../api/admin_manage_models.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// "#ff0000" → өнгө.
 Color? _hex(String? v) {
@@ -60,10 +61,10 @@ class _AttrsPageState extends State<AttrsPage> {
 
   Future<void> _delete(AttrRecord a) async {
     final ok = await confirmAction(context,
-        title: 'Үзүүлэлт устгах уу?', description: '“${a.name}” үзүүлэлтийг устгана. Буцаах боломжгүй.', confirmLabel: 'Устгах', danger: true);
+        title: tr('Үзүүлэлт устгах уу?'), description: tr('“{name}” үзүүлэлтийг устгана. Буцаах боломжгүй.', {'name': a.name}), confirmLabel: tr('Устгах'), danger: true);
     if (!ok || !mounted) return;
     setState(() => _deleting.add(a.id));
-    final done = await runAction(context, () => context.read<AdminState>().deleteAttr(a.id), 'Үзүүлэлтийг устгалаа');
+    final done = await runAction(context, () => context.read<AdminState>().deleteAttr(a.id), tr('Үзүүлэлтийг устгалаа'));
     if (!mounted) return;
     setState(() => _deleting.remove(a.id));
     if (done) _load();
@@ -72,11 +73,11 @@ class _AttrsPageState extends State<AttrsPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: const Text('Үзүүлэлт'),
+          title: Text(tr('Үзүүлэлт')),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: FilledButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('Нэмэх')),
+              child: FilledButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(tr('Нэмэх'))),
             ),
           ],
         ),
@@ -87,7 +88,7 @@ class _AttrsPageState extends State<AttrsPage> {
             error: _error,
             onRetry: _load,
             emptyIcon: Icons.tune,
-            emptyText: 'Үзүүлэлт алга\n“Нэмэх” товчоор өнгө, хэмжээ зэрэг үзүүлэлт нэмнэ үү.',
+            emptyText: tr('Үзүүлэлт алга\n“Нэмэх” товчоор өнгө, хэмжээ зэрэг үзүүлэлт нэмнэ үү.'),
             builder: (rows) => ListView.separated(
               itemCount: rows.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
@@ -128,7 +129,7 @@ class _AttrsPageState extends State<AttrsPage> {
                           ),
                       ]),
                     ),
-                    IconButton.outlined(tooltip: 'Засах', onPressed: () => _edit(a), icon: const Icon(Icons.edit_outlined, size: 18)),
+                    IconButton.outlined(tooltip: tr('Засах'), onPressed: () => _edit(a), icon: const Icon(Icons.edit_outlined, size: 18)),
                     DeleteIconButton(busy: _deleting.contains(a.id), onPressed: () => _delete(a)),
                   ]),
                 );
@@ -190,7 +191,7 @@ class _AttrFormPageState extends State<AttrFormPage> {
     final value = _draft.text.trim();
     if (value.isEmpty) return true;
     if (_values.any((v) => valueKey(v.$3.text) == valueKey(value))) {
-      setState(() => _draftError = '“$value” утга аль хэдийн байна');
+      setState(() => _draftError = tr('“{value}” утга аль хэдийн байна', {'value': value}));
       return false;
     }
     setState(() {
@@ -211,7 +212,7 @@ class _AttrFormPageState extends State<AttrFormPage> {
     final saved = await runAction(
       context,
       () => admin.saveAttr(widget.attr, _name.text.trim(), [for (final v in _values) (v.$2, v.$3.text.trim())]),
-      widget.attr == null ? 'Үзүүлэлт нэмлээ' : 'Хадгаллаа',
+      widget.attr == null ? tr('Үзүүлэлт нэмлээ') : tr('Хадгаллаа'),
     );
     if (!mounted) return;
     if (saved) {
@@ -228,29 +229,29 @@ class _AttrFormPageState extends State<AttrFormPage> {
     final valuesError = !_submitted
         ? null
         : _values.isEmpty
-            ? 'Хамгийн багадаа нэг утга нэмнэ үү'
+            ? tr('Хамгийн багадаа нэг утга нэмнэ үү')
             : names.any((n) => n.trim().isEmpty)
-                ? 'Хоосон утгыг бөглөх эсвэл хасна уу'
+                ? tr('Хоосон утгыг бөглөх эсвэл хасна уу')
                 : dup != null
-                    ? '“$dup” утга давхардсан байна'
+                    ? tr('“{dup}” утга давхардсан байна', {'dup': dup})
                     : null;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.attr == null ? 'Үзүүлэлт нэмэх' : 'Үзүүлэлт засах'),
+        title: Text(widget.attr == null ? tr('Үзүүлэлт нэмэх') : tr('Үзүүлэлт засах')),
         actions: [SaveAction(enabled: _dirty, busy: _saving, onPressed: _save)],
       ),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         TextField(
           controller: _name,
           onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration('Нэр', error: _submitted && _name.text.trim().isEmpty ? 'Үзүүлэлтийн нэр оруулна уу' : null),
+          decoration: fieldDecoration(tr('Нэр'), error: _submitted && _name.text.trim().isEmpty ? tr('Үзүүлэлтийн нэр оруулна уу') : null),
         ),
         const SizedBox(height: 16),
         Panel(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Утгууд', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-            Text('Бараа бүртгэхэд эдгээрээс сонгоно. Энд байгаа дарааллаар харагдана.',
+            Text(tr('Утгууд'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            Text(tr('Бараа бүртгэхэд эдгээрээс сонгоно. Энд байгаа дарааллаар харагдана.'),
                 style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
             const SizedBox(height: 12),
             for (var i = 0; i < _values.length; i++)
@@ -262,14 +263,14 @@ class _AttrFormPageState extends State<AttrFormPage> {
                     child: TextField(
                       controller: _values[i].$3,
                       onChanged: (_) => setState(() {}),
-                      decoration: fieldDecoration('Утга ${i + 1}',
+                      decoration: fieldDecoration(tr('Утга {i}', {'i': i + 1}),
                               error: _submitted && _values[i].$3.text.trim().isEmpty ? '' : null)
                           .copyWith(isDense: true),
                     ),
                   ),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    tooltip: 'Дээш',
+                    tooltip: tr('Дээш'),
                     onPressed: i == 0
                         ? null
                         : () => setState(() {
@@ -281,7 +282,7 @@ class _AttrFormPageState extends State<AttrFormPage> {
                   ),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    tooltip: 'Доош',
+                    tooltip: tr('Доош'),
                     onPressed: i == _values.length - 1
                         ? null
                         : () => setState(() {
@@ -293,7 +294,7 @@ class _AttrFormPageState extends State<AttrFormPage> {
                   ),
                   IconButton(
                     visualDensity: VisualDensity.compact,
-                    tooltip: 'Хасах',
+                    tooltip: tr('Хасах'),
                     onPressed: () => setState(() => _values.removeAt(i).$3.dispose()),
                     icon: Icon(Icons.close, size: 18, color: Colors.red.shade600),
                   ),
@@ -306,7 +307,7 @@ class _AttrFormPageState extends State<AttrFormPage> {
                   onChanged: (_) => setState(() => _draftError = null),
                   onSubmitted: (_) => _addDraft(),
                   textInputAction: TextInputAction.done,
-                  decoration: fieldDecoration('Шинэ утга', error: _draftError).copyWith(isDense: true),
+                  decoration: fieldDecoration(tr('Шинэ утга'), error: _draftError).copyWith(isDense: true),
                 ),
               ),
               const SizedBox(width: 8),

@@ -9,6 +9,7 @@ import '../common.dart';
 import 'home_page.dart' show byNewest;
 import 'product_card.dart';
 import 'search_page.dart' show FilterButton, FilterSheet, SearchFilters;
+import 'package:uvsshop_app/i18n.dart';
 
 /// Дэлгүүрийг нээнэ. Буцах товч (AppBar) нээсэн газар руугаа буцна.
 void openStore(BuildContext context, int storeId) =>
@@ -136,9 +137,9 @@ class _StorePageState extends State<StorePage> {
     final visible = sorted.take(_shown).toList();
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFB),
-      appBar: AppBar(title: Text(_store?.name ?? 'Дэлгүүр')),
+      appBar: AppBar(title: Text(_store?.name ?? tr('Дэлгүүр'))),
       body: _notFound && !_loading
-          ? const EmptyView(icon: Icons.storefront_outlined, text: 'Дэлгүүр олдсонгүй\nЭнэ дэлгүүр хаагдсан эсвэл холбоос буруу байна.')
+          ? EmptyView(icon: Icons.storefront_outlined, text: tr('Дэлгүүр олдсонгүй\nЭнэ дэлгүүр хаагдсан эсвэл холбоос буруу байна.'))
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(padding: const EdgeInsets.all(16), children: [
@@ -184,7 +185,7 @@ class _StorePageState extends State<StorePage> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: borderColor),
                     ),
-                    child: Text(_products.isEmpty ? 'Энэ дэлгүүрт одоогоор бараа алга.' : 'Шүүлтэд тохирох бараа алга.',
+                    child: Text(_products.isEmpty ? tr('Энэ дэлгүүрт одоогоор бараа алга.') : tr('Шүүлтэд тохирох бараа алга.'),
                         textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
                   )
                 else
@@ -194,7 +195,7 @@ class _StorePageState extends State<StorePage> {
                   Center(
                     child: OutlinedButton(
                       onPressed: () => setState(() => _shown += _pageSize),
-                      child: const Text('Цааш үзэх'),
+                      child: Text(tr('Цааш үзэх')),
                     ),
                   ),
                 ],
@@ -213,7 +214,7 @@ class _Header extends StatelessWidget {
 
   Future<void> _launch(BuildContext context, Uri uri) async {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && context.mounted) {
-      showMessage(context, 'Нээж чадсангүй', error: true);
+      showMessage(context, tr('Нээж чадсангүй'), error: true);
     }
   }
 
@@ -296,7 +297,7 @@ class _Header extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                    Text('$count бараа', style: TextStyle(color: Colors.white.withValues(alpha: 0.85))),
+                    Text(tr('{count} бараа', {'count': count}), style: TextStyle(color: Colors.white.withValues(alpha: 0.85))),
                   ]),
                 ),
               ],
@@ -305,7 +306,7 @@ class _Header extends StatelessWidget {
               const SizedBox(height: 16),
               Divider(height: 1, color: Colors.white.withValues(alpha: 0.25)),
               const SizedBox(height: 12),
-              Text('ХОЛБОО БАРИХ',
+              Text(tr('ХОЛБОО БАРИХ'),
                   style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.75), fontSize: 11.5, fontWeight: FontWeight.w600, letterSpacing: 1)),
               const SizedBox(height: 10),

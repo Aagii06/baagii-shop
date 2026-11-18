@@ -7,6 +7,7 @@ import '../../state/shop_state.dart';
 import '../common.dart';
 import 'checkout_page.dart';
 import 'product_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 class CartPage extends StatefulWidget {
   final VoidCallback onShop;
@@ -40,7 +41,7 @@ class _CartPageState extends State<CartPage> {
     final shop = context.watch<ShopState>();
     final cart = shop.cart;
     return Scaffold(
-      appBar: AppBar(title: const Text('Сагс')),
+      appBar: AppBar(title: Text(tr('Сагс'))),
       body: RefreshIndicator(
         onRefresh: shop.refreshCart,
         child: cart.isEmpty
@@ -49,8 +50,8 @@ class _CartPageState extends State<CartPage> {
                   height: 420,
                   child: EmptyView(
                     icon: Icons.shopping_bag_outlined,
-                    text: 'Сагс хоосон байна',
-                    action: FilledButton(onPressed: widget.onShop, child: const Text('Дэлгүүр хэсэх')),
+                    text: tr('Сагс хоосон байна'),
+                    action: FilledButton(onPressed: widget.onShop, child: Text(tr('Дэлгүүр хэсэх'))),
                   ),
                 ),
               ])
@@ -62,7 +63,7 @@ class _CartPageState extends State<CartPage> {
                   if (i == cart.length) {
                     return Padding(
                       padding: const EdgeInsets.all(8),
-                      child: Text('Сагсанд нэмсэн бараа 1 цагийн дараа автоматаар хасагдана.',
+                      child: Text(tr('Сагсанд нэмсэн бараа 1 цагийн дараа автоматаар хасагдана.'),
                           style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                     );
                   }
@@ -79,14 +80,14 @@ class _CartPageState extends State<CartPage> {
                 child: Row(children: [
                   Expanded(
                     child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('Нийт (${shop.cartCount} ширхэг)', style: TextStyle(color: Colors.grey.shade700)),
+                      Text(tr('Нийт ({cartCount} ширхэг)', {'cartCount': shop.cartCount}), style: TextStyle(color: Colors.grey.shade700)),
                       Text(money(shop.cartTotal), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ]),
                   ),
                   FilledButton(
                     style: FilledButton.styleFrom(minimumSize: const Size(150, 48)),
                     onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CheckoutPage())),
-                    child: const Text('Захиалах'),
+                    child: Text(tr('Захиалах')),
                   ),
                 ]),
               ),

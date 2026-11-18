@@ -6,6 +6,7 @@ import '../../state/shop_state.dart';
 import '../admin/admin_widgets.dart' show formatWhen;
 import '../common.dart';
 import 'orders_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 const _icons = {
   'order_paid': Icons.paid_outlined,
@@ -93,7 +94,7 @@ class _ShopNotificationsPageState extends State<ShopNotificationsPage> {
     final rows = _rows;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Мэдэгдэл'),
+        title: Text(tr('Мэдэгдэл')),
         actions: [
           if (shop.unreadNotifications > 0)
             TextButton(
@@ -101,17 +102,17 @@ class _ShopNotificationsPageState extends State<ShopNotificationsPage> {
                 setState(() => _rows = [for (final r in _rows ?? <AdminNotification>[]) r.asRead()]);
                 shop.markAllNotificationsRead();
               },
-              child: const Text('Бүгдийг уншсан'),
+              child: Text(tr('Бүгдийг уншсан')),
             ),
         ],
       ),
       body: !shop.signedIn
-          ? const EmptyView(icon: Icons.notifications_none, text: 'Мэдэгдлээ харахын тулд нэвтэрнэ үү')
+          ? EmptyView(icon: Icons.notifications_none, text: tr('Мэдэгдлээ харахын тулд нэвтэрнэ үү'))
           : rows == null && _error
               ? Center(
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('Мэдэгдлийг ачаалж чадсангүй'),
-                    TextButton(onPressed: _load, child: const Text('Дахин оролдох')),
+                    Text(tr('Мэдэгдлийг ачаалж чадсангүй')),
+                    TextButton(onPressed: _load, child: Text(tr('Дахин оролдох'))),
                   ]),
                 )
               : rows == null
@@ -119,11 +120,11 @@ class _ShopNotificationsPageState extends State<ShopNotificationsPage> {
                   : RefreshIndicator(
                       onRefresh: _load,
                       child: rows.isEmpty
-                          ? ListView(children: const [
+                          ? ListView(children: [
                               SizedBox(height: 120),
                               EmptyView(
                                 icon: Icons.notifications_none,
-                                text: 'Мэдэгдэл алга. Захиалгын төлөв өөрчлөгдөхөд энд харагдана.',
+                                text: tr('Мэдэгдэл алга. Захиалгын төлөв өөрчлөгдөхөд энд харагдана.'),
                               ),
                             ])
                           : ListView(padding: const EdgeInsets.all(16), children: [
@@ -148,7 +149,7 @@ class _ShopNotificationsPageState extends State<ShopNotificationsPage> {
                                     onPressed: _loadingMore ? null : _more,
                                     child: _loadingMore
                                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                                        : const Text('Цааш үзэх'),
+                                        : Text(tr('Цааш үзэх')),
                                   ),
                                 ),
                             ]),

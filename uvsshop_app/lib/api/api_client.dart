@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 class ApiException implements Exception {
   final int status;
@@ -59,9 +60,9 @@ class ApiClient {
     try {
       response = await http.Response.fromStream(await request.send().timeout(timeout));
     } on TimeoutException {
-      throw ApiException(408, 'Сервер хариу өгсөнгүй. Дахин оролдоно уу.');
+      throw ApiException(408, tr('Сервер хариу өгсөнгүй. Дахин оролдоно уу.'));
     } catch (_) {
-      throw ApiException(0, 'Сүлжээний алдаа. Интернэт холболтоо шалгана уу.');
+      throw ApiException(0, tr('Сүлжээний алдаа. Интернэт холболтоо шалгана уу.'));
     }
 
     dynamic data;
@@ -83,11 +84,11 @@ class ApiClient {
   }
 
   static String _statusMessage(int status) {
-    if (status == 401) return 'Нэвтрэх шаардлагатай';
-    if (status == 403) return 'Хандах эрхгүй';
-    if (status == 404) return 'Олдсонгүй';
-    if (status >= 500) return 'Серверийн алдаа ($status)';
-    return 'Алдаа гарлаа';
+    if (status == 401) return tr('Нэвтрэх шаардлагатай');
+    if (status == 403) return tr('Хандах эрхгүй');
+    if (status == 404) return tr('Олдсонгүй');
+    if (status >= 500) return tr('Серверийн алдаа ({status})', {'status': status});
+    return tr('Алдаа гарлаа');
   }
 }
 

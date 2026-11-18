@@ -8,6 +8,7 @@ import '../common.dart';
 import 'product_card.dart';
 import 'search_page.dart' show FilterButton, FilterSheet, SearchFilters;
 import 'store_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 const _tierRank = {'gold': 0, 'silver': 1, 'bronze': 2, 'normal': 3};
 const _tierLabel = {'gold': 'Gold', 'silver': 'Silver', 'bronze': 'Bronze'};
@@ -112,13 +113,13 @@ class _StoresPageState extends State<StoresPage> {
     final visible = sorted.take(_shown).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Дэлгүүрүүд')),
+      appBar: AppBar(title: Text(tr('Дэлгүүрүүд'))),
       body: _loading
           ? const LoadingView(kind: SkeletonKind.grid)
           : ListView(padding: const EdgeInsets.all(16), children: [
               Text.rich(TextSpan(children: [
-                const TextSpan(text: 'Дэлгүүрүүд ', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                TextSpan(text: '${_stores.length} дэлгүүр', style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
+                TextSpan(text: tr('Дэлгүүрүүд '), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                TextSpan(text: tr('{_stores} дэлгүүр', {'_stores': _stores.length}), style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
               ])),
               const SizedBox(height: 18),
               GridView.builder(
@@ -138,9 +139,9 @@ class _StoresPageState extends State<StoresPage> {
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('Дэлгүүрүүдийн бараа', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
+                    Text(tr('Дэлгүүрүүдийн бараа'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 2),
-                    Text('Gold, Silver, Bronze дэлгүүрүүдийн бараа эхэндээ', style: TextStyle(color: Colors.grey.shade600)),
+                    Text(tr('Gold, Silver, Bronze дэлгүүрүүдийн бараа эхэндээ'), style: TextStyle(color: Colors.grey.shade600)),
                   ]),
                 ),
                 const SizedBox(width: 8),
@@ -154,7 +155,7 @@ class _StoresPageState extends State<StoresPage> {
                 Container(
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: borderColor)),
-                  child: Text('Шүүлтэд тохирох бараа алга.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+                  child: Text(tr('Шүүлтэд тохирох бараа алга.'), textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
                 )
               else
                 ProductGrid(visible),
@@ -163,7 +164,7 @@ class _StoresPageState extends State<StoresPage> {
                 Center(
                   child: OutlinedButton(
                     onPressed: () => setState(() => _shown += _pageSize),
-                    child: const Text('Цааш үзэх'),
+                    child: Text(tr('Цааш үзэх')),
                   ),
                 ),
               ],
@@ -203,7 +204,7 @@ class _TierStoreTile extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, height: 1.25)),
                   const SizedBox(height: 2),
-                  Text('${store.productCount} бараа', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                  Text(tr('{productCount} бараа', {'productCount': store.productCount}), style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                 ]),
               ),
             ),

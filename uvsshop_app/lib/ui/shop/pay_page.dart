@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../api/shop_models.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 class PayPage extends StatefulWidget {
   final String orderId;
@@ -82,7 +83,7 @@ class _PayPageState extends State<PayPage> {
       if (o.isPaid) {
         _poll?.cancel();
       } else if (!silent) {
-        showMessage(context, 'Төлбөр хараахан ороогүй байна');
+        showMessage(context, tr('Төлбөр хараахан ороогүй байна'));
       }
     } catch (e) {
       if (!silent && mounted) showMessage(context, e.toString(), error: true);
@@ -106,7 +107,7 @@ class _PayPageState extends State<PayPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Захиалга #${widget.orderId}')),
+      appBar: AppBar(title: Text(tr('Захиалга #{orderId}', {'orderId': widget.orderId}))),
       body: _order == null
           ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView(kind: SkeletonKind.detail))
           : _body(_order!),
@@ -115,17 +116,17 @@ class _PayPageState extends State<PayPage> {
 
   Widget _body(ShopOrder o) {
     if (o.isReturned) {
-      return const EmptyView(icon: Icons.undo, text: 'Энэ захиалга буцаагдсан байна.');
+      return EmptyView(icon: Icons.undo, text: tr('Энэ захиалга буцаагдсан байна.'));
     }
     if (o.isPaid) {
       return EmptyView(
         icon: Icons.check_circle,
-        text: 'Төлбөр амжилттай төлөгдлөө!\nТаны захиалгыг удахгүй хүргэнэ.',
-        action: FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Буцах')),
+        text: tr('Төлбөр амжилттай төлөгдлөө!\nТаны захиалгыг удахгүй хүргэнэ.'),
+        action: FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(tr('Буцах'))),
       );
     }
     if (o.isCancelled) {
-      return const EmptyView(icon: Icons.cancel_outlined, text: 'Энэ захиалга цуцлагдсан байна.');
+      return EmptyView(icon: Icons.cancel_outlined, text: tr('Энэ захиалга цуцлагдсан байна.'));
     }
     final m = _methods!;
     return ListView(padding: const EdgeInsets.all(16), children: [
@@ -133,7 +134,7 @@ class _PayPageState extends State<PayPage> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(children: [
-            const Expanded(child: Text('Төлөх дүн', style: TextStyle(fontSize: 16))),
+            Expanded(child: Text(tr('Төлөх дүн'), style: TextStyle(fontSize: 16))),
             Text(money(o.total), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: brandColor)),
           ]),
         ),
@@ -141,9 +142,9 @@ class _PayPageState extends State<PayPage> {
       const SizedBox(height: 16),
       if (m.qpay && m.bank != null)
         SegmentedButton<String>(
-          segments: const [
+          segments: [
             ButtonSegment(value: 'qpay', label: Text('QPay'), icon: Icon(Icons.qr_code_2)),
-            ButtonSegment(value: 'bank', label: Text('Дансаар'), icon: Icon(Icons.account_balance_outlined)),
+            ButtonSegment(value: 'bank', label: Text(tr('Дансаар')), icon: Icon(Icons.account_balance_outlined)),
           ],
           selected: {_method ?? 'qpay'},
           onSelectionChanged: (s) {
@@ -154,7 +155,7 @@ class _PayPageState extends State<PayPage> {
       const SizedBox(height: 16),
       if (_method == 'qpay') _qpay(),
       if (_method == 'bank' && m.bank != null) _bank(m.bank!, o),
-      if (_method == null) const Text('Төлбөрийн хэлбэр тохируулагдаагүй байна. Дэлгүүртэй холбогдоно уу.'),
+      if (_method == null) Text(tr('Төлбөрийн хэлбэр тохируулагдаагүй байна. Дэлгүүртэй холбогдоно уу.')),
     ]);
   }
 
@@ -170,7 +171,7 @@ class _PayPageState extends State<PayPage> {
       if (qr != null)
         Card(child: Padding(padding: const EdgeInsets.all(16), child: Center(child: qr))),
       const SizedBox(height: 12),
-      const Text('Банкны аппаар QR уншуулах эсвэл доорх банкаа сонгон төлнө үү.', textAlign: TextAlign.center),
+      Text(tr('Банкны аппаар QR уншуулах эсвэл доорх банкаа сонгон төлнө үү.'), textAlign: TextAlign.center),
       const SizedBox(height: 12),
       GridView.count(
         crossAxisCount: 4,
@@ -185,7 +186,7 @@ class _PayPageState extends State<PayPage> {
               borderRadius: BorderRadius.circular(10),
               onTap: () async {
                 final ok = await launchUrl(Uri.parse(b.link), mode: LaunchMode.externalApplication);
-                if (!ok && mounted) showMessage(context, '${b.description} апп суусангүй байна', error: true);
+                if (!ok && mounted) showMessage(context, tr('{description} апп суусангүй байна', {'description': b.description}), error: true);
               },
               child: Column(children: [
                 NetImage(b.logo, width: 48, height: 48, radius: BorderRadius.circular(10)),
@@ -200,7 +201,7 @@ class _PayPageState extends State<PayPage> {
         style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
         onPressed: _checking ? null : () => _check(),
         icon: _checking ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.refresh),
-        label: const Text('Төлбөр шалгах'),
+        label: Text(tr('Төлбөр шалгах')),
       ),
     ]);
   }
@@ -214,29 +215,29 @@ class _PayPageState extends State<PayPage> {
             icon: const Icon(Icons.copy, size: 20),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: value));
-              showMessage(context, 'Хуулсан');
+              showMessage(context, tr('Хуулсан'));
             },
           ),
         );
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Card(
         child: Column(children: [
-          row('Банк', b.bankName),
-          row('Хүлээн авагч', b.accountName),
-          row('Дансны дугаар', b.accountNumber),
+          row(tr('Банк'), b.bankName),
+          row(tr('Хүлээн авагч'), b.accountName),
+          row(tr('Дансны дугаар'), b.accountNumber),
           if (b.iban != null && b.iban!.isNotEmpty) row('IBAN', b.iban!),
-          row('Гүйлгээний утга', o.id),
-          row('Дүн', o.total.round().toString()),
+          row(tr('Гүйлгээний утга'), o.id),
+          row(tr('Дүн'), o.total.round().toString()),
         ]),
       ),
       const SizedBox(height: 12),
       if (o.paymentMethod == 'bank')
-        const Text('Шилжүүлгийг шалгаж байна. Мөнгө орсны дараа захиалга баталгаажна.', textAlign: TextAlign.center)
+        Text(tr('Шилжүүлгийг шалгаж байна. Мөнгө орсны дараа захиалга баталгаажна.'), textAlign: TextAlign.center)
       else
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           onPressed: _busy ? null : _bankDone,
-          child: _busy ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Шилжүүлсэн'),
+          child: _busy ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text(tr('Шилжүүлсэн')),
         ),
     ]);
   }

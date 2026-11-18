@@ -1,4 +1,5 @@
 import 'api_client.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 // Админы профайл цэсний хуудсуудын өгөгдөл (admin/src/lib/api/*-тэй ижил).
 
@@ -12,7 +13,9 @@ const maxStoreContacts = 5;
 
 /// Түвшин, өндрөөс нь эхлээд.
 const storeTiers = ['gold', 'silver', 'bronze', 'normal'];
-const storeTierLabel = {'gold': 'Gold', 'silver': 'Silver', 'bronze': 'Bronze', 'normal': 'Энгийн'};
+const _storeTierLabelMn = {'gold': 'Gold', 'silver': 'Silver', 'bronze': 'Bronze', 'normal': 'Энгийн'};
+/// Shown in the chosen language (i18n.dart).
+Map<String, String> get storeTierLabel => {for (final e in _storeTierLabelMn.entries) e.key: tr(e.value)};
 
 class Store {
   final int id;
@@ -64,7 +67,9 @@ class Store {
 
 // ---------- хэрэглэгч ----------
 
-const userRoleLabel = {'admin': 'Админ', 'shopper': 'Дэлгүүр'};
+const _userRoleLabelMn = {'admin': 'Админ', 'shopper': 'Дэлгүүр'};
+/// Shown in the chosen language (i18n.dart).
+Map<String, String> get userRoleLabel => {for (final e in _userRoleLabelMn.entries) e.key: tr(e.value)};
 
 class PanelUser {
   final int id;
@@ -113,7 +118,9 @@ class Customer {
 
 // ---------- санал хүсэлт ----------
 
-const feedbackStatusLabel = {'new': 'Шинэ', 'read': 'Уншсан'};
+const _feedbackStatusLabelMn = {'new': 'Шинэ', 'read': 'Уншсан'};
+/// Shown in the chosen language (i18n.dart).
+Map<String, String> get feedbackStatusLabel => {for (final e in _feedbackStatusLabelMn.entries) e.key: tr(e.value)};
 
 class FeedbackMsg {
   final int id;
@@ -142,7 +149,9 @@ class FeedbackMsg {
 
 // ---------- хамтран ажиллах хүсэлт ----------
 
-const partnerStatusLabel = {'pending': 'Хүлээгдэж буй', 'approved': 'Баталсан', 'rejected': 'Татгалзсан'};
+const _partnerStatusLabelMn = {'pending': 'Хүлээгдэж буй', 'approved': 'Баталсан', 'rejected': 'Татгалзсан'};
+/// Shown in the chosen language (i18n.dart).
+Map<String, String> get partnerStatusLabel => {for (final e in _partnerStatusLabelMn.entries) e.key: tr(e.value)};
 
 class PartnerRequest {
   final int id;
@@ -267,7 +276,7 @@ List<AdminCategory> flattenCategories(List<AdminCategory> list, [int depth = 0])
     ];
 
 String attrsSummary(List<String> names) {
-  if (names.isEmpty) return 'Сонголтгүй';
+  if (names.isEmpty) return tr('Сонголтгүй');
   return [for (var i = 0; i < names.length; i++) i == 0 ? names[i] : names[i].toLowerCase()].join(', ');
 }
 

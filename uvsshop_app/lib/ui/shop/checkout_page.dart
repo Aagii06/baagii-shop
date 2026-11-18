@@ -7,6 +7,7 @@ import '../common.dart';
 import 'address_fields.dart';
 import 'pay_page.dart';
 import 'sign_in_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 
 class CheckoutPage extends StatefulWidget {
@@ -52,7 +53,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final area = useSaved ? selected.area : _area;
     try {
       final order = await shop.placeOrder({
-        'addressLabel': useSaved ? selected.displayLabel : (_area.type?.name ?? 'Бусад хаяг'),
+        'addressLabel': useSaved ? selected.displayLabel : (_area.type?.name ?? tr('Бусад хаяг')),
         'address': useSaved ? selected.address : _area.format(_address.text),
         if (area?.type != null) 'addressTypeId': area!.type!.id,
         if (area?.city != null) 'cityId': area!.city!.id,
@@ -79,9 +80,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final shop = context.watch<ShopState>();
     if (!shop.signedIn) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Захиалга')),
+        appBar: AppBar(title: Text(tr('Захиалга'))),
         body: ListView(padding: const EdgeInsets.all(20), children: [
-          const Text('Захиалга өгөхийн тулд утасны дугаараа баталгаажуулна уу.',
+          Text(tr('Захиалга өгөхийн тулд утасны дугаараа баталгаажуулна уу.'),
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
           const SizedBox(height: 16),
           PhoneOtpForm(onDone: () {}),
@@ -99,43 +100,43 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Хүргэлтийн мэдээлэл')),
+      appBar: AppBar(title: Text(tr('Хүргэлтийн мэдээлэл'))),
       body: Form(
         key: _form,
         child: ListView(padding: const EdgeInsets.all(16), children: [
-          _section('Хүлээн авагч'),
+          _section(tr('Хүлээн авагч')),
           TextFormField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Нэр *'),
-            validator: (v) => (v ?? '').trim().isEmpty ? 'Нэр оруулна уу' : null,
+            decoration: InputDecoration(labelText: tr('Нэр *')),
+            validator: (v) => (v ?? '').trim().isEmpty ? tr('Нэр оруулна уу') : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Утас *'),
-            validator: (v) => digitsOnly(v ?? '').length != 8 ? 'Утасны дугаар 8 оронтой байна' : null,
+            decoration: InputDecoration(labelText: tr('Утас *')),
+            validator: (v) => digitsOnly(v ?? '').length != 8 ? tr('Утасны дугаар 8 оронтой байна') : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _extraPhone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Нэмэлт утас'),
+            decoration: InputDecoration(labelText: tr('Нэмэлт утас')),
             validator: (v) {
               final d = digitsOnly(v ?? '');
-              return d.isNotEmpty && d.length != 8 ? 'Утасны дугаар 8 оронтой байна' : null;
+              return d.isNotEmpty && d.length != 8 ? tr('Утасны дугаар 8 оронтой байна') : null;
             },
           ),
           _addressSection(shop),
           const SizedBox(height: 12),
-          TextFormField(controller: _note, maxLines: 2, decoration: const InputDecoration(labelText: 'Тэмдэглэл')),
+          TextFormField(controller: _note, maxLines: 2, decoration: InputDecoration(labelText: tr('Тэмдэглэл'))),
           const SizedBox(height: 12),
           TextFormField(
             controller: _coupon,
             textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(labelText: 'Хөнгөлөлтийн код'),
+            decoration: InputDecoration(labelText: tr('Хөнгөлөлтийн код')),
           ),
-          _section('Захиалгын дүн'),
+          _section(tr('Захиалгын дүн')),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -149,10 +150,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     ]),
                   ),
                 const Divider(),
-                Row(children: [const Expanded(child: Text('Хүргэлт')), Text(money(0))]),
+                Row(children: [Expanded(child: Text(tr('Хүргэлт'))), Text(money(0))]),
                 const SizedBox(height: 4),
                 Row(children: [
-                  const Expanded(child: Text('Нийт', style: TextStyle(fontWeight: FontWeight.bold))),
+                  Expanded(child: Text(tr('Нийт'), style: TextStyle(fontWeight: FontWeight.bold))),
                   Text(money(shop.cartTotal), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ]),
               ]),
@@ -169,7 +170,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             onPressed: _placing || shop.cart.isEmpty ? null : _submit,
             child: _placing
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Захиалга баталгаажуулах'),
+                : Text(tr('Захиалга баталгаажуулах')),
           ),
         ),
       ),
@@ -189,12 +190,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
       Padding(
         padding: const EdgeInsets.only(top: 16, bottom: 10),
         child: Row(children: [
-          const Expanded(child: Text('Хүргэлтийн хаяг', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16))),
+          Expanded(child: Text(tr('Хүргэлтийн хаяг'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16))),
           if (saved.isNotEmpty)
             TextButton.icon(
               onPressed: () => setState(() => _custom = !_custom),
               icon: const Icon(Icons.add, size: 16),
-              label: Text(_custom ? 'Хадгалсан хаягууд' : 'Шинэ хаяг нэмэх'),
+              label: Text(_custom ? tr('Хадгалсан хаягууд') : tr('Шинэ хаяг нэмэх')),
             ),
         ]),
       ),
@@ -228,8 +229,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         TextFormField(
           controller: _address,
           maxLines: 3,
-          decoration: const InputDecoration(labelText: 'Дэлгэрэнгүй хаяг', hintText: 'Байр, орц, давхар, тоот...'),
-          validator: (v) => (v ?? '').trim().isEmpty ? 'Хаяг оруулна уу' : null,
+          decoration: InputDecoration(labelText: tr('Дэлгэрэнгүй хаяг'), hintText: tr('Байр, орц, давхар, тоот...')),
+          validator: (v) => (v ?? '').trim().isEmpty ? tr('Хаяг оруулна уу') : null,
         ),
       ],
     ]);

@@ -6,6 +6,7 @@ import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
 import 'orders_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Сүүлд устгахад оруулсан админы нууц үг 15 минут санагдана (зөвхөн санах ойд).
 ({String value, DateTime until})? _savedPassword;
@@ -59,7 +60,7 @@ class _CustomersPageState extends State<CustomersPage> {
       builder: (_) => _DeleteSheet(customer: c),
     );
     if (deleted == true && mounted) {
-      showMessage(context, 'Худалдан авагчийг устгалаа');
+      showMessage(context, tr('Худалдан авагчийг устгалаа'));
       _load();
     }
   }
@@ -73,7 +74,7 @@ class _CustomersPageState extends State<CustomersPage> {
         .toList();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Худалдан авагчид'),
+        title: Text(tr('Худалдан авагчид')),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -81,7 +82,7 @@ class _CustomersPageState extends State<CustomersPage> {
             child: TextField(
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
-                hintText: 'Нэр, утсаар хайх',
+                hintText: tr('Нэр, утсаар хайх'),
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.grey.shade100,
@@ -98,7 +99,7 @@ class _CustomersPageState extends State<CustomersPage> {
           error: _error,
           onRetry: _load,
           emptyIcon: Icons.person_outline,
-          emptyText: q.isNotEmpty ? 'Илэрц олдсонгүй' : 'Худалдан авагч алга',
+          emptyText: q.isNotEmpty ? tr('Илэрц олдсонгүй') : tr('Худалдан авагч алга'),
           builder: (rows) => ListView.separated(
             itemCount: rows.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
@@ -110,27 +111,27 @@ class _CustomersPageState extends State<CustomersPage> {
                 child: Row(children: [
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(c.name ?? 'Зочин',
+                      Text(c.name ?? tr('Зочин'),
                           maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                      Text('${formatPhone(c.phone)} · ${formatDate(c.createdAt, time: false)}-с',
+                      Text(tr('{phone} · {date}-с', {'phone': formatPhone(c.phone), 'date': formatDate(c.createdAt, time: false)}),
                           style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                     ]),
                   ),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Text('${c.orderCount} захиалга', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text(tr('{orderCount} захиалга', {'orderCount': c.orderCount}), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     if (c.lastOrderAt != null)
                       Text(formatDate(c.lastOrderAt, time: false), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                   ]),
                   const SizedBox(width: 4),
                   IconButton(
-                    tooltip: 'Захиалга харах',
+                    tooltip: tr('Захиалга харах'),
                     icon: const Icon(Icons.receipt_long_outlined, size: 20, color: brandColor),
                     onPressed: () => Navigator.of(context)
                         .push(MaterialPageRoute(builder: (_) => AdminOrdersPage(phone: c.phone))),
                   ),
                   // Захиалгатай худалдан авагчийг устгах боломжгүй (backend ч татгалзана).
                   Tooltip(
-                    message: c.orderCount > 0 ? 'Захиалгатай тул устгах боломжгүй' : 'Устгах',
+                    message: c.orderCount > 0 ? tr('Захиалгатай тул устгах боломжгүй') : tr('Устгах'),
                     child: DeleteIconButton(busy: false, onPressed: c.orderCount > 0 ? null : () => _delete(c)),
                   ),
                 ]),
@@ -165,7 +166,7 @@ class _DeleteSheetState extends State<_DeleteSheet> {
 
   Future<void> _submit() async {
     final pw = _remembered.isNotEmpty ? _remembered : _password.text;
-    if (pw.isEmpty) return setState(() => _error = 'Нууц үгээ оруулна уу');
+    if (pw.isEmpty) return setState(() => _error = tr('Нууц үгээ оруулна уу'));
     setState(() => _busy = true);
     try {
       await context.read<AdminState>().deleteCustomer(widget.customer.id, pw);
@@ -194,15 +195,15 @@ class _DeleteSheetState extends State<_DeleteSheet> {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         CircleAvatar(radius: 24, backgroundColor: Colors.red.shade50, child: Icon(Icons.delete_outline, color: Colors.red.shade600)),
         const SizedBox(height: 12),
-        Text('$name-г устгах уу?', textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+        Text(tr('{name}-г устгах уу?', {'name': name}), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
-        Text('${formatPhone(c.phone)} · Худалдан авагчийн бүртгэл устна.',
+        Text(tr('{phone} · Худалдан авагчийн бүртгэл устна.', {'phone': formatPhone(c.phone)}),
             textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
         if (_remembered.isEmpty) ...[
           const SizedBox(height: 16),
           PasswordField(
             controller: _password,
-            label: 'Баталгаажуулахын тулд өөрийн нууц үгээ оруулна уу',
+            label: tr('Баталгаажуулахын тулд өөрийн нууц үгээ оруулна уу'),
             error: _error,
             onChanged: (_) => setState(() => _error = null),
           ),
@@ -212,7 +213,7 @@ class _DeleteSheetState extends State<_DeleteSheet> {
         ],
         const SizedBox(height: 20),
         Row(children: [
-          Expanded(child: OutlinedButton(onPressed: _busy ? null : () => Navigator.pop(context), child: const Text('Болих'))),
+          Expanded(child: OutlinedButton(onPressed: _busy ? null : () => Navigator.pop(context), child: Text(tr('Болих')))),
           const SizedBox(width: 8),
           Expanded(
             child: FilledButton(
@@ -220,7 +221,7 @@ class _DeleteSheetState extends State<_DeleteSheet> {
               onPressed: _busy ? null : _submit,
               child: _busy
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Устгах'),
+                  : Text(tr('Устгах')),
             ),
           ),
         ]),

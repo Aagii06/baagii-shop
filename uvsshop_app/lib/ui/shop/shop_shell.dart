@@ -13,6 +13,7 @@ import 'cart_page.dart';
 import 'home_page.dart';
 import 'saved_page.dart';
 import 'search_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Худалдан авагчийн доод цэс — web-ийн MobileBottomNav-тай адил:
 /// Нүүр · Хайх · Сагс · Хадгалсан (нэвтэрсэн үед) · Профайл / Нэвтрэх.
@@ -69,11 +70,11 @@ class _ShopShellState extends State<ShopShell> with WidgetsBindingObserver {
 
     // web-ийн MobileBottomNav-ийн дүрс, нэр, тоо.
     (IconData, String, int) item(ShopTab t) => switch (t) {
-          ShopTab.home => (Icons.home_outlined, 'Нүүр', 0),
-          ShopTab.search => (Icons.search, 'Хайх', 0),
-          ShopTab.cart => (Icons.shopping_cart_outlined, 'Сагс', cartCount),
-          ShopTab.saved => (Icons.favorite_border, 'Хадгалсан', savedCount),
-          ShopTab.profile => (Icons.person_outline, signedIn ? 'Профайл' : 'Нэвтрэх', unread),
+          ShopTab.home => (Icons.home_outlined, tr('Нүүр'), 0),
+          ShopTab.search => (Icons.search, tr('Хайх'), 0),
+          ShopTab.cart => (Icons.shopping_cart_outlined, tr('Сагс'), cartCount),
+          ShopTab.saved => (Icons.favorite_border, tr('Хадгалсан'), savedCount),
+          ShopTab.profile => (Icons.person_outline, signedIn ? tr('Профайл') : tr('Нэвтрэх'), unread),
         };
 
     return Scaffold(
@@ -90,7 +91,7 @@ class _ShopShellState extends State<ShopShell> with WidgetsBindingObserver {
               heroTag: 'toAdmin',
               onPressed: () => context.read<AppState>().openAdmin(),
               icon: const Icon(Icons.admin_panel_settings_outlined),
-              label: const Text('Админ'),
+              label: Text(tr('Админ')),
             )
           : null,
       bottomNavigationBar: Container(

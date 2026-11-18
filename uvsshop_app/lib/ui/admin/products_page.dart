@@ -11,6 +11,7 @@ import 'admin_design.dart';
 import 'admin_widgets.dart';
 import 'dashboard_page.dart' show lowStockThreshold;
 import 'product_form_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн /products: хайлт, категори шүүлтүүр, гүйлгэхэд цааш ачаална.
 class AdminProductsPage extends StatefulWidget {
@@ -94,9 +95,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
         onRefresh: _reload,
         child: ListView(controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), children: [
           AdminPageHeader(
-            title: 'Бараа',
+            title: tr('Бараа'),
             count: ready && _error == null ? _count : null,
-            aside: AdminSmallButton(label: 'Нэмэх', onPressed: () => _openForm(null)),
+            aside: AdminSmallButton(label: tr('Нэмэх'), onPressed: () => _openForm(null)),
             children: [
               TextField(
                 onChanged: (v) {
@@ -107,7 +108,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                   });
                 },
                 textInputAction: TextInputAction.search,
-                decoration: adminSearchDecoration('Бараа хайх'),
+                decoration: adminSearchDecoration(tr('Бараа хайх')),
               ),
               if (_tree != null && _tree!.isNotEmpty)
                 CategoryFilter(
@@ -125,9 +126,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
           else if (_error != null && _rows.isEmpty)
             Padding(padding: const EdgeInsets.only(top: 16), child: ErrorView(_error!, onRetry: _reload))
           else if (_rows.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 40),
-              child: EmptyView(icon: Icons.search_off, text: 'Бараа олдсонгүй\nХайлт эсвэл категориа өөрчилж үзнэ үү.'),
+              child: EmptyView(icon: Icons.search_off, text: tr('Бараа олдсонгүй\nХайлт эсвэл категориа өөрчилж үзнэ үү.')),
             )
           else ...[
             AdminList(children: [for (final p in _rows) _row(p, names)]),
@@ -136,7 +137,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 padding: const EdgeInsets.all(16),
                 child: Center(
                   child: _error != null && !_loading
-                      ? OutlinedButton(onPressed: _loadMore, child: const Text('Дахин оролдох'))
+                      ? OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох')))
                       : const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
                 ),
               ),
@@ -149,8 +150,8 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
   Widget _row(AdminProduct p, Map<int, String> names) {
     final category = [if (p.categoryId != null) ?names[p.categoryId], ?p.storeName].join(' · ');
     final (String stock, Color stockColor) = !p.isActive
-        ? ('Ноорог', AdminColors.mutedForeground.withValues(alpha: 0.7))
-        : ('${p.remain} нөөц', p.remain <= lowStockThreshold ? AdminColors.destructive : AdminColors.mutedForeground);
+        ? (tr('Ноорог'), AdminColors.mutedForeground.withValues(alpha: 0.7))
+        : (tr('{remain} нөөц', {'remain': p.remain}), p.remain <= lowStockThreshold ? AdminColors.destructive : AdminColors.mutedForeground);
     return InkWell(
       onTap: () => _openForm(p.id),
       child: Padding(
@@ -208,7 +209,7 @@ class CategoryFilter extends StatelessWidget {
     final flat = flattenCategories(tree);
     final picked = value.toSet();
     final names = flat.where((c) => picked.contains(c.id) && !(c.parentId != null && picked.contains(c.parentId))).map((c) => c.name).toList();
-    final label = names.isEmpty ? 'Бүх категори' : (names.length <= 2 ? names.join(', ') : '${names.length} категори');
+    final label = names.isEmpty ? tr('Бүх категори') : (names.length <= 2 ? names.join(', ') : tr('{names} категори', {'names': names.length}));
     return Material(
       color: Colors.white,
       shape: StadiumBorder(side: BorderSide(color: names.isEmpty ? AdminColors.border : AdminColors.primary.withValues(alpha: 0.5))),
@@ -289,14 +290,14 @@ class _TreeSheetState extends State<_TreeSheet> {
       child: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
-            child: Text('Категори', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            child: Text(tr('Категори'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ),
           if (widget.flat.length >= 12)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: TextField(onChanged: (v) => setState(() => _q = v), decoration: adminSearchDecoration('Хайх', icon: Icons.search)),
+              child: TextField(onChanged: (v) => setState(() => _q = v), decoration: adminSearchDecoration(tr('Хайх'), icon: Icons.search)),
             ),
           Flexible(
             child: ListView(shrinkWrap: true, children: [
@@ -317,11 +318,11 @@ class _TreeSheetState extends State<_TreeSheet> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: _picked.isEmpty ? null : () => setState(_picked.clear),
-                  child: const Text('Цэвэрлэх'),
+                  child: Text(tr('Цэвэрлэх')),
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(child: FilledButton(onPressed: () => Navigator.pop(context, _picked.toList()), child: const Text('Болсон'))),
+              Expanded(child: FilledButton(onPressed: () => Navigator.pop(context, _picked.toList()), child: Text(tr('Болсон')))),
             ]),
           ),
         ]),

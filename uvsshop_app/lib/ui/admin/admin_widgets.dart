@@ -8,6 +8,7 @@ import '../../api/api_client.dart';
 import '../../config.dart';
 import '../common.dart';
 import 'admin_design.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 // Админы профайл цэсний хуудсуудад давтагддаг хэсгүүд (web-ийн
 // DetailHeader, Confirm, Toast, Field, PasswordInput, код асуух sheet).
@@ -23,7 +24,7 @@ String formatWhen(String? iso) {
   if (d == null) return '—';
   final now = DateTime.now();
   String two(int n) => n.toString().padLeft(2, '0');
-  if (d.year == now.year && d.month == now.month && d.day == now.day) return 'Өнөөдөр ${two(d.hour)}:${two(d.minute)}';
+  if (d.year == now.year && d.month == now.month && d.day == now.day) return tr('Өнөөдөр {hour}:{minute}', {'hour': two(d.hour), 'minute': two(d.minute)});
   return formatDate(iso);
 }
 
@@ -60,7 +61,7 @@ Future<bool> confirmAction(
       title: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       content: description == null ? null : Text(description),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Болих')),
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Болих'))),
         FilledButton(
           style: danger ? FilledButton.styleFrom(backgroundColor: Colors.red.shade600) : null,
           onPressed: () => Navigator.pop(ctx, true),
@@ -88,7 +89,7 @@ class SaveAction extends StatelessWidget {
             onPressed: enabled && !busy ? onPressed : null,
             child: busy
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text(label),
+                : Text(tr(label)),
           ),
         ),
       );
@@ -137,7 +138,7 @@ class _PasswordFieldState extends State<PasswordField> {
           helper: widget.helper,
           error: widget.error,
           suffix: IconButton(
-            tooltip: _shown ? 'Нууц үг нуух' : 'Нууц үг харуулах',
+            tooltip: _shown ? tr('Нууц үг нуух') : tr('Нууц үг харуулах'),
             icon: Icon(_shown ? Icons.visibility_off_outlined : Icons.visibility_outlined),
             onPressed: () => setState(() => _shown = !_shown),
           ),
@@ -268,13 +269,13 @@ Future<PickedImage?> pickImage(BuildContext context) async {
   try {
     file = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1600, maxHeight: 1600, imageQuality: 90);
   } catch (e) {
-    if (context.mounted) showMessage(context, 'Зураг сонгож чадсангүй: $e', error: true);
+    if (context.mounted) showMessage(context, tr('Зураг сонгож чадсангүй: {e}', {'e': e}), error: true);
     return null;
   }
   if (file == null) return null;
   final bytes = await file.readAsBytes();
   if (bytes.length > maxImageMb * 1024 * 1024) {
-    if (context.mounted) showMessage(context, 'Зураг $maxImageMb MB-аас том байна', error: true);
+    if (context.mounted) showMessage(context, tr('Зураг {maxImageMb} MB-аас том байна', {'maxImageMb': maxImageMb}), error: true);
     return null;
   }
   return PickedImage(bytes, file.name);
@@ -357,7 +358,7 @@ class _CodeSheetState extends State<_CodeSheet> {
 
   Future<void> _confirm() async {
     final code = _code.text.trim();
-    if (code.isEmpty) return setState(() => _error = 'Код оруулна уу');
+    if (code.isEmpty) return setState(() => _error = tr('Код оруулна уу'));
     setState(() => _busy = true);
     final ok = await widget.onConfirm(code);
     if (!mounted) return;
@@ -371,7 +372,7 @@ class _CodeSheetState extends State<_CodeSheet> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           CircleAvatar(radius: 24, backgroundColor: accentColor, child: Icon(Icons.mail_outline, color: brandColor)),
           const SizedBox(height: 12),
-          const Text('Баталгаажуулах код', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+          Text(tr('Баталгаажуулах код'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text(widget.hint, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
           const SizedBox(height: 16),
@@ -391,13 +392,13 @@ class _CodeSheetState extends State<_CodeSheet> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: _sending || _cooldown > 0 ? null : _resend,
-              child: Text(_cooldown > 0 ? 'Дахин авах ($_cooldown)' : 'Дахин авах'),
+              child: Text(_cooldown > 0 ? tr('Дахин авах ({_cooldown})', {'_cooldown': _cooldown}) : tr('Дахин авах')),
             ),
           ),
           const SizedBox(height: 8),
           Row(children: [
             Expanded(
-              child: OutlinedButton(onPressed: () => Navigator.pop(context, false), child: const Text('Болих')),
+              child: OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Болих'))),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -405,7 +406,7 @@ class _CodeSheetState extends State<_CodeSheet> {
                 onPressed: _busy ? null : _confirm,
                 child: _busy
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Баталгаажуулах'),
+                    : Text(tr('Баталгаажуулах')),
               ),
             ),
           ]),
@@ -448,7 +449,7 @@ class DeleteIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        tooltip: 'Устгах',
+        tooltip: tr('Устгах'),
         style: IconButton.styleFrom(backgroundColor: Colors.red.shade50, foregroundColor: Colors.red.shade600),
         onPressed: busy ? null : onPressed,
         icon: busy

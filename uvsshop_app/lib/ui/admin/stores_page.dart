@@ -6,6 +6,7 @@ import '../../api/admin_manage_models.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 const _tierColor = {'gold': Color(0xFFB45309), 'silver': Color(0xFF475569), 'bronze': Color(0xFFC2410C)};
 
@@ -48,13 +49,13 @@ class _StoresPageState extends State<StoresPage> {
 
   Future<void> _delete(Store s) async {
     final ok = await confirmAction(context,
-        title: 'Дэлгүүр устгах уу?',
-        description: '“${s.name}” дэлгүүрийг устгана. Бараа, хэрэглэгчтэй дэлгүүрийг устгах боломжгүй.',
-        confirmLabel: 'Устгах',
+        title: tr('Дэлгүүр устгах уу?'),
+        description: tr('“{name}” дэлгүүрийг устгана. Бараа, хэрэглэгчтэй дэлгүүрийг устгах боломжгүй.', {'name': s.name}),
+        confirmLabel: tr('Устгах'),
         danger: true);
     if (!ok || !mounted) return;
     setState(() => _deleting.add(s.id));
-    final done = await runAction(context, () => context.read<AdminState>().deleteStore(s.id), 'Дэлгүүрийг устгалаа');
+    final done = await runAction(context, () => context.read<AdminState>().deleteStore(s.id), tr('Дэлгүүрийг устгалаа'));
     if (!mounted) return;
     setState(() => _deleting.remove(s.id));
     if (done) _load();
@@ -63,11 +64,11 @@ class _StoresPageState extends State<StoresPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: const Text('Дэлгүүрүүд'),
+          title: Text(tr('Дэлгүүрүүд')),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: FilledButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: const Text('Нэмэх')),
+              child: FilledButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add), label: Text(tr('Нэмэх'))),
             ),
           ],
         ),
@@ -78,7 +79,7 @@ class _StoresPageState extends State<StoresPage> {
             error: _error,
             onRetry: _load,
             emptyIcon: Icons.storefront_outlined,
-            emptyText: 'Дэлгүүр бүртгээгүй байна\nХамтран ажиллах хүсэлтийг батлахад дэлгүүр автоматаар үүснэ, эсвэл энд нэмнэ.',
+            emptyText: tr('Дэлгүүр бүртгээгүй байна\nХамтран ажиллах хүсэлтийг батлахад дэлгүүр автоматаар үүснэ, эсвэл энд нэмнэ.'),
             builder: (rows) => ListView.separated(
               itemCount: rows.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
@@ -114,7 +115,7 @@ class _StoresPageState extends State<StoresPage> {
                           Text(s.address!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                       ]),
                     ),
-                    IconButton.outlined(tooltip: 'Засах', onPressed: () => _edit(s), icon: const Icon(Icons.edit_outlined, size: 18)),
+                    IconButton.outlined(tooltip: tr('Засах'), onPressed: () => _edit(s), icon: const Icon(Icons.edit_outlined, size: 18)),
                     DeleteIconButton(busy: _deleting.contains(s.id), onPressed: () => _delete(s)),
                   ]),
                 );
@@ -177,7 +178,7 @@ class _StoreFormPageState extends State<StoreFormPage> {
         'logo': logo,
         'tier': _tier,
       });
-    }, widget.store == null ? 'Дэлгүүрийг бүртгэлээ' : 'Хадгаллаа');
+    }, widget.store == null ? tr('Дэлгүүрийг бүртгэлээ') : tr('Хадгаллаа'));
     if (!mounted) return;
     if (saved) {
       Navigator.pop(context, true);
@@ -191,7 +192,7 @@ class _StoreFormPageState extends State<StoreFormPage> {
     final hasLogo = _logo != null || _logoFile != null;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.store == null ? 'Дэлгүүр бүртгэх' : 'Дэлгүүр засах'),
+        title: Text(widget.store == null ? tr('Дэлгүүр бүртгэх') : tr('Дэлгүүр засах')),
         actions: [SaveAction(enabled: _dirty, busy: _saving, onPressed: _save)],
       ),
       body: ListView(padding: const EdgeInsets.all(16), children: [
@@ -223,33 +224,33 @@ class _StoreFormPageState extends State<StoreFormPage> {
               final img = await pickImage(context);
               if (img != null) setState(() => _logoFile = img);
             },
-            child: Text(hasLogo ? 'Лого солих' : 'Лого нэмэх'),
+            child: Text(hasLogo ? tr('Лого солих') : tr('Лого нэмэх')),
           ),
         ]),
         const SizedBox(height: 16),
         TextField(
           controller: _name,
           onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration('Дэлгүүрийн нэр',
-              error: _submitted && _name.text.trim().isEmpty ? 'Дэлгүүрийн нэр оруулна уу' : null),
+          decoration: fieldDecoration(tr('Дэлгүүрийн нэр'),
+              error: _submitted && _name.text.trim().isEmpty ? tr('Дэлгүүрийн нэр оруулна уу') : null),
         ),
         const SizedBox(height: 14),
         DropdownButtonFormField<String>(
           initialValue: _tier,
-          decoration: fieldDecoration('Түвшин', helper: 'Дэлгүүрүүд хуудсанд өндөр түвшний дэлгүүрийн бараа эхэндээ гарна'),
+          decoration: fieldDecoration(tr('Түвшин'), helper: tr('Дэлгүүрүүд хуудсанд өндөр түвшний дэлгүүрийн бараа эхэндээ гарна')),
           items: [for (final t in storeTiers) DropdownMenuItem(value: t, child: Text(storeTierLabel[t]!))],
           onChanged: (v) => setState(() => _tier = v ?? 'normal'),
         ),
         const SizedBox(height: 14),
         ContactList(
-          title: 'Утасны дугаар',
-          hint: '$maxStoreContacts хүртэл, эхнийх нь үндсэн',
-          empty: 'Дугаар нэмээгүй байна',
-          addLabel: 'Дугаар нэмэх',
+          title: tr('Утасны дугаар'),
+          hint: tr('{maxStoreContacts} хүртэл, эхнийх нь үндсэн', {'maxStoreContacts': maxStoreContacts}),
+          empty: tr('Дугаар нэмээгүй байна'),
+          addLabel: tr('Дугаар нэмэх'),
           items: _phones,
           mono: true,
-          error: _submitted && _phones.isEmpty ? 'Дор хаяж нэг утасны дугаар нэмнэ үү' : null,
-          check: (v) => v.length == 8 ? null : 'Утасны дугаар 8 оронтой байна',
+          error: _submitted && _phones.isEmpty ? tr('Дор хаяж нэг утасны дугаар нэмнэ үү') : null,
+          check: (v) => v.length == 8 ? null : tr('Утасны дугаар 8 оронтой байна'),
           onChanged: (v) => setState(() => _phones = v),
           input: (value, onChanged, label) => TextFormField(
             initialValue: value,
@@ -259,18 +260,18 @@ class _StoreFormPageState extends State<StoreFormPage> {
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             style: const TextStyle(fontFamily: 'monospace'),
             onChanged: onChanged,
-            decoration: fieldDecoration(label, hint: 'Утасны дугаар').copyWith(counterText: ''),
+            decoration: fieldDecoration(label, hint: tr('Утасны дугаар')).copyWith(counterText: ''),
           ),
         ),
         const SizedBox(height: 14),
         ContactList(
-          title: 'Имэйл',
-          hint: '$maxStoreContacts хүртэл',
-          empty: 'Имэйл нэмээгүй байна',
-          addLabel: 'Имэйл нэмэх',
+          title: tr('Имэйл'),
+          hint: tr('{maxStoreContacts} хүртэл', {'maxStoreContacts': maxStoreContacts}),
+          empty: tr('Имэйл нэмээгүй байна'),
+          addLabel: tr('Имэйл нэмэх'),
           items: _emails,
           normalize: (v) => v.trim().toLowerCase(),
-          check: (v) => emailRe.hasMatch(v) ? null : 'Имэйл буруу байна',
+          check: (v) => emailRe.hasMatch(v) ? null : tr('Имэйл буруу байна'),
           onChanged: (v) => setState(() => _emails = v),
           input: (value, onChanged, label) => TextFormField(
             initialValue: value,
@@ -278,15 +279,15 @@ class _StoreFormPageState extends State<StoreFormPage> {
             keyboardType: TextInputType.emailAddress,
             autocorrect: false,
             onChanged: onChanged,
-            decoration: fieldDecoration(label, hint: 'Имэйл хаяг'),
+            decoration: fieldDecoration(label, hint: tr('Имэйл хаяг')),
           ),
         ),
         const SizedBox(height: 14),
         ContactList(
-          title: 'Хаяг',
-          hint: 'Салбар бүрийн хаягийг аймаг, сум, багаас сонгож нэмнэ ($maxStoreContacts хүртэл)',
-          empty: 'Хаяг нэмээгүй байна',
-          addLabel: 'Хаяг нэмэх',
+          title: tr('Хаяг'),
+          hint: tr('Салбар бүрийн хаягийг аймаг, сум, багаас сонгож нэмнэ ({maxStoreContacts} хүртэл)', {'maxStoreContacts': maxStoreContacts}),
+          empty: tr('Хаяг нэмээгүй байна'),
+          addLabel: tr('Хаяг нэмэх'),
           items: _addresses,
           check: (_) => null,
           onChanged: (v) => setState(() => _addresses = v),
@@ -365,7 +366,7 @@ class ContactList extends StatelessWidget {
           FilledButton.tonalIcon(
             onPressed: () => _openSheet(context),
             icon: Icon(items.isEmpty ? Icons.add : Icons.edit_outlined, size: 16),
-            label: Text(items.isEmpty ? 'Нэмэх' : 'Засах'),
+            label: Text(items.isEmpty ? tr('Нэмэх') : tr('Засах')),
           ),
         ]),
         const SizedBox(height: 10),
@@ -395,11 +396,11 @@ class ContactList extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: brandColor, borderRadius: BorderRadius.circular(20)),
-                    child: const Text('Үндсэн', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                    child: Text(tr('Үндсэн'), style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                   ),
                 if (several && i > 0)
                   IconButton(
-                    tooltip: 'Үндсэн болгох',
+                    tooltip: tr('Үндсэн болгох'),
                     visualDensity: VisualDensity.compact,
                     icon: Icon(Icons.star_border, size: 18, color: Colors.grey.shade600),
                     onPressed: () => onChanged([items[i], ...items.where((e) => e != items[i])]),
@@ -456,7 +457,7 @@ class _ListSheetState extends State<_ListSheet> {
   void _save() {
     final clean = _draft.map((d) => widget.normalize(d.$2)).where((v) => v.isNotEmpty).toList();
     final problem = clean.map(widget.check).whereType<String>().firstOrNull ??
-        (clean.toSet().length != clean.length ? 'Ижил утга давхардсан байна' : null);
+        (clean.toSet().length != clean.length ? tr('Ижил утга давхардсан байна') : null);
     if (problem != null) return setState(() => _error = problem);
     Navigator.pop(context, clean);
   }
@@ -471,7 +472,7 @@ class _ListSheetState extends State<_ListSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(widget.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('${widget.hint}. Сумаар эрэмбэлнэ, эхнийх нь үндсэн',
+                Text(tr('{hint}. Сумаар эрэмбэлнэ, эхнийх нь үндсэн', {'hint': widget.hint}),
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
               ]),
             ),
@@ -497,19 +498,19 @@ class _ListSheetState extends State<_ListSheet> {
                       Column(children: [
                         IconButton(
                           visualDensity: VisualDensity.compact,
-                          tooltip: 'Дээш зөөх',
+                          tooltip: tr('Дээш зөөх'),
                           onPressed: i == 0 ? null : () => _move(i, -1),
                           icon: const Icon(Icons.keyboard_arrow_up),
                         ),
                         IconButton(
                           visualDensity: VisualDensity.compact,
-                          tooltip: 'Доош зөөх',
+                          tooltip: tr('Доош зөөх'),
                           onPressed: i == _draft.length - 1 ? null : () => _move(i, 1),
                           icon: const Icon(Icons.keyboard_arrow_down),
                         ),
                       ]),
                       IconButton(
-                        tooltip: 'Хасах',
+                        tooltip: tr('Хасах'),
                         onPressed: () => setState(() {
                           _draft.removeAt(i);
                           _error = null;
@@ -536,9 +537,9 @@ class _ListSheetState extends State<_ListSheet> {
                     child: Text(_error!, style: TextStyle(color: Colors.red.shade700)),
                   ),
                 Row(children: [
-                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Болих'))),
+                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), child: Text(tr('Болих')))),
                   const SizedBox(width: 8),
-                  Expanded(child: FilledButton(onPressed: _save, child: const Text('Хадгалах'))),
+                  Expanded(child: FilledButton(onPressed: _save, child: Text(tr('Хадгалах')))),
                 ]),
               ]),
             ),
@@ -639,7 +640,7 @@ class _AddressPickerState extends State<AddressPicker> {
     if (!_ready) return const Padding(padding: EdgeInsets.all(12), child: LinearProgressIndicator());
     final admin = context.read<AdminState>();
     return Column(children: [
-      _select('Аймаг / Нийслэл', _cities, _cityId, (id) async {
+      _select(tr('Аймаг / Нийслэл'), _cities, _cityId, (id) async {
         setState(() {
           _cityId = id;
           _districtId = null;
@@ -652,7 +653,7 @@ class _AddressPickerState extends State<AddressPicker> {
         final list = await admin.districts(id).catchError((_) => <Area>[]);
         if (mounted && _cityId == id) setState(() => _districts = list);
       }),
-      _select('Сум / Дүүрэг', _districts, _districtId, _cityId == null
+      _select(tr('Сум / Дүүрэг'), _districts, _districtId, _cityId == null
           ? null
           : (id) async {
               setState(() {
@@ -665,7 +666,7 @@ class _AddressPickerState extends State<AddressPicker> {
               final list = await admin.subDistricts(id).catchError((_) => <Area>[]);
               if (mounted && _districtId == id) setState(() => _subs = list);
             }),
-      _select('Баг / Хороо', _subs, _subId, _districtId == null || _subs.isEmpty
+      _select(tr('Баг / Хороо'), _subs, _subId, _districtId == null || _subs.isEmpty
           ? null
           : (id) {
               setState(() => _subId = id);
@@ -677,7 +678,7 @@ class _AddressPickerState extends State<AddressPicker> {
         minLines: 2,
         maxLength: 200,
         onChanged: (_) => _emit(),
-        decoration: fieldDecoration('Дэлгэрэнгүй хаяг (байр, орц, тоот…)'),
+        decoration: fieldDecoration(tr('Дэлгэрэнгүй хаяг (байр, орц, тоот…)')),
       ),
     ]);
   }

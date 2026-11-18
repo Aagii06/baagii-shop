@@ -5,6 +5,7 @@ import '../../api/shop_models.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'address_fields.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн /addresses: хадгалсан хүргэлтийн хаягууд (3 хүртэл), нэг нь үндсэн.
 class AddressesPage extends StatefulWidget {
@@ -45,7 +46,7 @@ class _AddressesPageState extends State<AddressesPage> {
     final shop = context.read<ShopState>();
     final a = SavedAddress(
       id: '',
-      label: _area.type?.name ?? 'Бусад хаяг',
+      label: _area.type?.name ?? tr('Бусад хаяг'),
       address: _area.format(_detail.text),
       area: _area,
       detail: _detail.text.trim(),
@@ -67,7 +68,7 @@ class _AddressesPageState extends State<AddressesPage> {
     final box = BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: borderColor));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Хүргэлтийн хаяг')),
+      appBar: AppBar(title: Text(tr('Хүргэлтийн хаяг'))),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         Row(children: [
           const Expanded(child: SizedBox()),
@@ -75,14 +76,14 @@ class _AddressesPageState extends State<AddressesPage> {
             FilledButton.icon(
               onPressed: () => _open(null, const AddressAreaPick(), ''),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Шинэ хаяг нэмэх'),
+              label: Text(tr('Шинэ хаяг нэмэх')),
             ),
         ]),
         const SizedBox(height: 16),
         if (atLimit && !_showForm)
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
-            child: Text('Хамгийн ихдээ ${ShopState.maxAddresses} хаяг бүртгэх боломжтой.', style: TextStyle(color: Colors.grey.shade600)),
+            child: Text(tr('Хамгийн ихдээ {maxAddresses} хаяг бүртгэх боломжтой.', {'maxAddresses': ShopState.maxAddresses}), style: TextStyle(color: Colors.grey.shade600)),
           ),
         if (_showForm)
           Container(
@@ -90,7 +91,7 @@ class _AddressesPageState extends State<AddressesPage> {
             padding: const EdgeInsets.all(16),
             decoration: box,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(_editingId != null ? 'Хаяг засах' : 'Шинэ хаяг', style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(_editingId != null ? tr('Хаяг засах') : tr('Шинэ хаяг'), style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 16),
               AddressFields(
                 value: _area,
@@ -104,16 +105,16 @@ class _AddressesPageState extends State<AddressesPage> {
                 maxLines: 3,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  labelText: 'Дэлгэрэнгүй хаяг',
-                  hintText: 'Байр, орц, давхар, тоот',
-                  errorText: _attempted && _detail.text.trim().isEmpty ? 'Хаяг оруулна уу' : null,
+                  labelText: tr('Дэлгэрэнгүй хаяг'),
+                  hintText: tr('Байр, орц, давхар, тоот'),
+                  errorText: _attempted && _detail.text.trim().isEmpty ? tr('Хаяг оруулна уу') : null,
                 ),
               ),
               const SizedBox(height: 16),
               Row(children: [
-                FilledButton(onPressed: _save, child: const Text('Хадгалах')),
+                FilledButton(onPressed: _save, child: Text(tr('Хадгалах'))),
                 const SizedBox(width: 8),
-                TextButton(onPressed: _close, child: const Text('Болих')),
+                TextButton(onPressed: _close, child: Text(tr('Болих'))),
               ]),
             ]),
           ),
@@ -124,9 +125,9 @@ class _AddressesPageState extends State<AddressesPage> {
             child: Column(children: [
               Icon(Icons.location_on_outlined, size: 40, color: Colors.grey.shade500),
               const SizedBox(height: 12),
-              const Text('Хадгалсан хаяг алга', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(tr('Хадгалсан хаяг алга'), style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
-              Text('Хүргэлтийн хаягаа нэмбэл захиалга хийхэд хурдан болно.',
+              Text(tr('Хүргэлтийн хаягаа нэмбэл захиалга хийхэд хурдан болно.'),
                   textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
             ]),
           )
@@ -147,10 +148,10 @@ class _AddressesPageState extends State<AddressesPage> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(color: brandColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
-                            child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
                               Icon(Icons.check, size: 12, color: brandColor),
                               SizedBox(width: 3),
-                              Text('Үндсэн хаяг', style: TextStyle(fontSize: 11, color: brandColor, fontWeight: FontWeight.w500)),
+                              Text(tr('Үндсэн хаяг'), style: TextStyle(fontSize: 11, color: brandColor, fontWeight: FontWeight.w500)),
                             ]),
                           ),
                         ],
@@ -160,13 +161,13 @@ class _AddressesPageState extends State<AddressesPage> {
                     ]),
                   ),
                   IconButton(
-                    tooltip: 'Засах',
+                    tooltip: tr('Засах'),
                     visualDensity: VisualDensity.compact,
                     onPressed: () => _open(a.id, a.area ?? const AddressAreaPick(), a.detail ?? a.address),
                     icon: Icon(Icons.edit_outlined, size: 18, color: Colors.grey.shade600),
                   ),
                   IconButton(
-                    tooltip: 'Устгах',
+                    tooltip: tr('Устгах'),
                     visualDensity: VisualDensity.compact,
                     onPressed: () => shop.removeAddress(a.id),
                     icon: Icon(Icons.delete_outline, size: 18, color: Colors.grey.shade600),
@@ -176,7 +177,7 @@ class _AddressesPageState extends State<AddressesPage> {
                   TextButton(
                     style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
                     onPressed: () => shop.setDefaultAddress(a.id),
-                    child: const Text('Үндсэн болгох', style: TextStyle(fontSize: 12)),
+                    child: Text(tr('Үндсэн болгох'), style: TextStyle(fontSize: 12)),
                   ),
               ]),
             ),

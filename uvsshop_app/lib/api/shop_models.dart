@@ -1,5 +1,6 @@
 import '../config.dart';
 import 'api_client.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 class Category {
   final int id;
@@ -301,12 +302,12 @@ class ShopOrder {
 
   /// Худалдан авагчид харагдах төлөв.
   String get label {
-    if (status == 'cancelled') return 'Цуцлагдсан';
-    if (status == 'returned') return 'Буцаагдсан';
-    if (status == 'delivered') return 'Хүргэгдсэн';
-    if (paidAt != null) return 'Төлөгдсөн';
-    if (paymentMethod == 'bank') return 'Шилжүүлэг шалгагдаж байна';
-    return 'Төлбөр хүлээгдэж байна';
+    if (status == 'cancelled') return tr('Цуцлагдсан');
+    if (status == 'returned') return tr('Буцаагдсан');
+    if (status == 'delivered') return tr('Хүргэгдсэн');
+    if (paidAt != null) return tr('Төлөгдсөн');
+    if (paymentMethod == 'bank') return tr('Шилжүүлэг шалгагдаж байна');
+    return tr('Төлбөр хүлээгдэж байна');
   }
 
   factory ShopOrder.fromJson(Map<String, dynamic> j) {
@@ -446,7 +447,7 @@ class SavedAddress {
   SavedAddress({required this.id, required this.label, required this.address, this.area, this.detail, this.isDefault = false});
 
   /// Төрлөөс нь (байхгүй бол хадгалсан нэрээс) нэр.
-  String get displayLabel => area?.type?.name ?? (area != null ? 'Бусад хаяг' : label);
+  String get displayLabel => area?.type?.name ?? (area != null ? tr('Бусад хаяг') : label);
 
   SavedAddress copyWith({bool? isDefault}) =>
       SavedAddress(id: id, label: label, address: address, area: area, detail: detail, isDefault: isDefault ?? this.isDefault);
@@ -456,7 +457,7 @@ class SavedAddress {
 
   factory SavedAddress.fromJson(Map<String, dynamic> j) => SavedAddress(
         id: j['id']?.toString() ?? '',
-        label: j['label']?.toString() ?? 'Хаяг',
+        label: j['label']?.toString() ?? tr('Хаяг'),
         address: j['address']?.toString() ?? '',
         area: j['area'] is Map<String, dynamic> ? AddressAreaPick.fromJson(j['area'] as Map<String, dynamic>) : null,
         detail: j['detail']?.toString(),

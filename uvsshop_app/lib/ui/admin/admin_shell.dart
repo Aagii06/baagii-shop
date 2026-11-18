@@ -10,6 +10,7 @@ import 'dashboard_page.dart';
 import 'orders_page.dart';
 import 'products_page.dart';
 import 'profile_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Аль tab нээлттэй вэ — самбараас "Захиалга" руу шилжихэд.
 final adminTab = ValueNotifier<String>('dashboard');
@@ -51,10 +52,10 @@ class _AdminShellState extends State<AdminShell> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final isAdmin = context.select<AdminState, bool>((a) => a.user?.isAdmin ?? false);
     final tabs = <(String, IconData, String, Widget)>[
-      if (isAdmin) ('dashboard', Icons.bar_chart_rounded, 'Самбар', const DashboardPage()),
-      ('products', Icons.crop_square_rounded, 'Бараа', const AdminProductsPage()),
-      if (isAdmin) ('orders', Icons.receipt_long_outlined, 'Захиалга', const AdminOrdersPage()),
-      ('profile', Icons.person_outline_rounded, 'Профайл', const AdminProfilePage()),
+      if (isAdmin) ('dashboard', Icons.bar_chart_rounded, tr('Самбар'), const DashboardPage()),
+      ('products', Icons.crop_square_rounded, tr('Бараа'), const AdminProductsPage()),
+      if (isAdmin) ('orders', Icons.receipt_long_outlined, tr('Захиалга'), const AdminOrdersPage()),
+      ('profile', Icons.person_outline_rounded, tr('Профайл'), const AdminProfilePage()),
     ];
     return ValueListenableBuilder<String>(
       valueListenable: adminTab,
@@ -107,6 +108,6 @@ class VisitShopButton extends StatelessWidget {
   Widget build(BuildContext context) => TextButton.icon(
         onPressed: () => context.read<AppState>().openShop(),
         icon: const Icon(Icons.storefront_outlined),
-        label: const Text('Дэлгүүр'),
+        label: Text(tr('Дэлгүүр')),
       );
 }

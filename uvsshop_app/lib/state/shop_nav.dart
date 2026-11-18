@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Худалдан авагчийн доод цэс — web-ийн MobileBottomNav-тай адил.
 enum ShopTab { home, search, cart, saved, profile }
@@ -6,12 +7,14 @@ enum ShopTab { home, search, cart, saved, profile }
 /// web-ийн SortTabs.
 enum SearchSort { discount, newest, priceAsc, rating }
 
-const searchSortLabel = {
+const _searchSortLabelMn = {
   SearchSort.discount: 'Хямдралын хувиар',
   SearchSort.newest: 'Шинэ',
   SearchSort.priceAsc: 'Үнэ өсөхөөр',
   SearchSort.rating: 'Үнэлгээ',
 };
+/// Shown in the chosen language (i18n.dart).
+Map<SearchSort, String> get searchSortLabel => {for (final e in _searchSortLabelMn.entries) e.key: tr(e.value)};
 
 /// "Хайх" табыг нээх хүсэлт — web-ийн `/search?category=&sale=1&store=&sort=`.
 class SearchRequest {

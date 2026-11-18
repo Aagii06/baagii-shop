@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн /profile/edit: лого, нэр, утас (шинэ дугаарт SMS код), имэйл (шинэ хаягт имэйл код).
 class ProfileEditPage extends StatefulWidget {
@@ -76,7 +77,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Future<void> _sendPhoneCode() async {
     if (_phone.text.length < 8) return setState(() => _submitted = true);
     setState(() => _sending = true);
-    final ok = await runAction(context, () => _admin.sendPhoneOtp(_phone.text), 'Код илгээлээ');
+    final ok = await runAction(context, () => _admin.sendPhoneOtp(_phone.text), tr('Код илгээлээ'));
     if (!mounted) return;
     setState(() {
       _sending = false;
@@ -92,7 +93,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     final email = _email.text.trim();
     if (!emailRe.hasMatch(email)) return setState(() => _submitted = true);
     setState(() => _sending = true);
-    final ok = await runAction(context, () => _admin.sendEmailOtp(email), 'Код илгээлээ');
+    final ok = await runAction(context, () => _admin.sendEmailOtp(email), tr('Код илгээлээ'));
     if (!mounted) return;
     setState(() {
       _sending = false;
@@ -101,10 +102,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     if (!ok) return;
     await showCodeSheet(
       context,
-      hint: '$email хаягт ирсэн кодыг оруулна уу',
-      onResend: () => runAction(context, () => _admin.sendEmailOtp(email), 'Код илгээлээ'),
+      hint: tr('{email} хаягт ирсэн кодыг оруулна уу', {'email': email}),
+      onResend: () => runAction(context, () => _admin.sendEmailOtp(email), tr('Код илгээлээ')),
       onConfirm: (code) async {
-        final changed = await runAction(context, () => _admin.changeEmail(email, code), 'Имэйл солигдлоо');
+        final changed = await runAction(context, () => _admin.changeEmail(email, code), tr('Имэйл солигдлоо'));
         if (changed && mounted) setState(() => _email.text = _admin.user?.email ?? '');
         return changed;
       },
@@ -129,7 +130,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         logo: logo,
         code: _phoneChanged ? _code.text.trim() : null,
       );
-    }, 'Хадгаллаа');
+    }, tr('Хадгаллаа'));
     if (!mounted) return;
     if (saved) {
       Navigator.pop(context);
@@ -140,28 +141,28 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final nameError = _submitted && _name.text.trim().isEmpty ? 'Нэр оруулна уу' : null;
-    final phoneError = _submitted && _phone.text.length < 8 ? 'Утасны дугаар 8 оронтой байна' : null;
+    final nameError = _submitted && _name.text.trim().isEmpty ? tr('Нэр оруулна уу') : null;
+    final phoneError = _submitted && _phone.text.length < 8 ? tr('Утасны дугаар 8 оронтой байна') : null;
     final codeError = !_submitted || !_phoneChanged || _phone.text.length < 8
         ? null
         : !_codeSent
-            ? 'Шинэ дугаараа кодоор баталгаажуулна уу'
+            ? tr('Шинэ дугаараа кодоор баталгаажуулна уу')
             : _code.text.trim().isEmpty
-                ? 'Код оруулна уу'
+                ? tr('Код оруулна уу')
                 : null;
     final email = _email.text.trim();
     final emailError = !_submitted
         ? null
         : email.isNotEmpty && !emailRe.hasMatch(email)
-            ? 'Имэйл буруу байна'
+            ? tr('Имэйл буруу байна')
             : _emailChanged
-                ? 'Шинэ имэйлээ кодоор баталгаажуулна уу'
+                ? tr('Шинэ имэйлээ кодоор баталгаажуулна уу')
                 : null;
     final hasLogo = _logoFile != null || _logo != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Мэдээлэл засах'),
+        title: Text(tr('Мэдээлэл засах')),
         actions: [SaveAction(enabled: _dirty, busy: _saving, onPressed: _save)],
       ),
       body: ListView(padding: const EdgeInsets.all(16), children: [
@@ -208,7 +209,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         TextField(
           controller: _name,
           onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration('Нэр', error: nameError),
+          decoration: fieldDecoration(tr('Нэр'), error: nameError),
         ),
         const SizedBox(height: 14),
         TextField(
@@ -219,15 +220,15 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           onChanged: (_) => setState(() => _phoneCooldown = 0),
           style: const TextStyle(fontFamily: 'monospace'),
           decoration: fieldDecoration(
-            'Утасны дугаар',
+            tr('Утасны дугаар'),
             error: phoneError ?? (_codeSent ? null : codeError),
-            helper: _phoneChanged && !_codeSent ? 'Шинэ дугаараа баталгаажуулахын тулд код авна уу' : null,
+            helper: _phoneChanged && !_codeSent ? tr('Шинэ дугаараа баталгаажуулахын тулд код авна уу') : null,
             suffix: _phoneChanged
                 ? Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: TextButton(
                       onPressed: _sending || _phone.text.length != 8 || _phoneCooldown > 0 ? null : _sendPhoneCode,
-                      child: Text('${_codeSent ? 'Дахин авах' : 'Код авах'}${_phoneCooldown > 0 ? ' ($_phoneCooldown)' : ''}'),
+                      child: Text('${_codeSent ? tr('Дахин авах') : tr('Код авах')}${_phoneCooldown > 0 ? ' ($_phoneCooldown)' : ''}'),
                     ),
                   )
                 : null,
@@ -243,8 +244,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             autofillHints: const [AutofillHints.oneTimeCode],
             onChanged: (_) => setState(() {}),
             style: const TextStyle(fontFamily: 'monospace', letterSpacing: 6),
-            decoration: fieldDecoration('Баталгаажуулах код',
-                    error: codeError, helper: '${_phone.text} дугаарт ирсэн кодыг оруулна уу')
+            decoration: fieldDecoration(tr('Баталгаажуулах код'),
+                    error: codeError, helper: tr('{text} дугаарт ирсэн кодыг оруулна уу', {'text': _phone.text}))
                 .copyWith(counterText: ''),
           ),
         ],
@@ -255,15 +256,15 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           autocorrect: false,
           onChanged: (_) => setState(() => _emailCooldown = 0),
           decoration: fieldDecoration(
-            'Имэйл',
+            tr('Имэйл'),
             error: emailError,
-            helper: _emailChanged ? 'Шинэ имэйлээ баталгаажуулахын тулд код авна уу' : null,
+            helper: _emailChanged ? tr('Шинэ имэйлээ баталгаажуулахын тулд код авна уу') : null,
             suffix: _emailChanged
                 ? Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: TextButton(
                       onPressed: _sending || !emailRe.hasMatch(email) || _emailCooldown > 0 ? null : _sendEmailCode,
-                      child: Text('Код авах${_emailCooldown > 0 ? ' ($_emailCooldown)' : ''}'),
+                      child: Text(tr('Код авах{_emailCooldown}', {'_emailCooldown': _emailCooldown > 0 ? ' ($_emailCooldown)' : ''})),
                     ),
                   )
                 : null,

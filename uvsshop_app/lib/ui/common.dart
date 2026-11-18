@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 const brandColor = Color(0xFF7322A6);
 
@@ -140,7 +141,7 @@ class LoadingView extends StatelessWidget {
         ]),
     };
     return Semantics(
-      label: 'Ачаалж байна',
+      label: tr('Ачаалж байна'),
       child: SingleChildScrollView(
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.all(12),
@@ -246,7 +247,7 @@ class ErrorView extends StatelessWidget {
             Text(error.toString(), textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 12),
-              OutlinedButton(onPressed: onRetry, child: const Text('Дахин оролдох')),
+              OutlinedButton(onPressed: onRetry, child: Text(tr('Дахин оролдох'))),
             ],
           ]),
         ),
@@ -329,7 +330,7 @@ class _LogoLoaderState extends State<LogoLoader> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final s = widget.size;
     return Semantics(
-      label: 'Ачаалж байна',
+      label: tr('Ачаалж байна'),
       child: SizedBox(
         width: s,
         height: s,
@@ -378,4 +379,28 @@ class _ArcPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ArcPainter oldDelegate) => false;
+}
+
+/// MN / EN / RU. The screens remount in the chosen language (main.dart); pages opened on top are closed first.
+class LanguagePicker extends StatelessWidget {
+  const LanguagePicker({super.key});
+  @override
+  Widget build(BuildContext context) => Row(children: [
+        const Icon(Icons.language, size: 20, color: Colors.black54),
+        const SizedBox(width: 10),
+        for (final code in AppLang.codes) ...[
+          if (code != AppLang.codes.first) const SizedBox(width: 6),
+          Expanded(
+            child: ChoiceChip(
+              showCheckmark: false,
+              label: SizedBox(width: double.infinity, child: Text(AppLang.labels[code]!, textAlign: TextAlign.center)),
+              selected: appLang.code == code,
+              onSelected: (_) {
+                Navigator.of(context).popUntil((r) => r.isFirst);
+                appLang.set(code);
+              },
+            ),
+          ),
+        ],
+      ]);
 }

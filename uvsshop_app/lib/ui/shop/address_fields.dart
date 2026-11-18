@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../api/shop_models.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Шинэ хаягт урьдчилан сонгох аймгийн ҮСХ-ны код (85 — Увс).
 const defaultCityCode = '85';
@@ -154,14 +155,14 @@ class _AddressFieldsState extends State<AddressFields> {
         ]),
         const SizedBox(height: 16),
       ],
-      _dropdown('Аймаг / Нийслэл', v.city, _cities, _pickCity,
-          error: widget.showErrors && v.city == null ? 'Аймаг / нийслэлээ сонгоно уу' : null),
+      _dropdown(tr('Аймаг / Нийслэл'), v.city, _cities, _pickCity,
+          error: widget.showErrors && v.city == null ? tr('Аймаг / нийслэлээ сонгоно уу') : null),
       const SizedBox(height: 12),
-      _dropdown('Сум / Дүүрэг', v.district, _districts, _pickDistrict,
-          error: widget.showErrors && v.city != null && v.district == null && _districts.isNotEmpty ? 'Сум / дүүргээ сонгоно уу' : null),
+      _dropdown(tr('Сум / Дүүрэг'), v.district, _districts, _pickDistrict,
+          error: widget.showErrors && v.city != null && v.district == null && _districts.isNotEmpty ? tr('Сум / дүүргээ сонгоно уу') : null),
       if (_subs.isNotEmpty) ...[
         const SizedBox(height: 12),
-        _dropdown('Баг / Хороо', v.subDistrict, _subs, (s) => _emit(sub: s, level: 3)),
+        _dropdown(tr('Баг / Хороо'), v.subDistrict, _subs, (s) => _emit(sub: s, level: 3)),
       ],
     ]);
   }

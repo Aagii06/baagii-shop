@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'notification_bell.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 // Админ вэбийн (admin/src/app/globals.css) өнгө, загварын хэсгүүд — апп
 // вэбийн админаас ялгаагүй харагдана.
@@ -56,8 +57,8 @@ String mnt(num v) {
 
 /// Статистикийн картад: "₮2.5сая", "₮178мянга" (доош нь бөөрөнхийлнө).
 String mntCompact(num v) {
-  if (v >= 1000000) return '₮${(v / 100000).floor() / 10}сая';
-  if (v >= 1000) return '₮${(v / 1000).floor()}мянга';
+  if (v >= 1000000) return tr('₮{floor}сая', {'floor': (v / 100000).floor() / 10});
+  if (v >= 1000) return tr('₮{floor}мянга', {'floor': (v / 1000).floor()});
   return mnt(v);
 }
 

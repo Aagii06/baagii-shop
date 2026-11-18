@@ -5,6 +5,7 @@ import '../../api/shop_models.dart';
 import '../../config.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 class ProductPage extends StatefulWidget {
   final int productId;
@@ -65,7 +66,7 @@ class _ProductPageState extends State<ProductPage> {
     setState(() => _adding = true);
     try {
       await context.read<ShopState>().addToCart(v, _qty);
-      if (mounted) showMessage(context, 'Сагсанд нэмэгдлээ');
+      if (mounted) showMessage(context, tr('Сагсанд нэмэгдлээ'));
     } catch (e) {
       if (mounted) showMessage(context, e.toString(), error: true);
     } finally {
@@ -84,7 +85,7 @@ class _ProductPageState extends State<ProductPage> {
             Builder(builder: (context) {
               final saved = context.select<ShopState, bool>((s) => s.isSaved(p.id));
               return IconButton(
-                tooltip: saved ? 'Хадгалснаас хасах' : 'Хадгалах',
+                tooltip: saved ? tr('Хадгалснаас хасах') : tr('Хадгалах'),
                 onPressed: () => context.read<ShopState>().toggleSaved(p),
                 icon: Icon(saved ? Icons.favorite : Icons.favorite_border, color: saved ? Colors.red : null),
               );
@@ -167,7 +168,7 @@ class _ProductPageState extends State<ProductPage> {
           ]),
           const SizedBox(height: 4),
           Text(
-            v == null ? 'Сонголтоо хийнэ үү' : (v.stock > 0 ? 'Үлдэгдэл: ${v.stock}' : 'Дууссан'),
+            v == null ? tr('Сонголтоо хийнэ үү') : (v.stock > 0 ? tr('Үлдэгдэл: {stock}', {'stock': v.stock}) : tr('Дууссан')),
             style: TextStyle(color: v != null && v.stock > 0 ? Colors.green.shade700 : Colors.red.shade700),
           ),
         ]),
@@ -204,7 +205,7 @@ class _ProductPageState extends State<ProductPage> {
           color: Colors.white,
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Тайлбар', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            Text(tr('Тайлбар'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
             const SizedBox(height: 8),
             SelectableText(description),
           ]),
@@ -245,7 +246,7 @@ class _ProductPageState extends State<ProductPage> {
               icon: _adding
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.add_shopping_cart),
-              label: Text(canAdd ? 'Сагсанд нэмэх' : 'Дууссан'),
+              label: Text(canAdd ? tr('Сагсанд нэмэх') : tr('Дууссан')),
             ),
           ),
         ]),

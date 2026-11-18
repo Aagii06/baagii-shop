@@ -12,6 +12,7 @@ import 'notifications_page.dart';
 import 'orders_page.dart';
 import 'seller_page.dart';
 import 'sign_in_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн /profile (утасны харагдац): гарчиг, мэдээллийн карт + ✏️, цэс
 /// (захиалга, сагс, хадгалсан, хаяг), "Хамтран ажиллах", "Гарах".
@@ -76,9 +77,9 @@ class _AccountPageState extends State<AccountPage> {
         child: c == null
             ? _signInPrompt()
             : ListView(padding: const EdgeInsets.fromLTRB(16, 24, 16, 24), children: [
-                const Text('Профайл тохиргоо', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                Text(tr('Профайл тохиргоо'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text('Хувийн мэдээлэл болон бүртгэлээ энд шинэчилнэ.', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                Text(tr('Хувийн мэдээлэл болон бүртгэлээ энд шинэчилнэ.'), style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
                 const SizedBox(height: 24),
                 _editing ? _editForm(c) : _profileCard(c),
                 const SizedBox(height: 16),
@@ -86,8 +87,8 @@ class _AccountPageState extends State<AccountPage> {
                 const SizedBox(height: 16),
                 _linkCard(
                   icon: Icons.storefront_outlined,
-                  title: 'Хамтран ажиллах',
-                  subtitle: 'Дэлгүүрийнхээ мэдээллийг үлдээж, утсаа баталгаажуулна уу. Хүсэлт батлагдвал таны дэлгүүр нээгдэнэ.',
+                  title: tr('Хамтран ажиллах'),
+                  subtitle: tr('Дэлгүүрийнхээ мэдээллийг үлдээж, утсаа баталгаажуулна уу. Хүсэлт батлагдвал таны дэлгүүр нээгдэнэ.'),
                   onTap: () => _push(const SellerPage()),
                 ),
                 if (shop.isStaff) ...[
@@ -95,6 +96,9 @@ class _AccountPageState extends State<AccountPage> {
                   _adminLink(),
                 ],
                 const SizedBox(height: 16),
+                // Хэл солих товч (одоогоор зөвхөн монгол хэл):
+                // Container(padding: const EdgeInsets.all(12), decoration: _box, child: const LanguagePicker()),
+                // const SizedBox(height: 16),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red.shade600,
@@ -104,7 +108,7 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   onPressed: () => context.read<ShopState>().signOut(),
                   icon: const Icon(Icons.logout, size: 16),
-                  label: const Text('Гарах'),
+                  label: Text(tr('Гарах')),
                 ),
               ]),
       ),
@@ -115,12 +119,15 @@ class _AccountPageState extends State<AccountPage> {
   Widget _signInPrompt() => ListView(padding: const EdgeInsets.fromLTRB(16, 40, 16, 24), children: [
         Icon(Icons.person_outline, size: 48, color: Colors.grey.shade500),
         const SizedBox(height: 16),
-        const Text('Та нэвтрээгүй байна', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Text(tr('Та нэвтрээгүй байна'), textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text('Профайл тохиргоогоо үзэхийн тулд эхлээд нэвтэрнэ үү.',
+        Text(tr('Профайл тохиргоогоо үзэхийн тулд эхлээд нэвтэрнэ үү.'),
             textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
         const SizedBox(height: 24),
-        Center(child: FilledButton(onPressed: () => _push(const SignInPage()), child: const Text('Нэвтрэх'))),
+        Center(child: FilledButton(onPressed: () => _push(const SignInPage()), child: Text(tr('Нэвтрэх')))),
+        // Хэл солих товч (одоогоор зөвхөн монгол хэл):
+        // const SizedBox(height: 32),
+        // const LanguagePicker(),
       ]);
 
   /// Апп дээрх нэмэлт: худалдан авагчийн утсаар админ / дэлгүүрийн хэрэглэгч
@@ -130,14 +137,14 @@ class _AccountPageState extends State<AccountPage> {
     return admin.signedIn
         ? _linkCard(
             icon: Icons.admin_panel_settings_outlined,
-            title: 'Админ хэсэг рүү орох',
+            title: tr('Админ хэсэг рүү орох'),
             subtitle: admin.user?.name ?? '',
             onTap: () => context.read<AppState>().openAdmin(),
           )
         : _linkCard(
             icon: Icons.admin_panel_settings_outlined,
-            title: 'Админ / Худалдагч нэвтрэх',
-            subtitle: 'Дэлгүүрийн админ хэсэгт нэвтэрнэ',
+            title: tr('Админ / Худалдагч нэвтрэх'),
+            subtitle: tr('Дэлгүүрийн админ хэсэгт нэвтэрнэ'),
             onTap: () => _push(const SignInPage(admin: true)),
           );
   }
@@ -165,7 +172,7 @@ class _AccountPageState extends State<AccountPage> {
         const SizedBox(width: 16),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(hasName ? c.name!.trim() : 'Нэр оруулаагүй',
+            Text(hasName ? c.name!.trim() : tr('Нэр оруулаагүй'),
                 maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
             Text(_formatPhone(c.phone), style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontFamily: 'monospace')),
@@ -175,13 +182,13 @@ class _AccountPageState extends State<AccountPage> {
                 child: Row(children: [
                   Icon(Icons.check, size: 16, color: Colors.green.shade600),
                   const SizedBox(width: 4),
-                  Text('Хадгалагдлаа', style: TextStyle(color: Colors.green.shade600, fontSize: 14)),
+                  Text(tr('Хадгалагдлаа'), style: TextStyle(color: Colors.green.shade600, fontSize: 14)),
                 ]),
               ),
           ]),
         ),
         IconButton.outlined(
-          tooltip: 'Засах',
+          tooltip: tr('Засах'),
           style: IconButton.styleFrom(side: const BorderSide(color: borderColor)),
           onPressed: () {
             _name.text = c.name ?? '';
@@ -202,24 +209,24 @@ class _AccountPageState extends State<AccountPage> {
             final trimmed = value.text.trim();
             final canSave = trimmed.isNotEmpty && trimmed != (c.name ?? '') && !_saving;
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              const Text('Хувийн мэдээлэл', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(tr('Хувийн мэдээлэл'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
               const SizedBox(height: 20),
-              const Text('Нэр', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+              Text(tr('Нэр'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
               const SizedBox(height: 6),
               TextField(
                 controller: _name,
                 autofocus: true,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(hintText: 'Нэрээ оруулна уу'),
+                decoration: InputDecoration(hintText: tr('Нэрээ оруулна уу')),
                 onSubmitted: (_) => _save(c),
               ),
               const SizedBox(height: 20),
-              const Text('Утасны дугаар', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+              Text(tr('Утасны дугаар'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
               const SizedBox(height: 6),
               TextFormField(
                 initialValue: _formatPhone(c.phone),
                 enabled: false,
-                decoration: const InputDecoration(helperText: 'Утасны дугаарыг өөрчлөх боломжгүй.'),
+                decoration: InputDecoration(helperText: tr('Утасны дугаарыг өөрчлөх боломжгүй.')),
               ),
               const SizedBox(height: 20),
               Row(children: [
@@ -227,7 +234,7 @@ class _AccountPageState extends State<AccountPage> {
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
                     onPressed: _saving ? null : () => setState(() => _editing = false),
-                    child: const Text('Болих'),
+                    child: Text(tr('Болих')),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -237,7 +244,7 @@ class _AccountPageState extends State<AccountPage> {
                     onPressed: canSave ? () => _save(c) : null,
                     child: _saving
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Хадгалах'),
+                        : Text(tr('Хадгалах')),
                   ),
                 ),
               ]),
@@ -249,11 +256,11 @@ class _AccountPageState extends State<AccountPage> {
   /// web-ийн OrdersSidebar (menu): Миний захиалга, Сагс, Хадгалсан бараа, Хүргэлтийн хаяг.
   Widget _menu(ShopState shop) {
     final items = [
-      (Icons.notifications_none, 'Мэдэгдэл', shop.unreadNotifications, () => _push(const ShopNotificationsPage())),
-      (Icons.assignment_outlined, 'Миний захиалга', 0, () => _push(const OrdersPage())),
-      (Icons.shopping_cart_outlined, 'Сагс', shop.cartCount, () => widget.onOpenTab?.call(ShopTab.cart)),
-      (Icons.favorite_border, 'Хадгалсан бараа', shop.saved.length, () => widget.onOpenTab?.call(ShopTab.saved)),
-      (Icons.location_on_outlined, 'Хүргэлтийн хаяг', 0, () => _push(const AddressesPage())),
+      (Icons.notifications_none, tr('Мэдэгдэл'), shop.unreadNotifications, () => _push(const ShopNotificationsPage())),
+      (Icons.assignment_outlined, tr('Миний захиалга'), 0, () => _push(const OrdersPage())),
+      (Icons.shopping_cart_outlined, tr('Сагс'), shop.cartCount, () => widget.onOpenTab?.call(ShopTab.cart)),
+      (Icons.favorite_border, tr('Хадгалсан бараа'), shop.saved.length, () => widget.onOpenTab?.call(ShopTab.saved)),
+      (Icons.location_on_outlined, tr('Хүргэлтийн хаяг'), 0, () => _push(const AddressesPage())),
     ];
     return Container(
       decoration: _box,

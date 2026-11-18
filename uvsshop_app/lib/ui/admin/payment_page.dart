@@ -8,6 +8,7 @@ import '../../api/admin_manage_models.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн /payment: хүргэлтийн төлбөр, дансаар шилжүүлэх, QPay.
 /// QPay асаалттай хадгалахад backend эхлээд QPay-д нэвтэрч шалгана.
@@ -116,11 +117,11 @@ class _PaymentPageState extends State<PaymentPage> {
         _submitted = false;
         _fill(saved);
       }
-    }, 'Хадгаллаа');
+    }, tr('Хадгаллаа'));
     if (mounted) setState(() => _saving = false);
   }
 
-  String? _req(bool on, TextEditingController c) => _submitted && _blank(on, c) ? 'Заавал оруулна' : null;
+  String? _req(bool on, TextEditingController c) => _submitted && _blank(on, c) ? tr('Заавал оруулна') : null;
 
   Widget _field(TextEditingController c, String label, {String? error, bool mono = false, String? helper, bool obscure = false, String? hint}) =>
       Padding(
@@ -149,7 +150,7 @@ class _PaymentPageState extends State<PaymentPage> {
     final dirty = s != null && _snapshot() != _baseline;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Төлбөрийн тохиргоо'),
+        title: Text(tr('Төлбөрийн тохиргоо')),
         actions: [if (s != null) SaveAction(enabled: dirty, busy: _saving, onPressed: _save)],
       ),
       body: s == null
@@ -158,7 +159,7 @@ class _PaymentPageState extends State<PaymentPage> {
               Panel(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                 child: Column(children: [
-                  _toggle('Хүргэлтийн төлбөр', 'Admin-аас захиалга нэмэхэд хүргэлтийн үнэ нэмнэ. Унтраавал хүргэлт үнэгүй',
+                  _toggle(tr('Хүргэлтийн төлбөр'), tr('Admin-аас захиалга нэмэхэд хүргэлтийн үнэ нэмнэ. Унтраавал хүргэлт үнэгүй'),
                       s.deliveryEnabled, (v) => s.deliveryEnabled = v),
                   if (s.deliveryEnabled)
                     Padding(
@@ -169,7 +170,7 @@ class _PaymentPageState extends State<PaymentPage> {
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                         style: const TextStyle(fontFamily: 'monospace'),
                         onChanged: (_) => setState(() {}),
-                        decoration: fieldDecoration('Хүргэлтийн төлбөр', error: _req(true, _fee)),
+                        decoration: fieldDecoration(tr('Хүргэлтийн төлбөр'), error: _req(true, _fee)),
                       ),
                     ),
                 ]),
@@ -179,15 +180,15 @@ class _PaymentPageState extends State<PaymentPage> {
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                 child: Column(children: [
                   _toggle(
-                      'Дансаар шилжүүлэх',
-                      'Худалдан авагчид дансаа харуулна. Мөнгө орсныг шалгаад захиалгыг баталгаажуулахад төлөгдсөн болно',
+                      tr('Дансаар шилжүүлэх'),
+                      tr('Худалдан авагчид дансаа харуулна. Мөнгө орсныг шалгаад захиалгыг баталгаажуулахад төлөгдсөн болно'),
                       s.bankEnabled,
                       (v) => s.bankEnabled = v),
                   if (s.bankEnabled) ...[
-                    _field(_bankName, 'Банк', error: _req(true, _bankName)),
-                    _field(_accountName, 'Хүлээн авагч', error: _req(true, _accountName)),
-                    _field(_accountNumber, 'Дансны дугаар', error: _req(true, _accountNumber), mono: true),
-                    _field(_iban, 'IBAN дугаар', mono: true),
+                    _field(_bankName, tr('Банк'), error: _req(true, _bankName)),
+                    _field(_accountName, tr('Хүлээн авагч'), error: _req(true, _accountName)),
+                    _field(_accountNumber, tr('Дансны дугаар'), error: _req(true, _accountNumber), mono: true),
+                    _field(_iban, tr('IBAN дугаар'), mono: true),
                   ],
                 ]),
               ),
@@ -195,21 +196,21 @@ class _PaymentPageState extends State<PaymentPage> {
               Panel(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                 child: Column(children: [
-                  _toggle('QPay', 'QR уншуулж эсвэл банкны аппаар төлнө. Төлөгдсөн захиалга автоматаар тэмдэглэгдэнэ',
+                  _toggle('QPay', tr('QR уншуулж эсвэл банкны аппаар төлнө. Төлөгдсөн захиалга автоматаар тэмдэглэгдэнэ'),
                       s.qpayEnabled, (v) => s.qpayEnabled = v),
                   if (s.qpayEnabled) ...[
-                    _field(_qpayUser, 'Нэвтрэх нэр (client_id)', error: _req(true, _qpayUser), mono: true),
+                    _field(_qpayUser, tr('Нэвтрэх нэр (client_id)'), error: _req(true, _qpayUser), mono: true),
                     _field(
                       _qpayPassword,
-                      'Нууц үг (client_secret)',
+                      tr('Нууц үг (client_secret)'),
                       obscure: true,
                       hint: s.qpayHasPassword ? '••••••••' : null,
-                      helper: s.qpayHasPassword ? 'Хоосон үлдээвэл хадгалсан нууц үг хэвээр' : null,
+                      helper: s.qpayHasPassword ? tr('Хоосон үлдээвэл хадгалсан нууц үг хэвээр') : null,
                       error: s.qpayHasPassword ? null : _req(true, _qpayPassword),
                     ),
-                    _field(_qpayInvoice, 'Нэхэмжлэхийн код (invoice_code)', error: _req(true, _qpayInvoice), mono: true),
+                    _field(_qpayInvoice, tr('Нэхэмжлэхийн код (invoice_code)'), error: _req(true, _qpayInvoice), mono: true),
                     const SizedBox(height: 4),
-                    _toggle('Туршилтын орчин (sandbox)', 'Жинхэнэ гүйлгээ хийхгүй. Бодит төлбөр авахад унтраана', s.qpaySandbox,
+                    _toggle(tr('Туршилтын орчин (sandbox)'), tr('Жинхэнэ гүйлгээ хийхгүй. Бодит төлбөр авахад унтраана'), s.qpaySandbox,
                         (v) => s.qpaySandbox = v),
                   ],
                 ]),

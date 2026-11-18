@@ -15,6 +15,7 @@ import 'profile_edit_page.dart';
 import 'settings_page.dart';
 import 'stores_page.dart';
 import 'users_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 void _open(BuildContext context, Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
 
@@ -26,43 +27,43 @@ class AdminProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final u = context.watch<AdminState>().user;
     final isAdmin = u?.isAdmin ?? false;
-    final name = (u?.name.isNotEmpty ?? false) ? u!.name : 'Хэрэглэгч';
+    final name = (u?.name.isNotEmpty ?? false) ? u!.name : tr('Хэрэглэгч');
 
     final menu = [
       (
         Icons.storefront_outlined,
         Colors.lightBlue.shade600,
-        'Дэлгүүрүүд',
-        'Борлуулагч дэлгүүрүүдийг бүртгэх, засах',
+        tr('Дэлгүүрүүд'),
+        tr('Борлуулагч дэлгүүрүүдийг бүртгэх, засах'),
         const StoresPage(),
       ),
-      (Icons.group_outlined, Colors.deepPurple.shade400, 'Хэрэглэгчид', 'Админ, дэлгүүрийн хэрэглэгчид', const UsersPage()),
+      (Icons.group_outlined, Colors.deepPurple.shade400, tr('Хэрэглэгчид'), tr('Админ, дэлгүүрийн хэрэглэгчид'), const UsersPage()),
       (
         Icons.person_outline,
         Colors.green.shade600,
-        'Худалдан авагчид',
-        'Вэбээр нэвтэрч захиалга өгсөн хэрэглэгчид',
+        tr('Худалдан авагчид'),
+        tr('Вэбээр нэвтэрч захиалга өгсөн хэрэглэгчид'),
         const CustomersPage(),
       ),
       (
         Icons.settings_outlined,
         Colors.blueGrey.shade600,
-        'Тохиргоо',
-        'Категори, үзүүлэлт, төлбөрийн тохиргоо',
+        tr('Тохиргоо'),
+        tr('Категори, үзүүлэлт, төлбөрийн тохиргоо'),
         const SettingsPage(),
       ),
       (
         Icons.edit_note,
         Colors.indigo.shade500,
-        'Хүргэлтийн тэмдэглэл',
-        'Захиалгад сонгох хүргэлтийн заавар',
+        tr('Хүргэлтийн тэмдэглэл'),
+        tr('Захиалгад сонгох хүргэлтийн заавар'),
         const DeliveryNotesPage(),
       ),
       (
         Icons.chat_outlined,
         Colors.pink.shade500,
-        'Санал хүсэлт',
-        'Вэбийн “Бидэнд бичнэ үү” маягтаар ирсэн захидал',
+        tr('Санал хүсэлт'),
+        tr('Вэбийн “Бидэнд бичнэ үү” маягтаар ирсэн захидал'),
         const FeedbacksPage(),
       ),
     ];
@@ -140,7 +141,7 @@ class AdminProfilePage extends StatelessWidget {
                                           ],
                                           Flexible(
                                             child: Text(
-                                              isAdmin ? 'Админ' : (u?.storeName ?? 'Дэлгүүр оноогоогүй'),
+                                              isAdmin ? tr('Админ') : (u?.storeName ?? tr('Дэлгүүр оноогоогүй')),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -157,13 +158,13 @@ class AdminProfilePage extends StatelessWidget {
                               children: [
                                 _RoundButton(
                                   icon: Icons.edit_outlined,
-                                  tooltip: 'Мэдээлэл засах',
+                                  tooltip: tr('Мэдээлэл засах'),
                                   onTap: () => _open(context, const ProfileEditPage()),
                                 ),
                                 const SizedBox(height: 8),
                                 _RoundButton(
                                   icon: Icons.key_outlined,
-                                  tooltip: 'Нууц үг солих',
+                                  tooltip: tr('Нууц үг солих'),
                                   onTap: () => _open(context, const PasswordPage()),
                                 ),
                               ],
@@ -221,9 +222,9 @@ class AdminProfilePage extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Хамтран ажиллах', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                                  Text(tr('Хамтран ажиллах'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                                   Text(
-                                    'Ирсэн хүсэлтүүдийг харах, батлах',
+                                    tr('Ирсэн хүсэлтүүдийг харах, батлах'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
@@ -239,11 +240,14 @@ class AdminProfilePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                 ],
+                // Хэл солих товч (одоогоор зөвхөн монгол хэл):
+                // const Panel(child: Padding(padding: EdgeInsets.all(12), child: LanguagePicker())),
+                // const SizedBox(height: 12),
                 Panel(
                   child: ListTile(
                     leading: const Icon(Icons.storefront_outlined),
-                    title: const Text('Дэлгүүр үзэх'),
-                    subtitle: const Text('Худалдан авагчийн хэсэг рүү зочлох'),
+                    title: Text(tr('Дэлгүүр үзэх')),
+                    subtitle: Text(tr('Худалдан авагчийн хэсэг рүү зочлох')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.read<AppState>().openShop(),
                   ),
@@ -256,12 +260,12 @@ class AdminProfilePage extends StatelessWidget {
                     minimumSize: const Size.fromHeight(50),
                   ),
                   icon: const Icon(Icons.logout),
-                  label: const Text('Гарах'),
+                  label: Text(tr('Гарах')),
                   onPressed: () async {
                     final ok = await confirmAction(
                       context,
-                      title: 'Админ хэсгээс гарах уу?',
-                      confirmLabel: 'Гарах',
+                      title: tr('Админ хэсгээс гарах уу?'),
+                      confirmLabel: tr('Гарах'),
                       danger: true,
                     );
                     if (ok && context.mounted) await context.read<AdminState>().signOut();

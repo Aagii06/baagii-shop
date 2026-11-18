@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../state/admin_state.dart';
 import 'admin_widgets.dart';
 import 'profile_edit_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 const _minPassword = 6;
 
@@ -38,7 +39,7 @@ class _PasswordPageState extends State<PasswordPage> {
     final admin = context.read<AdminState>();
     setState(() => _sending = true);
     var email = '';
-    final ok = await runAction(context, () async => email = await admin.sendPasswordOtp(_current.text, _next.text), 'Код илгээлээ');
+    final ok = await runAction(context, () async => email = await admin.sendPasswordOtp(_current.text, _next.text), tr('Код илгээлээ'));
     if (!mounted) return false;
     setState(() {
       _sending = false;
@@ -63,10 +64,10 @@ class _PasswordPageState extends State<PasswordPage> {
     final cooldown = 60 - DateTime.now().difference(_sentAt!).inSeconds;
     final changed = await showCodeSheet(
       context,
-      hint: '${_sentTo.isNotEmpty ? _sentTo : (admin.user?.email ?? '')} хаягт ирсэн кодыг оруулна уу',
+      hint: tr('{email} хаягт ирсэн кодыг оруулна уу', {'email': _sentTo.isNotEmpty ? _sentTo : (admin.user?.email ?? '')}),
       initialCooldown: cooldown.clamp(0, 60),
       onResend: _requestCode,
-      onConfirm: (code) => runAction(context, () => admin.changePassword(_current.text, _next.text, code), 'Нууц үг солигдлоо'),
+      onConfirm: (code) => runAction(context, () => admin.changePassword(_current.text, _next.text, code), tr('Нууц үг солигдлоо')),
     );
     if (changed && mounted) Navigator.pop(context);
   }
@@ -75,20 +76,20 @@ class _PasswordPageState extends State<PasswordPage> {
   Widget build(BuildContext context) {
     final hasEmail = context.select<AdminState, bool>((a) => (a.user?.email ?? '').isNotEmpty);
     final dirty = _current.text.isNotEmpty || _next.text.isNotEmpty || _confirm.text.isNotEmpty;
-    final currentError = _submitted && _current.text.isEmpty ? 'Одоогийн нууц үгээ оруулна уу' : null;
-    final newError = _submitted && _next.text.length < _minPassword ? 'Нууц үг 6-аас дээш тэмдэгттэй байна' : null;
-    final confirmError = _submitted && newError == null && _confirm.text != _next.text ? 'Нууц үг таарахгүй байна' : null;
+    final currentError = _submitted && _current.text.isEmpty ? tr('Одоогийн нууц үгээ оруулна уу') : null;
+    final newError = _submitted && _next.text.length < _minPassword ? tr('Нууц үг 6-аас дээш тэмдэгттэй байна') : null;
+    final confirmError = _submitted && newError == null && _confirm.text != _next.text ? tr('Нууц үг таарахгүй байна') : null;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Нууц үг солих'),
+        title: Text(tr('Нууц үг солих')),
         actions: [SaveAction(enabled: hasEmail && dirty, busy: _sending, onPressed: _save)],
       ),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         if (hasEmail)
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
-            child: Text('Солихын өмнө бүртгэлтэй имэйл рүү тань баталгаажуулах код илгээнэ.',
+            child: Text(tr('Солихын өмнө бүртгэлтэй имэйл рүү тань баталгаажуулах код илгээнэ.'),
                 style: TextStyle(color: Colors.grey.shade600)),
           )
         else
@@ -101,19 +102,19 @@ class _PasswordPageState extends State<PasswordPage> {
               border: Border.all(color: Colors.amber.shade200),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Нууц үг солихын тулд эхлээд профайлдаа имэйл хаягаа нэмнэ үү.',
+              Text(tr('Нууц үг солихын тулд эхлээд профайлдаа имэйл хаягаа нэмнэ үү.'),
                   style: TextStyle(color: Colors.amber.shade900, fontWeight: FontWeight.w500)),
               TextButton(
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 onPressed: () =>
                     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const ProfileEditPage())),
-                child: const Text('Имэйл нэмэх'),
+                child: Text(tr('Имэйл нэмэх')),
               ),
             ]),
           ),
         PasswordField(
           controller: _current,
-          label: 'Одоогийн нууц үг',
+          label: tr('Одоогийн нууц үг'),
           error: currentError,
           enabled: hasEmail,
           onChanged: (_) => setState(() {}),
@@ -121,8 +122,8 @@ class _PasswordPageState extends State<PasswordPage> {
         const SizedBox(height: 14),
         PasswordField(
           controller: _next,
-          label: 'Шинэ нууц үг',
-          helper: '6-аас дээш тэмдэгт',
+          label: tr('Шинэ нууц үг'),
+          helper: tr('6-аас дээш тэмдэгт'),
           error: newError,
           enabled: hasEmail,
           onChanged: (_) => setState(() {}),
@@ -130,7 +131,7 @@ class _PasswordPageState extends State<PasswordPage> {
         const SizedBox(height: 14),
         PasswordField(
           controller: _confirm,
-          label: 'Шинэ нууц үг давтах',
+          label: tr('Шинэ нууц үг давтах'),
           error: confirmError,
           enabled: hasEmail,
           onChanged: (_) => setState(() {}),

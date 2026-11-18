@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../i18n.dart';
 import 'admin_state.dart';
 import 'shop_state.dart';
 
@@ -21,7 +22,9 @@ class AppState extends ChangeNotifier {
   Future<void> init() async {
     final results = await Future.wait([admin.restore(), shop.init().then((_) => true), SharedPreferences.getInstance()]);
     final signedIn = results[0] as bool;
-    final lastAdmin = (results[2] as SharedPreferences).getString(_modeKey) == 'admin';
+    final prefs = results[2] as SharedPreferences;
+    appLang.load(prefs);
+    final lastAdmin = prefs.getString(_modeKey) == 'admin';
     mode = signedIn && lastAdmin ? AppMode.admin : AppMode.shop;
     notifyListeners();
   }

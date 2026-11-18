@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../api/admin_manage_models.dart';
 import '../api/api_client.dart';
 import '../ui/common.dart' show stripHtml;
+import 'package:uvsshop_app/i18n.dart';
 
 // web-ийн admin/src/components/products/ProductEditor.tsx-ийн Dart хувилбар:
 // барааны засаж буй ноорог (маягт ба "Сонголт, тоо" хуудас хоёулаа ашиглана).
@@ -52,7 +53,7 @@ class VariantRow {
 }
 
 /// Каталогийн үзүүлэлт өнгө маягийнх уу (swatch, утга бүрт зураг).
-bool attrIsColor(AttrRecord a) => RegExp('өнгө', caseSensitive: false).hasMatch(a.name) || a.values.any((v) => v.color != null);
+bool attrIsColor(AttrRecord a) => RegExp('өнгө', caseSensitive: false).hasMatch(a.name) || a.values.any((v) => v.color != null); // no-tr: stored / matched value
 
 /// Утга каталогид хэддүгээрт байх; байхгүй бол хамгийн сүүлд.
 int valueRank(AttrRecord? def, String value) {
@@ -180,7 +181,7 @@ class ProductDraft extends ChangeNotifier {
               PAttr(
                 key: variantNameAttr,
                 attrId: null,
-                name: 'Хувилбар',
+                name: 'Хувилбар', // no-tr: stored / matched value
                 isColor: false,
                 values: [for (final v in vs) PAttrValue(v['name']?.toString() ?? '', null, null)],
               ),
@@ -294,8 +295,8 @@ class ProductDraft extends ChangeNotifier {
 
   // ---------- шалгалт ----------
 
-  String? get nameError => name.trim().isEmpty ? 'Барааны нэр оруулна уу' : null;
-  String? get priceError => price.isEmpty ? 'Үнэ оруулна уу' : null;
+  String? get nameError => name.trim().isEmpty ? tr('Барааны нэр оруулна уу') : null;
+  String? get priceError => price.isEmpty ? tr('Үнэ оруулна уу') : null;
   bool get hasBasics => nameError == null && priceError == null;
 
   static bool _discounted(String p, String s) => s.isNotEmpty && (int.tryParse(s) ?? 0) < (int.tryParse(p) ?? 0);
@@ -307,13 +308,13 @@ class ProductDraft extends ChangeNotifier {
   /// Бараа эсвэл аль нэг хувилбар нь хямдралтай — тэр үед хугацаа асууна.
   bool get onSale => [(price, salePrice), ..._pricedRows].any((r) => _discounted(r.$1, r.$2));
 
-  String? get salePriceError => _over(price, salePrice) ? 'Хямдралын үнэ үндсэн үнээс их байж болохгүй' : null;
+  String? get salePriceError => _over(price, salePrice) ? tr('Хямдралын үнэ үндсэн үнээс их байж болохгүй') : null;
   String? get variantsError =>
-      picked && variants.any((r) => !r.off && r.overPrice) ? 'Зарим хувилбарын хямдралын үнэ үндсэн үнээсээ их байна' : null;
+      picked && variants.any((r) => !r.off && r.overPrice) ? tr('Зарим хувилбарын хямдралын үнэ үндсэн үнээсээ их байна') : null;
   String? get salePeriodError {
     if (!onSale) return null;
-    if (saleStart.isEmpty || saleEnd.isEmpty) return 'Хямдралын эхлэх, дуусах өдрийг сонгоно уу';
-    if (saleStart.compareTo(saleEnd) > 0) return 'Дуусах өдөр эхлэх өдрөөс өмнө байж болохгүй';
+    if (saleStart.isEmpty || saleEnd.isEmpty) return tr('Хямдралын эхлэх, дуусах өдрийг сонгоно уу');
+    if (saleStart.compareTo(saleEnd) > 0) return tr('Дуусах өдөр эхлэх өдрөөс өмнө байж болохгүй');
     return null;
   }
 
@@ -433,7 +434,7 @@ class ProductDraft extends ChangeNotifier {
             final pr = used.isNotEmpty ? _prices(r.price, r.salePrice) : own;
             return {
               'id': r.id,
-              'name': vals.join(' / ').isNotEmpty ? vals.join(' / ') : (name.trim().isNotEmpty ? name.trim() : 'Нэргүй'),
+              'name': vals.join(' / ').isNotEmpty ? vals.join(' / ') : (name.trim().isNotEmpty ? name.trim() : 'Нэргүй'), // no-tr: stored / matched value
               'price': pr.price,
               'mainPrice': pr.mainPrice,
               'qty': int.tryParse(r.qty) ?? 0,

@@ -9,6 +9,7 @@ import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_design.dart';
 import 'admin_widgets.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 class AdminOrdersPage extends StatefulWidget {
   /// Худалдан авагчийн хуудаснаас нээхэд энэ утсаар шүүнэ.
@@ -93,21 +94,21 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
   Future<void> _return(AdminOrder o) async {
     final ok = await confirmAction(context,
-        title: '#${o.id} захиалгыг буцаах уу?',
+        title: tr('#{id} захиалгыг буцаах уу?', {'id': o.id}),
         description: o.paidAt != null
-            ? 'Үлдсэн бүх бараа үлдэгдэлд буцна. Төлбөр төлөгдсөн тул мөнгийг нь харилцагчид буцаан олгоно уу.'
-            : 'Үлдсэн бүх бараа үлдэгдэлд буцна.',
-        confirmLabel: 'Буцаалт',
+            ? tr('Үлдсэн бүх бараа үлдэгдэлд буцна. Төлбөр төлөгдсөн тул мөнгийг нь харилцагчид буцаан олгоно уу.')
+            : tr('Үлдсэн бүх бараа үлдэгдэлд буцна.'),
+        confirmLabel: tr('Буцаалт'),
         danger: true);
-    if (ok && mounted) await _changeStatus(o, 'returned', 'Захиалгыг буцаалаа');
+    if (ok && mounted) await _changeStatus(o, 'returned', tr('Захиалгыг буцаалаа'));
   }
 
   Future<void> _cancel(AdminOrder o) async {
     final ok = await confirmAction(context,
-        title: '#${o.id} захиалгыг цуцлах уу?', description: 'Бараанууд үлдэгдэлд буцна.', confirmLabel: 'Цуцлах', danger: true);
+        title: tr('#{id} захиалгыг цуцлах уу?', {'id': o.id}), description: tr('Бараанууд үлдэгдэлд буцна.'), confirmLabel: tr('Цуцлах'), danger: true);
     if (!ok || !mounted) return;
     setState(() => _busy = (id: o.id, to: 'cancelled'));
-    final done = await runAction(context, () => context.read<AdminState>().cancelOrder(o.id), 'Захиалгыг цуцаллаа');
+    final done = await runAction(context, () => context.read<AdminState>().cancelOrder(o.id), tr('Захиалгыг цуцаллаа'));
     if (!mounted) return;
     setState(() => _busy = null);
     if (done) _reload();
@@ -118,14 +119,14 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     final ready = _count != null;
     final phone = digitsOnly(_phone.text);
     return AdminTabScaffold(
-      pushedTitle: widget.phone != null ? 'Захиалга' : null,
+      pushedTitle: widget.phone != null ? tr('Захиалга') : null,
       body: RefreshIndicator(
         onRefresh: _reload,
         child: ListView(controller: _scroll, padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), children: [
           AdminPageHeader(
-            title: 'Захиалга',
+            title: tr('Захиалга'),
             aside: ready && _error == null
-                ? Text('$_count захиалга', style: const TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground))
+                ? Text(tr('{_count} захиалга', {'_count': _count}), style: const TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground))
                 : null,
             children: [
               PillTabs<String?>(
@@ -135,7 +136,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   _reload();
                 },
                 options: [
-                  const PillOption(null, 'Бүгд'),
+                  PillOption(null, tr('Бүгд')),
                   for (final e in orderStatusLabel.entries)
                     PillOption(e.key, e.value,
                         tone: orderTones[e.key], count: e.key == 'pending' ? _pending : null, badgeColor: AdminColors.warning),
@@ -150,7 +151,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   _debounce?.cancel();
                   _debounce = Timer(const Duration(milliseconds: 300), _reload);
                 },
-                decoration: adminSearchDecoration('Утасны дугаараар хайх', icon: Icons.phone_outlined).copyWith(counterText: ''),
+                decoration: adminSearchDecoration(tr('Утасны дугаараар хайх'), icon: Icons.phone_outlined).copyWith(counterText: ''),
               ),
             ],
           ),
@@ -164,10 +165,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               child: EmptyView(
                 icon: Icons.receipt_long_outlined,
                 text: phone.isNotEmpty
-                    ? '${formatPhone(phone)} дугаартай захиалга алга'
+                    ? tr('{phone} дугаартай захиалга алга', {'phone': formatPhone(phone)})
                     : _status == null
-                        ? 'Захиалга алга'
-                        : '“${orderStatusLabel[_status]}” захиалга алга',
+                        ? tr('Захиалга алга')
+                        : tr('“{_status}” захиалга алга', {'_status': orderStatusLabel[_status]}),
               ),
             )
           else ...[
@@ -177,7 +178,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 padding: const EdgeInsets.all(16),
                 child: Center(
                   child: _error != null && !_loading
-                      ? OutlinedButton(onPressed: _loadMore, child: const Text('Дахин оролдох'))
+                      ? OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох')))
                       : const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
                 ),
               ),
@@ -208,13 +209,13 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     final isAdmin = context.read<AdminState>().user?.isAdmin ?? false;
     final buttons = <Widget>[
       if (o.status == 'pending')
-        _actionButton(o, 'Батлах', orderTones['confirmed']!.solid, Colors.white, 'confirmed',
-            () => _changeStatus(o, 'confirmed', 'Захиалгыг баталлаа')),
+        _actionButton(o, tr('Батлах'), orderTones['confirmed']!.solid, Colors.white, 'confirmed',
+            () => _changeStatus(o, 'confirmed', tr('Захиалгыг баталлаа'))),
       if (o.status == 'confirmed')
-        _actionButton(o, 'Хүргэсэн', orderTones['delivered']!.solid, Colors.white, 'delivered',
-            () => _changeStatus(o, 'delivered', 'Төлөв шинэчлэгдлээ')),
+        _actionButton(o, tr('Хүргэсэн'), orderTones['delivered']!.solid, Colors.white, 'delivered',
+            () => _changeStatus(o, 'delivered', tr('Төлөв шинэчлэгдлээ'))),
       if (o.canReturn)
-        _actionButton(o, 'Буцаалт', AdminColors.destructive.withValues(alpha: 0.1), AdminColors.destructive, 'returned', () => _return(o)),
+        _actionButton(o, tr('Буцаалт'), AdminColors.destructive.withValues(alpha: 0.1), AdminColors.destructive, 'returned', () => _return(o)),
     ];
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -233,10 +234,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   OrderStatusBadge(o.status, orderStatusLabel[o.status] ?? o.status),
                 ]),
                 const SizedBox(height: 6),
-                Text(o.customerName.isEmpty ? 'Нэргүй' : o.customerName,
+                Text(o.customerName.isEmpty ? tr('Нэргүй') : o.customerName,
                     maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 2),
-                Text('${formatWhen(o.createdAt)} · ${o.items.length} бараа',
+                Text(tr('{createdAt} · {items} бараа', {'createdAt': formatWhen(o.createdAt), 'items': o.items.length}),
                     style: const TextStyle(fontSize: 14, color: AdminColors.mutedForeground)),
               ]),
             ),
@@ -252,14 +253,14 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             child: Row(children: [
               const Icon(Icons.warning_amber_rounded, color: AdminColors.warning),
               const SizedBox(width: 12),
-              const Expanded(
-                child: Text('Удаан хугацаанд төлбөр төлөгдөөгүй байна',
+              Expanded(
+                child: Text(tr('Удаан хугацаанд төлбөр төлөгдөөгүй байна'),
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AdminColors.warning)),
               ),
               if (isAdmin)
                 SizedBox(
                   width: 90,
-                  child: _actionButton(o, 'Цуцлах', AdminColors.destructive.withValues(alpha: 0.1), AdminColors.destructive, 'cancelled',
+                  child: _actionButton(o, tr('Цуцлах'), AdminColors.destructive.withValues(alpha: 0.1), AdminColors.destructive, 'cancelled',
                       () => _cancel(o)),
                 ),
             ]),
@@ -316,8 +317,8 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
         builder: (ctx) => AlertDialog(
           content: Text(text),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Болих')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Тийм')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Болих'))),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(tr('Тийм'))),
           ],
         ),
       ) ??
@@ -351,7 +352,7 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
-          title: const Text('Бараа буцаах'),
+          title: Text(tr('Бараа буцаах')),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             Text(item.name),
             const SizedBox(height: 12),
@@ -362,14 +363,14 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
             ]),
           ]),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Болих')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Буцаах')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Болих'))),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(tr('Буцаах'))),
           ],
         ),
       ),
     );
     if (ok == true) {
-      await _run(() => context.read<AdminState>().returnItem(widget.orderId, item.id, qty), 'Буцаалаа', action: 'item-${item.id}');
+      await _run(() => context.read<AdminState>().returnItem(widget.orderId, item.id, qty), tr('Буцаалаа'), action: 'item-${item.id}');
     }
   }
 
@@ -381,7 +382,7 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
         if (!didPop) Navigator.of(context).pop(_changed);
       },
       child: Scaffold(
-        appBar: AppBar(title: Text('Захиалга #${widget.orderId}')),
+        appBar: AppBar(title: Text(tr('Захиалга #{orderId}', {'orderId': widget.orderId}))),
         body: _order == null
             ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView(kind: SkeletonKind.detail))
             : _body(_order!),
@@ -403,10 +404,10 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
       if (o.overdue)
         Card(
           color: Colors.orange.shade50,
-          child: const ListTile(
+          child: ListTile(
             leading: Icon(Icons.warning_amber, color: Colors.orange),
-            title: Text('Удаан хугацаанд төлөгдөөгүй захиалга'),
-            subtitle: Text('Шаардлагатай бол цуцалж болно.'),
+            title: Text(tr('Удаан хугацаанд төлөгдөөгүй захиалга')),
+            subtitle: Text(tr('Шаардлагатай бол цуцалж болно.')),
           ),
         ),
       Card(
@@ -416,7 +417,7 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
             Row(children: [
               StatusChip(orderStatusLabel[o.status] ?? o.status, orderStatusColor(o.status)),
               const SizedBox(width: 8),
-              if (o.paidAt != null) StatusChip('Төлөгдсөн ${formatDate(o.paidAt)}', Colors.green),
+              if (o.paidAt != null) StatusChip(tr('Төлөгдсөн {paidAt}', {'paidAt': formatDate(o.paidAt)}), Colors.green),
             ]),
             const SizedBox(height: 12),
             for (final s in orderStatusLabel.keys)
@@ -438,7 +439,7 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
       Card(
         child: ListTile(
           leading: const Icon(Icons.person_outline),
-          title: Text(o.customerName.isEmpty ? 'Нэргүй' : o.customerName),
+          title: Text(o.customerName.isEmpty ? tr('Нэргүй') : o.customerName),
           subtitle: Text('${o.phone}\n${o.address}'),
           isThreeLine: true,
         ),
@@ -450,10 +451,10 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
             ListTile(
               leading: NetImage(fileUrl(i.imageId, 'icon'), width: 48, height: 48, radius: BorderRadius.circular(6)),
               title: Text(i.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-              subtitle: Text('${money(i.price)} × ${i.qty}${i.returnedQty > 0 ? ' (буцаасан ${i.returnedQty})' : ''}'),
+              subtitle: Text('${money(i.price)} × ${i.qty}${i.returnedQty > 0 ? ' (${tr('буцаасан {n}', {'n': i.returnedQty})})' : ''}'),
               trailing: o.canReturn && i.keptQty > 0 && admin.user?.isAdmin == true
                   ? IconButton(
-                      tooltip: 'Буцаах',
+                      tooltip: tr('Буцаах'),
                       icon: _action == 'item-${i.id}'
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.undo),
@@ -468,10 +469,10 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(children: [
-            sum('Барааны дүн', o.subtotal),
-            if (o.returnedAmount > 0) sum('Буцаасан', -o.returnedAmount),
-            sum('Хүргэлт', o.deliveryFee),
-            sum('Нийт', o.total, bold: true),
+            sum(tr('Барааны дүн'), o.subtotal),
+            if (o.returnedAmount > 0) sum(tr('Буцаасан'), -o.returnedAmount),
+            sum(tr('Хүргэлт'), o.deliveryFee),
+            sum(tr('Нийт'), o.total, bold: true),
           ]),
         ),
       ),
@@ -494,11 +495,11 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
                 onPressed: _busy
                     ? null
                     : () async {
-                        if (await _confirm('Захиалгыг цуцлах уу? Бараа агуулахад буцна.')) {
-                          await _run(() => admin.cancelOrder(o.id), 'Цуцаллаа', action: 'cancel');
+                        if (await _confirm(tr('Захиалгыг цуцлах уу? Бараа агуулахад буцна.'))) {
+                          await _run(() => admin.cancelOrder(o.id), tr('Цуцаллаа'), action: 'cancel');
                         }
                       },
-                child: _action == 'cancel' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red)) : const Text('Цуцлах'),
+                child: _action == 'cancel' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red)) : Text(tr('Цуцлах')),
               ),
             )
           else if (o.canReturn)
@@ -508,11 +509,11 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
                 onPressed: _busy
                     ? null
                     : () async {
-                        if (await _confirm('Захиалгыг бүхэлд нь буцаах уу?')) {
-                          await _run(() => admin.setOrderStatus(o.id, 'returned'), 'Буцаалаа', action: 'return');
+                        if (await _confirm(tr('Захиалгыг бүхэлд нь буцаах уу?'))) {
+                          await _run(() => admin.setOrderStatus(o.id, 'returned'), tr('Буцаалаа'), action: 'return');
                         }
                       },
-                child: _action == 'return' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Бүгдийг буцаах'),
+                child: _action == 'return' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(tr('Бүгдийг буцаах')),
               ),
             ),
           if (next != null) ...[
@@ -523,11 +524,11 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
                 onPressed: _busy
                     ? null
                     : () async {
-                        if (await _confirm('${next.$1}?')) {
+                        if (await _confirm('${tr(next.$1)}?')) {
                           await _run(() => admin.setOrderStatus(o.id, next.$2), orderStatusLabel[next.$2]!, action: 'next');
                         }
                       },
-                child: _action == 'next' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text(next.$1),
+                child: _action == 'next' ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text(tr(next.$1)),
               ),
             ),
           ],

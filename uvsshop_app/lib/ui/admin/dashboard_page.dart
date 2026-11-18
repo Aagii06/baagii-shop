@@ -8,12 +8,17 @@ import 'admin_design.dart';
 import 'admin_shell.dart';
 import 'admin_widgets.dart';
 import 'orders_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Үлдэгдэл үүнээс бага бол "нөөц дуусч байна".
 const lowStockThreshold = 5;
 
-const _ranges = {'today': 'Өнөөдөр', 'yesterday': 'Өчигдөр', 'week': '7 хоног', 'month': '30 хоног'};
-const _vs = {'today': 'өчигдрөөс', 'yesterday': 'уржигдраас', 'week': 'өмнөх 7 хоногоос', 'month': 'өмнөх 30 хоногоос'};
+const _rangesMn = {'today': 'Өнөөдөр', 'yesterday': 'Өчигдөр', 'week': '7 хоног', 'month': '30 хоног'};
+/// Shown in the chosen language (i18n.dart).
+Map<String, String> get _ranges => {for (final e in _rangesMn.entries) e.key: tr(e.value)};
+const _vsMn = {'today': 'өчигдрөөс', 'yesterday': 'уржигдраас', 'week': 'өмнөх 7 хоногоос', 'month': 'өмнөх 30 хоногоос'};
+/// Shown in the chosen language (i18n.dart).
+Map<String, String> get _vs => {for (final e in _vsMn.entries) e.key: tr(e.value)};
 
 /// web-ийн / (Хяналтын самбар).
 class DashboardPage extends StatefulWidget {
@@ -170,7 +175,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: _StatTile(
                 tone: _TileTone.blue,
                 icon: Icons.shopping_bag_outlined,
-                label: 'Захиалга',
+                label: tr('Захиалга'),
                 value: '${s.orders}',
                 delta: _delta(s.orders, s.prevOrders, against: _vs[_range]),
               ),
@@ -180,7 +185,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: _StatTile(
                 tone: _TileTone.brand,
                 icon: Icons.account_balance_wallet_outlined,
-                label: 'Борлуулалт',
+                label: tr('Борлуулалт'),
                 value: mntCompact(s.revenue),
                 delta: _delta(s.revenue, s.prevRevenue),
               ),
@@ -197,7 +202,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: _StatTile(
                 tone: _TileTone.mint,
                 icon: Icons.receipt_outlined,
-                label: 'Дундаж дүн',
+                label: tr('Дундаж дүн'),
                 value: mntCompact(s.orders == 0 ? 0 : s.revenue / s.orders),
               ),
             ),
@@ -206,12 +211,12 @@ class _DashboardPageState extends State<DashboardPage> {
               child: _StatTile(
                 tone: _TileTone.peach,
                 icon: Icons.schedule,
-                label: 'Батлахыг хүлээж',
+                label: tr('Батлахыг хүлээж'),
                 value: _pending == null ? '—' : '$_pending',
-                footer: const Row(
+                footer: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Харах', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text(tr('Харах'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     SizedBox(width: 4),
                     Icon(Icons.arrow_forward, size: 14),
                   ],
@@ -249,7 +254,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _titleRow('Нөөц дуусч байна'),
+          _titleRow(tr('Нөөц дуусч байна')),
           if (_products == null && _productsError != null)
             Padding(
               padding: const EdgeInsets.all(16),
@@ -261,10 +266,10 @@ class _DashboardPageState extends State<DashboardPage> {
               child: Pulse(child: Column(children: [Bone(), SizedBox(height: 14), Bone(), SizedBox(height: 14), Bone()])),
             )
           else if (low.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: Text(
-                'Бүх барааны нөөц хангалттай байна.',
+                tr('Бүх барааны нөөц хангалттай байна.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: AdminColors.mutedForeground),
               ),
@@ -287,7 +292,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        p.remain <= 0 ? 'Дууссан' : '${p.remain} үлдсэн',
+                        p.remain <= 0 ? tr('Дууссан') : tr('{remain} үлдсэн', {'remain': p.remain}),
                         style: const TextStyle(
                           fontFamily: mono,
                           fontSize: 12,
@@ -310,11 +315,11 @@ class _DashboardPageState extends State<DashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _titleRow(
-          'Сүүлийн захиалга',
+          tr('Сүүлийн захиалга'),
           aside: GestureDetector(
             onTap: () => adminTab.value = 'orders',
-            child: const Text(
-              'Бүгд',
+            child: Text(
+              tr('Бүгд'),
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AdminColors.primaryInk),
             ),
           ),
@@ -337,7 +342,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          o.customerName.isEmpty ? 'Нэргүй' : o.customerName,
+                          o.customerName.isEmpty ? tr('Нэргүй') : o.customerName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
@@ -539,7 +544,9 @@ class _SalesChart extends StatelessWidget {
   final SalesData data;
   const _SalesChart(this.data);
 
-  static const _weekdays = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
+  static const _weekdaysMn = ['Да', 'Мя', 'Лх', 'Пү', 'Ба', 'Бя', 'Ня'];
+  /// Shown in the chosen language (i18n.dart).
+  static List<String> get _weekdays => [for (final v in _weekdaysMn) tr(v)];
 
   String _label(DateTime d) {
     String two(int n) => n.toString().padLeft(2, '0');
@@ -562,11 +569,11 @@ class _SalesChart extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
-                child: Text('Борлуулалтын явц', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Text(tr('Борлуулалтын явц'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
               ),
               Text(
-                hourly ? 'цагаар' : 'өдрөөр',
+                hourly ? tr('цагаар') : tr('өдрөөр'),
                 style: const TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground),
               ),
             ],

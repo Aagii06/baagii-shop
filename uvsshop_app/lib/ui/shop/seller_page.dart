@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 final _emailRe = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 const _codeLength = 4;
@@ -136,7 +137,7 @@ class _SellerPageState extends State<SellerPage> {
           );
       if (mounted) setState(() => _done = true);
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString().isEmpty ? 'Хүсэлт илгээхэд алдаа гарлаа' : e.toString());
+      if (mounted) setState(() => _error = e.toString().isEmpty ? tr('Хүсэлт илгээхэд алдаа гарлаа') : e.toString());
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -146,7 +147,7 @@ class _SellerPageState extends State<SellerPage> {
         padding: const EdgeInsets.only(bottom: 6),
         child: Text.rich(TextSpan(children: [
           TextSpan(text: text, style: const TextStyle(fontWeight: FontWeight.w500)),
-          if (optional) TextSpan(text: ' (заавал биш)', style: TextStyle(color: Colors.grey.shade600)),
+          if (optional) TextSpan(text: tr(' (заавал биш)'), style: TextStyle(color: Colors.grey.shade600)),
         ])),
       );
 
@@ -167,7 +168,7 @@ class _SellerPageState extends State<SellerPage> {
   Widget build(BuildContext context) {
     final email = _email.text.trim();
     return Scaffold(
-      appBar: AppBar(title: const Text('Борлуулагч болох')),
+      appBar: AppBar(title: Text(tr('Борлуулагч болох'))),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         Container(
           padding: const EdgeInsets.all(24),
@@ -181,9 +182,9 @@ class _SellerPageState extends State<SellerPage> {
   Widget _doneView() => Column(children: [
         const Icon(Icons.check_circle_outline, size: 48, color: brandColor),
         const SizedBox(height: 16),
-        const Text('Хүсэлт илгээгдлээ', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(tr('Хүсэлт илгээгдлээ'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
-        Text('Бид тантай удахгүй холбогдоно.', style: TextStyle(color: Colors.grey.shade600)),
+        Text(tr('Бид тантай удахгүй холбогдоно.'), style: TextStyle(color: Colors.grey.shade600)),
       ]);
 
   Widget _form(String email) {
@@ -194,13 +195,13 @@ class _SellerPageState extends State<SellerPage> {
         child: CircleAvatar(radius: 24, backgroundColor: accentColor, child: const Icon(Icons.storefront_outlined, color: brandColor)),
       ),
       const SizedBox(height: 16),
-      const Text('Борлуулагч болох', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      Text(tr('Борлуулагч болох'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
       const SizedBox(height: 6),
-      Text('Дэлгүүрийнхээ мэдээллийг үлдээж, утсаа баталгаажуулна уу. Хүсэлт батлагдвал таны дэлгүүр нээгдэнэ.',
+      Text(tr('Дэлгүүрийнхээ мэдээллийг үлдээж, утсаа баталгаажуулна уу. Хүсэлт батлагдвал таны дэлгүүр нээгдэнэ.'),
           style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
       const SizedBox(height: 24),
       // Алхам 1 — утас, SMS кодоор.
-      _label('Утасны дугаар'),
+      _label(tr('Утасны дугаар')),
       TextField(
         controller: _phone,
         readOnly: verified,
@@ -214,25 +215,25 @@ class _SellerPageState extends State<SellerPage> {
         onSubmitted: (_) => _sendCode(),
         decoration: InputDecoration(
           counterText: '',
-          hintText: 'Утасны дугаар',
+          hintText: tr('Утасны дугаар'),
           errorText: _phoneError,
-          helperText: verified || _phoneError != null ? null : 'Энэ дугаар руу баталгаажуулах код илгээнэ.',
+          helperText: verified || _phoneError != null ? null : tr('Энэ дугаар руу баталгаажуулах код илгээнэ.'),
           filled: verified,
           fillColor: verified ? Colors.green.shade50 : null,
           suffixIcon: verified
               ? Row(mainAxisSize: MainAxisSize.min, children: [
                   Icon(Icons.check_circle, size: 16, color: Colors.green.shade600),
                   const SizedBox(width: 4),
-                  Text('Баталгаажсан', style: TextStyle(color: Colors.green.shade600, fontWeight: FontWeight.w600)),
-                  TextButton(onPressed: _changePhone, child: const Text('Солих')),
+                  Text(tr('Баталгаажсан'), style: TextStyle(color: Colors.green.shade600, fontWeight: FontWeight.w600)),
+                  TextButton(onPressed: _changePhone, child: Text(tr('Солих'))),
                 ])
-              : _inlineButton('Код авах${_cooldown > 0 ? ' ($_cooldown)' : ''}',
+              : _inlineButton(tr('Код авах{_cooldown}', {'_cooldown': _cooldown > 0 ? ' ($_cooldown)' : ''}),
                   _phone.text.length != 8 || _phoneBusy || _cooldown > 0 ? null : _sendCode),
         ),
       ),
       if (_codeSent) ...[
         const SizedBox(height: 16),
-        _label('Баталгаажуулах код'),
+        _label(tr('Баталгаажуулах код')),
         TextField(
           controller: _code,
           focusNode: _codeFocus,
@@ -252,9 +253,9 @@ class _SellerPageState extends State<SellerPage> {
             hintText: '••••',
             errorText: _codeError,
             helperText: _codeError == null
-                ? '${_phone.text.substring(0, 4)} ${_phone.text.substring(4)} дугаарт ирсэн кодыг оруулна уу'
+                ? tr('{substring} {substring2} дугаарт ирсэн кодыг оруулна уу', {'substring': _phone.text.substring(0, 4), 'substring2': _phone.text.substring(4)})
                 : null,
-            suffixIcon: _inlineButton('Шалгах', _code.text.length < _codeLength || _phoneBusy ? null : _verify),
+            suffixIcon: _inlineButton(tr('Шалгах'), _code.text.length < _codeLength || _phoneBusy ? null : _verify),
           ),
         ),
       ],
@@ -270,36 +271,36 @@ class _SellerPageState extends State<SellerPage> {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(color: mutedColor, borderRadius: BorderRadius.circular(8)),
-                child: Text('Эхлээд утасны дугаараа баталгаажуулна уу', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                child: Text(tr('Эхлээд утасны дугаараа баталгаажуулна уу'), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
               ),
-            _label('Дэлгүүрийн нэр'),
+            _label(tr('Дэлгүүрийн нэр')),
             TextField(
               controller: _storeName,
               focusNode: _storeFocus,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                  errorText: _submitted && _storeName.text.trim().isEmpty ? 'Дэлгүүрийн нэр оруулна уу' : null),
+                  errorText: _submitted && _storeName.text.trim().isEmpty ? tr('Дэлгүүрийн нэр оруулна уу') : null),
             ),
             const SizedBox(height: 16),
-            _label('Таны нэр'),
+            _label(tr('Таны нэр')),
             TextField(
               controller: _name,
               textCapitalization: TextCapitalization.words,
               onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(errorText: _submitted && _name.text.trim().isEmpty ? 'Нэрээ оруулна уу' : null),
+              decoration: InputDecoration(errorText: _submitted && _name.text.trim().isEmpty ? tr('Нэрээ оруулна уу') : null),
             ),
             const SizedBox(height: 16),
-            _label('Имэйл', optional: true),
+            _label(tr('Имэйл'), optional: true),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
               onChanged: (_) => setState(() {}),
               decoration:
-                  InputDecoration(errorText: _submitted && email.isNotEmpty && !_emailRe.hasMatch(email) ? 'Имэйл буруу байна' : null),
+                  InputDecoration(errorText: _submitted && email.isNotEmpty && !_emailRe.hasMatch(email) ? tr('Имэйл буруу байна') : null),
             ),
             const SizedBox(height: 16),
-            _label('Дэлгүүрийн хаяг', optional: true),
+            _label(tr('Дэлгүүрийн хаяг'), optional: true),
             TextField(controller: _address, maxLines: 3),
             if (_error != null) ...[
               const SizedBox(height: 12),
@@ -311,7 +312,7 @@ class _SellerPageState extends State<SellerPage> {
               onPressed: verified && !_busy ? _submit : null,
               child: _busy
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Хүсэлт илгээх'),
+                  : Text(tr('Хүсэлт илгээх')),
             ),
           ]),
         ),

@@ -8,6 +8,7 @@ import '../api/admin_models.dart';
 import '../api/api_client.dart';
 import '../config.dart';
 import '../push/push_service.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Админ/худалдагчийн сесс. Нэвтэрсэн хэрэглэгчийг апп нээгдэхэд таньж шууд
 /// админ хэсэг рүү оруулна (`AppState.mode`).
@@ -53,7 +54,7 @@ class AdminState extends ChangeNotifier {
   Future<void> login(String phone, String password) async {
     final res = await api.post('/auth/login', body: {'phone': phone, 'password': password}, auth: false);
     final token = res['data']?['token'] as String?;
-    if (token == null) throw ApiException(200, res['message']?.toString() ?? 'Нэвтэрч чадсангүй');
+    if (token == null) throw ApiException(200, res['message']?.toString() ?? tr('Нэвтэрч чадсангүй'));
     _token = token;
     await _prefs?.setString(_tokenKey, token);
     final u = res['data']?['user'];
@@ -67,7 +68,7 @@ class AdminState extends ChangeNotifier {
     final u = res['data']?['user'];
     if (u is! Map<String, dynamic>) {
       // Зочны токен — админ биш.
-      throw ApiException(401, 'Нэвтрэх шаардлагатай', isAuth: true);
+      throw ApiException(401, tr('Нэвтрэх шаардлагатай'), isAuth: true);
     }
     user = AdminUser.fromJson(u, store: res['data']?['store'] as Map<String, dynamic>?);
     await _prefs?.setString(_userKey, jsonEncode(user!.toJson()));
@@ -197,7 +198,7 @@ class AdminState extends ChangeNotifier {
   Future<String> uploadImage(List<int> bytes, String filename, String folder) async {
     final res = await guard(() => api.upload('/file/upload', bytes: bytes, filename: filename, fields: {'folder': folder}));
     final id = res['data']?['id']?.toString();
-    if (id == null || id.isEmpty) throw ApiException(200, res['message']?.toString() ?? 'Зураг хуулж чадсангүй');
+    if (id == null || id.isEmpty) throw ApiException(200, res['message']?.toString() ?? tr('Зураг хуулж чадсангүй'));
     return id;
   }
 
@@ -479,7 +480,7 @@ class AdminState extends ChangeNotifier {
       ids[e.key] = await uploadImage(e.value.$1, e.value.$2, 'products');
     }
     final body = build((ref) => ids[ref] ?? ref);
-    if (body['categoryId'] == null) throw ApiException(200, 'Категори сонгоно уу.');
+    if (body['categoryId'] == null) throw ApiException(200, tr('Категори сонгоно уу.'));
     await guard(() => id == null ? api.post('/product', body: body) : api.put('/product/$id', body: body));
   }
 

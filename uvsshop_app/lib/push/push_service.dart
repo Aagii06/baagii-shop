@@ -11,6 +11,7 @@ import '../firebase_options.dart';
 import '../state/app_state.dart';
 import '../ui/admin/notification_bell.dart';
 import '../ui/shop/notifications_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Push мэдэгдэл (Firebase Cloud Messaging). Утасны токеныг нэвтэрсэн худалдан
 /// авагч (дэлгүүр хэсэг) болон админ/худалдагчид (админ хэсэг) тус тусад нь
@@ -44,7 +45,7 @@ class PushService {
     try {
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     } catch (e) {
-      debugPrint('Push идэвхгүй: $e');
+      debugPrint(tr('Push идэвхгүй: {e}', {'e': e}));
       return;
     }
     try {
@@ -83,7 +84,7 @@ class PushService {
       final initial = await m.getInitialMessage();
       if (initial != null) unawaited(_open(initial.data));
     } catch (e) {
-      debugPrint('Push init алдаа: $e');
+      debugPrint(tr('Push init алдаа: {e}', {'e': e}));
     }
   }
 

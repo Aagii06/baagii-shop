@@ -7,6 +7,7 @@ import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_design.dart';
 import 'admin_widgets.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// web-ийн /feedbacks: вэбийн "Бидэнд бичнэ үү" маягтаар ирсэн захидал.
 class FeedbacksPage extends StatefulWidget {
@@ -50,15 +51,15 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
   }
 
   Future<void> _toggle(FeedbackMsg f) => _act(f, 'toggle', () => context.read<AdminState>().setFeedbackRead(f.id, f.isNew),
-      f.isNew ? 'Уншсан болголоо' : 'Уншаагүй болголоо');
+      f.isNew ? tr('Уншсан болголоо') : tr('Уншаагүй болголоо'));
 
   Future<void> _delete(FeedbackMsg f) async {
     final ok = await confirmAction(context,
-        title: 'Санал хүсэлт устгах уу?',
-        description: '${f.name}-ийн илгээсэн захидлыг устгана. Буцаах боломжгүй.',
-        confirmLabel: 'Устгах',
+        title: tr('Санал хүсэлт устгах уу?'),
+        description: tr('{name}-ийн илгээсэн захидлыг устгана. Буцаах боломжгүй.', {'name': f.name}),
+        confirmLabel: tr('Устгах'),
         danger: true);
-    if (ok && mounted) await _act(f, 'delete', () => context.read<AdminState>().deleteFeedback(f.id), 'Устгалаа');
+    if (ok && mounted) await _act(f, 'delete', () => context.read<AdminState>().deleteFeedback(f.id), tr('Устгалаа'));
   }
 
   /// Имэйлээр хариулахад уншсан болгоно.
@@ -80,14 +81,14 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
     final newCount = _data?.where((f) => f.isNew).length ?? 0;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Санал хүсэлт'),
+        title: Text(tr('Санал хүсэлт')),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(62),
           child: ChipTabs<String>(
             value: _status,
             onChanged: (v) => setState(() => _status = v),
             tones: {'new': orderTones['pending']!, 'read': orderTones['delivered']!},
-            options: [('all', 'Бүгд', null), ('new', 'Шинэ', newCount), ('read', 'Уншсан', null)],
+            options: [('all', tr('Бүгд'), null), ('new', tr('Шинэ'), newCount), ('read', tr('Уншсан'), null)],
           ),
         ),
       ),
@@ -98,7 +99,7 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
           error: _error,
           onRetry: _load,
           emptyIcon: Icons.chat_outlined,
-          emptyText: _status == 'all' ? 'Санал хүсэлт алга' : '“${feedbackStatusLabel[_status]}” санал хүсэлт алга',
+          emptyText: _status == 'all' ? tr('Санал хүсэлт алга') : tr('“{_status}” санал хүсэлт алга', {'_status': feedbackStatusLabel[_status]}),
           builder: (rows) => ListView.separated(
             itemCount: rows.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
@@ -163,7 +164,7 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
         const SizedBox(height: 10),
         Row(children: [
           Expanded(
-            child: OutlinedButton.icon(onPressed: () => _reply(f), icon: const Icon(Icons.reply, size: 18), label: const Text('Хариу бичих')),
+            child: OutlinedButton.icon(onPressed: () => _reply(f), icon: const Icon(Icons.reply, size: 18), label: Text(tr('Хариу бичих'))),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -172,7 +173,7 @@ class _FeedbacksPageState extends State<FeedbacksPage> {
               icon: busy == 'toggle'
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                   : Icon(f.isNew ? Icons.check : Icons.undo, size: 18),
-              label: Text(f.isNew ? 'Уншсан' : 'Уншаагүй'),
+              label: Text(f.isNew ? tr('Уншсан') : tr('Уншаагүй')),
             ),
           ),
           const SizedBox(width: 8),

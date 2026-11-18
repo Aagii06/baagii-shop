@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'product_card.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Web-ийн /saved — хадгалсан бараа.
 class SavedPage extends StatelessWidget {
@@ -14,12 +15,12 @@ class SavedPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final saved = context.watch<ShopState>().saved;
     return Scaffold(
-      appBar: AppBar(title: const Text('Хадгалсан')),
+      appBar: AppBar(title: Text(tr('Хадгалсан'))),
       body: saved.isEmpty
           ? EmptyView(
               icon: Icons.favorite_border,
-              text: 'Хадгалсан бараа алга.\nБарааны ♡ дээр дарж хадгална.',
-              action: FilledButton(onPressed: onShop, child: const Text('Бараа үзэх')),
+              text: tr('Хадгалсан бараа алга.\nБарааны ♡ дээр дарж хадгална.'),
+              action: FilledButton(onPressed: onShop, child: Text(tr('Бараа үзэх'))),
             )
           : GridView.builder(
               padding: const EdgeInsets.all(12),

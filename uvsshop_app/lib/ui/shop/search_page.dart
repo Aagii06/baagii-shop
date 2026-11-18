@@ -10,6 +10,7 @@ import '../common.dart';
 import 'home_page.dart' show byNewest, goldFirst, tierRing, TierRibbon;
 import 'product_card.dart';
 import 'store_page.dart';
+import 'package:uvsshop_app/i18n.dart';
 
 /// Шүүлтүүр — web-ийн FilterSidebar / MobileFilterDrawer.
 class SearchFilters {
@@ -207,7 +208,7 @@ class _SearchPageState extends State<SearchPage> {
     final activeCategory = _filters.categories.length == 1 ? Category.findById(categories, _filters.categories.first) : null;
     final title = _search.text.trim().isNotEmpty
         ? '«${_search.text.trim()}»'
-        : activeCategory?.name ?? (_saleOnly ? 'Хямдрал' : 'Бүх бараа');
+        : activeCategory?.name ?? (_saleOnly ? tr('Хямдрал') : tr('Бүх бараа'));
     final pickedStore = _filters.stores.length == 1 ? _filters.stores.first : null;
     final counts = _storeCounts;
     // Дээд түвшний (gold → silver → bronze) дэлгүүр эхэнд, дараа нь бараа ихтэй нь.
@@ -234,7 +235,7 @@ class _SearchPageState extends State<SearchPage> {
           },
           onSubmitted: (_) => _fetch(),
           decoration: InputDecoration(
-            hintText: 'Бараа хайх',
+            hintText: tr('Бараа хайх'),
             isDense: true,
             prefixIcon: const Icon(Icons.search),
             fillColor: Colors.white,
@@ -279,7 +280,7 @@ class _SearchPageState extends State<SearchPage> {
               child: Text.rich(TextSpan(children: [
                 TextSpan(text: '$title ', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 if (!_loading)
-                  TextSpan(text: '${filtered.length} бараа олдлоо', style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
+                  TextSpan(text: tr('{filtered} бараа олдлоо', {'filtered': filtered.length}), style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
               ])),
             ),
           ),
@@ -312,7 +313,7 @@ class _SearchPageState extends State<SearchPage> {
           if (_loading)
             const SliverFillRemaining(hasScrollBody: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: LoadingView(kind: SkeletonKind.grid)))
           else if (visible.isEmpty)
-            const SliverFillRemaining(hasScrollBody: false, child: EmptyView(icon: Icons.search_off, text: 'Бараа олдсонгүй'))
+            SliverFillRemaining(hasScrollBody: false, child: EmptyView(icon: Icons.search_off, text: tr('Бараа олдсонгүй')))
           else
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -326,12 +327,12 @@ class _SearchPageState extends State<SearchPage> {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(children: [
-                  Text('${filtered.length}-аас ${visible.length} бараа харуулж байна', style: TextStyle(color: Colors.grey.shade600)),
+                  Text(tr('{filtered}-аас {visible} бараа харуулж байна', {'filtered': filtered.length, 'visible': visible.length}), style: TextStyle(color: Colors.grey.shade600)),
                   const SizedBox(height: 8),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(minimumSize: const Size(192, 44)),
                     onPressed: () => setState(() => _page++),
-                    child: const Text('Цааш үзэх'),
+                    child: Text(tr('Цааш үзэх')),
                   ),
                 ]),
               ),
@@ -441,7 +442,7 @@ class FilterButton extends StatelessWidget {
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.tune, size: 18),
             const SizedBox(width: 6),
-            const Text('Шүүлтүүр', style: TextStyle(fontSize: 13.5)),
+            Text(tr('Шүүлтүүр'), style: TextStyle(fontSize: 13.5)),
             if (count > 0) ...[
               const SizedBox(width: 6),
               Container(
@@ -536,7 +537,7 @@ class FilterSheetState extends State<FilterSheet> {
           padding: const EdgeInsets.only(left: 16),
           decoration: const BoxDecoration(border: Border(left: BorderSide(color: borderColor, width: 2))),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _pick('Бүгд', _f.categories.contains(c.id), () => _toggleCategory(c.id), sub: true),
+            _pick(tr('Бүгд'), _f.categories.contains(c.id), () => _toggleCategory(c.id), sub: true),
             for (final child in c.children) _category(child, depth: depth + 1),
           ]),
         ),
@@ -555,26 +556,26 @@ class FilterSheetState extends State<FilterSheet> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 14, 8, 6),
           child: Row(children: [
-            const Expanded(child: Text('Шүүлтүүр', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-            IconButton(tooltip: 'Хаах', onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+            Expanded(child: Text(tr('Шүүлтүүр'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            IconButton(tooltip: tr('Хаах'), onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
           ]),
         ),
         const Divider(height: 1),
         Expanded(
           child: ListView(controller: scroll, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), children: [
-            const Text('Ангилал', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-            _pick('Бүх бараа', _f.categories.isEmpty, () => setState(() => _f = _f.copyWith(categories: {}))),
+            Text(tr('Ангилал'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+            _pick(tr('Бүх бараа'), _f.categories.isEmpty, () => setState(() => _f = _f.copyWith(categories: {}))),
             for (final c in widget.categories) _category(c),
             if (widget.stores.isNotEmpty) ...[
               const Divider(height: 24),
-              const Text('Дэлгүүрүүд', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              Text(tr('Дэлгүүрүүд'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               for (final s in widget.stores)
                 _pick(s, _f.stores.contains(s), () => _toggleStore(s),
                     leading: StoreAvatar(name: s, logo: widget.logos[s], size: 24, radius: 6)),
             ],
             if (b.end > b.start) ...[
               const Divider(height: 24),
-              const Text('Үнийн хязгаар', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              Text(tr('Үнийн хязгаар'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               RangeSlider(
                 min: b.start,
@@ -596,7 +597,7 @@ class FilterSheetState extends State<FilterSheet> {
             child: FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
               onPressed: () => Navigator.pop(context, _f),
-              child: const Text('Илэрц харах'),
+              child: Text(tr('Илэрц харах')),
             ),
           ),
         ),
