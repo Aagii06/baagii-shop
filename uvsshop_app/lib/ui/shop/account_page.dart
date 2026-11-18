@@ -137,7 +137,7 @@ class _AccountPageState extends State<AccountPage> {
             icon: Icons.admin_panel_settings_outlined,
             title: 'Админ / Худалдагч нэвтрэх',
             subtitle: 'Дэлгүүрийн админ хэсэгт нэвтэрнэ',
-            onTap: () => _push(const SignInPage(initialTab: 1)),
+            onTap: () => _push(const SignInPage(admin: true)),
           );
   }
 

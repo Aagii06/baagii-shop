@@ -10,29 +10,30 @@ import '../../state/app_state.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 
-/// Нэг нэвтрэх хуудас: худалдан авагч утасны кодоор, админ/худалдагч
-/// нууц үгээр. Админ нэвтэрмэгц шууд админ хэсэг рүү орно.
+/// Нэвтрэх хуудас. Энгийн үед зөвхөн худалдан авагч утасны кодоор нэвтэрнэ.
+/// "Админ / Худалдагч" таб нь зөвхөн утас нь админ/худалдагчаар бүртгэлтэй
+/// (ShopState.isStaff) хэрэглэгчид, профайлаас [admin]=true-гээр нээгдэхэд харагдана.
+/// Админ нэвтэрмэгц шууд админ хэсэг рүү орно.
 class SignInPage extends StatelessWidget {
-  final int initialTab;
-  const SignInPage({super.key, this.initialTab = 0});
+  final bool admin;
+  const SignInPage({super.key, this.admin = false});
 
   @override
-  Widget build(BuildContext context) => DefaultTabController(
-        length: 2,
-        initialIndex: initialTab,
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Нэвтрэх'),
-            bottom: const TabBar(tabs: [Tab(text: 'Худалдан авагч'), Tab(text: 'Админ / Худалдагч')]),
-          ),
-          body: TabBarView(children: [
-            ListView(padding: const EdgeInsets.all(20), children: [
-              PhoneOtpForm(onDone: () => Navigator.of(context).pop(true)),
-            ]),
-            ListView(padding: const EdgeInsets.all(20), children: const [AdminLoginForm()]),
-          ]),
-        ),
+  Widget build(BuildContext context) {
+    final showAdmin = admin && context.select<ShopState, bool>((s) => s.isStaff);
+    if (!showAdmin) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Нэвтрэх')),
+        body: ListView(padding: const EdgeInsets.all(20), children: [
+          PhoneOtpForm(onDone: () => Navigator.of(context).pop(true)),
+        ]),
       );
+    }
+    return Scaffold(
+      appBar: AppBar(title: const Text('Админ / Худалдагч нэвтрэх')),
+      body: ListView(padding: const EdgeInsets.all(20), children: const [AdminLoginForm()]),
+    );
+  }
 }
 
 /// Утасны дугаар оруулж "Код авах" дарахад кодын тусдаа хуудас ([OtpCodePage]) нээгдэнэ.

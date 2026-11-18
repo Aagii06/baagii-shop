@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { customers, partnerRequests, users, sequelize } = require("../../models");
-const { partnerStatuses } = require("../../config/constants");
+const { partnerStatuses, roles } = require("../../config/constants");
+const { Op } = require("sequelize");
 const { signWeb, signPhoneProof, readPhoneProof } = require("../../middleware/auth");
 const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
 const { mergeGuestCart } = require("../../helper/cartHelper");
@@ -25,7 +26,9 @@ module.exports.getUserData = handle("getUserData", async (req, res) => {
   if (!customerId) return ok(res, {});
   const customer = await customers.findOne({ where: { id: customerId, shop_id: req.shopId, status: "active" } });
   if (!customer) return ok(res, {});
-  const isStaff = (await users.count({ where: { shop_id: req.shopId, phone: customer.phone, status: "active" } })) > 0;
+  const isStaff = (await users.count({
+    where: { shop_id: req.shopId, phone: customer.phone, status: "active", role: { [Op.in]: [roles.admin, roles.shopper] } },
+  })) > 0;
   return ok(res, { customer: toCustomer(customer), isStaff });
 });
 
