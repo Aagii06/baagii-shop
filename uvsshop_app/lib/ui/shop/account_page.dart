@@ -115,19 +115,11 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  /// web: нэвтрээгүй үед "Та нэвтрээгүй байна".
-  Widget _signInPrompt() => ListView(padding: const EdgeInsets.fromLTRB(16, 40, 16, 24), children: [
-        Icon(Icons.person_outline, size: 48, color: Colors.grey.shade500),
+  /// Нэвтрээгүй үед утасны дугаар оруулах хэсэг шууд харагдана; нэвтэрмэгц профайл гарна.
+  Widget _signInPrompt() => ListView(padding: const EdgeInsets.fromLTRB(16, 24, 16, 24), children: [
+        Text(tr('Нэвтрэх'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-        Text(tr('Та нэвтрээгүй байна'), textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Text(tr('Профайл тохиргоогоо үзэхийн тулд эхлээд нэвтэрнэ үү.'),
-            textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
-        const SizedBox(height: 24),
-        Center(child: FilledButton(onPressed: () => _push(const SignInPage()), child: Text(tr('Нэвтрэх')))),
-        // Хэл солих товч (одоогоор зөвхөн монгол хэл):
-        // const SizedBox(height: 32),
-        // const LanguagePicker(),
+        PhoneOtpForm(onDone: () {}),
       ]);
 
   /// Апп дээрх нэмэлт: худалдан авагчийн утсаар админ / дэлгүүрийн хэрэглэгч
