@@ -8,7 +8,6 @@ import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'addresses_page.dart';
-import 'notifications_page.dart';
 import 'orders_page.dart';
 import 'seller_page.dart';
 import 'sign_in_page.dart';
@@ -91,7 +90,7 @@ class _AccountPageState extends State<AccountPage> {
                   subtitle: tr('Дэлгүүрийнхээ мэдээллийг үлдээж, утсаа баталгаажуулна уу. Хүсэлт батлагдвал таны дэлгүүр нээгдэнэ.'),
                   onTap: () => _push(const SellerPage()),
                 ),
-                if (shop.isStaff) ...[
+                if (shop.isStaff || context.watch<AdminState>().signedIn) ...[
                   const SizedBox(height: 16),
                   _adminLink(),
                 ],
@@ -110,17 +109,61 @@ class _AccountPageState extends State<AccountPage> {
                   icon: const Icon(Icons.logout, size: 16),
                   label: Text(tr('Гарах')),
                 ),
+                // Админ бус дугаараар нэвтэрсэн ч админ / худалдагчийн нэвтрэх зам үргэлж үлдэнэ
+                // (дээрх карт зөвхөн isStaff эсвэл админаар нэвтэрсэн үед гарна).
+                if (!shop.isStaff && !context.watch<AdminState>().signedIn) ...[
+                  const SizedBox(height: 8),
+                  Center(
+                    child: TextButton.icon(
+                      style: TextButton.styleFrom(foregroundColor: Colors.grey.shade600),
+                      onPressed: () => _push(const SignInPage(admin: true)),
+                      icon: const Icon(Icons.admin_panel_settings_outlined, size: 16),
+                      label: Text(tr('Админ / Худалдагч нэвтрэх'), style: const TextStyle(fontSize: 13)),
+                    ),
+                  ),
+                ],
               ]),
       ),
     );
   }
 
-  /// Нэвтрээгүй үед утасны дугаар оруулах хэсэг шууд харагдана; нэвтэрмэгц профайл гарна.
-  Widget _signInPrompt() => ListView(padding: const EdgeInsets.fromLTRB(16, 24, 16, 24), children: [
-        Text(tr('Нэвтрэх'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 16),
-        PhoneOtpForm(onDone: () {}),
-      ]);
+  /// Нэвтрээгүй үед (BaagiiCar шиг) 2 таб: "Хэрэглэгч" — утасны кодоор,
+  /// "Админ / Худалдагч" — утас, нууц үгээр (аль хэдийн нэвтэрсэн бол админ руу шилжих товч).
+  Widget _signInPrompt() {
+    final admin = context.watch<AdminState>();
+    return DefaultTabController(
+      length: 2,
+      child: Column(children: [
+        TabBar(
+          labelColor: brandColor,
+          indicatorColor: brandColor,
+          unselectedLabelColor: Colors.grey.shade600,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+          tabs: [Tab(text: tr('Хэрэглэгч')), Tab(text: tr('Админ / Худалдагч'))],
+        ),
+        Expanded(
+          child: TabBarView(children: [
+            ListView(padding: const EdgeInsets.all(16), children: [PhoneOtpForm(onDone: () {})]),
+            ListView(padding: const EdgeInsets.all(16), children: [
+              if (admin.signedIn) ...[
+                const Icon(Icons.admin_panel_settings_outlined, size: 40, color: brandColor),
+                const SizedBox(height: 12),
+                Text(tr('{name} — та админ хэсэгт нэвтэрсэн байна.', {'name': admin.user?.name ?? ''}),
+                    textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+                const SizedBox(height: 16),
+                FilledButton(
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                  onPressed: () => context.read<AppState>().openAdmin(),
+                  child: Text(tr('Админ хэсэг рүү шилжих')),
+                ),
+              ] else
+                const AdminLoginForm(),
+            ]),
+          ]),
+        ),
+      ]),
+    );
+  }
 
   /// Апп дээрх нэмэлт: худалдан авагчийн утсаар админ / дэлгүүрийн хэрэглэгч
   /// бүртгэлтэй (isStaff) үед л харагдана.
@@ -248,7 +291,6 @@ class _AccountPageState extends State<AccountPage> {
   /// web-ийн OrdersSidebar (menu): Миний захиалга, Сагс, Хадгалсан бараа, Хүргэлтийн хаяг.
   Widget _menu(ShopState shop) {
     final items = [
-      (Icons.notifications_none, tr('Мэдэгдэл'), shop.unreadNotifications, () => _push(const ShopNotificationsPage())),
       (Icons.assignment_outlined, tr('Миний захиалга'), 0, () => _push(const OrdersPage())),
       (Icons.shopping_cart_outlined, tr('Сагс'), shop.cartCount, () => widget.onOpenTab?.call(ShopTab.cart)),
       (Icons.favorite_border, tr('Хадгалсан бараа'), shop.saved.length, () => widget.onOpenTab?.call(ShopTab.saved)),

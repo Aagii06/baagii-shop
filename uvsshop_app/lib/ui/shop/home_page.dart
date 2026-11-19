@@ -7,6 +7,7 @@ import '../../api/shop_models.dart';
 import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'notifications_page.dart';
 import 'product_card.dart';
 import 'store_page.dart';
 import 'product_page.dart';
@@ -79,6 +80,7 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey.shade600)),
           ]),
         ]),
+        actions: const [_NotificationsButton(), SizedBox(width: 4)],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -814,4 +816,25 @@ class _GridSkeleton extends StatelessWidget {
           ]),
         ),
       );
+}
+
+/// Header-ийн хонх (вэбийн header шиг): нэвтэрсэн үед л харагдана, уншаагүйн тоотой.
+class _NotificationsButton extends StatelessWidget {
+  const _NotificationsButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final signedIn = context.select<ShopState, bool>((s) => s.signedIn);
+    if (!signedIn) return const SizedBox.shrink();
+    final unread = context.select<ShopState, int>((s) => s.unreadNotifications);
+    return IconButton(
+      tooltip: tr('Мэдэгдэл'),
+      onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ShopNotificationsPage())),
+      icon: Badge(
+        isLabelVisible: unread > 0,
+        label: Text(unread > 99 ? '99+' : '$unread'),
+        child: const Icon(Icons.notifications_none),
+      ),
+    );
+  }
 }

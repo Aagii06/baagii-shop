@@ -569,4 +569,7 @@ const appEn = <String, String>{
   '“{value}” утга аль хэдийн байна': '“{value}” is already there',
   '₮{floor}мянга': '₮{floor}K',
   '₮{floor}сая': '₮{floor}M',
+  'Админ / Худалдагч': 'Admin / Seller',
+  '{name} — та админ хэсэгт нэвтэрсэн байна.': '{name} — you are signed in to the admin side.',
+  'Админ хэсэг рүү шилжих': 'Go to the admin side',
 };

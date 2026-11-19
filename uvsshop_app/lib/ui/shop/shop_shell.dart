@@ -56,7 +56,6 @@ class _ShopShellState extends State<ShopShell> with WidgetsBindingObserver {
     final cartCount = context.select<ShopState, int>((s) => s.cartCount);
     final savedCount = context.select<ShopState, int>((s) => s.saved.length);
     final signedIn = context.select<ShopState, bool>((s) => s.signedIn);
-    final unread = context.select<ShopState, int>((s) => s.unreadNotifications);
     final isAdmin = context.select<AdminState, bool>((a) => a.signedIn);
 
     final tabs = [
@@ -74,7 +73,7 @@ class _ShopShellState extends State<ShopShell> with WidgetsBindingObserver {
           ShopTab.search => (Icons.search, tr('Хайх'), 0),
           ShopTab.cart => (Icons.shopping_cart_outlined, tr('Сагс'), cartCount),
           ShopTab.saved => (Icons.favorite_border, tr('Хадгалсан'), savedCount),
-          ShopTab.profile => (Icons.person_outline, signedIn ? tr('Профайл') : tr('Нэвтрэх'), unread),
+          ShopTab.profile => (Icons.person_outline, signedIn ? tr('Профайл') : tr('Нэвтрэх'), 0),
         };
 
     return Scaffold(
