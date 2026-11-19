@@ -376,8 +376,30 @@ class _OtpCodePageState extends State<OtpCodePage> {
 }
 
 /// Амжилттай баталгаажсаны дараах дэлгэц (загварын "Verification Success").
-class OtpSuccessPage extends StatelessWidget {
+class OtpSuccessPage extends StatefulWidget {
   const OtpSuccessPage({super.key});
+
+  @override
+  State<OtpSuccessPage> createState() => _OtpSuccessPageState();
+}
+
+/// Амжилтын дэлгэц ~1.5 секунд харагдаад өөрөө хаагдана (товч дарах шаардлагагүй).
+class _OtpSuccessPageState extends State<OtpSuccessPage> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -406,12 +428,6 @@ class OtpSuccessPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(tr('UVS SHOP-д тавтай морил! Та нэвтэрлээ.'),
                     textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
-                const SizedBox(height: 32),
-                FilledButton(
-                  style: FilledButton.styleFrom(minimumSize: const Size(220, 52), shape: const StadiumBorder()),
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(tr('Үргэлжлүүлэх'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                ),
               ]),
             ),
           ),

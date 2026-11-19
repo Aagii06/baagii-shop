@@ -93,7 +93,10 @@ void main() {
     await t.enterText(find.byType(TextField), '1234');
     await t.pumpAndSettle();
     expect(find.text('Амжилттай баталгаажлаа'), findsOneWidget);
-    await t.tap(find.text('Үргэлжлүүлэх'));
+    // Товчгүй: 1.5 секундын дараа өөрөө хаагдана.
+    expect(find.text('Үргэлжлүүлэх'), findsNothing);
+    expect(result, isNull);
+    await t.pump(const Duration(milliseconds: 1500));
     await t.pumpAndSettle();
     expect(result, isTrue);
     expect(t.takeException(), isNull);
