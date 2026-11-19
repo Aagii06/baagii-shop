@@ -9,7 +9,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Check, ChevronRight, LogOut, Pencil, Store, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
@@ -39,20 +39,15 @@ export default function ProfilePage() {
     return () => clearTimeout(id);
   }, [justSaved]);
 
-  if (!loading && !isAuthed) {
-    return (
-      <div className="py-10 text-center">
-        <UserRound className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-foreground mb-2">
-          {t("profile.signIn.title")}
-        </h1>
-        <p className="text-muted-foreground mb-6">{t("profile.signIn.desc")}</p>
-        <Button asChild>
-          <Link href="/signin">{t("profile.signIn.cta")}</Link>
-        </Button>
-      </div>
-    );
-  }
+  // Signed out: go straight to the phone sign-in page, then come back here.
+  // (Not after "Гарах" — that goes home instead.)
+  const loggingOut = useRef(false);
+  const signedOut = !loading && !isAuthed;
+  useEffect(() => {
+    if (signedOut && !loggingOut.current) router.replace("/signin?next=/profile");
+  }, [signedOut, router]);
+
+  if (signedOut) return null;
 
   const trimmed = nameInput.trim();
   const canSave = trimmed.length > 0 && trimmed !== (storedName ?? "");
@@ -73,6 +68,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
+    loggingOut.current = true;
     logout();
     router.push("/");
   };

@@ -311,7 +311,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           if (_loading)
-            const SliverFillRemaining(hasScrollBody: false, child: Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: LoadingView(kind: SkeletonKind.grid)))
+            const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: LoadingView(kind: SkeletonKind.grid)))
           else if (visible.isEmpty)
             SliverFillRemaining(hasScrollBody: false, child: EmptyView(icon: Icons.search_off, text: tr('Бараа олдсонгүй')))
           else
