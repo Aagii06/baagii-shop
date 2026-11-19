@@ -203,7 +203,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 tone: _TileTone.mint,
                 icon: Icons.receipt_outlined,
                 label: tr('Дундаж дүн'),
-                value: mntCompact(s.orders == 0 ? 0 : s.revenue / s.orders),
+                value: mntDecimal(s.orders == 0 ? 0 : s.revenue / s.orders),
               ),
             ),
             const SizedBox(width: 12),

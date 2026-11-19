@@ -25,6 +25,11 @@ export function formatMNTCompact(amount: number) {
   return formatMNT(amount);
 }
 
+/** "₮208,333.33": full amount, at most 2 decimal places. */
+export function formatMNTDecimal(amount: number) {
+  return `₮${amount.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+}
+
 export function formatQty(amount: number) {
   return amount.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }

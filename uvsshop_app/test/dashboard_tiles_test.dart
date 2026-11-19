@@ -47,7 +47,7 @@ void main() {
       // Гарчиг, утга бүтнээрээ харагдана (таслагдахгүй). Тестийн фонтод үсэг бүр 14px
       // дөрвөлжин тул (бодит фонтоос ~2 дахин өргөн) 360px-ээс дээш л шалгана.
       if (width < 360) return;
-      for (final text in ['Захиалга', 'Борлуулалт', 'Дундаж дүн', 'Батлахыг хүлээж', '₮2.5сая', '₮208мянга']) {
+      for (final text in ['Захиалга', 'Борлуулалт', 'Дундаж дүн', 'Батлахыг хүлээж', '₮2.5сая', '₮208,333.33']) {
         final p = t.renderObject<RenderParagraph>(find.text(text));
         expect(p.didExceedMaxLines, isFalse, reason: '"$text" is cut off');
       }

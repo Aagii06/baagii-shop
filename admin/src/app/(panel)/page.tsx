@@ -25,6 +25,7 @@ import {
   cn,
   formatMNT,
   formatMNTCompact,
+  formatMNTDecimal,
   formatQty,
   formatWhen,
   toNumber,
@@ -222,7 +223,7 @@ function SalesSection({ range, pending }: { range: SalesRange; pending?: number 
           tone="mint"
           icon={Receipt}
           label={t("dash.avg")}
-          value={formatMNTCompact(summary.orders ? summary.revenue / summary.orders : 0)}
+          value={formatMNTDecimal(summary.orders ? summary.revenue / summary.orders : 0)}
         />
         <StatTile
           tone="peach"

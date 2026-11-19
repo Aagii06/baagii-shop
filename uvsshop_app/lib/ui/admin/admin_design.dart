@@ -55,6 +55,15 @@ String mnt(num v) {
   return '${v < 0 ? '−' : ''}₮$b';
 }
 
+/// "₮208,333.33": бүтэн дүн, бутархай нь 2 хүртэл орон (илүүдэл 0-ийг хасна).
+String mntDecimal(num v) {
+  final fixed = v.abs().toStringAsFixed(2);
+  final parts = fixed.split('.');
+  final whole = mnt(int.parse(parts[0])).replaceFirst('−', '');
+  var frac = parts[1].replaceFirst(RegExp(r'0+$'), '');
+  return '${v < 0 && fixed != '0.00' ? '−' : ''}$whole${frac.isEmpty ? '' : '.$frac'}';
+}
+
 /// Статистикийн картад: "₮2.5сая", "₮178мянга" (доош нь бөөрөнхийлнө).
 String mntCompact(num v) {
   if (v >= 1000000) return tr('₮{floor}сая', {'floor': (v / 100000).floor() / 10});
