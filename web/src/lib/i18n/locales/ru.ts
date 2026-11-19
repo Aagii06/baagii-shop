@@ -16,6 +16,7 @@ export const ru: Dict = {
   "header.search.aria": "Поиск товаров",
   "header.search.button": "Найти",
   "header.nav.saved": "Избранное",
+  "header.nav.notifications": "Уведомления",
   "header.nav.profile": "Профиль",
   "header.nav.signIn": "Войти",
   "header.nav.cart": "Корзина",

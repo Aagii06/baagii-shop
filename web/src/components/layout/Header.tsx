@@ -5,8 +5,10 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { useCartStore } from "@/store/cartStore";
 import { useSavedStore } from "@/store/savedStore";
+import { useNotificationStore } from "@/store/notificationStore";
 import logo from "@/assets/logo.png";
 import {
+  Bell,
   ChevronDown,
   Heart,
   LogOut,
@@ -154,6 +156,8 @@ export default function Header() {
   const cartCount =
     cart?.reduce((total, item) => total + item.quantity, 0) || 0;
   const savedCount = useSavedStore((s) => s.items.length);
+  const unread = useNotificationStore((s) => s.unread);
+  const refreshUnread = useNotificationStore((s) => s.refresh);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
@@ -164,6 +168,14 @@ export default function Header() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Unread badge on the header bell: on sign-in, then every minute.
+  useEffect(() => {
+    if (!isAuthed) return;
+    void refreshUnread();
+    const timer = setInterval(() => void refreshUnread(), 60_000);
+    return () => clearInterval(timer);
+  }, [isAuthed, refreshUnread]);
 
   // Categories arrive from a client-side fetch, so they must not be part of
   // the server-rendered / first-hydration markup — gate them on mount to
@@ -333,6 +345,13 @@ export default function Header() {
                   user signs in. */}
               {isMounted && isAuthed ? (
                 <>
+                  {/* Notifications: on every screen size, phones included. */}
+                  <HeaderAction
+                    href="/notifications"
+                    icon={Bell}
+                    label={t("header.nav.notifications")}
+                    count={unread}
+                  />
                   <div className="hidden md:flex">
                     <ProfileMenu label={profileName ?? t("header.nav.profile")} />
                     <HeaderAction

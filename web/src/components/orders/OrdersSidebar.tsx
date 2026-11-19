@@ -4,10 +4,8 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
-import { useNotificationStore } from "@/store/notificationStore";
 import { useSavedStore } from "@/store/savedStore";
 import {
-  Bell,
   ChevronRight,
   ClipboardList,
   CreditCard,
@@ -20,7 +18,6 @@ import {
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
 
 type SidebarItem = {
   href: string;
@@ -46,17 +43,6 @@ export default function OrdersSidebar({ variant = "sidebar" }: { variant?: "side
   );
   const savedCount = useSavedStore((s) => s.items.length);
   const isAuthed = useAuthStore((s) => s.user != null || s.phone != null);
-  const unread = useNotificationStore((s) => s.unread);
-  const refreshUnread = useNotificationStore((s) => s.refresh);
-
-  // Unread badge: on sign-in, then every minute while the menu is on screen.
-  useEffect(() => {
-    if (!isAuthed) return;
-    void refreshUnread();
-    const timer = setInterval(() => void refreshUnread(), 60_000);
-    return () => clearInterval(timer);
-  }, [isAuthed, refreshUnread]);
-
   const items: SidebarItem[] = [
     {
       href: "/profile",
@@ -71,14 +57,6 @@ export default function OrdersSidebar({ variant = "sidebar" }: { variant?: "side
       icon: ClipboardList,
       active: true,
       match: (path) => path.startsWith("/orders"),
-    },
-    {
-      href: "/notifications",
-      label: t("orders.sidebar.notifications"),
-      icon: Bell,
-      active: true,
-      match: (path) => path.startsWith("/notifications"),
-      badge: unread,
     },
     {
       href: "/cart",

@@ -16,6 +16,7 @@ export const en: Dict = {
   "header.search.aria": "Search products",
   "header.search.button": "Search",
   "header.nav.saved": "Saved",
+  "header.nav.notifications": "Notifications",
   "header.nav.profile": "Profile",
   "header.nav.signIn": "Sign in",
   "header.nav.cart": "Cart",

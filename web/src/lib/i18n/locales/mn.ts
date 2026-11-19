@@ -16,6 +16,7 @@ export const mn: Dict = {
   "header.search.aria": "Бараа хайх",
   "header.search.button": "Хайх",
   "header.nav.saved": "Хадгалсан",
+  "header.nav.notifications": "Мэдэгдэл",
   "header.nav.profile": "Профайл",
   "header.nav.signIn": "Нэвтрэх",
   "header.nav.cart": "Сагс",
