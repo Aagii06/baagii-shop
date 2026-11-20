@@ -185,7 +185,7 @@ class _ProductPageState extends State<ProductPage> {
                 ChoiceChip(
                   showCheckmark: false,
                   avatar: val.imageId != null
-                      ? CircleAvatar(backgroundImage: NetworkImage(fileUrl(val.imageId, 'icon')!))
+                      ? ClipOval(child: NetImage(fileUrl(val.imageId, 'icon'), width: 24, height: 24))
                       : (val.color != null && val.color!.startsWith('#') ? CircleAvatar(backgroundColor: _hex(val.color!)) : null),
                   label: Text(val.value),
                   selected: _picked[attr.id] == val.value,

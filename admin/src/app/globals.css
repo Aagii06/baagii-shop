@@ -205,6 +205,25 @@
     );
   }
 
+  /* Skeleton shimmer behind an image until it loads (Thumb), like the shop's. */
+  .img-skeleton {
+    background-color: var(--muted);
+    background-image: linear-gradient(
+      100deg,
+      var(--muted) 30%,
+      color-mix(in oklch, var(--muted) 40%, white) 50%,
+      var(--muted) 70%
+    );
+    background-size: 200% 100%;
+    animation: img-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .img-skeleton {
+      animation: none;
+    }
+  }
+
   .eyebrow {
     @apply text-[11px] font-bold uppercase tracking-[0.18em];
   }
@@ -215,5 +234,14 @@
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@keyframes img-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
   }
 }

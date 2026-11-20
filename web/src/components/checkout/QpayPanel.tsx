@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import SafeImage from "@/components/ui/safe-image";
 import { checkQpay } from "@/lib/api/orders";
 import { createQpayInvoice, type QpayInvoice } from "@/lib/api/payment";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -110,8 +111,8 @@ export default function QpayPanel({
                     href={app.link}
                     className="flex flex-col items-center gap-1 rounded-xl border border-border p-2 text-center hover:border-primary/40"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element -- bank logos come from QPay */}
-                    <img src={app.logo} alt="" className="h-9 w-9 rounded-lg" />
+                    {/* Bank logos come from QPay; skeleton until each loads. */}
+                    <SafeImage src={app.logo} alt="" fallback="sm" className="h-9 w-9 rounded-lg" />
                     <span className="text-[11px] leading-tight text-foreground line-clamp-2">
                       {app.description || app.name}
                     </span>

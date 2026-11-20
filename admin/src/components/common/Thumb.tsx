@@ -35,12 +35,14 @@ export default function Thumb({
   const [failed, setFailed] = useState<string[]>([]);
   const src = small && !failed.includes(small) ? small : original;
   const missing = !src || failed.includes(src);
+  // The src that finished loading: until then a shimmering skeleton shows.
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
 
   return (
     <span
       className={cn(
         "relative block shrink-0 overflow-hidden rounded-lg border border-border",
-        missing ? "flex items-center justify-center bg-muted" : "img-placeholder",
+        missing ? "flex items-center justify-center bg-muted" : loadedSrc !== src && "img-skeleton",
         className
       )}
       style={size ? { width: size, height: size } : undefined}
@@ -61,9 +63,10 @@ export default function Thumb({
           alt={alt}
           fill
           sizes={size ? `${size}px` : "(min-width: 28rem) 28rem, 100vw"}
-          className="object-cover"
+          className={cn("object-cover transition-opacity", loadedSrc === src ? "opacity-100" : "opacity-0")}
           loading={eager ? "eager" : undefined}
           unoptimized
+          onLoad={() => setLoadedSrc(src)}
           onError={() => setFailed((prev) => (prev.includes(src) ? prev : [...prev, src]))}
         />
       )}

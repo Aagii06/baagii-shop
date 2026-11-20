@@ -63,7 +63,8 @@ export default function HeroCarousel({ className }: { className?: string }) {
           key={s.code}
           aria-hidden={i !== index}
           className={cn(
-            "absolute inset-0 transition-opacity duration-700",
+            // Shimmer behind the photo until it loads (it covers it then).
+            "img-placeholder absolute inset-0 transition-opacity duration-700",
             i === index ? "opacity-100" : "opacity-0"
           )}
         >
