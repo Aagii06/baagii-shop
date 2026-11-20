@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "com.uvsshop.uvsshop_app"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_local_notifications compileSdk 37 шаарддаг
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
