@@ -83,12 +83,14 @@ function SearchContent() {
   // Every store of the shop, so the store tiles and filter list show stores
   // with no products (or none in these results) too.
   const [allStores, setAllStores] = useState<Store[]>([]);
+  const [storesLoaded, setStoresLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     getStores()
       .then((rows) => !cancelled && setAllStores(rows))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => !cancelled && setStoresLoaded(true));
     return () => {
       cancelled = true;
     };
@@ -326,6 +328,7 @@ function SearchContent() {
           tiers={storeTiers}
           selected={filters.brands.length === 1 ? filters.brands[0] : undefined}
           onSelect={selectStore}
+          loading={!storesLoaded || loading}
         />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">

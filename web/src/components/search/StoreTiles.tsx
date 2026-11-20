@@ -47,6 +47,7 @@ export default function StoreTiles({
   tiers = {},
   selected,
   onSelect,
+  loading = false,
 }: {
   /** Products per store in the results (0 for stores with none), and logos. */
   counts: {
@@ -58,9 +59,12 @@ export default function StoreTiles({
   /** The store filtered to, if one. */
   selected?: string;
   onSelect: (store: string | undefined) => void;
+  /** Stores or results still loading: show placeholder tiles. */
+  loading?: boolean;
 }) {
   const { t } = useLanguage();
   const stores = useMemo(() => storesOf(counts, tiers), [counts, tiers]);
+  if (loading) return <StoreTilesSkeleton />;
   if (stores.length === 0) return null;
 
   return (
@@ -104,5 +108,26 @@ export default function StoreTiles({
         })}
       </div>
     </section>
+  );
+}
+
+/** Same size as the tiles, so the row doesn't jump once stores load. */
+function StoreTilesSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <div
+      aria-busy="true"
+      className="no-scrollbar -mx-4 flex gap-2.5 overflow-hidden px-4 sm:mx-0 sm:px-0"
+    >
+      {Array.from({ length: count }, (_, i) => (
+        <div
+          key={i}
+          className="flex w-24 shrink-0 flex-col items-center gap-1.5 rounded-2xl border-2 border-border bg-card p-2.5 sm:w-28"
+        >
+          <span className="size-14 rounded-xl bg-muted animate-pulse sm:size-16" />
+          <span className="h-4 w-4/5 rounded bg-muted animate-pulse" />
+          <span className="-mt-1 h-[16.5px] w-5 rounded bg-muted animate-pulse" />
+        </div>
+      ))}
+    </div>
   );
 }
