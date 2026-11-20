@@ -76,7 +76,10 @@ class NetImage extends StatelessWidget {
             fit: fit,
             width: width,
             height: height,
-            placeholder: (_, _) => placeholder,
+            // Ачаалж байх үед анивчих skeleton, ачаалж чадаагүй бол icon-той placeholder
+            placeholder: (_, _) => Pulse(
+              child: Container(width: width, height: height, color: const Color(0xFFECEDF1)),
+            ),
             errorWidget: (_, _, _) => placeholder,
           );
     return radius == null ? img : ClipRRect(borderRadius: radius!, child: img);
