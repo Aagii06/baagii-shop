@@ -71,7 +71,7 @@ export default function ProfilePage() {
 
           {user?.logo ? (
             <span className="shrink-0 rounded-full ring-[3px] ring-white/60">
-              <Thumb id={user.logo} variant="thumbnail" alt="" size={60} className="rounded-full" />
+              <Thumb id={user.logo} variant="icon" alt="" size={60} className="rounded-full" />
             </span>
           ) : (
             <span className="grid size-[60px] shrink-0 place-items-center rounded-full bg-white/20 text-2xl font-bold ring-[3px] ring-white/50 backdrop-blur">
