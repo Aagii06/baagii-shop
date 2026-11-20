@@ -252,8 +252,15 @@ function OrdersList() {
                       <span className="font-mono text-sm text-muted-foreground">#{order.id}</span>
                       <OrderStatusBadge status={order.status} />
                     </span>
-                    <span className="mt-1.5 block truncate text-[15px] font-bold">
-                      {order.customer.name}
+                    <span className="mt-1.5 flex min-w-0 items-baseline gap-2">
+                      <span className="truncate text-[15px] font-bold">{order.customer.name}</span>
+                      {/* The buyer's number, unless the name already is it. */}
+                      {order.customer.phone && order.customer.phone !== order.customer.name && (
+                        <span className="flex shrink-0 items-center gap-1 font-mono text-sm text-muted-foreground">
+                          <Phone className="size-3.5" aria-hidden />
+                          {formatPhone(order.customer.phone)}
+                        </span>
+                      )}
                     </span>
                     <span className="mt-0.5 block text-sm text-muted-foreground">
                       {formatWhen(order.createdAt)} · {t("orders.itemsCount", { count: order.items.length })}

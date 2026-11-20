@@ -234,8 +234,20 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   OrderStatusBadge(o.status, orderStatusLabel[o.status] ?? o.status),
                 ]),
                 const SizedBox(height: 6),
-                Text(o.customerName.isEmpty ? tr('Нэргүй') : o.customerName,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                // Нэр, худалдан авагчийн дугаар (нэр нь дугаар өөрөө биш бол)
+                Row(children: [
+                  Flexible(
+                    child: Text(o.customerName.isEmpty ? tr('Нэргүй') : o.customerName,
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                  ),
+                  if (o.phone.isNotEmpty && o.phone != o.customerName) ...[
+                    const SizedBox(width: 8),
+                    const Icon(Icons.phone_outlined, size: 14, color: AdminColors.mutedForeground),
+                    const SizedBox(width: 4),
+                    Text(formatPhone(o.phone),
+                        style: const TextStyle(fontFamily: mono, fontSize: 14, color: AdminColors.mutedForeground)),
+                  ],
+                ]),
                 const SizedBox(height: 2),
                 Text(tr('{createdAt} · {items} бараа', {'createdAt': formatWhen(o.createdAt), 'items': o.items.length}),
                     style: const TextStyle(fontSize: 14, color: AdminColors.mutedForeground)),
