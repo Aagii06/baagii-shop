@@ -90,12 +90,16 @@ const encode = (image, target) => {
   return image.jpeg({ quality: QUALITY, mozjpeg: true });
 };
 const fitBox = (size) => ({ width: size, height: size, fit: "inside", withoutEnlargement: true });
+const FORMAT_EXT = { jpeg: [".jpg", ".jpeg"], png: [".png"], webp: [".webp"] };
 const resize = async (source, size, target) => {
   const info = await encode(sharp(source).rotate().resize(fitBox(size)), target).toFile(target);
   const { size: original } = await fs.promises.stat(source);
-  const { width, height } = await sharp(source).metadata();
-  // Хэмжээ нь багасаагүй (жижиг зураг) бөгөөд шахалт нь жинг нэмсэн бол эхийг нь үлдээнэ
-  if (width && height && Math.max(width, height) <= size && info.size > original) await fs.promises.copyFile(source, target);
+  const { width, height, format } = await sharp(source).metadata();
+  // Хэмжээ нь багасаагүй (жижиг зураг) бөгөөд шахалт нь жинг нэмсэн бол эхийг нь үлдээнэ —
+  // зөвхөн формат нь ижил үед (PNG-г .webp нэртэй файлд хуулж болохгүй)
+  const sameFormat = (FORMAT_EXT[format] || []).includes(path.extname(target).toLowerCase());
+  if (sameFormat && width && height && Math.max(width, height) <= size && info.size > original)
+    await fs.promises.copyFile(source, target);
   return info;
 };
 module.exports.resizeImage = resize;
@@ -121,20 +125,55 @@ const makeVariants = async (folder, fileName, source) => {
 module.exports.makeVariants = makeVariants;
 
 // file - formidable-ийн файл объект, folder - public/uploads доторх folder. Буцаах: хадгалсан файлын нэр
+// JPG/PNG/WEBP-ийг WEBP болгож хадгална (ижил чанартай ч JPEG-ээс ~30%, PNG-ээс хэд дахин бага жинтэй).
+// SVG/GIF эх форматаараа. WEBP болгож чадаагүй бол эх файлыг эх өргөтгөлөөр нь хадгална.
 module.exports.saveImage = async (file, folder = DEFAULT_FOLDER) => {
   const uploadPath = folderPath(folder);
   const ext = path.extname(file.originalFilename || file.newFilename).replace(".", "").toLowerCase() || "jpg";
-  const fileName = `${moment().utcOffset("+0800").format("YYYYMMDDHHmmss")}_${str.random(12)}.${ext}`;
-  const main = path.join(uploadPath, fileName);
+  const base = `${moment().utcOffset("+0800").format("YYYYMMDDHHmmss")}_${str.random(12)}`;
+  let fileName = `${base}.${ext}`;
   await fs.promises.mkdir(uploadPath, { recursive: true });
   try {
     if (!RESIZABLE.test(fileName)) throw new Error("not resizable");
-    await resize(file.filepath, MAIN_SIZE, main);
+    fileName = `${base}.webp`;
+    await resize(file.filepath, MAIN_SIZE, path.join(uploadPath, fileName));
   } catch (error) {
-    await fs.promises.copyFile(file.filepath, main);
+    await fs.promises.rm(path.join(uploadPath, fileName), { force: true });
+    fileName = `${base}.${ext}`;
+    await fs.promises.copyFile(file.filepath, path.join(uploadPath, fileName));
   }
   await makeVariants(folder, fileName, file.filepath);
   // tmpFile дотор түр файл хуримтлагдахгүй
   await fs.promises.rm(file.filepath, { force: true });
   return fileName;
+};
+
+// Хуучин JPG/PNG зургийн WEBP хуулбар: <нэр>.webp (abc.png → abc.png.webp, thumb_abc.png → thumb_abc.png.webp).
+// DB дахь нэр, фронтын хаяг өөрчлөгдөхгүй — /file/... хуулбар байвал түүнийг нь илгээнэ (file/router.js).
+// Хуулбарыг scripts/makeVariants.js --webp үүсгэнэ; устгавал эх нь буцаад илгээгдэнэ.
+const LEGACY = /\.(jpe?g|png)$/i;
+const webpCopyName = (file) => `${file}.webp`;
+module.exports.isWebpCopy = (name) => /\.(jpe?g|png)\.webp$/i.test(name);
+module.exports.webpCopyName = webpCopyName;
+// Илгээх файл: хуучин JPG/PNG-ийн WEBP хуулбар байвал түүнийг, үгүй бол өөрийг нь
+module.exports.servedFile = (file) => {
+  if (!LEGACY.test(file)) return file;
+  const copy = webpCopyName(file);
+  return fs.existsSync(copy) ? copy : file;
+};
+// file-ийн WEBP хуулбарыг үүсгэнэ (байгаа нь эхээсээ шинэ бол алгасна). Хуулбар эхээсээ бага
+// жинтэй гарахгүй бол үүсгэхгүй (эх нь илгээгдэнэ). Буцаах: "made" | "skipped" | "larger"
+module.exports.makeWebpCopy = async (file) => {
+  if (!LEGACY.test(file) || !fs.existsSync(file)) return "skipped";
+  const copy = webpCopyName(file);
+  if (fs.existsSync(copy) && fs.statSync(copy).mtimeMs >= fs.statSync(file).mtimeMs) return "skipped";
+  const tmp = `${copy}.tmp`;
+  const info = await sharp(file).rotate().webp({ quality: QUALITY, effort: 4 }).toFile(tmp);
+  if (info.size >= fs.statSync(file).size) {
+    await fs.promises.rm(tmp, { force: true });
+    await fs.promises.rm(copy, { force: true });
+    return "larger";
+  }
+  await fs.promises.rename(tmp, copy);
+  return "made";
 };

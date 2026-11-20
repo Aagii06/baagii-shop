@@ -1,13 +1,15 @@
 const router = require("express").Router();
-const { findFile, variantName } = require("../helper/fileHelper");
+const { findFile, variantName, servedFile } = require("../helper/fileHelper");
 
-// Нийтэд нээлттэй (хэмжээ нь helper/fileHelper.js VARIANTS): /file/{нэр} — main (1600px),
+// Нийтэд нээлттэй (хэмжээ нь helper/fileHelper.js VARIANTS): /file/{нэр} — main (800px),
 // /file/grid/{нэр} — 600px, /file/thumbnail/{нэр} — 300px, /file/icon/{нэр} — 128px.
 // Хувилбар байхгүй бол (хуучин зураг, svg) дараагийн томыг нь, эцэст нь main-ийг өгнө.
+// Шинэ зураг WEBP-ээр хадгалагдана; хуучин JPG/PNG-ийн WEBP хуулбар байвал түүнийг өгнө.
 const send = (res, ...names) => {
   for (const name of names) {
     const file = findFile(name);
-    if (file) return res.set("Cache-Control", "public, max-age=31536000, immutable").sendFile(file);
+    // Хуучин JPG/PNG-ийн WEBP хуулбар байвал түүнийг илгээнэ (Content-Type: image/webp)
+    if (file) return res.set("Cache-Control", "public, max-age=31536000, immutable").sendFile(servedFile(file));
   }
   return res.status(404).send(null);
 };
