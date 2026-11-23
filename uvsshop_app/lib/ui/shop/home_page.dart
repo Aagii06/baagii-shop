@@ -259,7 +259,6 @@ class _HeroCarouselState extends State<_HeroCarousel> {
     final categories = context.watch<ShopState>().categories;
     final s = _slides[_index];
     final category = Category.findByCode(categories, s.code);
-    final text = category != null && category.children.isNotEmpty ? category.children.map((c) => c.name).join(' · ') : tr(s.text);
 
     return Container(
       decoration: _cardBox(),
@@ -268,7 +267,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
         borderRadius: BorderRadius.circular(6),
         // Утсан дээр нүүрийн дээд хэсгийг хэт эзлэхгүй намхан баннер.
         child: SizedBox(
-          height: 250,
+          height: 200,
           child: GestureDetector(
             onHorizontalDragEnd: (d) {
               final v = d.primaryVelocity ?? 0;
@@ -292,7 +291,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
                   child: Column(
@@ -311,11 +310,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 24, height: 1.2, color: Colors.black87),
                       ),
-                      const SizedBox(height: 6),
-                      Text(text,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 13.5, height: 1.5, color: Colors.black.withValues(alpha: 0.75))),
+                      // Намхан баннерт ангиллын тайлбар мөр багтахгүй — гарчиг, товч л үлдэнэ.
                       const SizedBox(height: 12),
                       DecoratedBox(
                         decoration: BoxDecoration(
@@ -494,7 +489,8 @@ class StoreTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: ring, width: 2),
               ),
-        child: Stack(children: [
+        // Бүтэн хэмжээгээр — эс бөгөөс Column агшиж, лого зүүн тийш наалддаг.
+        child: Stack(fit: StackFit.expand, children: [
           Material(
           color: Colors.transparent,
           child: InkWell(

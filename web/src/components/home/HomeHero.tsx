@@ -56,7 +56,7 @@ export default function HomeHero() {
           </ul>
         </nav>
 
-        <HeroCarousel className="h-[260px] sm:h-[340px]" />
+        <HeroCarousel className="h-[200px] sm:h-[340px]" />
       </div>
     </section>
   );
