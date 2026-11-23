@@ -79,6 +79,8 @@ class _ProductPageState extends State<ProductPage> {
   Widget build(BuildContext context) {
     final p = _detail?.product ?? widget.preview;
     return Scaffold(
+      // Агуулга богино бараан дээр доор саарал хоосон зай үлдэхгүй.
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(p?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
@@ -173,6 +175,17 @@ class _ProductPageState extends State<ProductPage> {
             style: TextStyle(color: v != null && v.stock > 0 ? Colors.green.shade700 : Colors.red.shade700),
           ),
           const SizedBox(height: 14),
+          // web-ийн үнийн хайрцаг дахь баталгаа: хүргэлт, төлбөр.
+          for (final line in [tr('Увс аймгийн хэмжээнд хүргэлттэй'), tr('Хаан банк, QPay-ээр төлнө')])
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(Icons.check_circle_outline, size: 17, color: Colors.green.shade700),
+                const SizedBox(width: 8),
+                Expanded(child: Text(line, style: TextStyle(fontSize: 13.5, color: Colors.grey.shade700))),
+              ]),
+            ),
+          const SizedBox(height: 8),
           ShareButtons(title: p.name, path: '/product/${p.id}'),
         ]),
       ),
@@ -204,8 +217,7 @@ class _ProductPageState extends State<ProductPage> {
         ),
       if (description.isNotEmpty)
         Container(
-          margin: const EdgeInsets.only(top: 8),
-          color: Colors.white,
+          decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Colors.grey.shade200))),
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(tr('Тайлбар'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),

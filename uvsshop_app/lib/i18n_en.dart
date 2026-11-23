@@ -395,6 +395,8 @@ const appEn = <String, String>{
   'Хадгалах': 'Save',
   'Холбоос хуулах': 'Copy link',
   'Холбоос хуулагдлаа': 'Link copied',
+  'Увс аймгийн хэмжээнд хүргэлттэй': 'Delivery across Uvs province',
+  'Хаан банк, QPay-ээр төлнө': 'Pay with Khan Bank or QPay',
   'Хуваалцах': 'Share',
   'Хадгаллаа': 'Saved',
   'Хадгалсан': 'Saved',
