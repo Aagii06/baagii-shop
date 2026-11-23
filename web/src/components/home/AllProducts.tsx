@@ -8,7 +8,6 @@ import { byNewest } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import CategoryShowcase from "./CategoryShowcase";
-import DealsSection from "./DealsSection";
 import ProductList from "./ProductList";
 import ProductListSkeleton from "./ProductListSkeleton";
 import StoresGrid from "./StoresGrid";
@@ -45,7 +44,6 @@ export default function AllProducts() {
   return (
     <>
       <StoresGrid />
-      <DealsSection products={products} stores={stores} loading={loading} />
       {/* CategoryShowcase hides itself under 5 products; hide its title too. */}
       {(loading || products.length >= 5) && (
         <section>

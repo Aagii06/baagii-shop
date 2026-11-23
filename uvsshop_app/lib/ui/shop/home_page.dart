@@ -93,11 +93,6 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 20),
           _StoresRow(stores: _stores, loading: _storesLoading),
           if (_storesLoading || _stores.isNotEmpty) const SizedBox(height: 20),
-          _DealsSection(products: _products, stores: _stores, loading: _loading),
-          // Хямдралын хэсгийг доорхоос тусгаарлах шугам (web: border-b).
-          const SizedBox(height: 20),
-          const Divider(height: 1, thickness: 1, color: borderColor),
-          const SizedBox(height: 20),
           _CategoryShowcase(products: _products, loading: _loading),
           const SizedBox(height: 20),
           _SectionTitle(
@@ -559,112 +554,6 @@ class _Bone extends StatelessWidget {
 
 // ---------------------------------------------------------------------------
 // Хямдрал, урамшуулал (web: DealsSection)
-
-class _DealsSection extends StatefulWidget {
-  final List<Product> products;
-  final List<Store> stores;
-  final bool loading;
-  const _DealsSection({required this.products, required this.stores, required this.loading});
-  @override
-  State<_DealsSection> createState() => _DealsSectionState();
-}
-
-class _DealsSectionState extends State<_DealsSection> {
-  static const _tiles = 4;
-  late Timer _timer;
-  Duration _left = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    _tick();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
-  }
-
-  void _tick() {
-    final now = DateTime.now();
-    final end = DateTime(now.year, now.month, now.day + 1);
-    setState(() => _left = end.difference(now));
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final products = widget.products;
-    final deals = products.where((p) => p.onSale).toList()
-      ..sort((a, b) => (b.discountPercent ?? 0).compareTo(a.discountPercent ?? 0));
-    final dealTiles = deals.take(_tiles).toList();
-    final dealIds = dealTiles.map((p) => p.id).toSet();
-    // Хямдрал дутвал gold дэлгүүрийн бараагаар эхэлж нөхнө.
-    final featured = goldFirst(products.where((p) => !dealIds.contains(p.id)).toList()..sort(byNewest), widget.stores)
-        .take(_tiles - dealTiles.length);
-    final tiles = [...dealTiles, ...featured];
-    final featuredOnly = !widget.loading && dealTiles.isEmpty;
-    if (!widget.loading && tiles.isEmpty) return const SizedBox.shrink();
-
-    final secs = _left.inSeconds;
-    final units = [
-      (0, tr('Өдөр')),
-      (secs ~/ 3600, tr('Цаг')),
-      ((secs % 3600) ~/ 60, tr('Мин')),
-      (secs % 60, tr('Сек')),
-    ];
-
-    // web шиг: гарчиг тусдаа картанд, доор нь доорх жагсаалттай ижил бараа картууд.
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: _cardBox(),
-          // Нарийн утсан дээр тоолуур гарчгийн доор — гарчиг үгийн дундуур тасрахгүй.
-          child: LayoutBuilder(builder: (context, c) {
-            final title = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(featuredOnly ? tr('Онцлох бараа') : tr('Хямдрал, урамшуулал'),
-                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 2),
-              Text(featuredOnly ? tr('Хамгийн их эрэлттэй бараанууд') : tr('Өнөөдрийн онцлох хямдрал'),
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-            ]);
-            final Widget action = featuredOnly
-                ? OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: brandColor, width: 2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                    ),
-                    onPressed: () => context.read<ShopNav>().openSearch(),
-                    child: Text(tr('Бүгдийг үзэх')),
-                  )
-                : Row(mainAxisSize: MainAxisSize.min, children: [
-                    for (var i = 0; i < units.length; i++)
-                      Container(
-                        width: 44,
-                        margin: EdgeInsets.only(left: i == 0 ? 0 : 5),
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        decoration: BoxDecoration(color: brandColor, borderRadius: BorderRadius.circular(6)),
-                        child: Column(children: [
-                          Text(units[i].$1.toString().padLeft(2, '0'),
-                              style: const TextStyle(
-                                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15, fontFeatures: [FontFeature.tabularFigures()])),
-                          Text(units[i].$2, style: const TextStyle(color: Colors.white, fontSize: 10.5)),
-                        ]),
-                      ),
-                  ]);
-            if (c.maxWidth < 420) {
-              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [title, const SizedBox(height: 12), action]);
-            }
-            return Row(children: [Expanded(child: title), const SizedBox(width: 12), action]);
-          }),
-        ),
-        const SizedBox(height: 12),
-        if (widget.loading) const _GridSkeleton(count: _tiles) else ProductGrid(tiles),
-    ]);
-  }
-}
 
 // ---------------------------------------------------------------------------
 // 8 барааны showcase (web: CategoryShowcase)
