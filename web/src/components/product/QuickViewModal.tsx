@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import SafeImage from "@/components/ui/safe-image";
+import ShareButtons from "@/components/product/ShareButtons";
 import { resizedFileUrl } from "@/lib/api/files";
 
 function findMatchingVariant(
@@ -452,6 +453,14 @@ export default function QuickViewModal({
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
+
+              {name && (
+                <ShareButtons
+                  title={name}
+                  path={`/product/${productId}`}
+                  className="border-t border-border pt-4"
+                />
+              )}
             </div>
           </div>
         )}

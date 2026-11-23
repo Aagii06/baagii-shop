@@ -11,6 +11,7 @@ import { useCategories } from "@/lib/categories/CategoriesProvider";
 import { findCategoryById, subtreeIds } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import StoreAvatar from "@/components/ui/store-avatar";
+import ShareButtons from "@/components/product/ShareButtons";
 import { fileUrl } from "@/lib/api/files";
 import { getProducts } from "@/lib/api/products";
 import { getStore, type StoreDetail } from "@/lib/api/stores";
@@ -279,6 +280,13 @@ export default function StorePage() {
                 </ul>
               </div>
             )}
+
+            <ShareButtons
+              title={store.name}
+              path={`/store?id=${store.id}`}
+              variant="light"
+              className="relative mt-4 flex-wrap border-t border-white/20 pt-4"
+            />
           </section>
         )}
       </div>

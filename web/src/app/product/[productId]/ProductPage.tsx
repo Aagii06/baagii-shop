@@ -3,6 +3,7 @@
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductNotFound from "@/components/product/ProductNotFound";
 import RelatedProducts from "@/components/product/RelatedProducts";
+import ShareButtons from "@/components/product/ShareButtons";
 import RichDescription, {
   isEmptyDescription,
 } from "@/components/product/RichDescription";
@@ -508,6 +509,8 @@ export default function ProductPage() {
               <span>{t("product.trust.payment")}</span>
             </div>
           </div>
+
+          <ShareButtons title={product.name} className="pt-4 border-t border-border" />
         </div>
       </div>
 
