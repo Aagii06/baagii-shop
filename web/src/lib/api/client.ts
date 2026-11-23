@@ -40,8 +40,9 @@ async function request<T>(
   // the shopper is active (guest tokens are never renewed).
   const refreshed = response.headers.get("X-Refresh-Token");
   if (auth && refreshed) {
-    const { setAuthToken } = await import("./token");
-    setAuthToken(refreshed);
+    // Only while still logged in — a request racing a logout must not revive it.
+    const { getAuthToken, setAuthToken } = await import("./token");
+    if (getAuthToken()) setAuthToken(refreshed);
   }
 
   const isJson = response.headers
