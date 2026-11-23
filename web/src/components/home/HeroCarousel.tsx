@@ -91,7 +91,7 @@ export default function HeroCarousel({ className }: { className?: string }) {
         className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/75 to-white/10 sm:bg-gradient-to-r sm:from-white/95 sm:via-white/70 sm:to-transparent sm:to-75%"
       />
 
-      <div className="relative flex h-full flex-col justify-start px-5 pt-4 sm:justify-center sm:px-6 sm:px-10 sm:pt-0 sm:pb-6">
+      <div className="relative flex h-full flex-col justify-start px-5 pt-4 sm:justify-center sm:px-10 sm:pt-0 sm:pb-6">
         {SLIDES.map((s, i) => {
           const category = findCategory(categories, s.code);
           const key = `home.hero.${s.code}`;
@@ -101,7 +101,7 @@ export default function HeroCarousel({ className }: { className?: string }) {
                 <p className="text-xs font-semibold uppercase tracking-widest text-foreground/60">
                   {category?.name ?? t(`${key}.kicker`)}
                 </p>
-                <h1 className="mt-1.5 line-clamp-2 text-2xl font-light leading-tight text-foreground sm:mt-2 sm:text-4xl lg:text-[44px]">
+                <h1 className="mt-1.5 line-clamp-2 text-2xl font-light leading-tight text-foreground sm:mt-2 sm:line-clamp-none sm:text-4xl lg:text-[44px]">
                   {t(`${key}.light`)}{" "}
                   <span className="font-bold text-primary">{t(`${key}.bold`)}</span>
                 </h1>
