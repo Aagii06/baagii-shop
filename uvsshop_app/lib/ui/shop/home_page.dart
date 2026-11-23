@@ -94,6 +94,9 @@ class _HomePageState extends State<HomePage> {
           _StoresRow(stores: _stores, loading: _storesLoading),
           if (_storesLoading || _stores.isNotEmpty) const SizedBox(height: 20),
           _DealsSection(products: _products, stores: _stores, loading: _loading),
+          // Хямдралын хэсгийг доорхоос тусгаарлах шугам (web: border-b).
+          const SizedBox(height: 20),
+          const Divider(height: 1, thickness: 1, color: borderColor),
           const SizedBox(height: 20),
           _CategoryShowcase(products: _products, loading: _loading),
           const SizedBox(height: 20),
@@ -680,7 +683,7 @@ class _GridSkeleton extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
-        gridDelegate: productGridDelegate,
+        gridDelegate: productGridDelegate(context),
         itemCount: count,
         itemBuilder: (_, _) => Container(
           decoration: _cardBox(),

@@ -91,7 +91,7 @@ export default function DealsSection({
   // title row on top, then the 4 cards; xl: the title fills the first of 5 columns.
   return (
     <section
-      className="grid gap-3 sm:gap-5 grid-cols-2 sm:grid-cols-4 xl:grid-cols-5"
+      className="grid gap-3 sm:gap-5 grid-cols-2 sm:grid-cols-4 xl:grid-cols-5 border-b border-border pb-5 sm:pb-6"
       aria-busy={loading}
     >
       <div className="col-span-2 flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-5 sm:col-span-4 xl:col-span-1 xl:flex-col xl:items-start xl:justify-start">
