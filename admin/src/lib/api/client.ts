@@ -1,7 +1,7 @@
 import { tr } from "@/lib/i18n/translations";
 import { API_BASE_URL, SHOP_ID } from "./config";
 import { ApiError } from "./errors";
-import { clearSession, getAuthToken } from "./token";
+import { clearSession, getAuthToken, replaceAuthToken } from "./token";
 
 /**
  * Fired on `window` when the backend rejects the stored token. The auth
@@ -89,6 +89,11 @@ export async function apiFetch<T>(
     }
     throw err;
   }
+
+  // The session slides: while the user is active the backend sends a renewed
+  // 14-day token, so it only expires after 14 days without any action.
+  const refreshed = response.headers.get("X-Refresh-Token");
+  if (auth && refreshed) replaceAuthToken(refreshed);
 
   const isJson = response.headers
     .get("content-type")

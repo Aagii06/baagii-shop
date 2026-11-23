@@ -10,7 +10,8 @@ require("./helper/fileHelper").ensureFolders();
 const app = express();
 const PORT = process.env.PORT || 5021;
 
-app.use(cors());
+// Вэб/админ хуудас сунгасан токеныг уншихын тулд толгойг ил гаргана.
+app.use(cors({ exposedHeaders: ["X-Refresh-Token"] }));
 app.use(express.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 app.use(express.json({ limit: "50mb" }));
 

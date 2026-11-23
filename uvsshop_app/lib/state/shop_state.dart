@@ -17,7 +17,10 @@ class ShopState extends ChangeNotifier {
   static const _expiresKey = 'shop_token_expires';
   static const _guestTtl = Duration(hours: 24);
 
-  late final ApiClient api = ApiClient(AppConfig.shopApi, tokenProvider: _ensureToken);
+  late final ApiClient api = ApiClient(AppConfig.shopApi, tokenProvider: _ensureToken, onTokenRefreshed: (t) async {
+    // Зөвхөн утсаар нэвтэрсэн токен сунгагдана (зочных биш).
+    await (_prefs ??= await SharedPreferences.getInstance()).setString(_tokenKey, t);
+  });
   late final ApiClient _publicApi = ApiClient(AppConfig.shopApi);
 
   SharedPreferences? _prefs;

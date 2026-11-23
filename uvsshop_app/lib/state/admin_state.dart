@@ -23,7 +23,11 @@ class AdminState extends ChangeNotifier {
   /// Толгойн 🔔-ийн уншаагүй мэдэгдлийн тоо (AdminShell 30 секунд тутам шинэчилнэ).
   int unreadNotifications = 0;
 
-  late final ApiClient api = ApiClient(AppConfig.adminApi, tokenProvider: () async => _token);
+  late final ApiClient api = ApiClient(AppConfig.adminApi, tokenProvider: () async => _token, onTokenRefreshed: (t) async {
+    if (_token == null) return;
+    _token = t;
+    await _prefs?.setString(_tokenKey, t);
+  });
 
   bool get signedIn => _token != null && user != null;
 

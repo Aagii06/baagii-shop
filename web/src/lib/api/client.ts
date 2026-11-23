@@ -36,6 +36,14 @@ async function request<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
+  // Logged-in sessions slide: the backend sends a renewed 14-day token while
+  // the shopper is active (guest tokens are never renewed).
+  const refreshed = response.headers.get("X-Refresh-Token");
+  if (auth && refreshed) {
+    const { setAuthToken } = await import("./token");
+    setAuthToken(refreshed);
+  }
+
   const isJson = response.headers
     .get("content-type")
     ?.includes("application/json");

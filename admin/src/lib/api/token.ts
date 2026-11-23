@@ -38,6 +38,15 @@ export function setSession(token: string, user: LoginUser | null) {
   }
 }
 
+/** Swap in a renewed token (backend `X-Refresh-Token`), keeping the stored user. */
+export function replaceAuthToken(token: string) {
+  try {
+    if (localStorage.getItem(TOKEN_KEY)) localStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    // ignore
+  }
+}
+
 export function clearSession() {
   try {
     localStorage.removeItem(TOKEN_KEY);

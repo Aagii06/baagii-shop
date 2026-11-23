@@ -23,7 +23,11 @@ class ApiClient {
   /// Хүсэлт бүрт токен өгнө (null бол токенгүй).
   final Future<String?> Function()? tokenProvider;
 
-  ApiClient(this.baseUrl, {this.tokenProvider});
+  /// Backend сунгасан токен (`X-Refresh-Token`) ирэхэд дуудагдана — хадгалсан
+  /// токеноо солиход. Нэвтэрсэн эрх сүүлийн үйлдлээс хойш 14 хоног хүчинтэй.
+  final Future<void> Function(String token)? onTokenRefreshed;
+
+  ApiClient(this.baseUrl, {this.tokenProvider, this.onTokenRefreshed});
 
   Future<dynamic> get(String path, {bool auth = true}) => _send('GET', path, auth: auth);
   Future<dynamic> post(String path, {Object? body, bool auth = true}) => _send('POST', path, body: body, auth: auth);
@@ -63,6 +67,11 @@ class ApiClient {
       throw ApiException(408, tr('Сервер хариу өгсөнгүй. Дахин оролдоно уу.'));
     } catch (_) {
       throw ApiException(0, tr('Сүлжээний алдаа. Интернэт холболтоо шалгана уу.'));
+    }
+
+    final refreshed = response.headers['x-refresh-token'];
+    if (auth && refreshed != null && refreshed.isNotEmpty && onTokenRefreshed != null) {
+      await onTokenRefreshed!(refreshed);
     }
 
     dynamic data;
