@@ -16,6 +16,8 @@ Router.use("/feedback", protect, require("./feedback/router"));
 // Толгойн 🔔 мэдэгдэл (ADMIN, SHOPPER — өөрийнх нь)
 Router.use("/notification", protect, require("./notification/router"));
 Router.use("/blog", protect, require("./blog/router"));
+// Нүүр хуудасны "Эцэг эхчүүдийн сэтгэгдэл" (ADMIN)
+Router.use("/testimonial", protect, require("./testimonial/router"));
 Router.use("/store", protect, require("./store/router"));
 Router.use("/user", protect, require("./user/router"));
 // Вэбээр нэвтэрсэн худалдан авагчид (ADMIN, зөвхөн харах)

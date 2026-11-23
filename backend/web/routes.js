@@ -9,6 +9,7 @@ Router.use("/store", require("./store/router"));
 Router.use("/post", require("./post/router"));
 Router.use("/customerAddress", require("./customerAddress/router"));
 Router.use("/blog", require("./blog/router"));
+Router.use("/testimonial", require("./testimonial/router"));
 Router.use("/payment", require("./payment/router"));
 // "Бидэнд бичнэ үү" маягт — нэвтрэхгүйгээр
 Router.use("/feedback", require("./feedback/router"));
