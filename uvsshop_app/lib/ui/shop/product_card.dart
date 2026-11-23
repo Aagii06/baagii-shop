@@ -192,15 +192,44 @@ class ProductGrid extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
-        gridDelegate: productGridDelegate,
+        gridDelegate: productGridDelegate(context, hideStore: hideStore),
         itemCount: products.length,
         itemBuilder: (_, i) => ProductCard(products[i], hideStore: hideStore),
       );
 }
 
-const productGridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
-  maxCrossAxisExtent: 240,
-  mainAxisSpacing: 12,
-  crossAxisSpacing: 12,
-  childAspectRatio: 0.56,
-);
+/// Бараа картын grid: картын өндөр = дөрвөлжин зураг + доорх мэдээлэл, тиймээс
+/// үнэ/нэрийн доор илүү хоосон зай үлдэхгүй (тогтмол харьцаатай байхад
+/// дэлгүүрийн мөргүй үед зай гардаг байсан). Утасны фонтын томруулалтыг тооцно.
+SliverGridDelegate productGridDelegate(BuildContext context, {bool hideStore = false}) =>
+    _ProductGridDelegate(textScale: MediaQuery.textScalerOf(context).scale(1), hideStore: hideStore);
+
+class _ProductGridDelegate extends SliverGridDelegate {
+  static const _maxWidth = 240.0;
+  static const _gap = 12.0;
+  final double textScale;
+  final bool hideStore;
+  const _ProductGridDelegate({required this.textScale, required this.hideStore});
+
+  @override
+  SliverGridLayout getLayout(SliverConstraints constraints) {
+    final width = constraints.crossAxisExtent;
+    final count = ((width + _gap) / (_maxWidth + _gap)).ceil().clamp(1, 1 << 20);
+    final cellWidth = (width - _gap * (count - 1)) / count;
+    // Үнэ (16px) + нэр 2 мөр (13px × 1.35) — фонтын хэмжээгээр томорно.
+    final text = (16 * 1.25 + 4 + 13 * 1.35 * 2) * textScale;
+    // Дээд padding 10 + 4px нөөц; доор нь дэлгүүрийн мөр (6 + 28 + 10) эсвэл 10.
+    final info = 14 + text + (hideStore ? 10 : 44 * textScale.clamp(1.0, 1.3));
+    return SliverGridRegularTileLayout(
+      crossAxisCount: count,
+      mainAxisStride: cellWidth + info + _gap,
+      crossAxisStride: cellWidth + _gap,
+      childMainAxisExtent: cellWidth + info,
+      childCrossAxisExtent: cellWidth,
+      reverseCrossAxis: axisDirectionIsReversed(constraints.crossAxisDirection),
+    );
+  }
+
+  @override
+  bool shouldRelayout(_ProductGridDelegate old) => old.textScale != textScale || old.hideStore != hideStore;
+}

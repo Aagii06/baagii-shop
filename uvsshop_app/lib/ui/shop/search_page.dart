@@ -321,7 +321,7 @@ class _SearchPageState extends State<SearchPage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverGrid(
-                gridDelegate: productGridDelegate,
+                gridDelegate: productGridDelegate(context),
                 delegate: SliverChildBuilderDelegate((_, i) => ProductCard(visible[i]), childCount: visible.length),
               ),
             ),
