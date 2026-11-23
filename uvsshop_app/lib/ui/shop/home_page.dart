@@ -620,44 +620,45 @@ class _DealsSectionState extends State<_DealsSection> {
         Container(
           padding: const EdgeInsets.all(18),
           decoration: _cardBox(),
-          child: Row(children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(featuredOnly ? tr('Онцлох бараа') : tr('Хямдрал, урамшуулал'),
-                    style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
-                Text(featuredOnly ? tr('Хамгийн их эрэлттэй бараанууд') : tr('Өнөөдрийн онцлох хямдрал'),
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-              ]),
-            ),
-            const SizedBox(width: 12),
-            if (featuredOnly)
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: brandColor, width: 2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                ),
-                onPressed: () => context.read<ShopNav>().openSearch(),
-                child: Text(tr('Бүгдийг үзэх')),
-              )
-            else
-              Row(children: [
-                for (final u in units)
-                  Container(
-                    width: 44,
-                    margin: const EdgeInsets.only(left: 5),
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    decoration: BoxDecoration(color: brandColor, borderRadius: BorderRadius.circular(6)),
-                    child: Column(children: [
-                      Text(u.$1.toString().padLeft(2, '0'),
-                          style: const TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15, fontFeatures: [FontFeature.tabularFigures()])),
-                      Text(u.$2, style: const TextStyle(color: Colors.white, fontSize: 10.5)),
-                    ]),
-                  ),
-              ]),
-          ]),
+          // Нарийн утсан дээр тоолуур гарчгийн доор — гарчиг үгийн дундуур тасрахгүй.
+          child: LayoutBuilder(builder: (context, c) {
+            final title = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(featuredOnly ? tr('Онцлох бараа') : tr('Хямдрал, урамшуулал'),
+                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(featuredOnly ? tr('Хамгийн их эрэлттэй бараанууд') : tr('Өнөөдрийн онцлох хямдрал'),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+            ]);
+            final Widget action = featuredOnly
+                ? OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: brandColor, width: 2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                    ),
+                    onPressed: () => context.read<ShopNav>().openSearch(),
+                    child: Text(tr('Бүгдийг үзэх')),
+                  )
+                : Row(mainAxisSize: MainAxisSize.min, children: [
+                    for (var i = 0; i < units.length; i++)
+                      Container(
+                        width: 44,
+                        margin: EdgeInsets.only(left: i == 0 ? 0 : 5),
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        decoration: BoxDecoration(color: brandColor, borderRadius: BorderRadius.circular(6)),
+                        child: Column(children: [
+                          Text(units[i].$1.toString().padLeft(2, '0'),
+                              style: const TextStyle(
+                                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15, fontFeatures: [FontFeature.tabularFigures()])),
+                          Text(units[i].$2, style: const TextStyle(color: Colors.white, fontSize: 10.5)),
+                        ]),
+                      ),
+                  ]);
+            if (c.maxWidth < 420) {
+              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [title, const SizedBox(height: 12), action]);
+            }
+            return Row(children: [Expanded(child: title), const SizedBox(width: 12), action]);
+          }),
         ),
         const SizedBox(height: 12),
         if (widget.loading) const _GridSkeleton(count: _tiles) else ProductGrid(tiles),
