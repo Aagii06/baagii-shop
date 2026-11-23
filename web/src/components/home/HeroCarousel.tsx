@@ -91,7 +91,7 @@ export default function HeroCarousel({ className }: { className?: string }) {
         className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/75 to-white/10 sm:bg-gradient-to-r sm:from-white/95 sm:via-white/70 sm:to-transparent sm:to-75%"
       />
 
-      <div className="relative flex h-full flex-col justify-start px-6 pt-7 sm:justify-center sm:px-10 sm:pt-0 sm:pb-6">
+      <div className="relative flex h-full flex-col justify-start px-5 pt-5 sm:justify-center sm:px-6 sm:px-10 sm:pt-0 sm:pb-6">
         {SLIDES.map((s, i) => {
           const category = findCategory(categories, s.code);
           const key = `home.hero.${s.code}`;
@@ -101,18 +101,18 @@ export default function HeroCarousel({ className }: { className?: string }) {
                 <p className="text-xs font-semibold uppercase tracking-widest text-foreground/60">
                   {category?.name ?? t(`${key}.kicker`)}
                 </p>
-                <h1 className="mt-2 text-3xl font-light leading-tight text-foreground sm:text-4xl lg:text-[44px]">
+                <h1 className="mt-1.5 line-clamp-2 text-2xl font-light leading-tight text-foreground sm:mt-2 sm:text-4xl lg:text-[44px]">
                   {t(`${key}.light`)}{" "}
                   <span className="font-bold text-primary">{t(`${key}.bold`)}</span>
                 </h1>
-                <p className="mt-3 max-w-sm text-sm leading-6 text-foreground/75 sm:text-[15px]">
+                <p className="mt-1.5 line-clamp-1 max-w-sm text-sm leading-6 text-foreground/75 sm:mt-3 sm:line-clamp-none sm:text-[15px]">
                   {category && category.children.length > 0
                     ? category.children.map((c) => c.name).join(" · ")
                     : t(`${key}.text`)}
                 </p>
                 <Link
                   href={category ? categoryHref(category) : "/search"}
-                  className="mt-5 inline-block rounded-md brand-gradient px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-opacity hover:opacity-90"
+                  className="mt-3 inline-block rounded-md brand-gradient px-4 py-2 sm:mt-5 sm:px-5 sm:py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-opacity hover:opacity-90"
                 >
                   {t("home.hero.cta")}
                 </Link>

@@ -268,11 +268,12 @@ class _HeroCarouselState extends State<_HeroCarousel> {
 
     return Container(
       decoration: _cardBox(),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(6),
+        // Утсан дээр нүүрийн дээд хэсгийг хэт эзлэхгүй намхан баннер.
         child: SizedBox(
-          height: 360,
+          height: 250,
           child: GestureDetector(
             onHorizontalDragEnd: (d) {
               final v = d.primaryVelocity ?? 0;
@@ -296,7 +297,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
                   child: Column(
@@ -305,17 +306,22 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                     children: [
                       Text((category?.name ?? tr(s.kicker)).toUpperCase(),
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 2, color: Colors.black.withValues(alpha: 0.6))),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text.rich(
                         TextSpan(children: [
                           TextSpan(text: '${tr(s.light)} ', style: const TextStyle(fontWeight: FontWeight.w300)),
                           TextSpan(text: tr(s.bold), style: const TextStyle(fontWeight: FontWeight.bold, color: brandColor)),
                         ]),
-                        style: const TextStyle(fontSize: 30, height: 1.2, color: Colors.black87),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 24, height: 1.2, color: Colors.black87),
                       ),
+                      const SizedBox(height: 6),
+                      Text(text,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 13.5, height: 1.5, color: Colors.black.withValues(alpha: 0.75))),
                       const SizedBox(height: 12),
-                      Text(text, style: TextStyle(fontSize: 14, height: 1.5, color: Colors.black.withValues(alpha: 0.75))),
-                      const SizedBox(height: 20),
                       DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: brandGradient,
@@ -328,7 +334,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                             borderRadius: BorderRadius.circular(6),
                             onTap: () => context.read<ShopNav>().openSearch(SearchRequest(categoryId: category?.id)),
                             child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 9),
                               child: Text(tr('Дэлгэрэнгүй үзэх'),
                                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
                             ),
