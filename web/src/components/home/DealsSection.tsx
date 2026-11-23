@@ -24,7 +24,8 @@ function useEndOfDayCountdown() {
   return left;
 }
 
-const TILES = 5;
+// Two rows of 2 on phones, one row of 4 from sm.
+const TILES = 4;
 
 // Best sellers first, then best rated, then the newest.
 function byFeatured(a: Product, b: Product) {
@@ -126,7 +127,7 @@ export default function DealsSection({
         </div>
 
         <div
-          className="grid flex-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+          className="grid flex-1 grid-cols-2 sm:grid-cols-4"
           aria-busy={loading}
         >
           {loading &&
@@ -134,7 +135,7 @@ export default function DealsSection({
               <div
                 key={i}
                 aria-hidden
-                className="flex flex-col items-center gap-3 border-b border-r border-border p-4 last:border-r-0 lg:border-b-0"
+                className="flex flex-col items-center gap-3 border-border p-4 [&:nth-child(odd)]:border-r [&:nth-child(-n+2)]:border-b sm:border-b-0 sm:border-r sm:last:border-r-0"
               >
                 <div className="h-28 w-28 animate-pulse rounded-md bg-muted sm:h-32 sm:w-32" />
                 <div className="h-3.5 w-24 animate-pulse rounded bg-muted" />
@@ -145,7 +146,7 @@ export default function DealsSection({
             <Link
               key={product.id}
               href={`/product/${product.id}`}
-              className="group flex flex-col items-center gap-3 border-b border-r border-border p-4 text-center last:border-r-0 lg:border-b-0"
+              className="group flex flex-col items-center gap-3 border-border p-4 [&:nth-child(odd)]:border-r [&:nth-child(-n+2)]:border-b sm:border-b-0 sm:border-r sm:last:border-r-0 text-center"
             >
               <SafeImage
                 src={[product.thumbnail, product.image]}

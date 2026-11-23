@@ -561,7 +561,7 @@ class _DealsSection extends StatefulWidget {
 }
 
 class _DealsSectionState extends State<_DealsSection> {
-  static const _tiles = 5;
+  static const _tiles = 4;
   late Timer _timer;
   Duration _left = Duration.zero;
 
