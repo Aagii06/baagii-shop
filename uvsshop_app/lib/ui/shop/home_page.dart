@@ -412,7 +412,7 @@ class _StoresRow extends StatelessWidget {
       const SizedBox(height: 12),
       // Жижиг tile-ууд — дэлгэцэнд олон дэлгүүр багтана.
       SizedBox(
-        height: 124,
+        height: 108,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           clipBehavior: Clip.none,
@@ -501,15 +501,15 @@ class StoreTile extends StatelessWidget {
               child: Column(children: [
                 StoreAvatar(name: store.name, logo: store.logo, size: 48, radius: 10),
                 const SizedBox(height: 6),
-                SizedBox(
-                  height: 28,
-                  child: Text(store.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, height: 1.25)),
-                ),
-                Text(tr('{productCount} бараа', {'productCount': store.productCount}), style: TextStyle(fontSize: 10.5, color: Colors.grey.shade600)),
+                // Нэр нэг мөр, тоо шууд доор нь — илүү зайгүй.
+                Text(store.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, height: 1.25)),
+                const SizedBox(height: 2),
+                Text(tr('{productCount} бараа', {'productCount': store.productCount}),
+                    style: TextStyle(fontSize: 10.5, height: 1.2, color: Colors.grey.shade600)),
               ]),
             ),
           ),
@@ -529,9 +529,9 @@ class _StoreTileSkeleton extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
         child: Column(children: [
           _Bone(48, 48, radius: 10),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           _Bone(56, 11),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           _Bone(36, 9),
         ]),
       );
