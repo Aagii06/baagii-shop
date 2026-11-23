@@ -553,9 +553,6 @@ class _Bone extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Хямдрал, урамшуулал (web: DealsSection)
-
-// ---------------------------------------------------------------------------
 // 8 барааны showcase (web: CategoryShowcase)
 
 class _CategoryShowcase extends StatelessWidget {
