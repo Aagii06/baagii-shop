@@ -10,7 +10,6 @@ import '../common.dart';
 import 'notifications_page.dart';
 import 'product_card.dart';
 import 'store_page.dart';
-import 'product_page.dart';
 import 'stores_page.dart';
 import 'package:uvsshop_app/i18n.dart';
 
@@ -606,13 +605,11 @@ class _DealsSectionState extends State<_DealsSection> {
       (secs % 60, tr('Сек')),
     ];
 
-    return Container(
-      decoration: _cardBox(),
-      clipBehavior: Clip.antiAlias,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    // web шиг: гарчиг тусдаа картанд, доор нь доорх жагсаалттай ижил бараа картууд.
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Container(
           padding: const EdgeInsets.all(18),
-          decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: borderColor))),
+          decoration: _cardBox(),
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -652,76 +649,9 @@ class _DealsSectionState extends State<_DealsSection> {
               ]),
           ]),
         ),
-        _TileGrid(
-          count: widget.loading ? _tiles : tiles.length,
-          builder: (i) {
-            if (widget.loading) {
-              return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                _Bone(112, 112),
-                const SizedBox(height: 12),
-                _Bone(96, 14),
-                const SizedBox(height: 10),
-                _Bone(56, 26, radius: 13),
-              ]);
-            }
-            final p = tiles[i];
-            final discount = p.onSale ? p.discountPercent ?? 0 : 0;
-            return InkWell(
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProductPage(productId: p.id, preview: p))),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(children: [
-                  NetImage(p.image('thumbnail'), width: 112, height: 112, fit: BoxFit.contain, radius: BorderRadius.circular(6)),
-                  const SizedBox(height: 10),
-                  Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5)),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: (discount > 0 ? Colors.red : brandColor).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(discount > 0 ? '-$discount%' : money(p.price),
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: discount > 0 ? Colors.red.shade700 : brandColor)),
-                  ),
-                ]),
-              ),
-            );
-          },
-        ),
-      ]),
-    );
-  }
-}
-
-/// Хүрээтэй 2 баганатай tile-ууд (web-ийн border-b border-r grid).
-class _TileGrid extends StatelessWidget {
-  final int count;
-  final Widget Function(int i) builder;
-  const _TileGrid({required this.count, required this.builder});
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = <Widget>[];
-    for (var i = 0; i < count; i += 2) {
-      rows.add(IntrinsicHeight(
-        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          for (var j = i; j < i + 2; j++)
-            Expanded(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(
-                    right: j == i ? const BorderSide(color: borderColor) : BorderSide.none,
-                    bottom: i + 2 < count ? const BorderSide(color: borderColor) : BorderSide.none,
-                  ),
-                ),
-                child: j < count ? builder(j) : const SizedBox.shrink(),
-              ),
-            ),
-        ]),
-      ));
-    }
-    return Column(children: rows);
+        const SizedBox(height: 12),
+        if (widget.loading) const _GridSkeleton(count: _tiles) else ProductGrid(tiles),
+    ]);
   }
 }
 

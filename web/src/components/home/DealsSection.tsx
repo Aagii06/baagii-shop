@@ -1,12 +1,13 @@
 "use client";
 
-import SafeImage from "@/components/ui/safe-image";
 import { goldFirst, type Store } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { byNewest, formatMNT } from "@/lib/utils";
+import { byNewest } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import ProductCard from "./ProductCard";
+import { ProductCardSkeleton } from "./ProductListSkeleton";
 
 // Time left until local midnight, when "today's" deals end.
 function useEndOfDayCountdown() {
@@ -24,7 +25,7 @@ function useEndOfDayCountdown() {
   return left;
 }
 
-// Two rows of 2 on phones, one row of 4 from sm.
+// Two rows of 2 on phones, one row of 4 from sm (beside the title on xl).
 const TILES = 4;
 
 // Best sellers first, then best rated, then the newest.
@@ -86,90 +87,51 @@ export default function DealsSection({
     { value: seconds % 60, label: t("home.deals.sec") },
   ];
 
+  // Same cards and columns as the product list below. Phones to lg: the
+  // title row on top, then the 4 cards; xl: the title fills the first of 5 columns.
   return (
-    <section className="overflow-hidden rounded-lg border border-border bg-card">
-      <div className="flex flex-col lg:flex-row">
-        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border p-5 lg:w-[280px] lg:flex-col lg:items-start lg:justify-start lg:border-b-0 lg:border-r">
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">
-              {t(featuredOnly ? "home.featured.title" : "home.deals.title")}
-            </h2>
-            <p className="text-muted-foreground">
-              {t(
-                featuredOnly ? "home.featured.subtitle" : "home.deals.subtitle",
-              )}
-            </p>
-          </div>
-          {featuredOnly ? (
-            <Link
-              href="/search"
-              className="shrink-0 rounded-lg border-2 border-primary px-4 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
-            >
-              {t("home.allProducts.viewAll")}
-            </Link>
-          ) : (
-            <div className="flex gap-1.5" aria-live="off">
-              {units.map((unit) => (
-                <span
-                  key={unit.label}
-                  className="flex w-12 flex-col items-center rounded-md bg-primary py-1.5 text-primary-foreground"
-                >
-                  <span className="text-base font-bold leading-tight tabular-nums">
-                    {left === null ? "--" : String(unit.value).padStart(2, "0")}
-                  </span>
-                  <span className="text-[11px] leading-tight">
-                    {unit.label}
-                  </span>
-                </span>
-              ))}
-            </div>
-          )}
+    <section
+      className="grid gap-3 sm:gap-5 grid-cols-2 sm:grid-cols-4 xl:grid-cols-5"
+      aria-busy={loading}
+    >
+      <div className="col-span-2 flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-5 sm:col-span-4 xl:col-span-1 xl:flex-col xl:items-start xl:justify-start">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">
+            {t(featuredOnly ? "home.featured.title" : "home.deals.title")}
+          </h2>
+          <p className="text-muted-foreground">
+            {t(featuredOnly ? "home.featured.subtitle" : "home.deals.subtitle")}
+          </p>
         </div>
-
-        <div
-          className="grid flex-1 grid-cols-2 sm:grid-cols-4"
-          aria-busy={loading}
-        >
-          {loading &&
-            Array.from({ length: TILES }, (_, i) => (
-              <div
-                key={i}
-                aria-hidden
-                className="flex flex-col items-center gap-3 border-border p-4 [&:nth-child(odd)]:border-r [&:nth-child(-n+2)]:border-b sm:border-b-0 sm:border-r sm:last:border-r-0"
+        {featuredOnly ? (
+          <Link
+            href="/search"
+            className="shrink-0 rounded-lg border-2 border-primary px-4 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+          >
+            {t("home.allProducts.viewAll")}
+          </Link>
+        ) : (
+          <div className="flex gap-1.5" aria-live="off">
+            {units.map((unit) => (
+              <span
+                key={unit.label}
+                className="flex w-12 flex-col items-center rounded-md bg-primary py-1.5 text-primary-foreground"
               >
-                <div className="h-28 w-28 animate-pulse rounded-md bg-muted sm:h-32 sm:w-32" />
-                <div className="h-3.5 w-24 animate-pulse rounded bg-muted" />
-                <div className="h-7 w-14 animate-pulse rounded-full bg-muted" />
-              </div>
-            ))}
-          {tiles.map(({ product, discount }) => (
-            <Link
-              key={product.id}
-              href={`/product/${product.id}`}
-              className="group flex flex-col items-center gap-3 border-border p-4 [&:nth-child(odd)]:border-r [&:nth-child(-n+2)]:border-b sm:border-b-0 sm:border-r sm:last:border-r-0 text-center"
-            >
-              <SafeImage
-                src={[product.thumbnail, product.image]}
-                alt={product.name}
-                fallback="sm"
-                className="h-28 w-28 rounded-md bg-transparent object-cover transition-transform group-hover:scale-105 sm:h-32 sm:w-32"
-              />
-              <span className="line-clamp-1 text-sm text-foreground">
-                {product.name}
+                <span className="text-base font-bold leading-tight tabular-nums">
+                  {left === null ? "--" : String(unit.value).padStart(2, "0")}
+                </span>
+                <span className="text-[11px] leading-tight">{unit.label}</span>
               </span>
-              {discount > 0 ? (
-                <span className="rounded-full bg-destructive/10 px-3 py-1 text-sm font-semibold text-destructive">
-                  -{discount}%
-                </span>
-              ) : (
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-                  {formatMNT(product.price)}
-                </span>
-              )}
-            </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {loading
+        ? Array.from({ length: TILES }, (_, i) => <ProductCardSkeleton key={i} />)
+        : tiles.map(({ product }) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
     </section>
   );
 }
