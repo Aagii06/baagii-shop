@@ -420,13 +420,14 @@ class _StoresRow extends StatelessWidget {
       _SectionTitle(tr('Манай дэлгүүрүүд'),
           onViewAll: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StoresPage()))),
       const SizedBox(height: 12),
+      // Жижиг tile-ууд — дэлгэцэнд олон дэлгүүр багтана.
       SizedBox(
-        height: 160,
+        height: 124,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           clipBehavior: Clip.none,
           itemCount: loading ? 8 : stores.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 12),
+          separatorBuilder: (_, _) => const SizedBox(width: 10),
           itemBuilder: (_, i) => loading ? const _StoreTileSkeleton() : StoreTile(stores[i]),
         ),
       ),
@@ -489,35 +490,35 @@ class StoreTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ring = tierRing[store.tier];
     return Container(
-        width: 112,
+        width: 88,
         clipBehavior: Clip.antiAlias,
         decoration: ring == null
-            ? _cardBox(16)
+            ? _cardBox(14)
             : BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: ring, width: 2),
               ),
         child: Stack(children: [
           Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             onTap: () => openStore(context, store.id),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
               child: Column(children: [
-                StoreAvatar(name: store.name, logo: store.logo, size: 64, radius: 12),
-                const SizedBox(height: 8),
+                StoreAvatar(name: store.name, logo: store.logo, size: 48, radius: 10),
+                const SizedBox(height: 6),
                 SizedBox(
-                  height: 32,
+                  height: 28,
                   child: Text(store.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, height: 1.25)),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, height: 1.25)),
                 ),
-                Text(tr('{productCount} бараа', {'productCount': store.productCount}), style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                Text(tr('{productCount} бараа', {'productCount': store.productCount}), style: TextStyle(fontSize: 10.5, color: Colors.grey.shade600)),
               ]),
             ),
           ),
@@ -532,15 +533,15 @@ class _StoreTileSkeleton extends StatelessWidget {
   const _StoreTileSkeleton();
   @override
   Widget build(BuildContext context) => Container(
-        width: 112,
-        decoration: _cardBox(16),
-        padding: const EdgeInsets.all(12),
+        width: 88,
+        decoration: _cardBox(14),
+        padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
         child: Column(children: [
-          _Bone(64, 64, radius: 12),
-          const SizedBox(height: 10),
-          _Bone(64, 12),
+          _Bone(48, 48, radius: 10),
+          const SizedBox(height: 8),
+          _Bone(56, 11),
           const SizedBox(height: 6),
-          _Bone(40, 10),
+          _Bone(36, 9),
         ]),
       );
 }

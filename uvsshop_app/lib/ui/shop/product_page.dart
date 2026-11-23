@@ -5,6 +5,7 @@ import '../../api/shop_models.dart';
 import '../../config.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'product_card.dart' show StorePill;
 import 'share.dart';
 import 'package:uvsshop_app/i18n.dart';
 
@@ -152,13 +153,16 @@ class _ProductPageState extends State<ProductPage> {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(p.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          // Худалдагч дэлгүүр: дарвал тэр дэлгүүрийн хуудас (буцахад энд ирнэ).
           if (p.storeName != null) ...[
-            const SizedBox(height: 4),
-            Row(children: [
-              const Icon(Icons.store_outlined, size: 16, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(p.storeName!, style: TextStyle(color: Colors.grey.shade700)),
-            ]),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 280),
+                child: StorePill(name: p.storeName!, logo: p.storeLogo, storeId: p.storeId),
+              ),
+            ),
           ],
           const SizedBox(height: 12),
           Row(crossAxisAlignment: CrossAxisAlignment.end, children: [

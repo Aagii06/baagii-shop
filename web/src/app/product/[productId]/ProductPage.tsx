@@ -31,7 +31,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import PageLoader from "@/components/ui/page-loader";
 import SafeImage from "@/components/ui/safe-image";
 import ImageLightbox from "@/components/product/ImageLightbox";
-import { resizedFileUrl } from "@/lib/api/files";
+import { fileUrl, resizedFileUrl } from "@/lib/api/files";
+import { storeHref } from "@/lib/api/stores";
+import StoreAvatar from "@/components/ui/store-avatar";
+import Link from "next/link";
 
 function findMatchingVariant(
   variants: ProductVariant[],
@@ -321,6 +324,32 @@ export default function ProductPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
             {product.name}
           </h1>
+
+          {/* The seller: opens the store's own page (back returns here). */}
+          {product.brand && (
+            <Link
+              href={
+                product.storeId
+                  ? storeHref(product.storeId, `/product/${product.id}`)
+                  : `/search?store=${encodeURIComponent(product.brand)}`
+              }
+              title={product.brand}
+              className="group/store inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-muted/40 py-1 pl-1 pr-3 transition-colors hover:border-primary/40 hover:bg-accent"
+            >
+              <span className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-border">
+                <StoreAvatar
+                  name={product.brand}
+                  src={fileUrl(product.brandLogo, "icon")}
+                  className="size-full bg-white object-contain"
+                  initialsClassName="text-[10px]"
+                />
+              </span>
+              <span className="min-w-0 truncate text-sm font-medium text-foreground transition-colors group-hover/store:text-primary">
+                {product.brand}
+              </span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground/60 transition-transform group-hover/store:translate-x-0.5 group-hover/store:text-primary" />
+            </Link>
+          )}
 
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-foreground">
