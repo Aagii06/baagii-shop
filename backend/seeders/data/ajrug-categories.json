@@ -1,0 +1,114 @@
+{
+  "version": "1.0",
+  "categories": [
+    {
+      "name": "Хувцас", "slug": "huvtsas", "sort_order": 1,
+      "attributes": ["gender", "age_group", "size_clothing", "season", "color", "material", "brand"],
+      "children": [
+        { "name": "Дээд хувцас", "slug": "deed-huvtsas", "sort_order": 1, "children": [
+          { "name": "Подволк", "slug": "podvolk", "sort_order": 1 },
+          { "name": "Цамц", "slug": "tsamts", "sort_order": 2 },
+          { "name": "Свитер", "slug": "sviter", "sort_order": 3 },
+          { "name": "Худи", "slug": "hudi", "sort_order": 4 },
+          { "name": "Хантааз", "slug": "hantaaz", "sort_order": 5 } ] },
+        { "name": "Доод хувцас", "slug": "dood-huvtsas", "sort_order": 2, "children": [
+          { "name": "Өмд", "slug": "umd", "sort_order": 1 },
+          { "name": "Жинсэн өмд", "slug": "jinsen-umd", "sort_order": 2 },
+          { "name": "Шорт", "slug": "short", "sort_order": 3 },
+          { "name": "Юбка", "slug": "yubka", "sort_order": 4 },
+          { "name": "Леггинс", "slug": "leggins", "sort_order": 5 } ] },
+        { "name": "Даашинз & Комбинезон", "slug": "daashinz-kombinezon", "sort_order": 3, "children": [
+          { "name": "Даашинз", "slug": "daashinz", "sort_order": 1 },
+          { "name": "Комбинезон", "slug": "kombinezon", "sort_order": 2 } ] },
+        { "name": "Гадуур хувцас", "slug": "gaduur-huvtsas", "sort_order": 4, "children": [
+          { "name": "Куртка", "slug": "kurtka", "sort_order": 1 },
+          { "name": "Пальто", "slug": "palto", "sort_order": 2 },
+          { "name": "Өвлийн куртка", "slug": "uvliin-kurtka", "sort_order": 3 },
+          { "name": "Цувны куртка", "slug": "tsuvnii-kurtka", "sort_order": 4 } ] },
+        { "name": "Гэрийн & Унтлагын", "slug": "geriin-untlagiin", "sort_order": 5, "children": [
+          { "name": "Пижама", "slug": "pijama", "sort_order": 1 },
+          { "name": "Халаад", "slug": "halaad", "sort_order": 2 } ] },
+        { "name": "Дотуур хувцас", "slug": "dotuur-huvtsas", "sort_order": 6, "children": [
+          { "name": "Дотуур хувцас", "slug": "dotuur", "sort_order": 1 },
+          { "name": "Оймс", "slug": "oims", "sort_order": 2 },
+          { "name": "Колготк", "slug": "kolgotk", "sort_order": 3 } ] },
+        { "name": "Сургуулийн хувцас", "slug": "surguuliin-huvtsas", "sort_order": 7, "children": [
+          { "name": "Дүрэмт хувцас", "slug": "duremt-huvtsas", "sort_order": 1 },
+          { "name": "Пиджак", "slug": "pidjak", "sort_order": 2 } ] },
+        { "name": "Спорт хувцас", "slug": "sport-huvtsas", "sort_order": 8, "children": [
+          { "name": "Спорт костюм", "slug": "sport-kostyum", "sort_order": 1 },
+          { "name": "Усны хувцас", "slug": "usnii-huvtsas", "sort_order": 2 } ] }
+      ]
+    },
+    {
+      "name": "Гутал", "slug": "gutal", "sort_order": 2,
+      "attributes": ["gender", "age_group", "size_shoes", "season", "color", "material", "brand"],
+      "children": [
+        { "name": "Пүүз", "slug": "puuz", "sort_order": 1 },
+        { "name": "Гутал", "slug": "gutal-engiin", "sort_order": 2 },
+        { "name": "Өвлийн гутал", "slug": "uvliin-gutal", "sort_order": 3 },
+        { "name": "Шаахай", "slug": "shaahai", "sort_order": 4 }
+      ]
+    },
+    {
+      "name": "Дагалдах хэрэгсэл", "slug": "dagaldah-heregsel", "sort_order": 3,
+      "attributes": ["gender", "age_group", "season", "color", "brand"],
+      "children": [
+        { "name": "Малгай", "slug": "malgai", "sort_order": 1 },
+        { "name": "Ороолт", "slug": "oroolt", "sort_order": 2 },
+        { "name": "Бээлий", "slug": "beelii", "sort_order": 3 },
+        { "name": "Цүнх", "slug": "tsunh", "sort_order": 4 },
+        { "name": "Үсний чимэглэл", "slug": "usnii-chimeglel", "sort_order": 5 }
+      ]
+    },
+    {
+      "name": "Нярай (0-24 сар)", "slug": "nyarai", "sort_order": 4,
+      "attributes": ["gender", "size_baby", "season", "color", "material", "brand"],
+      "children": [
+        { "name": "Боди", "slug": "bodi", "sort_order": 1 },
+        { "name": "Слип", "slug": "slip", "sort_order": 2 },
+        { "name": "Нярайн багц", "slug": "nyarain-bagts", "sort_order": 3 },
+        { "name": "Өлгий", "slug": "ulgii", "sort_order": 4 }
+      ]
+    }
+  ],
+  "attributes": [
+    { "code": "gender", "name": "Хүйс", "level": "product", "type": "multi_select", "values": [
+      { "value": "Охин", "slug": "ohin" }, { "value": "Хүү", "slug": "huu" }, { "value": "Unisex", "slug": "unisex" } ] },
+    { "code": "age_group", "name": "Насны бүлэг", "level": "product", "type": "multi_select", "values": [
+      { "value": "Нярай (0-2)", "slug": "0-2" }, { "value": "Бага (2-7)", "slug": "2-7" },
+      { "value": "Том (8-14)", "slug": "8-14" }, { "value": "Өсвөр (14+)", "slug": "14-plus" } ] },
+    { "code": "size_baby", "name": "Хэмжээ (нярай)", "level": "variant", "type": "select", "values": [
+      { "value": "56", "slug": "56", "hint": "0-1 сар" }, { "value": "62", "slug": "62", "hint": "1-3 сар" },
+      { "value": "68", "slug": "68", "hint": "3-6 сар" }, { "value": "74", "slug": "74", "hint": "6-9 сар" },
+      { "value": "80", "slug": "80", "hint": "9-12 сар" }, { "value": "86", "slug": "86", "hint": "12-18 сар" } ] },
+    { "code": "size_clothing", "name": "Хэмжээ (өндөр, см)", "level": "variant", "type": "select", "values": [
+      { "value": "92", "slug": "92", "hint": "≈ 2 нас" }, { "value": "98", "slug": "98", "hint": "≈ 3 нас" },
+      { "value": "104", "slug": "104", "hint": "≈ 4 нас" }, { "value": "110", "slug": "110", "hint": "≈ 5 нас" },
+      { "value": "116", "slug": "116", "hint": "≈ 6 нас" }, { "value": "122", "slug": "122", "hint": "≈ 7 нас" },
+      { "value": "128", "slug": "128", "hint": "≈ 8 нас" }, { "value": "134", "slug": "134", "hint": "≈ 9 нас" },
+      { "value": "140", "slug": "140", "hint": "≈ 10 нас" }, { "value": "146", "slug": "146", "hint": "≈ 11 нас" },
+      { "value": "152", "slug": "152", "hint": "≈ 12 нас" }, { "value": "158", "slug": "158", "hint": "≈ 13 нас" },
+      { "value": "164", "slug": "164", "hint": "≈ 14 нас" } ] },
+    { "code": "size_shoes", "name": "Гутлын хэмжээ", "level": "variant", "type": "select", "values": [
+      { "value": "22", "slug": "22" }, { "value": "23", "slug": "23" }, { "value": "24", "slug": "24" },
+      { "value": "25", "slug": "25" }, { "value": "26", "slug": "26" }, { "value": "27", "slug": "27" },
+      { "value": "28", "slug": "28" }, { "value": "29", "slug": "29" }, { "value": "30", "slug": "30" },
+      { "value": "31", "slug": "31" }, { "value": "32", "slug": "32" }, { "value": "33", "slug": "33" },
+      { "value": "34", "slug": "34" }, { "value": "35", "slug": "35" }, { "value": "36", "slug": "36" },
+      { "value": "37", "slug": "37" }, { "value": "38", "slug": "38" } ] },
+    { "code": "season", "name": "Улирал", "level": "product", "type": "multi_select", "values": [
+      { "value": "Зун", "slug": "zun" }, { "value": "Хавар-Намар", "slug": "havar-namar" },
+      { "value": "Өвөл", "slug": "uvul" }, { "value": "Бүх улирал", "slug": "buh-uliral" } ] },
+    { "code": "color", "name": "Өнгө", "level": "variant", "type": "color", "values": [
+      { "value": "Хар", "slug": "har", "hex": "#000000" }, { "value": "Цагаан", "slug": "tsagaan", "hex": "#FFFFFF" },
+      { "value": "Саарал", "slug": "saaral", "hex": "#9E9E9E" }, { "value": "Ягаан", "slug": "yagaan", "hex": "#F48FB1" },
+      { "value": "Улаан", "slug": "ulaan", "hex": "#E53935" }, { "value": "Цэнхэр", "slug": "tsenher", "hex": "#42A5F5" },
+      { "value": "Хөх", "slug": "huh", "hex": "#1E3A8A" }, { "value": "Ногоон", "slug": "nogoon", "hex": "#43A047" },
+      { "value": "Шар", "slug": "shar", "hex": "#FDD835" }, { "value": "Бор", "slug": "bor", "hex": "#795548" } ] },
+    { "code": "material", "name": "Материал", "level": "product", "type": "multi_select", "values": [
+      { "value": "Хөвөн", "slug": "huvun" }, { "value": "Ноос", "slug": "noos" }, { "value": "Ноолуур", "slug": "nooluur" },
+      { "value": "Флис", "slug": "flis" }, { "value": "Жинс", "slug": "jins" }, { "value": "Полиэстер", "slug": "poliester" } ] },
+    { "code": "brand", "name": "Брэнд", "level": "product", "type": "select", "values": [] }
+  ]
+}
