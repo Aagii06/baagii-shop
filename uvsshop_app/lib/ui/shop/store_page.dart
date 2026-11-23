@@ -8,6 +8,7 @@ import '../../state/shop_state.dart';
 import '../common.dart';
 import 'home_page.dart' show byNewest;
 import 'product_card.dart';
+import 'share.dart';
 import 'search_page.dart' show FilterButton, FilterSheet, SearchFilters;
 import 'package:uvsshop_app/i18n.dart';
 
@@ -317,6 +318,12 @@ class _Header extends StatelessWidget {
                   chip(Icons.mail_outline, e, onTap: () => _launch(context, Uri(scheme: 'mailto', path: e))),
                 for (final a in s.addresses) chip(Icons.place_outlined, a),
               ]),
+            ],
+            if (s != null && !loading) ...[
+              const SizedBox(height: 16),
+              Divider(height: 1, color: Colors.white.withValues(alpha: 0.25)),
+              const SizedBox(height: 12),
+              ShareButtons(title: s.name, path: '/store?id=${s.id}', light: true),
             ],
           ]),
         ),

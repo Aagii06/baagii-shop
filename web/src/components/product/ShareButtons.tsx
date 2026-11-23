@@ -67,6 +67,23 @@ export default function ShareButtons({
     },
   ];
 
+  // Open the network's share dialog in a centered popup window, like the
+  // platforms' own share buttons; falls back to a new tab if popups are blocked.
+  const openPopup = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const w = 600;
+    const h = 640;
+    const left = window.screenX + (window.outerWidth - w) / 2;
+    const top = window.screenY + (window.outerHeight - h) / 2;
+    const win = window.open(
+      href,
+      "share",
+      `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes`
+    );
+    if (win) win.focus();
+    else window.open(href, "_blank", "noopener,noreferrer");
+  };
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(url);
@@ -107,6 +124,7 @@ export default function ShareButtons({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={(e) => openPopup(e, href)}
           aria-label={label}
           title={label}
           className={cn(btn, !light && color)}

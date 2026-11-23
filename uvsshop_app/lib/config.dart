@@ -12,6 +12,12 @@ class AppConfig {
   /// Админы API.
   static const String adminApi = '$apiOrigin/api';
 
+  /// Дэлгүүрийн вэб сайт — хуваалцах холбоос (`/product/12`) үүн дээр нийлнэ.
+  static const String webOrigin = String.fromEnvironment(
+    'WEB_ORIGIN',
+    defaultValue: 'https://uvsshop.com',
+  );
+
   /// Зургийн сервис.
   static const String fileBase = '$apiOrigin/file';
 

@@ -5,6 +5,7 @@ import '../../api/shop_models.dart';
 import '../../config.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'share.dart';
 import 'package:uvsshop_app/i18n.dart';
 
 class ProductPage extends StatefulWidget {
@@ -171,6 +172,8 @@ class _ProductPageState extends State<ProductPage> {
             v == null ? tr('Сонголтоо хийнэ үү') : (v.stock > 0 ? tr('Үлдэгдэл: {stock}', {'stock': v.stock}) : tr('Дууссан')),
             style: TextStyle(color: v != null && v.stock > 0 ? Colors.green.shade700 : Colors.red.shade700),
           ),
+          const SizedBox(height: 14),
+          ShareButtons(title: p.name, path: '/product/${p.id}'),
         ]),
       ),
       for (final attr in d.attrs)
