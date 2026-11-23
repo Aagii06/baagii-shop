@@ -733,74 +733,25 @@ class _CategoryShowcase extends StatelessWidget {
   final bool loading;
   const _CategoryShowcase({required this.products, required this.loading});
 
+  /// Доорх жагсаалттай ижил бараа картууд; 4 эсвэл 8 — мөрүүд дүүрэн байна.
   @override
   Widget build(BuildContext context) {
-    if (!loading && products.length < 4) return const SizedBox.shrink();
-    final shown = loading ? <Product>[] : products.take(products.length >= 8 ? 8 : 4).toList();
-    final count = loading ? 8 : shown.length;
-    return Container(
-      decoration: _cardBox(),
-      clipBehavior: Clip.antiAlias,
-      child: _TileGrid(
-        count: count,
-        builder: (i) {
-          if (loading) {
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                height: 95,
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      _Bone(70, 13),
-                      const SizedBox(height: 8),
-                      _Bone(36, 11),
-                    ]),
-                  ),
-                  Align(alignment: Alignment.bottomRight, child: _Bone(56, 56)),
-                ]),
-              ),
-            );
-          }
-          final p = shown[i];
-          return InkWell(
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProductPage(productId: p.id, preview: p))),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: SizedBox(
-                height: 99,
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5)),
-                      const SizedBox(height: 4),
-                      Text(tr('Үнэ\n{price}', {'price': money(p.price)}), style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600, height: 1.35)),
-                    ]),
-                  ),
-                  const SizedBox(width: 4),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: NetImage(p.image('thumbnail'), width: 60, height: 60, fit: BoxFit.contain, radius: BorderRadius.circular(6)),
-                  ),
-                ]),
-              ),
-            ),
-          );
-        },
-      ),
-    );
+    if (loading) return const _GridSkeleton(count: 4);
+    if (products.length < 4) return const SizedBox.shrink();
+    return ProductGrid(products.take(products.length >= 8 ? 8 : 4).toList());
   }
 }
 
 class _GridSkeleton extends StatelessWidget {
-  const _GridSkeleton();
+  final int count;
+  const _GridSkeleton({this.count = 6});
   @override
   Widget build(BuildContext context) => GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
         gridDelegate: productGridDelegate,
-        itemCount: 6,
+        itemCount: count,
         itemBuilder: (_, _) => Container(
           decoration: _cardBox(),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

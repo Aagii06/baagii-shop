@@ -46,8 +46,8 @@ export default function AllProducts() {
     <>
       <StoresGrid />
       <DealsSection products={products} stores={stores} loading={loading} />
-      {/* CategoryShowcase hides itself under 4 products; hide its title too. */}
-      {(loading || products.length >= 4) && (
+      {/* CategoryShowcase hides itself under 5 products; hide its title too. */}
+      {(loading || products.length >= 5) && (
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 
 // Mirrors ProductCard's layout so the grid doesn't shift once products load.
-function ProductCardSkeleton() {
+export function ProductCardSkeleton() {
   return (
     <Card className="overflow-hidden rounded-lg bg-card border-border py-0 gap-0 shadow-none">
       {/* The gray "no image" logo (see SafeImage), so the skeleton stays colorless. */}
