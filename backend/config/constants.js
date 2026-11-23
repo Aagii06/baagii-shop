@@ -41,7 +41,8 @@ const constant = {
     },
     2: {
       delivery: {
-        standard: { fee: 5000, freeAbove: 60000 },
+        // Хот дотор 6,000₮, үнэгүй хүргэлтгүй
+        standard: { fee: 6000, freeAbove: null },
         express: { fee: 8000, freeAbove: null },
         regional: { fee: 15000, freeAbove: null },
       },
