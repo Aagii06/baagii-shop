@@ -166,18 +166,21 @@ class _SearchPageState extends State<SearchPage> {
     if (_filters.stores.isNotEmpty) r = r.where((p) => _filters.stores.contains(p.storeName)).toList();
     final price = _filters.price;
     if (price != null) r = r.where((p) => p.price >= price.start && p.price <= price.end).toList();
+    // Сонгосон эрэмбэ давуу; gold дэлгүүрийн бараа зөвхөн тэнцсэн хэсэгт эхэнд
+    // (шинэ, үнэлгээ, хямдралгүй үлдсэн бараа) — web-тэй адил.
     switch (_sort) {
       case SearchSort.newest:
-        r.sort(byNewest);
+        return goldFirst(r..sort(byNewest), _allStores);
       case SearchSort.priceAsc:
-        r.sort((a, b) => a.price.compareTo(b.price));
+        return r..sort((a, b) => a.price.compareTo(b.price));
       case SearchSort.rating:
-        break;
+        return goldFirst(r, _allStores);
       case SearchSort.discount:
-        r.sort((a, b) => (b.onSale ? b.discountPercent ?? 0 : 0).compareTo(a.onSale ? a.discountPercent ?? 0 : 0));
+        final onSale = r.where((p) => p.onSale && (p.discountPercent ?? 0) > 0).toList()
+          ..sort((a, b) => (b.discountPercent ?? 0).compareTo(a.discountPercent ?? 0));
+        final rest = r.where((p) => !onSale.contains(p)).toList();
+        return [...onSale, ...goldFirst(rest, _allStores)];
     }
-    // Gold дэлгүүрийн бараа үргэлж эхэнд (web-тэй адил).
-    return goldFirst(r, _allStores);
   }
 
   int get _visibleCount => _page * _pageSize;

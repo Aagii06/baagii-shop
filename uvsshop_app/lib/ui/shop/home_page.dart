@@ -733,12 +733,12 @@ class _CategoryShowcase extends StatelessWidget {
   final bool loading;
   const _CategoryShowcase({required this.products, required this.loading});
 
-  /// Доорх жагсаалттай ижил бараа картууд; 4 эсвэл 8 — мөрүүд дүүрэн байна.
+  /// Доорх жагсаалттай ижил бараа картууд; web шиг 10 (бараа цөөн бол 5).
   @override
   Widget build(BuildContext context) {
     if (loading) return const _GridSkeleton(count: 4);
-    if (products.length < 4) return const SizedBox.shrink();
-    return ProductGrid(products.take(products.length >= 8 ? 8 : 4).toList());
+    if (products.length < 5) return const SizedBox.shrink();
+    return ProductGrid(products.take(products.length >= 10 ? 10 : 5).toList());
   }
 }
 

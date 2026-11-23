@@ -208,22 +208,26 @@ function SearchContent() {
         p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
     );
 
+    // The picked sort wins; gold stores' products lead only where it leaves
+    // a tie (newest/rating, and the not-on-sale rest of the discount sort).
     switch (sort) {
       case "new":
-        result.sort(byNewest);
-        break;
+        return goldFirst(result.sort(byNewest), allStores);
       case "price-asc":
-        result.sort((a, b) => a.price - b.price);
-        break;
+        return result.sort((a, b) => a.price - b.price);
       case "rating":
-        result.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-        break;
-      default:
-        result.sort((a, b) => discountPercent(b) - discountPercent(a));
+        return goldFirst(
+          result.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)),
+          allStores
+        );
+      default: {
+        const onSale = result
+          .filter((p) => discountPercent(p) > 0)
+          .sort((a, b) => discountPercent(b) - discountPercent(a));
+        const rest = result.filter((p) => discountPercent(p) <= 0);
+        return [...onSale, ...goldFirst(rest, allStores)];
+      }
     }
-
-    // Gold stores' products always lead, newest first among them.
-    return goldFirst(result, allStores);
   }, [products, saleOnly, filters.brands, filters.priceRange, sort, allStores]);
 
   // Start over from the first PAGE_SIZE whenever the list itself changes.
