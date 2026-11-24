@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../../api/admin_manage_models.dart';
 import '../../api/admin_models.dart';
-import '../../config.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_design.dart';
@@ -177,15 +176,6 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
     );
   }
 
-  /// Логогүй дэлгүүрийн 2 үсэг: эхний хоёр үгийн эхний үсэг ("Номин Супермаркет" → "НС"),
-  /// нэг үгтэй бол эхний 2 үсэг ("Alpha" → "AL").
-  static String _storeInitials(String name) {
-    final words = name.split(RegExp(r'\s+')).map((w) => w.replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '')).where((w) => w.isNotEmpty).toList();
-    if (words.isEmpty) return '?';
-    final letters = words.length >= 2 ? words[0].characters.first + words[1].characters.first : words[0].characters.take(2).toString();
-    return letters.toUpperCase();
-  }
-
   Widget _row(AdminProduct p, Map<int, String> names) {
     final category = p.categoryId == null ? '' : names[p.categoryId] ?? '';
     final store = p.storeName?.trim() ?? '';
@@ -215,23 +205,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 left: 0,
                 top: 0,
                 // Лого байхгүй, эсвэл файл нь олдохгүй бол дэлгүүрийн 2 үсэг.
-                child: SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: NetImage(
-                    fileUrl(logo, 'icon'),
-                    width: 28,
-                    height: 28,
-                    fallback: Container(
-                      width: 28,
-                      height: 28,
-                      alignment: Alignment.center,
-                      color: AdminColors.primary,
-                      child: Text(_storeInitials(store),
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, height: 1, letterSpacing: -0.3)),
-                    ),
-                  ),
-                ),
+                child: StoreLogoBox(fileId: logo, name: store, size: 28, radius: 0),
               ),
           ]),
           Expanded(
@@ -545,7 +519,7 @@ class _StoreSheetState extends State<_StoreSheet> {
             ),
           Flexible(
             child: ListView(shrinkWrap: true, children: [
-              for (final s in rows) _tile(s.id, s.name, ImageBox(fileId: s.logo, size: 36, placeholder: Icons.storefront_outlined)),
+              for (final s in rows) _tile(s.id, s.name, StoreLogoBox(fileId: s.logo, name: s.name, size: 36)),
             ]),
           ),
           Padding(

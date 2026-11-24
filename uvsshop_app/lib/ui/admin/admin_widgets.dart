@@ -253,6 +253,51 @@ class ImageBox extends StatelessWidget {
   }
 }
 
+/// Логогүй дэлгүүрийн 2 үсэг: эхний хоёр үгийн эхний үсэг ("Номин Супермаркет" → "НС"),
+/// нэг үгтэй бол эхний 2 үсэг ("Alpha" → "AL").
+String storeInitials(String name) {
+  final words = name
+      .split(RegExp(r'\s+'))
+      .map((w) => w.replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), ''))
+      .where((w) => w.isNotEmpty)
+      .toList();
+  if (words.isEmpty) return '?';
+  final letters = words.length >= 2 ? words[0].characters.first + words[1].characters.first : words[0].characters.take(2).toString();
+  return letters.toUpperCase();
+}
+
+/// Дэлгүүрийн лого (admin web-ийн StoreLogo). Лого байхгүй, эсвэл файл нь
+/// олдохгүй бол no-image биш, дэлгүүрийн 2 үсэг.
+class StoreLogoBox extends StatelessWidget {
+  final String? fileId;
+  final String name;
+  final double size;
+
+  /// null бол ImageBox-той адил (size * 0.2); 0 бол дөрвөлжин.
+  final double? radius;
+  const StoreLogoBox({super.key, required this.fileId, required this.name, required this.size, this.radius});
+
+  @override
+  Widget build(BuildContext context) {
+    final letters = Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      color: AdminColors.primary,
+      child: Text(storeInitials(name),
+          style: TextStyle(color: Colors.white, fontSize: (size * 0.38).clamp(10, 40), fontWeight: FontWeight.bold, height: 1, letterSpacing: -0.3)),
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius ?? size * 0.2),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: fileId == null ? letters : NetImage(fileUrl(fileId, size <= 64 ? 'icon' : 'thumbnail'), width: size, height: size, fallback: letters),
+      ),
+    );
+  }
+}
+
 /// Сонгосон зураг (хуулахаас өмнө).
 class PickedImage {
   final Uint8List bytes;

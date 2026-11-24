@@ -95,7 +95,7 @@ class _StoresPageState extends State<StoresPage> {
                   child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(children: [
-                    ImageBox(fileId: s.logo, size: 48, placeholder: Icons.storefront_outlined),
+                    StoreLogoBox(fileId: s.logo, name: s.name, size: 48),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

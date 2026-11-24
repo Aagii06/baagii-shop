@@ -151,7 +151,7 @@ class StoreAvatar extends StatelessWidget {
         width: size,
         height: size,
         color: Colors.white,
-        child: url == null ? initials : NetImage(url, fit: BoxFit.contain, width: size, height: size),
+        child: url == null ? initials : NetImage(url, fit: BoxFit.contain, width: size, height: size, fallback: initials),
       ),
     );
   }

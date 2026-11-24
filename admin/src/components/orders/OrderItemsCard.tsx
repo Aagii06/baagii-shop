@@ -169,9 +169,14 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
         {order.items.map((item) => {
           const kept = keptQty(item);
           return (
-            <li key={item.id} className="flex items-center gap-3 px-4 py-3">
-              <Thumb id={item.image} variant="icon" size={44} className="rounded-xl" />
-              <span className="min-w-0 grow">
+            // Photo flush to the row's left edge, full row height — like the products list.
+            <li key={item.id} className="flex items-stretch gap-3 pr-4">
+              <Thumb
+                id={item.image}
+                variant="thumbnail"
+                className="min-h-[84px] w-24 shrink-0 self-stretch rounded-none border-0"
+              />
+              <span className="min-w-0 grow self-center py-3">
                 <span
                   className={cn(
                     "block truncate text-[15px]",
@@ -195,7 +200,7 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
                   </span>
                 ) : null}
               </span>
-              <span className="shrink-0 font-mono text-sm font-bold">
+              <span className="shrink-0 self-center font-mono text-sm font-bold">
                 {formatMNT(kept * item.price)}
               </span>
               {canReturn && (
@@ -205,6 +210,7 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
                   aria-label={t("oi.returnAria", { name: item.name })}
                   title={t("oi.return")}
                   disabled={kept === 0}
+                  className="self-center"
                   onClick={() => setReturning(item)}
                 >
                   <Undo2 />

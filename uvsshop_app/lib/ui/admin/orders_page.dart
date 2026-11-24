@@ -467,35 +467,67 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
         ),
       ),
       const SizedBox(height: 8),
+      // Барааны мөр: зураг зүүн ирмэгт наалдсан, мөрийн бүтэн өндөртэй (барааны жагсаалттай адил).
       Card(
+        clipBehavior: Clip.antiAlias,
         child: Column(children: [
-          for (final i in o.items)
-            ListTile(
-              leading: NetImage(fileUrl(i.imageId, 'icon'), width: 48, height: 48, radius: BorderRadius.circular(6)),
-              title: Text(i.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-              subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                if (i.storeName != null)
-                  Row(children: [
-                    const Icon(Icons.storefront_outlined, size: 14, color: AdminColors.primaryInk),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(i.storeName!,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AdminColors.primaryInk)),
-                    ),
-                  ]),
-                Text('${money(i.price)} × ${i.qty}${i.returnedQty > 0 ? ' (${tr('буцаасан {n}', {'n': i.returnedQty})})' : ''}'),
+          for (final (n, i) in o.items.indexed) ...[
+            if (n > 0) const Divider(height: 1),
+            IntrinsicHeight(
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                SizedBox(
+                  width: 96,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 84),
+                    child: NetImage(fileUrl(i.imageId, 'thumbnail'), width: 96),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(i.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15)),
+                      if (i.storeName != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Row(children: [
+                            const Icon(Icons.storefront_outlined, size: 14, color: AdminColors.primaryInk),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(i.storeName!,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AdminColors.primaryInk)),
+                            ),
+                          ]),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text('${money(i.price)} × ${i.qty}${i.returnedQty > 0 ? ' (${tr('буцаасан {n}', {'n': i.returnedQty})})' : ''}',
+                            style: const TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
+                      ),
+                    ]),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Center(
+                    child: o.canReturn && i.keptQty > 0 && admin.user?.isAdmin == true
+                        ? IconButton(
+                            tooltip: tr('Буцаах'),
+                            icon: _action == 'item-${i.id}'
+                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                : const Icon(Icons.undo),
+                            onPressed: _busy ? null : () => _returnItem(i),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Text(money(i.price * i.keptQty), style: const TextStyle(fontWeight: FontWeight.w600)),
+                          ),
+                  ),
+                ),
               ]),
-              trailing: o.canReturn && i.keptQty > 0 && admin.user?.isAdmin == true
-                  ? IconButton(
-                      tooltip: tr('Буцаах'),
-                      icon: _action == 'item-${i.id}'
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.undo),
-                      onPressed: _busy ? null : () => _returnItem(i),
-                    )
-                  : Text(money(i.price * i.keptQty)),
             ),
+          ],
         ]),
       ),
       const SizedBox(height: 8),

@@ -116,7 +116,7 @@ class _SettlementsPageState extends State<SettlementsPage> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(children: [
-                      ImageBox(fileId: s.logo, size: 44, placeholder: Icons.storefront_outlined),
+                      StoreLogoBox(fileId: s.logo, name: s.storeName, size: 44),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
