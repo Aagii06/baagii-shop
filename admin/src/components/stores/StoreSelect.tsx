@@ -15,6 +15,7 @@ export default function StoreSelect({
   id,
   invalid,
   describedBy,
+  disabled,
 }: {
   /** Selected store id, or "". */
   value: string;
@@ -23,6 +24,7 @@ export default function StoreSelect({
   id?: string;
   invalid?: boolean;
   describedBy?: string;
+  disabled?: boolean;
 }) {
   const { data } = useApi(getStores);
 
@@ -34,6 +36,7 @@ export default function StoreSelect({
       onChange={onChange}
       aria-invalid={invalid}
       aria-describedby={describedBy}
+      disabled={disabled}
     >
       <option value="">{placeholder}</option>
       {/* The saved store stays listed while the list loads. */}

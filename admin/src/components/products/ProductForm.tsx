@@ -227,13 +227,15 @@ export default function ProductForm() {
         )}
 
         {role === "admin" ? (
-          // Optional: left empty, it's the shop's own product.
-          <Field label={t("pf.store")} hint={t("pf.storeHint")}>
+          // Optional: left empty, it's the shop's own product. Set once — a
+          // product never moves to another store (orders are settled per store).
+          <Field label={t("pf.store")} hint={post ? t("pf.storeLocked") : t("pf.storeHint")}>
             <StoreSelect
               id={storeId}
               value={form.storeId}
               onChange={(id) => set("storeId", id)}
               placeholder={t("pf.shopOwn")}
+              disabled={Boolean(post)}
             />
           </Field>
         ) : (
