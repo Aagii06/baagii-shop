@@ -89,6 +89,7 @@ export const ru: Dict = {
   "products.title": "Товары",
   "products.count": "{count} товаров",
   "products.storeFilter": "Фильтр по магазину",
+  "products.storeCount": "Магазинов: {count}",
   "products.allStores": "Все магазины",
   "products.ownStore": "Собственный магазин",
   "products.search": "Поиск товаров",

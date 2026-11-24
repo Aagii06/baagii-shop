@@ -210,18 +210,23 @@ export async function getPostsPage({
   take,
   query = "",
   categoryIds,
-  storeId,
+  storeIds,
 }: {
   skip: number;
   take: number;
   query?: string;
   categoryIds?: number[];
-  /** A seller store, or "own" for the shop's own products (no store). */
-  storeId?: number | "own";
+  /** Seller stores (any of them); `0` is the shop's own products (no store). */
+  storeIds?: number[];
 }): Promise<{ rows: PostDetail[]; count: number }> {
   const conditions: unknown[] = [];
   if (query.trim()) conditions.push(["name", "contains", query.trim()]);
-  if (storeId != null) conditions.push(["storeId", "=", storeId === "own" ? null : storeId]);
+  if (storeIds && storeIds.length > 0) {
+    const byStore = (id: number) => ["storeId", "=", id === 0 ? null : id];
+    conditions.push(
+      storeIds.length === 1 ? byStore(storeIds[0]) : storeIds.flatMap((id, i) => (i === 0 ? [byStore(id)] : ["or", byStore(id)]))
+    );
+  }
   if (categoryIds && categoryIds.length > 0) {
     conditions.push(
       categoryIds.length === 1

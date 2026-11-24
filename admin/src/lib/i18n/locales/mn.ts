@@ -89,6 +89,7 @@ export const mn: Dict = {
   "products.title": "Бараа",
   "products.count": "{count} бараа",
   "products.storeFilter": "Дэлгүүрээр шүүх",
+  "products.storeCount": "{count} дэлгүүр",
   "products.allStores": "Бүх дэлгүүр",
   "products.ownStore": "Үндсэн дэлгүүр",
   "products.search": "Бараа хайх",

@@ -113,6 +113,15 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
             count: ready && _error == null ? _count : null,
             aside: AdminSmallButton(label: tr('Нэмэх'), onPressed: () => _openForm(null)),
             children: [
+              if (_stores != null && _stores!.isNotEmpty)
+                StoreFilter(
+                  stores: _stores!,
+                  value: _storeIds,
+                  onChanged: (v) {
+                    _storeIds = v;
+                    _reload();
+                  },
+                ),
               TextField(
                 onChanged: (v) {
                   _debounce?.cancel();
@@ -130,15 +139,6 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                   value: _picked,
                   onChanged: (v) {
                     _picked = v;
-                    _reload();
-                  },
-                ),
-              if (_stores != null && _stores!.isNotEmpty)
-                StoreFilter(
-                  stores: _stores!,
-                  value: _storeIds,
-                  onChanged: (v) {
-                    _storeIds = v;
                     _reload();
                   },
                 ),

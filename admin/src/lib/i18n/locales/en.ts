@@ -89,6 +89,7 @@ export const en: Dict = {
   "products.title": "Products",
   "products.count": "{count} products",
   "products.storeFilter": "Filter by store",
+  "products.storeCount": "{count} stores",
   "products.allStores": "All stores",
   "products.ownStore": "The shop's own",
   "products.search": "Search products",

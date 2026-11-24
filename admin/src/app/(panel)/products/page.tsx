@@ -6,8 +6,8 @@ import { tr } from "@/lib/i18n/translations";
 import { EmptyState, ErrorState } from "@/components/common/States";
 import Thumb from "@/components/common/Thumb";
 import PageHeader from "@/components/layout/PageHeader";
-import Select from "@/components/common/Select";
 import CategoryFilter from "@/components/products/CategoryFilter";
+import StoreFilter from "@/components/products/StoreFilter";
 import ProductListSkeleton from "@/components/products/ProductListSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,8 +50,8 @@ export default function ProductsPage() {
   // Only an admin sees every store's products; a shopper's list is their own store.
   const { role } = useAuth();
   const { data: stores } = useApi(getStores);
-  // "" — all stores, "own" — the shop's own products, otherwise a store id.
-  const [store, setStore] = useState("");
+  // Ticked stores (`OWN_STORE` — the shop's own products); empty is all of them.
+  const [pickedStores, setPickedStores] = useState<number[]>([]);
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -67,12 +67,12 @@ export default function ProductsPage() {
   }, [query]);
 
   const categoryIds = picked.length > 0 ? picked : undefined;
-  const storeId = store === "" ? undefined : store === "own" ? ("own" as const) : Number(store);
+  const storeIds = pickedStores.length > 0 ? pickedStores : undefined;
 
   // Pages load as the list is scrolled — like a social feed. `key` ties the
   // loaded rows to the search/category they were fetched for, so a stale
   // page is treated as "loading" until the new one lands.
-  const key = `${debouncedQuery}|${picked.join(",")}|${store}`;
+  const key = `${debouncedQuery}|${picked.join(",")}|${pickedStores.join(",")}`;
   const [page, setPage] = useState<{ key: string; rows: Post[]; count: number; error?: Error } | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);
@@ -81,7 +81,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    getPostsPage({ skip: 0, take: PAGE_SIZE, query: debouncedQuery, categoryIds, storeId }).then(
+    getPostsPage({ skip: 0, take: PAGE_SIZE, query: debouncedQuery, categoryIds, storeIds }).then(
       (result) => {
         if (cancelled) return;
         setMoreFailed(false);
@@ -95,7 +95,7 @@ export default function ProductsPage() {
     return () => {
       cancelled = true;
     };
-  }, [key, version, debouncedQuery, categoryIds, storeId]);
+  }, [key, version, debouncedQuery, categoryIds, storeIds]);
 
   const ready = page?.key === key;
   const rows = ready ? page.rows : [];
@@ -111,7 +111,7 @@ export default function ProductsPage() {
         take: PAGE_SIZE,
         query: debouncedQuery,
         categoryIds,
-        storeId,
+        storeIds,
       }));
       setPage((prev) =>
         prev && prev.key === key
@@ -127,7 +127,7 @@ export default function ProductsPage() {
     } finally {
       setLoadingMore(false);
     }
-  }, [page, key, loadingMore, debouncedQuery, categoryIds, storeId]);
+  }, [page, key, loadingMore, debouncedQuery, categoryIds, storeIds]);
 
   // Loads the next page once the bottom of the list nears the screen. A
   // failed page stops the loop; "try again" retries it.
@@ -155,6 +155,9 @@ export default function ProductsPage() {
           </Button>
         }
       >
+        {role === "admin" && stores && stores.length > 0 && (
+          <StoreFilter stores={stores} value={pickedStores} onChange={setPickedStores} />
+        )}
         <Input
           type="search"
           placeholder={t("products.search")}
@@ -163,17 +166,6 @@ export default function ProductsPage() {
           onChange={(e) => setQuery(e.target.value)}
         />
         {tree && tree.length > 0 && <CategoryFilter tree={tree} value={picked} onChange={setPicked} />}
-        {role === "admin" && stores && stores.length > 0 && (
-          <Select value={store} onChange={setStore} title={t("products.storeFilter")} aria-label={t("products.storeFilter")}>
-            <option value="">{t("products.allStores")}</option>
-            <option value="own">{t("products.ownStore")}</option>
-            {stores.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </Select>
-        )}
       </PageHeader>
 
       {ready && page.error ? (
