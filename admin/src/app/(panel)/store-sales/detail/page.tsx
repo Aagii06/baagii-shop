@@ -206,12 +206,12 @@ function StoreAccountPage() {
         </>
       )}
 
-      {data.pending.length > 0 && (
+      {data.pendingItems.length > 0 && (
         <>
           <h2 className="mt-6 text-base font-bold">{t("ss.pendingTitle")}</h2>
           <p className="text-xs text-muted-foreground">{t("ss.pendingHint")}</p>
           <ul className="-mx-4 mt-2 divide-y divide-border border-y border-border bg-white opacity-80">
-            {data.pending.map((item) => (
+            {data.pendingItems.map((item) => (
               <ItemRow key={`${item.variantId}|${item.name}`} item={item} />
             ))}
           </ul>

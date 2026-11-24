@@ -161,7 +161,7 @@ module.exports.show = handle("storeReportShow", async (req, res) => {
     ...summaryOf(store, null, allTime.get(store.id), settled.get(store.id)),
     allTime: { delivered: toNumber(allTime.get(store.id)?.delivered), pending: toNumber(allTime.get(store.id)?.pending) },
     unsettled: { items: groupByItem(lines, unsettledQty), orders },
-    pending: groupByItem(pendingLines, (l) => l.qty - l.returned_qty),
+    pendingItems: groupByItem(pendingLines, (l) => l.qty - l.returned_qty),
     settlements: settlements.map((x) => {
       const items = settlementItems.filter((i) => i.settlement_id === x.id);
       return {

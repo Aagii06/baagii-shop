@@ -1,5 +1,4 @@
 import { apiFetch, type ApiItemResponse } from "./client";
-import type { OrderStatus } from "./orders";
 
 // Seller stores' sales and what the shop has paid them (../backend `/storeReport`, admins only).
 // Each order line keeps the store it was bought from; the shop's own products aren't here.
@@ -60,7 +59,7 @@ export interface StoreAccount extends StoreSales {
   /** What the next payout covers (`balance` in total). */
   unsettled: { items: StoreSoldItem[]; orders: UnsettledOrder[] };
   /** In pending / confirmed orders — joins the payout once delivered. */
-  pending: StoreSoldItem[];
+  pendingItems: StoreSoldItem[];
   settlements: StoreSettlement[];
 }
 
