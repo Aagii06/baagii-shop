@@ -106,6 +106,18 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     if (done) _reload();
   }
 
+  /// Батлах / хүргэсэн — үйлдэл бүр эхлээд асууна (admin web-тэй адил).
+  Future<void> _askStatus(AdminOrder o, String to, String success) async {
+    final confirm = to == 'confirmed';
+    final ok = await confirmAction(context,
+        title: confirm
+            ? tr('{id} захиалгыг баталгаажуулах уу?', {'id': o.orderNumber})
+            : tr('{id} захиалгыг хүргэгдсэн гэж тэмдэглэх үү?', {'id': o.orderNumber}),
+        description: confirm ? tr('Захиалагчид захиалга баталгаажсан тухай мэдэгдэл очно.') : tr('Захиалга хүргэгдсэн төлөвт шилжинэ.'),
+        confirmLabel: confirm ? tr('Батлах') : tr('Хүргэсэн'));
+    if (ok && mounted) await _changeStatus(o, to, success);
+  }
+
   Future<void> _return(AdminOrder o) async {
     final ok = await confirmAction(context,
         title: tr('{id} захиалгыг буцаах уу?', {'id': o.orderNumber}),
@@ -220,10 +232,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     final buttons = <Widget>[
       if (o.status == 'pending')
         _actionButton(o, tr('Батлах'), orderTones['confirmed']!.solid, Colors.white, 'confirmed',
-            () => _changeStatus(o, 'confirmed', tr('Захиалгыг баталлаа'))),
+            () => _askStatus(o, 'confirmed', tr('Захиалгыг баталлаа'))),
       if (o.status == 'confirmed')
         _actionButton(o, tr('Хүргэсэн'), orderTones['delivered']!.solid, Colors.white, 'delivered',
-            () => _changeStatus(o, 'delivered', tr('Төлөв шинэчлэгдлээ'))),
+            () => _askStatus(o, 'delivered', tr('Төлөв шинэчлэгдлээ'))),
       if (o.canReturn)
         _actionButton(o, tr('Буцаалт'), AdminColors.destructive.withValues(alpha: 0.1), AdminColors.destructive, 'returned', () => _return(o)),
     ];
