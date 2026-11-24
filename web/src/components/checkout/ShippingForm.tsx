@@ -9,6 +9,7 @@ import NewAddressFields, {
 import { Input } from "@/components/ui/input";
 import { formatPhone, phoneDigits, PhoneInput } from "@/components/ui/phone-input";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuthStore } from "@/store/authStore";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { SHIPPING_FEE } from "@/lib/pricing";
 import { cn, formatMNT } from "@/lib/utils";
@@ -43,7 +44,13 @@ export default function ShippingForm({
   const [fullName, setFullName] = useState(defaultFullName);
   const [phone, setPhone] = useState(phoneDigits(defaultPhone));
   const [extraPhone, setExtraPhone] = useState("");
-  const [email, setEmail] = useState("");
+  // Prefilled with the shopper's confirmed profile email; still editable.
+  const profileEmail = useAuthStore((s) => s.user?.email ?? s.email);
+  const [email, setEmail] = useState(profileEmail ?? "");
+  // The profile loads after the form mounts: fill it in then, unless typed over.
+  useEffect(() => {
+    if (profileEmail) setEmail((cur) => cur || profileEmail);
+  }, [profileEmail]);
   const [note, setNote] = useState("");
   const [attempted, setAttempted] = useState(false);
 
