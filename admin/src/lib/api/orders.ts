@@ -75,6 +75,8 @@ export interface OrderItem {
 
 export interface Order {
   id: number;
+  /** Shown to people (UVS-261124-K7M3QX); `id` stays internal (URLs, API). */
+  orderNumber: string;
   status: OrderStatus;
   createdAt: string;
   customer: { name: string; phone: string; address: string };

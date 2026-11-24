@@ -80,7 +80,7 @@ class _OrderCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Text('#${o.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(o.id, style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'monospace')),
               const SizedBox(width: 8),
               Text(formatDate(o.createdAt), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
               const Spacer(),
@@ -136,7 +136,7 @@ class OrderDetailPage extends StatelessWidget {
           ]),
         );
     return Scaffold(
-      appBar: AppBar(title: Text(tr('Захиалга #{id}', {'id': o.id}))),
+      appBar: AppBar(title: Text(tr('Захиалга {id}', {'id': o.id}))),
       body: ListView(padding: const EdgeInsets.all(12), children: [
         Card(
           child: ListTile(

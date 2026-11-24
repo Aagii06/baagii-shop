@@ -96,7 +96,7 @@ export default function OrdersPage() {
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3">
                   <span className="font-semibold text-foreground">
-                    #{order.id}
+                    {order.id}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {t("orders.items", { count: order.items.length })} ·{" "}

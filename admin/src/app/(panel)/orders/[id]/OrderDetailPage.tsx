@@ -90,7 +90,7 @@ export default function OrderDetailPage() {
     <>
       <DetailHeader
         backHref="/orders"
-        title={<span className="font-mono">#{order.id}</span>}
+        title={<span className="font-mono">{order.orderNumber}</span>}
         subtitle={`${formatDate(order.createdAt)} · ${formatTime(order.createdAt)}`}
         aside={<OrderStatusBadge status={order.status} className="px-3 py-1 text-sm" />}
       />

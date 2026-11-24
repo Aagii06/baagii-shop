@@ -3,6 +3,7 @@ const { cartDetails, orders, sequelize } = require("../../models");
 const { shopSettings, orderStatuses } = require("../../config/constants");
 const { findCart, detailInclude, isActiveLine } = require("../../helper/cartHelper");
 const { placeOrder, findOrder, toWebOrder, itemsInclude } = require("../../helper/orderHelper");
+const { orderKey } = require("../../helper/orderNumber");
 const { notify } = require("../../helper/notificationHelper");
 const { sellingPrice } = require("../../helper/productHelper");
 const { createInvoice, checkOrder, toWebInvoice } = require("../../helper/qpayHelper");
@@ -21,7 +22,7 @@ router.get(
 router.get(
   "/:id",
   handle("myOrder", async (req, res) => {
-    const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
+    const order = await findOrder({ ...orderKey(req.params.id), shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
     return ok(res, toWebOrder(order));
   }),
@@ -82,7 +83,7 @@ router.post(
       notify({
         shopId: req.shopId,
         type: "order",
-        title: `Шинэ захиалга #${id}`,
+        title: `Шинэ захиалга ${order.order_number}`,
         body: `${s.fullName.trim()} · ${lines.length} бараа · ₮${Math.round(subtotal).toLocaleString("en-US")}`,
         link: `/orders/${id}`,
       });
@@ -102,7 +103,7 @@ router.post(
     if (req.body.paymentMethod !== "bank") return fail(res, "Төлбөрийн хэлбэр сонгоно уу");
     const s = await paymentSettings.findOne({ where: { shop_id: req.shopId } });
     if (!s?.bank_enabled) return fail(res, "Дансаар шилжүүлэх боломжгүй байна");
-    const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
+    const order = await findOrder({ ...orderKey(req.params.id), shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
     if (order.status === orderStatuses.cancelled) return fail(res, "Захиалга цуцлагдсан байна");
     if (!order.paid_at) await order.update({ payment_method: "bank", updated_at: now() });
@@ -114,7 +115,7 @@ router.post(
 router.post(
   "/:id/qpay",
   handle("qpayInvoice", async (req, res) => {
-    const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
+    const order = await findOrder({ ...orderKey(req.params.id), shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
     if (order.paid_at) return fail(res, "Захиалга төлөгдсөн байна");
     if (order.status === orderStatuses.cancelled) return fail(res, "Захиалга цуцлагдсан байна");
@@ -126,7 +127,7 @@ router.post(
 router.get(
   "/:id/qpay",
   handle("qpayCheck", async (req, res) => {
-    const order = await findOrder({ id: req.params.id, shop_id: req.shopId, customer_id: req.session.customerId });
+    const order = await findOrder({ ...orderKey(req.params.id), shop_id: req.shopId, customer_id: req.session.customerId });
     if (!order) return fail(res, "Захиалга олдсонгүй");
     return ok(res, toWebOrder(order.paid_at ? order : await checkOrder(req.shopId, order.id)));
   }),

@@ -12,6 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       shop_id: { type: DataTypes.INTEGER },
+      // Хэрэглэгчид харагдах дугаар (helper/orderNumber.js); id нь зөвхөн дотоодод
+      order_number: { type: DataTypes.STRING(20), unique: true },
       customer_id: { type: DataTypes.INTEGER },
       // web | admin
       source: { type: DataTypes.STRING },

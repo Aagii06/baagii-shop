@@ -94,7 +94,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
   Future<void> _return(AdminOrder o) async {
     final ok = await confirmAction(context,
-        title: tr('#{id} захиалгыг буцаах уу?', {'id': o.id}),
+        title: tr('{id} захиалгыг буцаах уу?', {'id': o.orderNumber}),
         description: o.paidAt != null
             ? tr('Үлдсэн бүх бараа үлдэгдэлд буцна. Төлбөр төлөгдсөн тул мөнгийг нь харилцагчид буцаан олгоно уу.')
             : tr('Үлдсэн бүх бараа үлдэгдэлд буцна.'),
@@ -105,7 +105,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
   Future<void> _cancel(AdminOrder o) async {
     final ok = await confirmAction(context,
-        title: tr('#{id} захиалгыг цуцлах уу?', {'id': o.id}), description: tr('Бараанууд үлдэгдэлд буцна.'), confirmLabel: tr('Цуцлах'), danger: true);
+        title: tr('{id} захиалгыг цуцлах уу?', {'id': o.orderNumber}), description: tr('Бараанууд үлдэгдэлд буцна.'), confirmLabel: tr('Цуцлах'), danger: true);
     if (!ok || !mounted) return;
     setState(() => _busy = (id: o.id, to: 'cancelled'));
     final done = await runAction(context, () => context.read<AdminState>().cancelOrder(o.id), tr('Захиалгыг цуцаллаа'));
@@ -229,7 +229,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  Text('#${o.id}', style: const TextStyle(fontFamily: mono, fontSize: 14, color: AdminColors.mutedForeground)),
+                  Text(o.orderNumber, style: const TextStyle(fontFamily: mono, fontSize: 14, color: AdminColors.mutedForeground)),
                   const SizedBox(width: 8),
                   OrderStatusBadge(o.status, orderStatusLabel[o.status] ?? o.status),
                 ]),
@@ -394,7 +394,7 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
         if (!didPop) Navigator.of(context).pop(_changed);
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(tr('Захиалга #{orderId}', {'orderId': widget.orderId}))),
+        appBar: AppBar(title: Text(_order == null ? '' : tr('Захиалга {id}', {'id': _order!.orderNumber}))),
         body: _order == null
             ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView(kind: SkeletonKind.detail))
             : _body(_order!),

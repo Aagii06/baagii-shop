@@ -1,12 +1,13 @@
 // Generated from baagii-shop web/admin locales (en.ts) plus app-only texts. Keys are the Mongolian text (see i18n.dart).
 
 const appEn = <String, String>{
+  '{id} захиалгыг буцаах уу?': 'Return order {id}?',
+  '{id} захиалгыг цуцлах уу?': 'Cancel order {id}?',
+  'Захиалга {id}': 'Order {id}',
   ' (заавал биш)': ' (optional)',
   ' дугаарт илгээсэн {otpLength} оронтой кодыг оруулна уу': ' ({otpLength} digits)',
   ' хэсэгт нэмнэ.': '.',
   ' — бараа нэг л хувилбартай, зөвхөн тоо ширхэгээ оруулна (ж: хүнс, ном).': ' — the product has one variant; only enter the quantity (e.g. food, books).',
-  '#{id} захиалгыг буцаах уу?': 'Return order #{id}?',
-  '#{id} захиалгыг цуцлах уу?': 'Cancel order #{id}?',
   '#{id} хүсэлтийг батлах уу?': 'Approve request #{id}?',
   '#{id} хүсэлтийн шийдвэрийг буцаах уу?': 'Undo the decision on request #{id}?',
   '#{id} хүсэлтээс татгалзах уу?': 'Reject request #{id}?',
@@ -202,8 +203,6 @@ const appEn = <String, String>{
   'Засах': 'Edit',
   'Захиалах': 'Order',
   'Захиалга': 'Orders',
-  'Захиалга #{id}': 'Order #{id}',
-  'Захиалга #{orderId}': 'Order #{orderId}',
   'Захиалга алга': 'No orders yet',
   'Захиалга баталгаажуулах': 'Proceed to checkout',
   'Захиалга харах': 'View order',

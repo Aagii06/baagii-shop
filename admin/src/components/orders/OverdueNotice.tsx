@@ -33,7 +33,7 @@ export default function OverdueNotice({
 
   async function onCancel() {
     const ok = await confirm({
-      title: t("orders.cancelTitle", { id: order.id }),
+      title: t("orders.cancelTitle", { id: order.orderNumber }),
       description: t("orders.cancelDesc"),
       confirmLabel: t("orders.cancel"),
       tone: "danger",

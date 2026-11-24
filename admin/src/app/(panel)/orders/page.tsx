@@ -42,12 +42,15 @@ export default function OrdersPage() {
   );
 }
 
+const cleanQuery = (value: string) => value.toUpperCase().replace(/[^0-9A-Z-]/g, "");
+
 function OrdersList() {
   const { t } = useLanguage();
   const router = useRouter();
   // ?phone= — typed in the search box, or opened from a customer's
   // "Захиалга харах" (Худалдан авагчид); any part of the number matches.
-  const phone = (useSearchParams().get("phone") ?? "").replace(/\D/g, "");
+  // Letters or "-" make it an order-number search (UVS-261124-K7M3QX).
+  const phone = cleanQuery(useSearchParams().get("phone") ?? "");
   const [query, setQuery] = useState(phone);
   // Follows the URL when it changes from outside (back/forward, a new link).
   const [urlPhone, setUrlPhone] = useState(phone);
@@ -159,7 +162,7 @@ function OrdersList() {
 
   async function returnOrder(order: Order) {
     const ok = await confirm({
-      title: t("orders.returnTitle", { id: order.id }),
+      title: t("orders.returnTitle", { id: order.orderNumber }),
       description: order.paidAt ? t("orders.returnPaidDesc") : t("orders.returnDesc"),
       confirmLabel: t("orders.return"),
       tone: "danger",
@@ -211,11 +214,10 @@ function OrdersList() {
           />
           <Input
             type="search"
-            inputMode="numeric"
-            maxLength={8}
+            maxLength={20}
             className="pl-11 font-mono"
             value={query}
-            onChange={(e) => setQuery(e.target.value.replace(/\D/g, ""))}
+            onChange={(e) => setQuery(cleanQuery(e.target.value))}
             placeholder={t("orders.phoneSearch")}
             aria-label={t("orders.phoneSearch")}
           />
@@ -234,7 +236,7 @@ function OrdersList() {
             icon={ReceiptText}
             title={
               phone
-                ? t("orders.noneForPhone", { phone: formatPhone(phone) })
+                ? t("orders.noneForPhone", { phone: /^\d+$/.test(phone) ? formatPhone(phone) : phone })
                 : status === "all"
                 ? t("orders.empty")
                 : t("orders.noneInStatus", { status: ORDER_STATUS_LABEL[status] })
@@ -249,7 +251,7 @@ function OrdersList() {
                 <Link href={`/orders/${order.id}`} className="flex items-start justify-between gap-3">
                   <span className="min-w-0">
                     <span className="flex items-center gap-2">
-                      <span className="font-mono text-sm text-muted-foreground">#{order.id}</span>
+                      <span className="font-mono text-sm text-muted-foreground">{order.orderNumber}</span>
                       <OrderStatusBadge status={order.status} />
                     </span>
                     <span className="mt-1.5 flex min-w-0 items-baseline gap-2">

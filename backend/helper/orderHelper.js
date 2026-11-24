@@ -5,6 +5,7 @@ const { toIso, toNumber, now, parseAt } = require("./helper");
 const { variantImage, sellingPrice } = require("./productHelper");
 const { saveLog } = require("../utils/logHelper");
 const { LOW_STOCK, notifyLowStock } = require("./notificationHelper");
+const { makeOrderNumber } = require("./orderNumber");
 
 module.exports.itemsInclude = [{ model: orderItems, as: "items" }];
 
@@ -24,6 +25,7 @@ module.exports.isOverdue = (order) =>
 // admin/src/lib/api/orders.ts-ийн Order
 module.exports.toAdminOrder = (order) => ({
   id: order.id,
+  orderNumber: order.order_number ?? `#${order.id}`,
   status: order.status,
   createdAt: toIso(order.created_at),
   customer: { name: order.customer_name ?? "", phone: order.phone ?? "", address: order.address ?? "" },
@@ -60,7 +62,8 @@ module.exports.toWebOrder = (order) => {
   const shipping = toNumber(order.delivery_fee);
   const coupon = toNumber(order.coupon_amount);
   return {
-    id: String(order.id),
+    // Вэб/апп-д дотоод id-г харуулахгүй: URL болон API-д захиалгын дугаар явна
+    id: order.order_number ?? String(order.id),
     status: order.status,
     paymentMethod: order.payment_method,
     paidAt: toIso(order.paid_at),
@@ -137,8 +140,15 @@ module.exports.placeOrder = async ({ shopId, lines, info, by = null, transaction
     }
 
     const subtotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
+    // Давхцал бараг гарахгүй ч unique индексээс өмнө шалгана
+    let orderNumber;
+    for (let i = 0; ; i++) {
+      orderNumber = makeOrderNumber(shopId, at);
+      if (!(await orders.count({ where: { order_number: orderNumber }, transaction: t }))) break;
+      if (i >= 4) throw "Захиалгын дугаар үүсгэж чадсангүй, дахин оролдоно уу";
+    }
     const order = await orders.create(
-      { ...info, shop_id: shopId, subtotal, status: orderStatuses.pending, created_by: by, created_at: at },
+      { ...info, shop_id: shopId, order_number: orderNumber, subtotal, status: orderStatuses.pending, created_by: by, created_at: at },
       { transaction: t },
     );
     await orderItems.bulkCreate(items.map((item) => ({ ...item, order_id: order.id })), { transaction: t });

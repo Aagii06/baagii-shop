@@ -75,6 +75,8 @@ class AdminOrderItem {
 
 class AdminOrder {
   final int id;
+  // Хэрэглэгчид харагдах дугаар (UVS-261124-K7M3QX); id нь зөвхөн API-д
+  final String orderNumber;
   final String status;
   final String createdAt;
   final String customerName;
@@ -88,6 +90,7 @@ class AdminOrder {
 
   AdminOrder({
     required this.id,
+    required this.orderNumber,
     required this.status,
     required this.createdAt,
     required this.customerName,
@@ -110,6 +113,7 @@ class AdminOrder {
     final t = (j['timeline'] as Map?) ?? {};
     return AdminOrder(
       id: toInt(j['id']),
+      orderNumber: j['orderNumber']?.toString() ?? '#${j['id']}',
       status: j['status']?.toString() ?? 'pending',
       createdAt: j['createdAt']?.toString() ?? '',
       customerName: c['name']?.toString() ?? '',

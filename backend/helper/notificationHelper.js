@@ -84,27 +84,27 @@ module.exports.notifyCustomerByPhone = async ({ shopId, phone, ...rest }) => {
 const customerTexts = {
   paid: (o, amount) => ({
     type: "order_paid",
-    title: `Захиалга #${o.id}-ийн төлбөр төлөгдлөө`,
+    title: `Захиалга ${o.order_number ?? `#${o.id}`}-ийн төлбөр төлөгдлөө`,
     body: amount != null ? `${money(amount)} амжилттай төлөгдлөө. Баярлалаа!` : "Төлбөр амжилттай төлөгдлөө. Баярлалаа!",
   }),
-  confirmed: (o) => ({ type: "order_confirmed", title: `Захиалга #${o.id} баталгаажлаа`, body: "Таны захиалгыг хүлээн авч, бэлтгэж байна." }),
-  delivered: (o) => ({ type: "order_delivered", title: `Захиалга #${o.id} хүргэгдлээ`, body: "Манайхаар үйлчлүүлсэнд баярлалаа!" }),
+  confirmed: (o) => ({ type: "order_confirmed", title: `Захиалга ${o.order_number ?? `#${o.id}`} баталгаажлаа`, body: "Таны захиалгыг хүлээн авч, бэлтгэж байна." }),
+  delivered: (o) => ({ type: "order_delivered", title: `Захиалга ${o.order_number ?? `#${o.id}`} хүргэгдлээ`, body: "Манайхаар үйлчлүүлсэнд баярлалаа!" }),
   cancelled: (o) => ({
     type: "order_cancelled",
-    title: `Захиалга #${o.id} цуцлагдлаа`,
+    title: `Захиалга ${o.order_number ?? `#${o.id}`} цуцлагдлаа`,
     body: `Төлбөр ${unpaidCancelHours} цагийн дотор төлөгдөөгүй тул захиалга цуцлагдлаа.`,
   }),
-  returned: (o) => ({ type: "order_returned", title: `Захиалга #${o.id} буцаагдлаа`, body: "Захиалгын бүх бараа буцаагдлаа." }),
+  returned: (o) => ({ type: "order_returned", title: `Захиалга ${o.order_number ?? `#${o.id}`} буцаагдлаа`, body: "Захиалгын бүх бараа буцаагдлаа." }),
   itemReturned: (o, item, qty) => ({
     type: "order_returned",
-    title: `Захиалга #${o.id}-ээс бараа буцаагдлаа`,
+    title: `Захиалга ${o.order_number ?? `#${o.id}`}-ээс бараа буцаагдлаа`,
     body: `${item.name} × ${qty}`,
   }),
 };
 
 /** event: paid | confirmed | delivered | cancelled | returned | itemReturned */
 module.exports.notifyOrderCustomer = (order, event, ...args) =>
-  notifyCustomer({ shopId: order.shop_id, customerId: order.customer_id, link: `/orders/${order.id}`, ...customerTexts[event](order, ...args) });
+  notifyCustomer({ shopId: order.shop_id, customerId: order.customer_id, link: `/orders/${order.order_number ?? order.id}`, ...customerTexts[event](order, ...args) });
 
 /** Захиалгын бараанууд аль дэлгүүрийнх вэ (худалдагчдад мэдэгдэхэд). */
 const orderStoreIds = async (order) => {
@@ -122,9 +122,9 @@ module.exports.notifyOrderStaff = async (order, kind, { by = null, item = null, 
   try {
     const who = [order.customer_name, order.phone].filter(Boolean).join(" · ");
     const texts = {
-      cancelled: { type: "order_cancelled", title: `Захиалга #${order.id} цуцлагдлаа`, body: `${who} · төлөгдөөгүй удсан` },
-      returned: { type: "order_returned", title: `Захиалга #${order.id} буцаагдлаа`, body: who },
-      itemReturned: { type: "order_returned", title: `Захиалга #${order.id}-ээс бараа буцлаа`, body: item ? `${item.name} × ${qty}` : who },
+      cancelled: { type: "order_cancelled", title: `Захиалга ${order.order_number ?? `#${order.id}`} цуцлагдлаа`, body: `${who} · төлөгдөөгүй удсан` },
+      returned: { type: "order_returned", title: `Захиалга ${order.order_number ?? `#${order.id}`} буцаагдлаа`, body: who },
+      itemReturned: { type: "order_returned", title: `Захиалга ${order.order_number ?? `#${order.id}`}-ээс бараа буцлаа`, body: item ? `${item.name} × ${qty}` : who },
     };
     const storeIds = kind === "itemReturned" && item ? await orderStoreIds({ items: [item] }) : await orderStoreIds(order);
     await module.exports.notify({
@@ -183,7 +183,7 @@ module.exports.scanOverdueOrders = async () => {
       await module.exports.notify({
         shopId: order.shop_id,
         type: "order_overdue",
-        title: `Захиалга #${order.id} ${unpaidCancelHours} цаг төлөгдөөгүй байна`,
+        title: `Захиалга ${order.order_number ?? `#${order.id}`} ${unpaidCancelHours} цаг төлөгдөөгүй байна`,
         body: `${[order.customer_name, order.phone].filter(Boolean).join(" · ")} · ${money(total)} · цуцлах боломжтой`,
         link: `/orders/${order.id}`,
       });

@@ -268,7 +268,7 @@ function RecentOrdersCard({ orders }: { orders: Order[] }) {
                   {order.customer.name}
                 </span>
                 <span className="block font-mono text-xs text-muted-foreground">
-                  #{order.id} · {formatWhen(order.createdAt)}
+                  {order.orderNumber} · {formatWhen(order.createdAt)}
                 </span>
               </span>
               <span className="shrink-0 text-right">

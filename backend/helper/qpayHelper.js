@@ -92,7 +92,7 @@ module.exports.createInvoice = async (shopId, order) => {
     invoice_code: s.qpay_invoice_code,
     sender_invoice_no: senderInvoiceNo,
     invoice_receiver_code: order.phone || "terminal",
-    invoice_description: `Захиалга #${order.id}`,
+    invoice_description: `Захиалга ${order.order_number}`,
     amount,
     callback_url: `${publicUrl}/web/qpay/callback/${senderInvoiceNo}`,
   });
@@ -140,7 +140,7 @@ const checkInvoice = async (invoice) => {
     notify({
       shopId: invoice.shop_id,
       type: "order_paid",
-      title: `Захиалга #${invoice.order_id} төлөгдлөө`,
+      title: `Захиалга ${order?.order_number ?? `#${invoice.order_id}`} төлөгдлөө`,
       body: `QPay · ₮${Math.round(toNumber(invoice.amount)).toLocaleString("en-US")}`,
       link: `/orders/${invoice.order_id}`,
     });

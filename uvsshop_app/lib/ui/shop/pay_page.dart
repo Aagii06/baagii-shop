@@ -107,7 +107,7 @@ class _PayPageState extends State<PayPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(tr('Захиалга #{orderId}', {'orderId': widget.orderId}))),
+      appBar: AppBar(title: Text(tr('Захиалга {id}', {'id': widget.orderId}))),
       body: _order == null
           ? (_error != null ? ErrorView(_error!, onRetry: _load) : const LoadingView(kind: SkeletonKind.detail))
           : _body(_order!),

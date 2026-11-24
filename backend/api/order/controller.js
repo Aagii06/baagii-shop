@@ -13,7 +13,10 @@ const { ok, fail, handle, toNumber, phoneDigits, isPhone, FORMAT } = require("..
 module.exports.list = handle("orderList", async (req, res) => {
   const where = { shop_id: req.shopId };
   if (orderStatuses[req.query.status]) where.status = req.query.status;
-  const phone = phoneDigits(req.query.phone);
+  // Үсэг эсвэл "-" агуулбал захиалгын дугаараар (UVS-261124-K7M3QX) хайна
+  const number = String(req.query.phone ?? "").toUpperCase().replace(/[^0-9A-Z-]/g, "");
+  const phone = /[A-Z-]/.test(number) ? null : phoneDigits(req.query.phone);
+  if (!phone && number) where.order_number = { [op.like]: `%${number}%` };
   if (phone) {
     const like = { [op.like]: `%${phone}%` };
     const owners = await customers.findAll({ where: { shop_id: req.shopId, phone: like }, attributes: ["id"], raw: true });
