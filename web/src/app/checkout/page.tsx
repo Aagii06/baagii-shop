@@ -50,6 +50,10 @@ export default function CheckoutPage() {
     try {
       const order = await placeOrder({ shippingInfo, couponCode });
       createOrder(order);
+      trackPurchase({
+        ...order,
+        items: order.items.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+      });
       clearCoupon();
       router.push(`/checkout/${order.id}/pay`);
       refreshCart();

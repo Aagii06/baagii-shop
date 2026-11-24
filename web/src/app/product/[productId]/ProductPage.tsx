@@ -1,5 +1,6 @@
 "use client";
 
+import { trackViewItem } from "@/lib/analytics";
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductNotFound from "@/components/product/ProductNotFound";
 import RelatedProducts from "@/components/product/RelatedProducts";
@@ -76,6 +77,7 @@ export default function ProductPage() {
       .then((p) => {
         if (!cancelled) {
           setProduct(p);
+          trackViewItem({ id: p.id, name: p.name, price: p.price, category: p.category });
           setSelectedAttrs(p.variants[0]?.attrs ?? {});
           setActiveThumb(0);
         }

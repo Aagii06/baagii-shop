@@ -1,3 +1,4 @@
+import Analytics from "@/components/layout/Analytics";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
@@ -65,6 +66,7 @@ export default function RootLayout({
             </StoreProvider>
           </CategoriesProvider>
         </LanguageProvider>
+        <Analytics />
       </body>
     </html>
   );

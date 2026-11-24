@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { trackAddToCart } from "@/lib/analytics";
 import {
   addProductToCart,
   deleteCart,
@@ -143,6 +144,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
         qty: (existing?.quantity ?? 0) + qty,
       });
       await get().refreshCart();
+      const line = get().items.find((item) => item.postProductId === postProductId);
+      if (line) trackAddToCart({ id: line.id, name: line.name, price: line.price, quantity: qty });
     } catch (err) {
       set({ error: messageOf(err) });
       await get().refreshCart();
