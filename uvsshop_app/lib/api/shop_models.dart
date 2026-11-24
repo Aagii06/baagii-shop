@@ -250,9 +250,11 @@ class Customer {
   final int id;
   final String phone;
   final String? name;
-  Customer(this.id, this.phone, this.name);
+  /// Имэйлд ирсэн кодоор баталгаажсан имэйл.
+  final String? email;
+  Customer(this.id, this.phone, this.name, [this.email]);
   factory Customer.fromJson(Map<String, dynamic> j) =>
-      Customer(toInt(j['id']), j['phone']?.toString() ?? '', j['name']?.toString());
+      Customer(toInt(j['id']), j['phone']?.toString() ?? '', j['name']?.toString(), j['email']?.toString());
 }
 
 class OrderItem {

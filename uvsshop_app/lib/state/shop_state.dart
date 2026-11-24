@@ -168,6 +168,16 @@ class ShopState extends ChangeNotifier {
     await refreshUser();
   }
 
+  /// Имэйл рүү 6 оронтой код илгээнэ (web-ийн профайл шиг).
+  Future<void> sendEmailCode(String email) =>
+      call(() => api.post('/auth/me/email/sendOtp', body: {'email': email}));
+
+  /// Кодыг шалгаад имэйлийг хадгална; буруу бол ApiException шиднэ.
+  Future<void> confirmEmail(String email, String code) async {
+    await call(() => api.put('/auth/me/email', body: {'email': email, 'code': code}));
+    await refreshUser();
+  }
+
   Future<void> signOut() async {
     // Энэ утас руу дахин push илгээхгүй (токен цэвэрлэхээс өмнө).
     final push = PushService.token;
