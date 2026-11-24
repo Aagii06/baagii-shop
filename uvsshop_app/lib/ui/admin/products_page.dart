@@ -28,8 +28,8 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
   String _query = '';
   List<int> _picked = [];
   List<AdminCategory>? _tree;
-  // '' — бүх дэлгүүр, 'own' — үндсэн дэлгүүрийн бараа, бусад нь дэлгүүрийн id (зөвхөн админд)
-  String _store = '';
+  // Сонгосон дэлгүүрүүд (0 — үндсэн дэлгүүрийн бараа); хоосон бол бүгд. Зөвхөн админд.
+  List<int> _storeIds = [];
   List<Store>? _stores;
   int? _count;
   bool _loading = false;
@@ -85,7 +85,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
               take: _take,
               query: _query,
               categoryIds: _picked,
-              storeId: _store.isEmpty ? null : (_store == 'own' ? 'own' : int.parse(_store)));
+              storeIds: _storeIds);
       if (!mounted || version != _version) return;
       setState(() {
         _rows.addAll(r.rows.where((n) => !_rows.any((o) => o.id == n.id)));
@@ -134,17 +134,11 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                   },
                 ),
               if (_stores != null && _stores!.isNotEmpty)
-                DropdownButtonFormField<String>(
-                  initialValue: _store,
-                  isExpanded: true,
-                  decoration: fieldDecoration('').copyWith(labelText: null),
-                  items: [
-                    DropdownMenuItem(value: '', child: Text(tr('Бүх дэлгүүр'))),
-                    DropdownMenuItem(value: 'own', child: Text(tr('Үндсэн дэлгүүр'))),
-                    for (final s in _stores!) DropdownMenuItem(value: '${s.id}', child: Text(s.name, overflow: TextOverflow.ellipsis)),
-                  ],
+                StoreFilter(
+                  stores: _stores!,
+                  value: _storeIds,
                   onChanged: (v) {
-                    _store = v ?? '';
+                    _storeIds = v;
                     _reload();
                   },
                 ),
@@ -334,6 +328,135 @@ class _TreeSheetState extends State<_TreeSheet> {
                   contentPadding: EdgeInsets.only(left: 12 + (q.isEmpty ? c.depth * 20.0 : 0), right: 16),
                   title: Text(c.name, style: TextStyle(fontWeight: c.depth == 0 ? FontWeight.bold : FontWeight.w500)),
                 ),
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Row(children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _picked.isEmpty ? null : () => setState(_picked.clear),
+                  child: Text(tr('Цэвэрлэх')),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: FilledButton(onPressed: () => Navigator.pop(context, _picked.toList()), child: Text(tr('Болсон')))),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Дэлгүүрээр шүүх (CategoryFilter шиг): товч дээр сонгосон нь, доороос гарах жагсаалтад лого,
+/// нэртэй олныг нь сонгоно. 0 — үндсэн дэлгүүрийн (дэлгүүр сонгоогүй) бараа. Хоосон — бүгд.
+class StoreFilter extends StatelessWidget {
+  final List<Store> stores;
+  final List<int> value;
+  final ValueChanged<List<int>> onChanged;
+  const StoreFilter({super.key, required this.stores, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final names = [
+      if (value.contains(0)) tr('Үндсэн дэлгүүр'),
+      for (final s in stores)
+        if (value.contains(s.id)) s.name,
+    ];
+    final label = names.isEmpty ? tr('Бүх дэлгүүр') : (names.length <= 2 ? names.join(', ') : tr('{n} дэлгүүр', {'n': names.length}));
+    return Material(
+      color: Colors.white,
+      shape: StadiumBorder(side: BorderSide(color: names.isEmpty ? AdminColors.border : AdminColors.primary.withValues(alpha: 0.5))),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: () async {
+          final next = await showModalBottomSheet<List<int>>(
+            context: context,
+            isScrollControlled: true,
+            showDragHandle: true,
+            builder: (_) => _StoreSheet(stores: stores, value: value),
+          );
+          if (next != null) onChanged(next);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(children: [
+            const Icon(Icons.storefront_outlined, size: 18, color: AdminColors.mutedForeground),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: names.isEmpty ? AdminColors.mutedForeground : AdminColors.foreground,
+                    fontWeight: names.isEmpty ? null : FontWeight.w600,
+                  )),
+            ),
+            const Icon(Icons.keyboard_arrow_down, size: 18, color: AdminColors.mutedForeground),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _StoreSheet extends StatefulWidget {
+  final List<Store> stores;
+  final List<int> value;
+  const _StoreSheet({required this.stores, required this.value});
+  @override
+  State<_StoreSheet> createState() => _StoreSheetState();
+}
+
+class _StoreSheetState extends State<_StoreSheet> {
+  late final Set<int> _picked = widget.value.toSet();
+  String _q = '';
+
+  void _toggle(int id) => setState(() => _picked.contains(id) ? _picked.remove(id) : _picked.add(id));
+
+  Widget _tile(int id, String name, Widget leading) => CheckboxListTile(
+        value: _picked.contains(id),
+        onChanged: (_) => _toggle(id),
+        controlAffinity: ListTileControlAffinity.trailing,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+        secondary: leading,
+        title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _q.trim().toLowerCase();
+    final rows = q.isEmpty ? widget.stores : widget.stores.where((s) => s.name.toLowerCase().contains(q)).toList();
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Text(tr('Дэлгүүр'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          if (widget.stores.length >= 8)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: TextField(onChanged: (v) => setState(() => _q = v), decoration: adminSearchDecoration(tr('Хайх'), icon: Icons.search)),
+            ),
+          Flexible(
+            child: ListView(shrinkWrap: true, children: [
+              if (q.isEmpty)
+                _tile(
+                  0,
+                  tr('Үндсэн дэлгүүр'),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(color: AdminColors.primarySoft, borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.home_outlined, size: 20, color: AdminColors.primaryInk),
+                  ),
+                ),
+              for (final s in rows) _tile(s.id, s.name, ImageBox(fileId: s.logo, size: 36, placeholder: Icons.storefront_outlined)),
             ]),
           ),
           Padding(

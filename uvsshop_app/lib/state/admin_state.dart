@@ -142,16 +142,23 @@ class AdminState extends ChangeNotifier {
 
   // ---------- бараа ----------
 
-  /// [query] нэрээр, [categoryIds] категориор, [storeId] дэлгүүрээр (int, эсвэл 'own' —
+  /// [query] нэрээр, [categoryIds] категориор, [storeIds] дэлгүүрээр (аль нэг нь; 0 —
   /// дэлгүүргүй, үндсэн дэлгүүрийн бараа) шүүнэ (web-ийн getPostsPage).
   Future<({List<AdminProduct> rows, int count})> products(
-      {int skip = 0, int take = 30, String query = '', List<int> categoryIds = const [], Object? storeId}) async {
+      {int skip = 0, int take = 30, String query = '', List<int> categoryIds = const [], List<int> storeIds = const []}) async {
     final sort = jsonEncode([
       {'selector': 'id', 'desc': true}
     ]);
     final conditions = <Object>[];
     if (query.trim().isNotEmpty) conditions.add(['name', 'contains', query.trim()]);
-    if (storeId != null) conditions.add(['storeId', '=', storeId == 'own' ? null : storeId]);
+    if (storeIds.isNotEmpty) {
+      Object byStore(int id) => ['storeId', '=', id == 0 ? null : id];
+      conditions.add(storeIds.length == 1
+          ? byStore(storeIds.first)
+          : [
+              for (var i = 0; i < storeIds.length; i++) ...[if (i > 0) 'or', byStore(storeIds[i])],
+            ]);
+    }
     if (categoryIds.isNotEmpty) {
       conditions.add(categoryIds.length == 1
           ? ['categoryId', '=', categoryIds.first]
