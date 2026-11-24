@@ -348,7 +348,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                         ),
                         Text(
-                          '#${o.id} · ${formatWhen(o.createdAt)}',
+                          '${o.orderNumber} · ${formatWhen(o.createdAt)}',
                           style: const TextStyle(fontFamily: mono, fontSize: 12, color: AdminColors.mutedForeground),
                         ),
                       ],

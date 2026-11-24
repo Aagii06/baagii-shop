@@ -64,6 +64,7 @@ module.exports.toWebOrder = (order) => {
   return {
     // Вэб/апп-д дотоод id-г харуулахгүй: URL болон API-д захиалгын дугаар явна
     id: order.order_number ?? String(order.id),
+    orderNumber: order.order_number ?? `#${order.id}`,
     status: order.status,
     paymentMethod: order.payment_method,
     paidAt: toIso(order.paid_at),
