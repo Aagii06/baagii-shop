@@ -435,6 +435,7 @@ export const en: Dict = {
   "st.emailInvalid": "Invalid email",
   "st.deleteTitle": "Delete store?",
   "st.deleteDesc": "“{name}” will be deleted. A store with products or users can't be deleted.",
+  "st.settleAria": "Payouts for {name}",
   "st.editAria": "Edit {name}",
   "st.deleteAria": "Delete {name}",
   "st.productsSr": " products",

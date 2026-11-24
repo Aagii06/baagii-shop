@@ -1,3 +1,4 @@
+import 'settlements_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -86,8 +87,12 @@ class _StoresPageState extends State<StoresPage> {
               itemBuilder: (_, i) {
                 final s = rows[i];
                 final contact = [if (s.phone != null) formatPhone(s.phone!), ?s.email].join(' · ');
-                return Container(
+                // Мөрийг дарвал засах; товчнууд — тооцоо, засах, устгах
+                return Material(
                   color: Colors.white,
+                  child: InkWell(
+                  onTap: () => _edit(s),
+                  child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(children: [
                     ImageBox(fileId: s.logo, size: 48, placeholder: Icons.storefront_outlined),
@@ -115,9 +120,17 @@ class _StoresPageState extends State<StoresPage> {
                           Text(s.address!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                       ]),
                     ),
+                    IconButton.outlined(
+                      tooltip: tr('Тооцоо'),
+                      onPressed: () => Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (_) => StoreAccountPage(storeId: s.id, storeName: s.name))),
+                      icon: const Icon(Icons.payments_outlined, size: 18),
+                    ),
                     IconButton.outlined(tooltip: tr('Засах'), onPressed: () => _edit(s), icon: const Icon(Icons.edit_outlined, size: 18)),
                     DeleteIconButton(busy: _deleting.contains(s.id), onPressed: () => _delete(s)),
                   ]),
+                  ),
+                  ),
                 );
               },
             ),

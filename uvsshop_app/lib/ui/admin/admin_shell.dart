@@ -1,3 +1,4 @@
+import 'settlements_page.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -58,6 +59,7 @@ class _AdminShellState extends State<AdminShell> with WidgetsBindingObserver {
       if (isAdmin) ('dashboard', Icons.bar_chart_rounded, tr('Самбар'), const DashboardPage()),
       ('products', Icons.crop_square_rounded, tr('Бараа'), const AdminProductsPage()),
       if (isAdmin) ('orders', Icons.receipt_long_outlined, tr('Захиалга'), const AdminOrdersPage()),
+      if (isAdmin) ('settlements', Icons.payments_outlined, tr('Тооцоо'), const SettlementsPage()),
       ('profile', Icons.person_outline_rounded, tr('Профайл'), const AdminProfilePage()),
     ];
     return ValueListenableBuilder<String>(

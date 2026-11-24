@@ -435,6 +435,7 @@ export const ru: Dict = {
   "st.emailInvalid": "Неверный адрес эл. почты",
   "st.deleteTitle": "Удалить магазин?",
   "st.deleteDesc": "Магазин «{name}» будет удалён. Магазин с товарами или пользователями удалить нельзя.",
+  "st.settleAria": "Расчёты: {name}",
   "st.editAria": "Изменить {name}",
   "st.deleteAria": "Удалить {name}",
   "st.productsSr": " товаров",

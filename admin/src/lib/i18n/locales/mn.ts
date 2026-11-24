@@ -435,6 +435,7 @@ export const mn: Dict = {
   "st.emailInvalid": "Имэйл буруу байна",
   "st.deleteTitle": "Дэлгүүр устгах уу?",
   "st.deleteDesc": "“{name}” дэлгүүрийг устгана. Бараа, хэрэглэгчтэй дэлгүүрийг устгах боломжгүй.",
+  "st.settleAria": "{name}-ийн тооцоо",
   "st.editAria": "{name} засах",
   "st.deleteAria": "{name} устгах",
   "st.productsSr": " бараа",
