@@ -421,6 +421,7 @@ export const mn: Dict = {
   "profile.phone.label": "Утасны дугаар",
   "profile.phone.hint": "Утасны дугаарыг өөрчлөх боломжгүй.",
   "profile.email.label": "И-мэйл",
+  "profile.email.invalid": "Имэйл хаяг буруу байна. Шалгаад дахин оруулна уу",
   "profile.email.dialogTitle": "Имэйл баталгаажуулах",
   "profile.close": "Хаах",
   "profile.email.empty": "Тохируулаагүй",

@@ -419,6 +419,7 @@ export const en: Dict = {
   "profile.phone.label": "Phone number",
   "profile.phone.hint": "Your phone number can't be changed.",
   "profile.email.label": "Email",
+  "profile.email.invalid": "That email address doesn’t look right. Please check it",
   "profile.email.dialogTitle": "Confirm your email",
   "profile.close": "Close",
   "profile.email.empty": "Not set",

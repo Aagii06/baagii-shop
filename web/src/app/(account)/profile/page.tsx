@@ -8,7 +8,7 @@ import { formatPhone } from "@/components/ui/phone-input";
 import { sendEmailCode } from "@/lib/api/auth";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
-import { Check, ChevronRight, Loader2, LogOut, Pencil, Store, UserRound, X } from "lucide-react";
+import { AlertCircle, Check, ChevronRight, Loader2, LogOut, Pencil, Store, UserRound, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -96,7 +96,9 @@ export default function ProfilePage() {
   };
 
   const handleSendCode = async () => {
-    if (!emailValid || sendingCode) return;
+    if (sendingCode) return;
+    // Wrong-looking address: say so here instead of opening the code dialog.
+    if (!emailValid) return setEmailError(t("profile.email.invalid"));
     // Code already on its way to this address: just reopen the dialog.
     if (resendIn > 0 && codeSentTo === email) return setDialogOpen(true);
     setSendingCode(true);
@@ -232,7 +234,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={handleSendCode}
-                    disabled={!emailValid || sendingCode}
+                    disabled={sendingCode}
                     className="absolute right-1 top-1/2 flex h-[calc(100%-8px)] -translate-y-1/2 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
                     {sendingCode && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -241,7 +243,10 @@ export default function ProfilePage() {
                 )}
               </div>
               {emailError ? (
-                <p className="text-xs text-destructive">{emailError}</p>
+                <div role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive animate-in fade-in">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{emailError}</span>
+                </div>
               ) : (
                 emailChanged && (
                   <p className="text-xs text-muted-foreground">{t("profile.email.hint")}</p>

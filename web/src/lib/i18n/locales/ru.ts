@@ -419,6 +419,7 @@ export const ru: Dict = {
   "profile.phone.label": "Номер телефона",
   "profile.phone.hint": "Номер телефона изменить нельзя.",
   "profile.email.label": "Эл. почта",
+  "profile.email.invalid": "Неверный адрес email. Проверьте и введите снова",
   "profile.email.dialogTitle": "Подтверждение email",
   "profile.close": "Закрыть",
   "profile.email.empty": "Не указано",

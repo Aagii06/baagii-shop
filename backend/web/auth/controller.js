@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const dns = require("dns").promises;
 const { customers, partnerRequests, users, sequelize } = require("../../models");
 const { partnerStatuses, roles } = require("../../config/constants");
 const { Op } = require("sequelize");
@@ -68,6 +69,20 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
 // Профайлын имэйлийг кодоор баталгаажуулна; код phoneOtps-д имэйл хаягаар нь хадгалагдана
 const EMAIL_OTP = "customerEmail";
 const emailOf = (value) => value?.trim().toLowerCase() || null;
+// Домэйн нь имэйл хүлээн авдаг эсэх (MX бичлэг). "gmial.com" мэтийн үсгийн алдааг барина.
+// Хайрцаг өөрөө байгаа эсэхийг урьдчилан мэдэх боломжгүй. DNS гацвал (timeout г.м.) саадгүй үлдээнэ.
+const emailDomainOk = async (email) => {
+  const domain = email.split("@")[1];
+  try {
+    const mx = await Promise.race([
+      dns.resolveMx(domain),
+      new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error("timeout"), { code: "ETIMEOUT" })), 4000)),
+    ]);
+    return mx.length > 0;
+  } catch (error) {
+    return !["ENOTFOUND", "ENODATA"].includes(error.code);
+  }
+};
 const findCustomer = (req) => customers.findOne({ where: { id: req.session.customerId, shop_id: req.shopId, status: "active" } });
 
 // { email } — тэр имэйл рүү код илгээнэ; changeEmail-д code-оор баталгаажуулна
@@ -76,6 +91,7 @@ module.exports.sendEmailOtp = handle("sendEmailOtp", async (req, res) => {
   if (!customer) return fail(res, "Хэрэглэгч олдсонгүй");
   const email = emailOf(req.body.email);
   if (email === emailOf(customer.email)) return fail(res, "Энэ таны одоогийн имэйл байна");
+  if (!(await emailDomainOk(email))) return fail(res, "Имэйл хаяг буруу байна. Шалгаад дахин оруулна уу");
   // Имэйл тохируулаагүй бол dev-д код консолд хэвлэгдэнэ
   const mailReady = Boolean(process.env.MAIL_USER_NAME && process.env.MAIL_USER_PASS);
   if (!mailReady && process.env.NODE_ENV === "production") return fail(res, "Имэйл илгээх тохиргоо хийгдээгүй байна");
