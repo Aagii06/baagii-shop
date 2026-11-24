@@ -38,6 +38,10 @@ app.listen(PORT, () => {
 const { scanOverdueOrders } = require("./helper/notificationHelper");
 setTimeout(scanOverdueOrders, 60 * 1000);
 setInterval(scanOverdueOrders, 10 * 60 * 1000);
+// unpaidCancelHours (3 цаг) төлөгдөөгүй захиалгыг автоматаар цуцалж, бараа үлдэгдэлд буцаана
+const { autoCancelUnpaidOrders } = require("./helper/orderAutoCancel");
+setTimeout(autoCancelUnpaidOrders, 45 * 1000);
+setInterval(autoCancelUnpaidOrders, 5 * 60 * 1000);
 // Даваа гараг бүр админд долоо хоногийн тооцооны сануулга (helper/settlementReminder.js)
 const { scanWeeklySettlement } = require("./helper/settlementReminder");
 setTimeout(scanWeeklySettlement, 90 * 1000);

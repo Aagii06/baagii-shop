@@ -74,6 +74,12 @@ module.exports.toWebOrder = (order) => {
     paymentMethod: order.payment_method,
     paidAt: toIso(order.paid_at),
     createdAt: toIso(order.created_at),
+    // Энэ хүртэл төлөөгүй бол автоматаар цуцлагдана (вэб/апп төлбөрийн өмнө анхааруулна)
+    payDeadline:
+      order.status === orderStatuses.pending && !order.paid_at
+        ? toIso(parseAt(order.created_at).add(unpaidCancelHours, "hours").format("YYYY-MM-DD HH:mm:ss"))
+        : null,
+    unpaidCancelHours,
     items: [...(order.items ?? [])]
       .sort((a, b) => a.id - b.id)
       .map((item) => ({ id: item.product_id, variantId: item.variant_id, name: item.name, price: toNumber(item.price), image: item.image, quantity: item.qty })),
