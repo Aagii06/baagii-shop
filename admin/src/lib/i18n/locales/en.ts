@@ -95,6 +95,8 @@ export const en: Dict = {
   "products.search": "Search products",
   "products.allCategories": "All categories",
   "cf.count": "{count} categories",
+  "cf.collapse": "Collapse {name}",
+  "cf.expand": "Expand {name}",
   "cf.clear": "Clear",
   "products.draft": "Draft",
   "products.stock": "{qty} in stock",

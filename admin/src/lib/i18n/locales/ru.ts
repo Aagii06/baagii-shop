@@ -95,6 +95,8 @@ export const ru: Dict = {
   "products.search": "Поиск товаров",
   "products.allCategories": "Все категории",
   "cf.count": "Категорий: {count}",
+  "cf.collapse": "Свернуть {name}",
+  "cf.expand": "Развернуть {name}",
   "cf.clear": "Сбросить",
   "products.draft": "Черновик",
   "products.stock": "В наличии: {qty}",

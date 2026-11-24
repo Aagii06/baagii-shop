@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { flattenCategories, type Category } from "@/lib/api/categories";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
-import { Check, ChevronDown, Minus, Search } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Minus, Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -100,6 +100,21 @@ function TreeSheet({
   const [picked, setPicked] = useState(() => new Set(value));
   const [q, setQ] = useState("");
   const byId = useMemo(() => new Map(flat.map((c) => [c.id, c])), [flat]);
+  // Parents start folded, except those above an already ticked category.
+  const [expanded, setExpanded] = useState(() => {
+    const open = new Set<number>();
+    for (const id of value) {
+      for (let p = byId.get(id)?.parentId; p != null; p = byId.get(p)?.parentId) open.add(p);
+    }
+    return open;
+  });
+  const toggleOpen = (id: number) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -137,14 +152,19 @@ function TreeSheet({
   // Searching shows the matches with the categories above them, for context.
   const needle = q.trim().toLowerCase();
   const rows = useMemo(() => {
-    if (!needle) return flat;
+    // Folded: only rows whose every parent is open.
+    if (!needle)
+      return flat.filter((c) => {
+        for (let p: number | null | undefined = c.parentId; p != null; p = byId.get(p)?.parentId) if (!expanded.has(p)) return false;
+        return true;
+      });
     const keep = new Set<number>();
     for (const c of flat) {
       if (!c.name.toLowerCase().includes(needle)) continue;
       for (let p: Flat | undefined = c; p; p = p.parentId != null ? byId.get(p.parentId) : undefined) keep.add(p.id);
     }
     return flat.filter((c) => keep.has(c.id));
-  }, [flat, needle, byId]);
+  }, [flat, needle, byId, expanded]);
 
   return createPortal(
     <dialog
@@ -184,18 +204,22 @@ function TreeSheet({
           {rows.length ? (
             rows.map((c) => {
               const state = stateOf(c);
+              const parent = c.children.length > 0;
+              const open = !!needle || expanded.has(c.id);
               return (
-                <li key={c.id} role="none">
+                <li key={c.id} role="none" className="relative">
                   <button
                     type="button"
                     role="treeitem"
                     aria-level={c.depth + 1}
                     aria-checked={state === "all" ? true : state === "some" ? "mixed" : false}
                     aria-selected={state === "all"}
+                    aria-expanded={parent ? open : undefined}
                     onClick={() => toggle(c)}
                     style={{ paddingLeft: `${1.25 + c.depth * 1.5}rem` }}
                     className={cn(
-                      "flex w-full items-center gap-3 border-b border-border py-3.5 pr-5 text-left text-[15px] hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none",
+                      "flex w-full items-center gap-3 border-b border-border py-3.5 text-left text-[15px] hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none",
+                      parent && !needle ? "pr-14" : "pr-5",
                       c.depth === 0 && "font-bold",
                       state === "all" && "text-primary"
                     )}
@@ -211,7 +235,19 @@ function TreeSheet({
                       {state === "some" && <Minus className="size-3.5" strokeWidth={3.5} />}
                     </span>
                     <span className="min-w-0 flex-1 truncate">{c.name}</span>
+                    {parent && <span className="shrink-0 font-mono text-xs text-muted-foreground">{c.children.length}</span>}
                   </button>
+                  {/* Folds the parent's children; its own row button ticks it. */}
+                  {parent && !needle && (
+                    <button
+                      type="button"
+                      aria-label={open ? t("cf.collapse", { name: c.name }) : t("cf.expand", { name: c.name })}
+                      onClick={() => toggleOpen(c.id)}
+                      className="absolute right-2 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-muted"
+                    >
+                      <ChevronRight className={cn("size-5 transition-transform", open && "rotate-90")} />
+                    </button>
+                  )}
                 </li>
               );
             })

@@ -285,6 +285,19 @@ class _TreeSheet extends StatefulWidget {
 class _TreeSheetState extends State<_TreeSheet> {
   late final Set<int> _picked = widget.value.toSet();
   String _q = '';
+  late final Map<int, int?> _parentOf = {for (final c in widget.flat) c.id: c.parentId};
+  // Эцэг категориуд хураалттай эхэлнэ — аль хэдийн сонгосон категорийн дээрхүүд л нээлттэй.
+  late final Set<int> _open = {
+    for (final id in widget.value)
+      for (var p = _parentOf[id]; p != null; p = _parentOf[p]) p,
+  };
+
+  bool _visible(AdminCategory c) {
+    for (var p = c.parentId; p != null; p = _parentOf[p]) {
+      if (!_open.contains(p)) return false;
+    }
+    return true;
+  }
 
   List<int> _subtree(AdminCategory c) => [c.id, for (final ch in c.children) ..._subtree(ch)];
 
@@ -313,7 +326,7 @@ class _TreeSheetState extends State<_TreeSheet> {
   @override
   Widget build(BuildContext context) {
     final q = _q.trim().toLowerCase();
-    final rows = q.isEmpty ? widget.flat : widget.flat.where((c) => c.name.toLowerCase().contains(q)).toList();
+    final rows = q.isEmpty ? widget.flat.where(_visible).toList() : widget.flat.where((c) => c.name.toLowerCase().contains(q)).toList();
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
       child: Padding(
@@ -336,8 +349,20 @@ class _TreeSheetState extends State<_TreeSheet> {
                   value: _stateOf(c),
                   onChanged: (_) => _toggle(c),
                   controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.only(left: 12 + (q.isEmpty ? c.depth * 20.0 : 0), right: 16),
+                  contentPadding: EdgeInsets.only(left: 12 + (q.isEmpty ? c.depth * 20.0 : 0), right: 4),
                   title: Text(c.name, style: TextStyle(fontWeight: c.depth == 0 ? FontWeight.bold : FontWeight.w500)),
+                  // Эцэг категорийг хураах / дэлгэх (мөрийг дарвал сонгоно)
+                  secondary: c.children.isEmpty || q.isNotEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: _open.contains(c.id) ? tr('Хураах') : tr('Дэлгэх'),
+                          onPressed: () => setState(() => _open.contains(c.id) ? _open.remove(c.id) : _open.add(c.id)),
+                          icon: AnimatedRotation(
+                            turns: _open.contains(c.id) ? 0.25 : 0,
+                            duration: const Duration(milliseconds: 150),
+                            child: const Icon(Icons.chevron_right, color: AdminColors.mutedForeground),
+                          ),
+                        ),
                 ),
             ]),
           ),

@@ -95,6 +95,8 @@ export const mn: Dict = {
   "products.search": "Бараа хайх",
   "products.allCategories": "Бүх категори",
   "cf.count": "{count} категори",
+  "cf.collapse": "{name}-г хураах",
+  "cf.expand": "{name}-г дэлгэх",
   "cf.clear": "Цэвэрлэх",
   "products.draft": "Ноорог",
   "products.stock": "{qty} нөөц",
