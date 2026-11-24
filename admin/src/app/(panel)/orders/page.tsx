@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import {
   canReturnOrder,
   getOrdersPage,
+  NEXT_ORDER_ACTION,
   ORDER_STATUS_LABEL,
   orderTotal,
   setOrderStatus,
@@ -173,6 +174,16 @@ function OrdersList() {
     }
   }
 
+  // Every step asks first: confirming / delivering here, returning below.
+  async function askStatus(order: Order, to: "confirmed" | "delivered", success: string) {
+    const ok = await confirm({
+      title: t(to === "confirmed" ? "orders.confirmAskTitle" : "orders.deliverAskTitle", { id: order.orderNumber }),
+      description: t(to === "confirmed" ? "orders.confirmAskDesc" : "orders.deliverAskDesc"),
+      confirmLabel: NEXT_ORDER_ACTION[order.status]?.label,
+    });
+    if (ok) changeStatus(order.id, to, success);
+  }
+
   async function returnOrder(order: Order) {
     const ok = await confirm({
       title: t("orders.returnTitle", { id: order.orderNumber }),
@@ -296,7 +307,7 @@ function OrdersList() {
                         className={cn("h-10", ORDER_TONE.confirmed.solid)}
                         loading={busy?.id === order.id && busy.to === "confirmed"}
                         disabled={busy?.id === order.id}
-                        onClick={() => changeStatus(order.id, "confirmed", t("orders.confirmed"))}
+                        onClick={() => askStatus(order, "confirmed", t("orders.confirmed"))}
                       >
                         {t("orders.confirm")}
                       </Button>
@@ -307,7 +318,7 @@ function OrdersList() {
                         className={cn("h-10", ORDER_TONE.delivered.solid)}
                         loading={busy?.id === order.id && busy.to === "delivered"}
                         disabled={busy?.id === order.id}
-                        onClick={() => changeStatus(order.id, "delivered", t("orders.statusUpdated"))}
+                        onClick={() => askStatus(order, "delivered", t("orders.statusUpdated"))}
                       >
                         {t("orders.deliver")}
                       </Button>

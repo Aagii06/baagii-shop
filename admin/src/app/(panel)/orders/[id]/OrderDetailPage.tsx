@@ -76,6 +76,16 @@ export default function OrderDetailPage() {
     }
   }
 
+  // Every step asks first (returning has its own wording below).
+  async function askStatus(to: OrderStatus, label: string) {
+    const ok = await confirm({
+      title: t(to === "confirmed" ? "orders.confirmAskTitle" : "orders.deliverAskTitle", { id: shown.orderNumber }),
+      description: t(to === "confirmed" ? "orders.confirmAskDesc" : "orders.deliverAskDesc"),
+      confirmLabel: label,
+    });
+    if (ok) changeStatus(to, t("orders.statusUpdated"));
+  }
+
   async function returnOrder() {
     const ok = await confirm({
       title: t("orders.returnTitle", { id: shown.id }),
@@ -160,7 +170,7 @@ export default function OrderDetailPage() {
                   className={cn("min-w-0 grow", ORDER_TONE[action.to].solid)}
                   loading={busyTo === action.to}
                   disabled={busyTo !== null}
-                  onClick={() => changeStatus(action.to, t("orders.statusUpdated"))}
+                  onClick={() => askStatus(action.to, action.label)}
                 >
                   {action.label}
                 </Button>
