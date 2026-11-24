@@ -70,7 +70,7 @@ class _SettlementsPageState extends State<SettlementsPage> {
       body: RefreshIndicator(
         onRefresh: _load,
         child: ListView(padding: EdgeInsets.zero, physics: const AlwaysScrollableScrollPhysics(), children: [
-          AdminPageHeader(title: tr('Дэлгүүрийн борлуулалт'), children: [
+          AdminPageHeader(children: [
             PillTabs<String>(
               value: _periodKey,
               onChanged: (v) {
