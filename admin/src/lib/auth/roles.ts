@@ -14,9 +14,12 @@ export function getRole(user: LoginUser | null): Role {
   return /admin/i.test(user?.roleNames ?? "") ? "admin" : "shopper";
 }
 
-const SHOPPER_PATHS = ["/products", "/profile", "/notifications"];
+const SHOPPER_PATHS = ["/products", "/store-sales", "/profile", "/notifications"];
 
-/** Shoppers only get products (add, stock), their profile and their notifications. */
+/**
+ * Shoppers only get products (add, stock), their own store's settlements
+ * (read-only — the backend limits it to their store), their profile and notifications.
+ */
 export function canAccess(role: Role, pathname: string) {
   if (role === "admin") return true;
   return SHOPPER_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

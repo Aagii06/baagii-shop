@@ -55,11 +55,16 @@ class _AdminShellState extends State<AdminShell> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.select<AdminState, bool>((a) => a.user?.isAdmin ?? false);
+    // Худалдагч зөвхөн өөрийн дэлгүүрийн тооцоог харна (backend ч үүгээр хязгаарлана).
+    final own = context.select<AdminState, (int?, String?)>((a) => (a.user?.storeId, a.user?.storeName));
     final tabs = <(String, IconData, String, Widget)>[
       if (isAdmin) ('dashboard', Icons.bar_chart_rounded, tr('Самбар'), const DashboardPage()),
       ('products', Icons.crop_square_rounded, tr('Бараа'), const AdminProductsPage()),
       if (isAdmin) ('orders', Icons.receipt_long_outlined, tr('Захиалга'), const AdminOrdersPage()),
-      if (isAdmin) ('settlements', Icons.payments_outlined, tr('Тооцоо'), const SettlementsPage()),
+      if (isAdmin)
+        ('settlements', Icons.payments_outlined, tr('Тооцоо'), const SettlementsPage())
+      else if (own.$1 != null)
+        ('settlements', Icons.payments_outlined, tr('Тооцоо'), StoreAccountPage(storeId: own.$1!, storeName: own.$2 ?? '')),
       ('profile', Icons.person_outline_rounded, tr('Профайл'), const AdminProfilePage()),
     ];
     return ValueListenableBuilder<String>(

@@ -3,6 +3,7 @@ const { stores, storeSettlements, storeSettlementItems, orderItems, sequelize } 
 const { saveLog } = require("../../utils/logHelper");
 const { ok, fail, handle, toNumber, toIso, FORMAT } = require("../../helper/helper");
 const { notify } = require("../../helper/notificationHelper");
+const { ownStoreId } = require("../../helper/storeHelper");
 
 // Дэлгүүрийн (худалдагчийн) борлуулалт. Захиалгын мөр бүр захиалах үеийн дэлгүүртэйгээ
 // (orderItems.store_id) — үндсэн дэлгүүрийн өөрийн бараа (null) энд орохгүй.
@@ -70,8 +71,14 @@ const summaryOf = (store, sales, allTime, settled) => ({
 // GET /storeReport?from=&to= — бүх дэлгүүр, үлдэгдэл ихтэй нь эхэндээ
 module.exports.list = handle("storeReport", async (req, res) => {
   const period = range(req.query);
+  // SHOPPER: зөвхөн өөрийн дэлгүүр (дэлгүүргүй бол хоосон); ADMIN: бүгд (undefined)
+  const own = await ownStoreId(req);
   const [list, sales, allTime, settled] = await Promise.all([
-    stores.findAll({ where: { shop_id: req.shopId, status: "active" }, attributes: ["id", "name", "logo"], raw: true }),
+    own === undefined
+      ? stores.findAll({ where: { shop_id: req.shopId, status: "active" }, attributes: ["id", "name", "logo"], raw: true })
+      : own === null
+        ? []
+        : stores.findAll({ where: { shop_id: req.shopId, id: own }, attributes: ["id", "name", "logo"], raw: true }),
     salesByStore(req.shopId, period),
     salesByStore(req.shopId, {}),
     settledByStore(req.shopId),
@@ -118,6 +125,8 @@ const groupByItem = (lines, qtyOf) => {
 // GET /storeReport/:storeId — нийт тооцоо, тооцоо хийгдээгүй бараа (бараагаар, захиалгаар),
 // хүргэгдээгүй захиалгын бараа, тооцооны түүх
 module.exports.show = handle("storeReportShow", async (req, res) => {
+  const own = await ownStoreId(req);
+  if (own !== undefined && Number(req.params.storeId) !== own) return fail(res, "Танд энэ үйлдлийг хийх эрх байхгүй");
   const store = await stores.findOne({ where: { id: req.params.storeId, shop_id: req.shopId }, attributes: ["id", "name", "logo"], raw: true });
   if (!store) return fail(res, "Дэлгүүр олдсонгүй");
   const [allTime, settled, lines] = await Promise.all([

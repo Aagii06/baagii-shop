@@ -367,7 +367,8 @@ class _StoreAccountPageState extends State<StoreAccountPage> {
                       ]),
                     ),
                   ]),
-                  if (a.summary.balance > 0)
+                  // Шилжүүлэх нь админых; худалдагч зөвхөн авах үлдэгдлээ харна.
+                  if (a.summary.balance > 0 && (context.read<AdminState>().user?.isAdmin ?? false))
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

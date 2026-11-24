@@ -17,6 +17,7 @@ import { CircleCheck, HandCoins, SearchX } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 /** One product line: image, name, how many orders, units and amount. */
 function ItemRow({ item }: { item: StoreSoldItem }) {
@@ -50,7 +51,10 @@ function StoreAccountPage() {
   const { t } = useLanguage();
   const params = useSearchParams();
   const id = Number(params.get("id"));
-  const backHref = `/store-sales?period=${readPeriod(params.get("period"))}`;
+  // A shopper only has their own store (the list redirects here), so "back" goes to their products.
+  const { role } = useAuth();
+  const isAdmin = role === "admin";
+  const backHref = isAdmin ? `/store-sales?period=${readPeriod(params.get("period"))}` : "/products";
   const { data, error, loading, reload } = useApi(() => getStoreAccount(id), String(id));
   const { run } = useToast();
   const confirm = useConfirm();
@@ -195,7 +199,8 @@ function StoreAccountPage() {
             </li>
           </ul>
 
-          {data.balance > 0 && (
+          {/* Paying out is the admin's; a shopper only sees what they are owed. */}
+          {isAdmin && data.balance > 0 && (
             <div className="mt-4 space-y-3">
               <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("ss.note")} aria-label={t("ss.note")} maxLength={500} />
               <Button size="lg" className="w-full" loading={saving} onClick={onSettle}>

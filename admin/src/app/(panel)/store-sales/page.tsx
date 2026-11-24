@@ -12,8 +12,9 @@ import { useApi } from "@/lib/useApi";
 import { cn, formatMNT } from "@/lib/utils";
 import { ChevronRight, Store } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 /**
  * Each seller store's sales for the chosen period, and what the shop still
@@ -23,6 +24,12 @@ function StoreSalesList() {
   const { t } = useLanguage();
   const router = useRouter();
   const period = readPeriod(useSearchParams().get("period"));
+  // A shopper sees only their own store: go straight to its account.
+  const { role, user } = useAuth();
+  const ownStoreId = role === "shopper" ? user?.store?.id : undefined;
+  useEffect(() => {
+    if (ownStoreId) router.replace(`/store-sales/detail?id=${ownStoreId}&period=${period}`);
+  }, [ownStoreId, period, router]);
   const { data, error, loading, reload } = useApi(() => getStoreSales(periodOf(period)), period);
   // Filters the list by store name; the totals stay for every store.
   const [query, setQuery] = useState("");
