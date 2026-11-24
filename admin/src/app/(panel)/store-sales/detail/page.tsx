@@ -2,6 +2,7 @@
 
 import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
+import StoreLogo from "@/components/common/StoreLogo";
 import Thumb from "@/components/common/Thumb";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
@@ -99,7 +100,7 @@ function StoreAccountPage() {
         backHref={backHref}
         title={
           <span className="flex min-w-0 items-center gap-2">
-            <Thumb id={data.logo} variant="icon" size={28} className="shrink-0 rounded-lg" />
+            <StoreLogo id={data.logo} name={data.storeName} size={28} className="rounded-lg" />
             <span className="truncate">{data.storeName}</span>
           </span>
         }

@@ -4,6 +4,7 @@ import { atLeast, LOAD_MORE_MARGIN } from "@/components/common/LoadMore";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { tr } from "@/lib/i18n/translations";
 import { EmptyState, ErrorState } from "@/components/common/States";
+import StoreLogo from "@/components/common/StoreLogo";
 import Thumb from "@/components/common/Thumb";
 import PageHeader from "@/components/layout/PageHeader";
 import CategoryFilter from "@/components/products/CategoryFilter";
@@ -55,16 +56,6 @@ function FilterSkeleton() {
       <span className="size-4 rounded-full bg-muted" />
     </div>
   );
-}
-
-/**
- * Two letters for a store with no logo: the first letters of its first two
- * words ("Номин Супермаркет" → "НС"), or a one-word name's first two ("Alpha" → "AL").
- */
-function storeInitials(name: string): string {
-  const words = name.split(/\s+/).map((w) => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean);
-  const letters = words.length >= 2 ? words[0][0] + words[1][0] : (words[0] ?? "").slice(0, 2);
-  return letters.toLocaleUpperCase() || "?";
 }
 
 export default function ProductsPage() {
@@ -231,17 +222,7 @@ export default function ProductsPage() {
                         // Top-left corner, flush and square (no rounding).
                         <span title={post.storeName} className="absolute left-0 top-0">
                           {/* No logo, or its file is missing: the store's two letters. */}
-                          <Thumb
-                            id={logo}
-                            variant="icon"
-                            size={28}
-                            className="rounded-none border-0"
-                            fallback={
-                              <span className="grid size-full place-items-center bg-primary text-[11px] font-bold leading-none tracking-tight text-primary-foreground">
-                                {storeInitials(post.storeName)}
-                              </span>
-                            }
-                          />
+                          <StoreLogo id={logo} name={post.storeName} size={28} className="rounded-none border-0" />
                         </span>
                       )}
                     </span>

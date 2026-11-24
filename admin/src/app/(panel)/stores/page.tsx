@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import AttrListSkeleton from "@/components/attrs/AttrListSkeleton";
 import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState } from "@/components/common/States";
-import Thumb from "@/components/common/Thumb";
+import StoreLogo from "@/components/common/StoreLogo";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +44,7 @@ function StoreRow({ store, onChanged }: { store: Store; onChanged: () => void })
     <li className="flex items-center gap-3 px-4 py-3.5">
       {/* The row opens the store's edit page; the buttons are its other actions. */}
       <Link href={`/stores/edit?id=${store.id}`} className="flex min-w-0 grow items-center gap-3">
-        <Thumb id={store.logo} variant="icon" size={48} className="shrink-0 rounded-xl" />
+        <StoreLogo id={store.logo} name={store.name} size={48} className="rounded-xl" />
         <span className="min-w-0 grow">
           <span className="flex items-center gap-2">
             <span className="truncate text-[15px] font-bold">{store.name}</span>

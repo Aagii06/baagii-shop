@@ -2,7 +2,7 @@
 
 import ChipTabs from "@/components/common/ChipTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
-import Thumb from "@/components/common/Thumb";
+import StoreLogo from "@/components/common/StoreLogo";
 import PageHeader from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { getStoreSales, PERIOD_KEYS, periodLabelKey, periodOf, readPeriod } from "@/lib/api/storeReport";
@@ -67,7 +67,7 @@ function StoreSalesList() {
                   href={`/store-sales/detail?id=${row.storeId}&period=${period}`}
                   className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
                 >
-                  <Thumb id={row.logo} variant="icon" size={44} className="rounded-xl" />
+                  <StoreLogo id={row.logo} name={row.storeName} size={44} className="rounded-xl" />
                   <span className="min-w-0 grow">
                     <span className="block truncate text-[15px] font-semibold">{row.storeName}</span>
                     <span className="mt-0.5 block truncate font-mono text-xs text-muted-foreground">

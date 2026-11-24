@@ -1,6 +1,6 @@
 "use client";
 
-import Thumb from "@/components/common/Thumb";
+import StoreLogo from "@/components/common/StoreLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Store } from "@/lib/api/stores";
@@ -179,7 +179,7 @@ function StoreSheet({
         </div>
 
         <ul role="listbox" aria-labelledby={titleId} aria-multiselectable className="mt-2 min-h-0 flex-1 overflow-y-auto">
-          {rows.map((s) => row(s.id, s.name, <Thumb id={s.logo} variant="icon" size={36} className="rounded-xl" />))}
+          {rows.map((s) => row(s.id, s.name, <StoreLogo id={s.logo} name={s.name} size={36} className="rounded-xl" />))}
           {needle && rows.length === 0 && <li className="py-10 text-center text-sm text-muted-foreground">{t("common.noResults")}</li>}
         </ul>
 
