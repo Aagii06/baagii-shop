@@ -330,7 +330,30 @@ class _ProductFormState extends State<_ProductForm> {
             onChanged: (v) => d.update(() => d.note = v),
             decoration: fieldDecoration('').copyWith(labelText: null),
           ),
-          if (d.id != null) ...[
+          const SizedBox(height: 18),
+          // Унтраавал вэб дээр харагдахгүй; бараа, захиалга хэвээр үлдэнэ.
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: AdminColors.border),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: SwitchListTile(
+              value: d.isActive,
+              onChanged: (v) => d.update(() => d.isActive = v),
+              title: Text(tr('Нийтлэх')),
+              subtitle: Text(tr('Унтраавал вэб дээр харагдахгүй (захиалга, тайланд хэвээр үлдэнэ)'), style: const TextStyle(fontSize: 12)),
+            ),
+          ),
+          if (d.id != null && d.hasOrders) ...[
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: AdminColors.muted, borderRadius: BorderRadius.circular(16)),
+              child: Text(tr('Энэ бараа захиалгад орсон тул устгах боломжгүй. Вэб дээр харагдахгүй болгох бол "Нийтлэх"-ийг унтрааж хадгална уу.'),
+                  style: const TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
+            ),
+          ] else if (d.id != null) ...[
             const SizedBox(height: 24),
             FilledButton(
               style: FilledButton.styleFrom(

@@ -108,6 +108,8 @@ class ProductDraft extends ChangeNotifier {
   String note = '';
   String _noteHtml = '';
   bool isActive = true;
+  /// Захиалгад орсон — устгах боломжгүй, зөвхөн нийтлэлээс хасаж (isActive) вэб-ээс нууна.
+  bool hasOrders = false;
 
   /// Өмнөх категорийн үлдсэн үзүүлэлтүүд ч энд байна — буцаж сонгоход дахин олдоно.
   List<PAttr> _allAttrs = [];
@@ -134,6 +136,7 @@ class ProductDraft extends ChangeNotifier {
       _noteHtml = p['description']?.toString() ?? '';
       note = stripHtml(_noteHtml);
       isActive = p['statusId'] != null ? p['statusId'] == 'active' : p['isActive'] != false;
+      hasOrders = p['hasOrders'] == true;
     }
     _allAttrs = _initialAttrs();
     _rows = _initialRows();

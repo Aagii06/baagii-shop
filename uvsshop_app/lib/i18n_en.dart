@@ -1,6 +1,9 @@
 // Generated from baagii-shop web/admin locales (en.ts) plus app-only texts. Keys are the Mongolian text (see i18n.dart).
 
 const appEn = <String, String>{
+  'Нийтлэх': 'Publish',
+  'Унтраавал вэб дээр харагдахгүй (захиалга, тайланд хэвээр үлдэнэ)': "Off hides it on the website (it stays in orders and reports)",
+  'Энэ бараа захиалгад орсон тул устгах боломжгүй. Вэб дээр харагдахгүй болгох бол "Нийтлэх"-ийг унтрааж хадгална уу.': "This product is in an order, so it can't be deleted. To hide it on the website, turn off \"Publish\" and save.",
   'Барааны дэлгүүрийг үүсгэсний дараа солих боломжгүй.': "A product's store can't be changed after it's created.",
   'Бүх дэлгүүр': 'All stores',
   'Үндсэн дэлгүүр': "The shop's own",
