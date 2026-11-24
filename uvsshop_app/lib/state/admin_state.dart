@@ -1,3 +1,4 @@
+import '../api/settlement_models.dart';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -110,6 +111,32 @@ class AdminState extends ChangeNotifier {
     final res = await guard(() => api.get('/order/sales?range=$range'));
     return SalesData.fromJson(res['data'] as Map<String, dynamic>);
   }
+
+  // ---------- дэлгүүрийн тооцоо (web /store-sales) ----------
+
+  /// [from]/[to] — YYYY-MM-DD (хоёулаа орно); null бол бүх хугацаа.
+  Future<({List<StoreSales> rows, double delivered, double pending, double balance})> storeSales({String? from, String? to}) async {
+    final q = [if (from != null) 'from=$from', if (to != null) 'to=$to'].join('&');
+    final res = await guard(() => api.get('/storeReport${q.isEmpty ? '' : '?$q'}'));
+    final d = (res['data'] as Map?) ?? {};
+    final total = (d['total'] as Map?) ?? {};
+    return (
+      rows: [for (final r in (d['rows'] as List?) ?? []) StoreSales.fromJson(Map<String, dynamic>.from(r as Map))],
+      delivered: toNum(total['delivered']),
+      pending: toNum(total['pending']),
+      balance: toNum(total['balance']),
+    );
+  }
+
+  Future<StoreAccount> storeAccount(int storeId) async {
+    final res = await guard(() => api.get('/storeReport/$storeId'));
+    return StoreAccount.fromJson(Map<String, dynamic>.from(res['data'] as Map));
+  }
+
+  /// Тооцоо хийгдээгүй бүх барааг шилжүүлснээр тэмдэглэнэ. [expected] — админы харсан дүн
+  /// (хооронд өөрчлөгдсөн бол backend татгалзана).
+  Future<void> settleStore(int storeId, double expected, String note) =>
+      guard(() => api.post('/storeReport/$storeId/settle', body: {'expected': expected, 'note': note}));
 
   // ---------- захиалга ----------
 
