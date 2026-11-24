@@ -5,6 +5,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/common/States
 import StoreLogo from "@/components/common/StoreLogo";
 import PageHeader from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { getStoreSales, PERIOD_KEYS, periodLabelKey, periodOf, readPeriod } from "@/lib/api/storeReport";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useApi } from "@/lib/useApi";
@@ -12,7 +13,7 @@ import { cn, formatMNT } from "@/lib/utils";
 import { ChevronRight, Store } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 
 /**
  * Each seller store's sales for the chosen period, and what the shop still
@@ -23,6 +24,10 @@ function StoreSalesList() {
   const router = useRouter();
   const period = readPeriod(useSearchParams().get("period"));
   const { data, error, loading, reload } = useApi(() => getStoreSales(periodOf(period)), period);
+  // Filters the list by store name; the totals stay for every store.
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLocaleLowerCase();
+  const rows = data ? (needle ? data.rows.filter((r) => r.storeName.toLocaleLowerCase().includes(needle)) : data.rows) : [];
 
   return (
     <>
@@ -32,6 +37,13 @@ function StoreSalesList() {
           value={period}
           onChange={(next) => router.replace(`/store-sales?period=${next}`)}
           options={PERIOD_KEYS.map((key) => ({ value: key, label: t(periodLabelKey[key]) }))}
+        />
+        <Input
+          type="search"
+          placeholder={t("ss.search")}
+          aria-label={t("ss.search")}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
       </PageHeader>
 
@@ -60,32 +72,38 @@ function StoreSalesList() {
             ))}
           </Card>
 
-          <ul className="-mx-4 mt-4 divide-y divide-border border-y border-border bg-white">
-            {data.rows.map((row) => (
-              <li key={row.storeId}>
-                <Link
-                  href={`/store-sales/detail?id=${row.storeId}&period=${period}`}
-                  className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
-                >
-                  <StoreLogo id={row.logo} name={row.storeName} size={44} className="rounded-xl" />
-                  <span className="min-w-0 grow">
-                    <span className="block truncate text-[15px] font-semibold">{row.storeName}</span>
-                    <span className="mt-0.5 block truncate font-mono text-xs text-muted-foreground">
-                      {t("ss.rowLine", { orders: row.orders, delivered: formatMNT(row.delivered) })}
-                      {row.pending > 0 && ` · ${t("ss.rowPending", { amount: formatMNT(row.pending) })}`}
+          {rows.length === 0 ? (
+            <div className="pt-4">
+              <EmptyState icon={Store} title={t("ss.notFound")} />
+            </div>
+          ) : (
+            <ul className="-mx-4 mt-4 divide-y divide-border border-y border-border bg-white">
+              {rows.map((row) => (
+                <li key={row.storeId}>
+                  <Link
+                    href={`/store-sales/detail?id=${row.storeId}&period=${period}`}
+                    className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
+                  >
+                    <StoreLogo id={row.logo} name={row.storeName} size={44} className="rounded-xl" />
+                    <span className="min-w-0 grow">
+                      <span className="block truncate text-[15px] font-semibold">{row.storeName}</span>
+                      <span className="mt-0.5 block truncate font-mono text-xs text-muted-foreground">
+                        {t("ss.rowLine", { orders: row.orders, delivered: formatMNT(row.delivered) })}
+                        {row.pending > 0 && ` · ${t("ss.rowPending", { amount: formatMNT(row.pending) })}`}
+                      </span>
                     </span>
-                  </span>
-                  <span className="shrink-0 text-right">
-                    <span className={cn("block font-mono text-sm font-bold", row.balance > 0 ? "text-primary-ink" : "text-muted-foreground")}>
-                      {formatMNT(row.balance)}
+                    <span className="shrink-0 text-right">
+                      <span className={cn("block font-mono text-sm font-bold", row.balance > 0 ? "text-primary-ink" : "text-muted-foreground")}>
+                        {formatMNT(row.balance)}
+                      </span>
+                      <span className="block text-[11px] text-muted-foreground">{t("ss.balance")}</span>
                     </span>
-                    <span className="block text-[11px] text-muted-foreground">{t("ss.balance")}</span>
-                  </span>
-                  <ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+                    <ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </>
       )}
     </>

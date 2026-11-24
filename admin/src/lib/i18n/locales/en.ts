@@ -594,6 +594,8 @@ export const en: Dict = {
   "nt.close": "Close",
   "nt.more": "Show more",
   "ss.title": "Store sales",
+  "ss.search": "Search by store name",
+  "ss.notFound": "No store with that name",
   "ss.subtitle": "Each seller's sales and payouts",
   "ss.period": "Period",
   "ss.month": "This month",

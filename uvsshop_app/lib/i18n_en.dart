@@ -424,6 +424,7 @@ const appEn = <String, String>{
   'Утасны дугаараар хайх': 'Search by phone',
   'Утасны дугаараараа нэвтэрнэ үү. Таны утсанд SMS код илгээнэ.': 'Sign in with your phone number. We\'ll text you a code.',
   'Утасны дугаарыг өөрчлөх боломжгүй.': 'Your phone number can\'t be changed.',
+  'Дэлгүүрийн нэрээр хайх': 'Search by store name',
   '{id} захиалгыг баталгаажуулах уу?': 'Confirm order {id}?',
   '{id} захиалгыг хүргэгдсэн гэж тэмдэглэх үү?': 'Mark order {id} as delivered?',
   'Захиалагчид захиалга баталгаажсан тухай мэдэгдэл очно.': 'The customer will be notified that the order is confirmed.',

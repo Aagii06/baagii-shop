@@ -36,6 +36,8 @@ String _day(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.
 
 class _SettlementsPageState extends State<SettlementsPage> {
   String _periodKey = 'month';
+  // Дэлгүүрийн нэрээр шүүнэ (жагсаалтыг л); нийт дүн бүх дэлгүүрийнх хэвээр.
+  String _q = '';
   ({List<StoreSales> rows, double delivered, double pending, double balance})? _data;
   Object? _error;
   int _version = 0;
@@ -87,6 +89,11 @@ class _SettlementsPageState extends State<SettlementsPage> {
                 PillOption('all', tr('Бүх хугацаа')),
               ],
             ),
+            TextField(
+              onChanged: (v) => setState(() => _q = v),
+              textInputAction: TextInputAction.search,
+              decoration: adminSearchDecoration(tr('Дэлгүүрийн нэрээр хайх'), icon: Icons.search),
+            ),
           ]),
           if (_error != null && d == null)
             Padding(padding: const EdgeInsets.only(top: 16), child: ErrorView(_error!, onRetry: _load))
@@ -110,7 +117,7 @@ class _SettlementsPageState extends State<SettlementsPage> {
               ),
             ),
             AdminList(children: [
-              for (final s in d.rows)
+              for (final s in d.rows.where((r) => _q.trim().isEmpty || r.storeName.toLowerCase().contains(_q.trim().toLowerCase())))
                 InkWell(
                   onTap: () => _open(s),
                   child: Padding(

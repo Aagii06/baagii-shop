@@ -2,7 +2,9 @@ const crypto = require("crypto");
 const { paymentSettings, qpayInvoices, orders } = require("../models");
 const { findOrder } = require("./orderHelper");
 const { now, toNumber } = require("./helper");
-const { notify, notifyOrderCustomer } = require("./notificationHelper");
+const { notify, notifyOrderCustomer, notifyOrderStores } = require("./notificationHelper");
+const { saveLog } = require("../utils/logHelper");
+const { orderStatuses } = require("../config/constants");
 
 // QPay merchant API v2. Тохиргоо нь дэлгүүр бүрийн paymentSettings-д (админ самбараас).
 // Нэхэмжлэх үүсгээд QR/банкны холбоосыг вэбд өгнө; төлөгдсөнийг payment/check-ээр
@@ -136,7 +138,15 @@ const checkInvoice = async (invoice) => {
   );
   // Анх төлөгдөхөд л (дахин шалгахад давтахгүй)
   if (changed > 0) {
-    const order = await orders.findOne({ where: { id: invoice.order_id, shop_id: invoice.shop_id } });
+    // items-тэй нь (дэлгүүр бүрт мэдэгдэхэд хэрэгтэй)
+    const order = await findOrder({ id: invoice.order_id, shop_id: invoice.shop_id });
+    // Төлбөр баталгаажсан тул хүлээгдэж буй захиалга автоматаар баталгаажна (админ "Батлах"-тай адил,
+    // дэлгүүрүүдэд "бэлтгэнэ үү" мэдэгдэл очно). Худалдан авагчид "төлөгдлөө" мэдэгдэл л очно.
+    if (order?.status === orderStatuses.pending) {
+      await order.update({ status: orderStatuses.confirmed, confirmed_at: at, updated_at: at });
+      await saveLog({ shop_id: invoice.shop_id, object_name: "orders", object_id: order.id, log_action: orderStatuses.confirmed, modify_data: JSON.stringify({ by: "qpay" }), created_at: at });
+      notifyOrderStores(order, "confirmed");
+    }
     if (order) notifyOrderCustomer(order, "paid", invoice.amount);
     notify({
       shopId: invoice.shop_id,
