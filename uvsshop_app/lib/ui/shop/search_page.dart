@@ -301,10 +301,13 @@ class _SearchPageState extends State<SearchPage> {
                 ] else
                   const Spacer(),
                 const SizedBox(width: 8),
-                _SortMenu(value: _sort, onChanged: (s) => setState(() {
-                      _sort = s;
-                      _page = 1;
-                    })),
+                // Нарийн дэлгэц / том фонтод эрэмбэ нь агшиж, "Шүүлтүүр" үргэлж харагдана.
+                Flexible(
+                  child: _SortMenu(value: _sort, onChanged: (s) => setState(() {
+                        _sort = s;
+                        _page = 1;
+                      })),
+                ),
                 const SizedBox(width: 8),
                 FilterButton(
                   count: _activeFilterCount,
@@ -421,7 +424,9 @@ class _SortMenu extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: borderColor)),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(searchSortLabel[value]!, style: const TextStyle(fontSize: 13.5)),
+            Flexible(
+              child: Text(searchSortLabel[value]!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5)),
+            ),
             const SizedBox(width: 4),
             Icon(Icons.expand_more, size: 18, color: Colors.grey.shade600),
           ]),
