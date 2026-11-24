@@ -10,6 +10,7 @@ import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'addresses_page.dart';
+import 'email_code_dialog.dart';
 import 'orders_page.dart';
 import 'seller_page.dart';
 import 'sign_in_page.dart';
@@ -30,25 +31,32 @@ class AccountPage extends StatefulWidget {
 String _formatPhone(String p) => p.length > 4 ? '${p.substring(0, 4)} ${p.substring(4)}' : p;
 
 class _AccountPageState extends State<AccountPage> {
+  // Хадгалах/Болих товчгүй: нэр Enter эсвэл талбараас гарахад хадгалагдана,
+  // имэйл "Код авах" → цонхонд код оруулмагц хадгалагдана, ✕ маягтыг хаана.
   final _name = TextEditingController();
-  // Имэйл: бичээд "Код авах" → имэйлд ирсэн кодоор "Хадгалах" үед баталгаажна.
+  final _nameFocus = FocusNode();
   final _email = TextEditingController();
-  final _code = TextEditingController();
-  String? _codeSentTo;
-  bool _sendingCode = false;
   String? _emailError;
-  int _resendIn = 0;
-  Timer? _resendTimer;
+  bool _sendingCode = false;
+  // Сүүлд код илгээсэн хаяг, цаг — 30 секундэд дахин илгээхгүй, цонхыг л нээнэ.
+  String? _codeSentTo;
+  DateTime? _codeSentAt;
   bool _editing = false;
-  bool _saving = false;
   bool _justSaved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameFocus.addListener(() {
+      if (!_nameFocus.hasFocus) _saveName();
+    });
+  }
 
   @override
   void dispose() {
     _name.dispose();
+    _nameFocus.dispose();
     _email.dispose();
-    _code.dispose();
-    _resendTimer?.cancel();
     super.dispose();
   }
 
@@ -56,103 +64,111 @@ class _AccountPageState extends State<AccountPage> {
   String get _emailValue => _email.text.trim().toLowerCase();
   bool _emailChanged(Customer c) => _emailValue.isNotEmpty && _emailValue != (c.email ?? '').toLowerCase();
 
-  void _resetEmailForm(Customer c) {
-    _email.text = c.email ?? '';
-    _code.clear();
-    _codeSentTo = null;
-    _emailError = null;
+  void _flashSaved() {
+    setState(() => _justSaved = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _justSaved = false);
+    });
   }
 
+  /// Нэр өөрчлөгдсөн бол хадгална (хоосон бол хуучнаар нь буцаана).
+  Future<void> _saveName() async {
+    final shop = context.read<ShopState>();
+    final c = shop.customer;
+    if (c == null) return;
+    final name = _name.text.trim();
+    if (name.isEmpty) {
+      _name.text = c.name ?? '';
+      return;
+    }
+    if (name == (c.name ?? '')) return;
+    try {
+      await shop.updateName(name);
+      if (mounted) _flashSaved();
+    } catch (e) {
+      if (mounted) showMessage(context, e.toString(), error: true);
+    }
+  }
+
+  void _closeForm() {
+    _nameFocus.unfocus();
+    _saveName();
+    setState(() {
+      _emailError = null;
+      _editing = false;
+    });
+  }
+
+  int get _resendLeft {
+    if (_codeSentAt == null || _codeSentTo != _emailValue) return 0;
+    final left = 30 - DateTime.now().difference(_codeSentAt!).inSeconds;
+    return left > 0 ? left : 0;
+  }
+
+  /// Код илгээнэ; алдааны текст, амжилттай бол null.
+  Future<String?> _requestCode(String email) async {
+    try {
+      await context.read<ShopState>().sendEmailCode(email);
+      _codeSentTo = email;
+      _codeSentAt = DateTime.now();
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  /// "Код авах": хаягийг шалгаад код илгээж, код оруулах цонхыг нээнэ.
   Future<void> _sendCode() async {
+    if (_sendingCode) return;
     final email = _emailValue;
-    if (!_emailRe.hasMatch(email) || _sendingCode || _resendIn > 0) return;
+    // Буруу хаяг: цонх нээхийн өмнө анхааруулна.
+    if (!_emailRe.hasMatch(email)) {
+      final msg = tr('Имэйл хаяг буруу байна. Шалгаад дахин оруулна уу');
+      setState(() => _emailError = msg);
+      showMessage(context, msg, error: true);
+      return;
+    }
+    FocusScope.of(context).unfocus();
     setState(() {
       _sendingCode = true;
       _emailError = null;
     });
-    try {
-      await context.read<ShopState>().sendEmailCode(email);
-      if (!mounted) return;
-      _code.clear();
-      setState(() {
-        _codeSentTo = email;
-        _resendIn = 30;
-      });
-      _resendTimer?.cancel();
-      _resendTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-        if (!mounted || _resendIn <= 1) {
-          t.cancel();
-          if (mounted) setState(() => _resendIn = 0);
-          return;
-        }
-        setState(() => _resendIn--);
-      });
-    } catch (e) {
-      if (mounted) setState(() => _emailError = e.toString());
-    } finally {
-      if (mounted) setState(() => _sendingCode = false);
-    }
+    final error = _resendLeft > 0 ? null : await _requestCode(email);
+    if (!mounted) return;
+    setState(() {
+      _sendingCode = false;
+      _emailError = error;
+    });
+    if (error != null) return showMessage(context, error, error: true);
+
+    final shop = context.read<ShopState>();
+    final saved = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => EmailCodeDialog(
+        email: email,
+        resendIn: _resendLeft,
+        onResend: () => _requestCode(email),
+        onVerify: (code) async {
+          try {
+            await shop.confirmEmail(email, code);
+            return null;
+          } catch (e) {
+            return e.toString();
+          }
+        },
+      ),
+    );
+    if (saved != true || !mounted) return;
+    _codeSentTo = null;
+    _codeSentAt = null;
+    await _saveName();
+    if (!mounted) return;
+    setState(() => _editing = false);
+    _flashSaved();
   }
 
   void _push(Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
-
-  /// "Хадгалах" зөвхөн нэрийг хадгална; имэйл 6 оронтой код оруулахад өөрөө хадгалагдана.
-  bool _canSave(Customer c) {
-    final name = _name.text.trim();
-    return !_saving && name.isNotEmpty && name != (c.name ?? '');
-  }
-
-  /// 6 дахь орон оруулмагц кодыг шалгаж имэйлийг хадгална (товч хэрэггүй).
-  Future<void> _verifyEmail(Customer c, String code) async {
-    if (_saving || _codeSentTo != _emailValue) return;
-    final shop = context.read<ShopState>();
-    final name = _name.text.trim();
-    setState(() {
-      _saving = true;
-      _emailError = null;
-    });
-    try {
-      await shop.confirmEmail(_emailValue, code);
-      if (name.isNotEmpty && name != (c.name ?? '')) await shop.updateName(name);
-      if (!mounted) return;
-      setState(() {
-        _editing = false;
-        _justSaved = true;
-      });
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) setState(() => _justSaved = false);
-      });
-    } catch (e) {
-      if (mounted) {
-        _code.clear();
-        setState(() => _emailError = e.toString());
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _save(Customer c) async {
-    if (!_canSave(c)) return;
-    final name = _name.text.trim();
-    final shop = context.read<ShopState>();
-    setState(() => _saving = true);
-    try {
-      await shop.updateName(name);
-      if (!mounted) return;
-      setState(() {
-        _editing = false;
-        _justSaved = true;
-      });
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) setState(() => _justSaved = false);
-      });
-    } catch (e) {
-      if (mounted) showMessage(context, e.toString(), error: true);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
 
   static final _box = BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: borderColor));
 
@@ -324,8 +340,11 @@ class _AccountPageState extends State<AccountPage> {
           style: IconButton.styleFrom(side: const BorderSide(color: borderColor)),
           onPressed: () {
             _name.text = c.name ?? '';
-            _resetEmailForm(c);
-            setState(() => _editing = true);
+            _email.text = c.email ?? '';
+            setState(() {
+              _emailError = null;
+              _editing = true;
+            });
           },
           icon: const Icon(Icons.edit_outlined, size: 16),
         ),
@@ -335,122 +354,89 @@ class _AccountPageState extends State<AccountPage> {
 
   Widget _editForm(Customer c) => Container(
         decoration: _box,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 16),
         child: ListenableBuilder(
-          listenable: Listenable.merge([_name, _email, _code]),
+          listenable: _email,
           builder: (context, _) {
-            final canSave = _canSave(c);
             final emailChanged = _emailChanged(c);
-            final codeSent = emailChanged && _codeSentTo == _emailValue;
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(tr('Хувийн мэдээлэл'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 20),
-              Text(tr('Нэр'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _name,
-                autofocus: true,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(hintText: tr('Нэрээ оруулна уу')),
-                onSubmitted: (_) => _save(c),
-              ),
-              const SizedBox(height: 20),
-              Text(tr('Утасны дугаар'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 6),
-              TextFormField(
-                initialValue: _formatPhone(c.phone),
-                enabled: false,
-                decoration: InputDecoration(helperText: tr('Утасны дугаарыг өөрчлөх боломжгүй.')),
-              ),
-              const SizedBox(height: 20),
-              Text(tr('И-мэйл'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                autofillHints: const [AutofillHints.email],
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _sendCode(),
-                decoration: InputDecoration(
-                  hintText: 'name@example.com',
-                  // BaagiiCar шиг "Код авах" товч талбар дотроо
-                  suffixIcon: emailChanged
-                      ? Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: FilledButton(
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              minimumSize: const Size(0, 36),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                            ),
-                            onPressed: _emailRe.hasMatch(_emailValue) && !_sendingCode && _resendIn == 0 ? _sendCode : null,
-                            child: _sendingCode
-                                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                : Text(_resendIn > 0 && codeSent
-                                    ? '${tr('Дахин авах')} ($_resendIn)'
-                                    : codeSent
-                                        ? tr('Дахин авах')
-                                        : tr('Код авах')),
-                          ),
-                        )
-                      : null,
-                ),
-                onChanged: (_) {
-                  if (_emailError != null) setState(() => _emailError = null);
-                },
-              ),
-              if (codeSent) ...[
-                const SizedBox(height: 8),
-                Text(tr('{email} хаяг руу код илгээлээ. Кодоо оруулахад шууд хадгалагдана.', {'email': _emailValue}),
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: _code,
-                  autofocus: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  autofillHints: const [AutofillHints.oneTimeCode],
-                  enabled: !_saving,
-                  decoration: InputDecoration(hintText: tr('6 оронтой код'), counterText: ''),
-                  onChanged: (v) {
-                    if (_emailError != null) setState(() => _emailError = null);
-                    if (v.trim().length == 6) _verifyEmail(c, v.trim());
-                  },
-                ),
-              ],
-              if (_emailError != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(_emailError!, style: TextStyle(fontSize: 12, color: Colors.red.shade600)),
-                )
-              else if (emailChanged && !codeSent)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(tr('«Код авах» дарж имэйлдээ ирсэн кодоор баталгаажуулна.'),
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                ),
-              const SizedBox(height: 20),
               Row(children: [
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
-                    onPressed: _saving ? null : () => setState(() => _editing = false),
-                    child: Text(tr('Болих')),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
-                    onPressed: canSave ? () => _save(c) : null,
-                    child: _saving
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text(tr('Хадгалах')),
-                  ),
-                ),
+                Text(tr('Хувийн мэдээлэл'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                if (_justSaved) ...[
+                  const SizedBox(width: 8),
+                  Icon(Icons.check, size: 14, color: Colors.green.shade600),
+                  const SizedBox(width: 2),
+                  Text(tr('Хадгалагдлаа'), style: TextStyle(color: Colors.green.shade600, fontSize: 12)),
+                ],
+                const Spacer(),
+                IconButton(tooltip: tr('Хаах'), onPressed: _closeForm, icon: const Icon(Icons.close, size: 20)),
               ]),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  const SizedBox(height: 8),
+                  Text(tr('Нэр'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _name,
+                    focusNode: _nameFocus,
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.words,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(hintText: tr('Нэрээ оруулна уу')),
+                    onSubmitted: (_) => _saveName(),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(tr('Утасны дугаар'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    initialValue: _formatPhone(c.phone),
+                    enabled: false,
+                    decoration: InputDecoration(helperText: tr('Утасны дугаарыг өөрчлөх боломжгүй.')),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(tr('И-мэйл'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    autofillHints: const [AutofillHints.email],
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) {
+                      if (emailChanged) _sendCode();
+                    },
+                    onChanged: (_) {
+                      if (_emailError != null) setState(() => _emailError = null);
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'name@example.com',
+                      errorText: _emailError,
+                      errorMaxLines: 3,
+                      // BaagiiCar шиг "Код авах" товч талбар дотроо
+                      suffixIcon: emailChanged
+                          ? Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: FilledButton(
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  minimumSize: const Size(0, 36),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                                ),
+                                onPressed: _sendingCode ? null : _sendCode,
+                                child: _sendingCode
+                                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : Text(tr('Код авах')),
+                              ),
+                            )
+                          : null,
+                      helperText: emailChanged && _emailError == null ? tr('«Код авах» дарж имэйлдээ ирсэн кодоор баталгаажуулна.') : null,
+                      helperMaxLines: 2,
+                    ),
+                  ),
+                ]),
+              ),
             ]);
           },
         ),
