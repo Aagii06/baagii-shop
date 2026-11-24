@@ -63,7 +63,7 @@ export default function ProductsPage() {
   // Only an admin sees every store's products; a shopper's list is their own store.
   const { role } = useAuth();
   const { data: stores, error: storesError } = useApi(getStores);
-  // Ticked stores (`OWN_STORE` — the shop's own products); empty is all of them.
+  // Ticked stores; empty is all of them.
   const [pickedStores, setPickedStores] = useState<number[]>([]);
 
   const [query, setQuery] = useState("");

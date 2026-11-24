@@ -6,20 +6,16 @@ import { Input } from "@/components/ui/input";
 import type { Store } from "@/lib/api/stores";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
-import { Check, ChevronDown, House, Search, Store as StoreIcon } from "lucide-react";
+import { Check, ChevronDown, Search, Store as StoreIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /** From this many stores on, the sheet gets a search box. */
 const SEARCH_FROM = 8;
 
-/** The shop's own products (no seller store) — stands for `storeId = null`. */
-export const OWN_STORE = 0;
-
 /**
  * Filters by any number of seller stores, picked in a bottom sheet with each
- * store's logo — shaped like `CategoryFilter`. `OWN_STORE` is the shop's own
- * products. Empty means all stores.
+ * store's logo — shaped like `CategoryFilter`. Empty means all stores.
  */
 export default function StoreFilter({
   stores,
@@ -35,10 +31,7 @@ export default function StoreFilter({
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const picked = new Set(value);
-  const names = [
-    ...(picked.has(OWN_STORE) ? [t("products.ownStore")] : []),
-    ...stores.filter((s) => picked.has(s.id)).map((s) => s.name),
-  ];
+  const names = stores.filter((s) => picked.has(s.id)).map((s) => s.name);
   const label = names.length === 0 ? t("products.allStores") : names.length <= 2 ? names.join(", ") : t("products.storeCount", { count: names.length });
 
   return (
@@ -186,14 +179,6 @@ function StoreSheet({
         </div>
 
         <ul role="listbox" aria-labelledby={titleId} aria-multiselectable className="mt-2 min-h-0 flex-1 overflow-y-auto">
-          {!needle &&
-            row(
-              OWN_STORE,
-              t("products.ownStore"),
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary-ink">
-                <House className="size-5" />
-              </span>
-            )}
           {rows.map((s) => row(s.id, s.name, <Thumb id={s.logo} variant="icon" size={36} className="rounded-xl" />))}
           {needle && rows.length === 0 && <li className="py-10 text-center text-sm text-muted-foreground">{t("common.noResults")}</li>}
         </ul>

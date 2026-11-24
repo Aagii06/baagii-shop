@@ -28,7 +28,7 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
   String _query = '';
   List<int> _picked = [];
   List<AdminCategory>? _tree;
-  // Сонгосон дэлгүүрүүд (0 — үндсэн дэлгүүрийн бараа); хоосон бол бүгд. Зөвхөн админд.
+  // Сонгосон дэлгүүрүүд; хоосон бол бүгд. Зөвхөн админд.
   List<int> _storeIds = [];
   List<Store>? _stores;
   int? _count;
@@ -45,13 +45,20 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
     });
     _reload();
     final admin = context.read<AdminState>();
+    // Алдаа гарвал хоосон жагсаалт — skeleton алга болж, шүүлтүүр харагдахгүй.
     admin.categoryTree().then((t) {
       if (mounted) setState(() => _tree = t);
-    }, onError: (_) {});
+    }, onError: (_) {
+      if (mounted) setState(() => _tree = []);
+    });
     if (admin.user?.isAdmin ?? false) {
       admin.stores().then((s) {
         if (mounted) setState(() => _stores = s);
-      }, onError: (_) {});
+      }, onError: (_) {
+        if (mounted) setState(() => _stores = []);
+      });
+    } else {
+      _stores = [];
     }
   }
 
@@ -113,7 +120,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
             count: ready && _error == null ? _count : null,
             aside: AdminSmallButton(label: tr('Нэмэх'), onPressed: () => _openForm(null)),
             children: [
-              if (_stores != null && _stores!.isNotEmpty)
+              if (_stores == null)
+                const _FilterBone()
+              else if (_stores!.isNotEmpty)
                 StoreFilter(
                   stores: _stores!,
                   value: _storeIds,
@@ -133,7 +142,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 textInputAction: TextInputAction.search,
                 decoration: adminSearchDecoration(tr('Бараа хайх')),
               ),
-              if (_tree != null && _tree!.isNotEmpty)
+              if (_tree == null)
+                const _FilterBone()
+              else if (_tree!.isNotEmpty)
                 CategoryFilter(
                   tree: _tree!,
                   value: _picked,
@@ -350,7 +361,7 @@ class _TreeSheetState extends State<_TreeSheet> {
 }
 
 /// Дэлгүүрээр шүүх (CategoryFilter шиг): товч дээр сонгосон нь, доороос гарах жагсаалтад лого,
-/// нэртэй олныг нь сонгоно. 0 — үндсэн дэлгүүрийн (дэлгүүр сонгоогүй) бараа. Хоосон — бүгд.
+/// нэртэй олныг нь сонгоно. Хоосон — бүгд.
 class StoreFilter extends StatelessWidget {
   final List<Store> stores;
   final List<int> value;
@@ -360,7 +371,6 @@ class StoreFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final names = [
-      if (value.contains(0)) tr('Үндсэн дэлгүүр'),
       for (final s in stores)
         if (value.contains(s.id)) s.name,
     ];
@@ -445,17 +455,6 @@ class _StoreSheetState extends State<_StoreSheet> {
             ),
           Flexible(
             child: ListView(shrinkWrap: true, children: [
-              if (q.isEmpty)
-                _tile(
-                  0,
-                  tr('Үндсэн дэлгүүр'),
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(color: AdminColors.primarySoft, borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.home_outlined, size: 20, color: AdminColors.primaryInk),
-                  ),
-                ),
               for (final s in rows) _tile(s.id, s.name, ImageBox(fileId: s.logo, size: 36, placeholder: Icons.storefront_outlined)),
             ]),
           ),
@@ -476,4 +475,19 @@ class _StoreSheetState extends State<_StoreSheet> {
       ),
     );
   }
+}
+
+/// Шүүлтүүрийн товчны хэлбэр — сонголтууд ачаалагдах хооронд (толгой үсрэхгүй).
+class _FilterBone extends StatelessWidget {
+  const _FilterBone();
+
+  @override
+  Widget build(BuildContext context) => Pulse(
+        child: Container(
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: ShapeDecoration(color: Colors.white, shape: StadiumBorder(side: BorderSide(color: AdminColors.border))),
+          child: const Row(children: [Bone(width: 130), Spacer(), Bone(width: 16, height: 16, radius: 8)]),
+        ),
+      );
 }
