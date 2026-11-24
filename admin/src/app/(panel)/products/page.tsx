@@ -44,12 +44,25 @@ function stockLine(post: Post) {
   };
 }
 
+/** A filter pill's shape while its options load, so the header doesn't jump. */
+function FilterSkeleton() {
+  return (
+    <div
+      aria-hidden
+      className="flex h-12 w-full animate-pulse items-center justify-between rounded-full border border-input bg-white px-5"
+    >
+      <span className="h-3.5 w-32 rounded-full bg-muted" />
+      <span className="size-4 rounded-full bg-muted" />
+    </div>
+  );
+}
+
 export default function ProductsPage() {
   const { t } = useLanguage();
-  const { data: tree } = useApi(getCategoryTree);
+  const { data: tree, error: treeError } = useApi(getCategoryTree);
   // Only an admin sees every store's products; a shopper's list is their own store.
   const { role } = useAuth();
-  const { data: stores } = useApi(getStores);
+  const { data: stores, error: storesError } = useApi(getStores);
   // Ticked stores (`OWN_STORE` — the shop's own products); empty is all of them.
   const [pickedStores, setPickedStores] = useState<number[]>([]);
 
@@ -155,9 +168,12 @@ export default function ProductsPage() {
           </Button>
         }
       >
-        {role === "admin" && stores && stores.length > 0 && (
-          <StoreFilter stores={stores} value={pickedStores} onChange={setPickedStores} />
-        )}
+        {role === "admin" &&
+          (stores ? (
+            stores.length > 0 && <StoreFilter stores={stores} value={pickedStores} onChange={setPickedStores} />
+          ) : (
+            !storesError && <FilterSkeleton />
+          ))}
         <Input
           type="search"
           placeholder={t("products.search")}
@@ -165,7 +181,11 @@ export default function ProductsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        {tree && tree.length > 0 && <CategoryFilter tree={tree} value={picked} onChange={setPicked} />}
+        {tree ? (
+          tree.length > 0 && <CategoryFilter tree={tree} value={picked} onChange={setPicked} />
+        ) : (
+          !treeError && <FilterSkeleton />
+        )}
       </PageHeader>
 
       {ready && page.error ? (
