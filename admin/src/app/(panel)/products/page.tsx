@@ -17,7 +17,7 @@ import { getStores } from "@/lib/api/stores";
 import { getPostsPage, isPublished, LOW_STOCK_THRESHOLD, type Post } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
 import { cn, formatDate, formatMNT, formatQty, toNumber } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Store } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -65,6 +65,8 @@ export default function ProductsPage() {
   const { data: stores, error: storesError } = useApi(getStores);
   // Ticked stores; empty is all of them.
   const [pickedStores, setPickedStores] = useState<number[]>([]);
+  // Store id → logo, for the badge on each product's image.
+  const storeLogo = useMemo(() => new Map((stores ?? []).map((s) => [s.id, s.logo])), [stores]);
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -203,23 +205,44 @@ export default function ProductsPage() {
           <ul className="-mx-4 divide-y divide-border border-b border-border bg-white">
             {rows.map((post) => {
               const stock = stockLine(post);
-              const category = [post.categoryId != null ? categories.name.get(post.categoryId) : undefined, post.storeName]
-                .filter(Boolean)
-                .join(" · ");
+              const category = post.categoryId != null ? categories.name.get(post.categoryId) : undefined;
+              const logo = post.storeId != null ? storeLogo.get(post.storeId) : undefined;
               return (
                 <li key={post.id}>
                   <Link
                     href={`/products/${post.id}`}
                     className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
                   >
-                    <Thumb id={post.images?.[0]} variant="icon" size={52} className="rounded-xl" />
+                    {/* The store's logo sits on the image's corner; its name has its own line. */}
+                    <span className="relative shrink-0">
+                      <Thumb id={post.images?.[0]} variant="icon" size={52} className="rounded-xl" />
+                      {post.storeName && (
+                        <span title={post.storeName} className="absolute -bottom-1 -right-1 shadow-sm rounded-full">
+                          {logo ? (
+                            <Thumb id={logo} variant="icon" size={24} className="rounded-full border-0" />
+                          ) : (
+                            <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                              {post.storeName.trim().charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </span>
                     <span className="min-w-0 grow">
                       <span className="block truncate text-[15px] font-semibold">
                         {post.name}
                       </span>
-                      <span className="mt-0.5 block truncate font-mono text-xs text-muted-foreground">
-                        {category}
-                      </span>
+                      {post.storeName && (
+                        <span className="mt-0.5 flex items-center gap-1 text-xs font-medium text-foreground/80">
+                          <Store className="h-3 w-3 shrink-0 text-muted-foreground" />
+                          <span className="truncate">{post.storeName}</span>
+                        </span>
+                      )}
+                      {category && (
+                        <span className="mt-0.5 block truncate font-mono text-xs text-muted-foreground">
+                          {category}
+                        </span>
+                      )}
                       {post.createdAt && (
                         <span className="mt-0.5 block font-mono text-[11px] text-muted-foreground/70">
                           {formatDate(post.createdAt)}

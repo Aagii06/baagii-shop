@@ -177,7 +177,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
   }
 
   Widget _row(AdminProduct p, Map<int, String> names) {
-    final category = [if (p.categoryId != null) ?names[p.categoryId], ?p.storeName].join(' · ');
+    final category = p.categoryId == null ? '' : names[p.categoryId] ?? '';
+    final store = p.storeName?.trim() ?? '';
+    final logo = store.isEmpty ? null : _stores?.where((s) => s.name == store).firstOrNull?.logo;
     final (String stock, Color stockColor) = !p.isActive
         ? (tr('Ноорог'), AdminColors.mutedForeground.withValues(alpha: 0.7))
         : (tr('{remain} нөөц', {'remain': p.remain}), p.remain <= lowStockThreshold ? AdminColors.destructive : AdminColors.mutedForeground);
@@ -186,11 +188,44 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(children: [
-          ImageBox(fileId: p.images.isEmpty ? null : p.images.first, size: 52),
+          // Дэлгүүрийн лого зургийн буланд, нэр нь тусдаа мөрөнд (admin web-тэй адил).
+          Stack(clipBehavior: Clip.none, children: [
+            ImageBox(fileId: p.images.isEmpty ? null : p.images.first, size: 52),
+            if (store.isNotEmpty)
+              Positioned(
+                right: -4,
+                bottom: -4,
+                // Лого дугуйг бүтэн дүүргэнэ — хүрээ, зайгүй.
+                child: logo != null
+                    ? ImageBox(fileId: logo, size: 24, circle: true)
+                    : Container(
+                        width: 24,
+                        height: 24,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(color: AdminColors.primary, shape: BoxShape.circle),
+                        child: Text(store.characters.first.toUpperCase(),
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+              ),
+          ]),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              if (store.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Row(children: [
+                    const Icon(Icons.storefront_outlined, size: 13, color: AdminColors.mutedForeground),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(store,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AdminColors.foreground.withValues(alpha: 0.8))),
+                    ),
+                  ]),
+                ),
               if (category.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
