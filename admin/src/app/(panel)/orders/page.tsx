@@ -50,7 +50,20 @@ function OrdersList() {
   // ?phone= — typed in the search box, or opened from a customer's
   // "Захиалга харах" (Худалдан авагчид); any part of the number matches.
   // Letters or "-" make it an order-number search (UVS-261124-K7M3QX).
-  const phone = cleanQuery(useSearchParams().get("phone") ?? "");
+  const params = useSearchParams();
+  const phone = cleanQuery(params.get("phone") ?? "");
+  // ?status= — the tab, so a link (the dashboard's "pending" tile) can open
+  // the list already filtered; tab clicks write it back to the URL.
+  const urlStatus = params.get("status");
+  const status: OrderStatus | "all" =
+    urlStatus && urlStatus in ORDER_STATUS_LABEL ? (urlStatus as OrderStatus) : "all";
+  const listUrl = (nextPhone: string, nextStatus: OrderStatus | "all") => {
+    const qs = new URLSearchParams();
+    if (nextStatus !== "all") qs.set("status", nextStatus);
+    if (nextPhone) qs.set("phone", nextPhone);
+    const s = qs.toString();
+    return s ? `/orders?${s}` : "/orders";
+  };
   const [query, setQuery] = useState(phone);
   // Follows the URL when it changes from outside (back/forward, a new link).
   const [urlPhone, setUrlPhone] = useState(phone);
@@ -61,12 +74,12 @@ function OrdersList() {
   // Typing updates the URL (and so the list) once the user pauses.
   useEffect(() => {
     if (query === phone) return;
-    const timer = setTimeout(() => router.replace(query ? `/orders?phone=${query}` : "/orders"), 300);
+    const timer = setTimeout(() => router.replace(listUrl(query, status)), 300);
     return () => clearTimeout(timer);
-  }, [query, phone, router]);
+  }, [query, phone, status, router]);
   const { run } = useToast();
   const confirm = useConfirm();
-  const [status, setStatus] = useState<OrderStatus | "all">("all");
+  const setStatus = (next: OrderStatus | "all") => router.replace(listUrl(phone, next));
 
   // Pages load as the list is scrolled, pending orders first (the backend
   // sorts them). `key` ties the loaded rows to the tab they were fetched

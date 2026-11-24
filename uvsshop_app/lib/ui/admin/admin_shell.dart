@@ -15,6 +15,9 @@ import 'package:uvsshop_app/i18n.dart';
 /// Аль tab нээлттэй вэ — самбараас "Захиалга" руу шилжихэд.
 final adminTab = ValueNotifier<String>('dashboard');
 
+/// Захиалгын tab-ыг аль төлвөөр шүүж нээх вэ (web-ийн /orders?status=). null — бүгд.
+final adminOrdersStatus = ValueNotifier<String?>(null);
+
 /// Админы хэсэг (web-ийн PanelShell). Худалдагч (admin биш) самбар, захиалгыг харахгүй.
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});

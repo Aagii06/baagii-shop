@@ -221,7 +221,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     Icon(Icons.arrow_forward, size: 14),
                   ],
                 ),
-                onTap: () => adminTab.value = 'orders',
+                onTap: () {
+                  adminOrdersStatus.value = 'pending';
+                  adminTab.value = 'orders';
+                },
               ),
             ),
           ],
@@ -317,7 +320,10 @@ class _DashboardPageState extends State<DashboardPage> {
         _titleRow(
           tr('Сүүлийн захиалга'),
           aside: GestureDetector(
-            onTap: () => adminTab.value = 'orders',
+            onTap: () {
+              adminOrdersStatus.value = null;
+              adminTab.value = 'orders';
+            },
             child: Text(
               tr('Бүгд'),
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AdminColors.primaryInk),

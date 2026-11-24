@@ -1,3 +1,4 @@
+import 'admin_shell.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -38,6 +39,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   @override
   void initState() {
     super.initState();
+    // Хэрэглэгчийн хуудаснаас (phone) нээсэн бол самбарын шүүлтийг ашиглахгүй
+    if (widget.phone == null) {
+      _status = adminOrdersStatus.value;
+      adminOrdersStatus.addListener(_followStatus);
+    }
     _scroll.addListener(() {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 400) _loadMore();
     });
@@ -46,10 +52,18 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
 
   @override
   void dispose() {
+    adminOrdersStatus.removeListener(_followStatus);
     _scroll.dispose();
     _phone.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  // Самбарын хавтангаас (ж: "Батлахыг хүлээж") төлөв ирэхэд tab-ыг шүүнэ
+  void _followStatus() {
+    if (!mounted || adminOrdersStatus.value == _status) return;
+    _status = adminOrdersStatus.value;
+    _reload();
   }
 
   Future<void> _reload() async {
@@ -133,6 +147,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 value: _status,
                 onChanged: (v) {
                   _status = v;
+                  if (widget.phone == null) adminOrdersStatus.value = v;
                   _reload();
                 },
                 options: [

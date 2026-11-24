@@ -228,7 +228,7 @@ function SalesSection({ range, pending }: { range: SalesRange; pending?: number 
         <StatTile
           tone="peach"
           icon={Clock}
-          href="/orders"
+          href="/orders?status=pending"
           label={t("dash.pending")}
           value={pending == null ? "—" : String(pending)}
           footer={
