@@ -47,4 +47,8 @@ export interface Order {
   paymentMethod?: PaymentMethod;
   createdAt: string;
   confirmedAt?: string;
+  /** Unpaid and waiting: cancelled automatically at this time (ISO). */
+  payDeadline?: string | null;
+  /** That window in hours (backend `unpaidCancelHours`). */
+  unpaidCancelHours?: number;
 }

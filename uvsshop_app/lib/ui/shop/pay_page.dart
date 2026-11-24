@@ -10,6 +10,7 @@ import '../../api/shop_models.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'package:uvsshop_app/i18n.dart';
+import 'pay_deadline_notice.dart';
 
 class PayPage extends StatefulWidget {
   final String orderId;
@@ -130,6 +131,11 @@ class _PayPageState extends State<PayPage> {
     }
     final m = _methods!;
     return ListView(padding: const EdgeInsets.all(16), children: [
+      // Төлөхийн өмнө анхааруулна: хугацаандаа төлөөгүй бол автоматаар цуцлагдана.
+      if (o.payDeadline != null) ...[
+        PayDeadlineNotice(deadline: o.payDeadline, hours: o.unpaidCancelHours),
+        const SizedBox(height: 12),
+      ],
       Card(
         child: Padding(
           padding: const EdgeInsets.all(16),

@@ -1,6 +1,7 @@
 "use client";
 
 import PaymentForm from "@/components/checkout/PaymentForm";
+import PayDeadlineNotice from "@/components/orders/PayDeadlineNotice";
 import QpayPanel from "@/components/checkout/QpayPanel";
 import { getPaymentMethods, type PaymentMethods } from "@/lib/api/payment";
 import { Button } from "@/components/ui/button";
@@ -116,6 +117,12 @@ export default function PayOrderPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
         <div className="lg:col-span-2">
+          {/* Warn before paying: unpaid orders are cancelled automatically. */}
+          <PayDeadlineNotice
+            deadline={order.payDeadline}
+            hours={order.unpaidCancelHours}
+            className="mb-4"
+          />
           {qpayOpen ? (
             <QpayPanel
               orderId={order.id}

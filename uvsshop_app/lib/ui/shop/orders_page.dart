@@ -5,6 +5,7 @@ import '../../api/shop_models.dart';
 import '../../config.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
+import 'pay_deadline_notice.dart';
 import 'pay_page.dart';
 import 'sign_in_page.dart';
 import 'package:uvsshop_app/i18n.dart';
@@ -182,6 +183,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Scaffold(
       appBar: AppBar(title: Text(tr('Захиалга {id}', {'id': o.id}))),
       body: ListView(padding: const EdgeInsets.all(12), children: [
+        if (_canCancel && o.payDeadline != null) ...[
+          PayDeadlineNotice(deadline: o.payDeadline, hours: o.unpaidCancelHours),
+          const SizedBox(height: 8),
+        ],
         Card(
           child: ListTile(
             title: Text(o.label),

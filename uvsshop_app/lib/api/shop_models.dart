@@ -271,6 +271,9 @@ class ShopOrder {
   final String? paymentMethod;
   final String? paidAt;
   final String createdAt;
+  /// Төлөөгүй хүлээгдэж буй бол энэ үед автоматаар цуцлагдана (ISO); бусад үед null.
+  final String? payDeadline;
+  final int? unpaidCancelHours;
   final List<OrderItem> items;
   final String fullName;
   final String phone;
@@ -287,6 +290,8 @@ class ShopOrder {
     this.paymentMethod,
     this.paidAt,
     required this.createdAt,
+    this.payDeadline,
+    this.unpaidCancelHours,
     required this.items,
     required this.fullName,
     required this.phone,
@@ -320,6 +325,8 @@ class ShopOrder {
       paymentMethod: j['paymentMethod']?.toString(),
       paidAt: j['paidAt']?.toString(),
       createdAt: j['createdAt']?.toString() ?? '',
+      payDeadline: j['payDeadline']?.toString(),
+      unpaidCancelHours: j['unpaidCancelHours'] == null ? null : toInt(j['unpaidCancelHours']),
       items: ((j['items'] as List?) ?? [])
           .map((i) => OrderItem(i['name']?.toString() ?? '', toNum(i['price']), i['image']?.toString(), toInt(i['quantity'])))
           .toList(),

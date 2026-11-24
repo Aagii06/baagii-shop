@@ -404,6 +404,8 @@ export const ru: Dict = {
   "orders.detailPage.placedAt": "Оформлен {date}",
   "orders.detailPage.unpaidNotice": "Оплата по этому заказу ещё не произведена.",
   "orders.detailPage.payNow": "Оплатить сейчас",
+  "orders.deadline.warning": "Если не оплатить в течение {hours} ч, заказ будет автоматически отменён, а товары вернутся в наличие.",
+  "orders.deadline.expired": "Время оплаты истекло, заказ скоро будет отменён.",
   "orders.cancel.button": "Отменить заказ",
   "orders.cancel.title": "Отменить заказ {id}?",
   "orders.cancel.desc": "Заказ не оплачен, поэтому он будет отменён, а товары вернутся в наличие. Это действие нельзя отменить.",

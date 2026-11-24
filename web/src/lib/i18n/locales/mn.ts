@@ -406,6 +406,8 @@ export const mn: Dict = {
   "orders.detailPage.unpaidNotice":
     "Энэ захиалгын төлбөр хараахан төлөгдөөгүй байна.",
   "orders.detailPage.payNow": "Одоо төлөх",
+  "orders.deadline.warning": "Төлбөрөө {hours} цагийн дотор төлөөгүй бол захиалга автоматаар цуцлагдаж, бараа нөөцөд буцна.",
+  "orders.deadline.expired": "Төлбөрийн хугацаа дууссан тул захиалга удахгүй цуцлагдана.",
   "orders.cancel.button": "Захиалга цуцлах",
   "orders.cancel.title": "{id} захиалгыг цуцлах уу?",
   "orders.cancel.desc": "Төлбөр төлөгдөөгүй тул захиалга цуцлагдаж, бараа нөөцөд буцна. Энэ үйлдлийг буцаах боломжгүй.",

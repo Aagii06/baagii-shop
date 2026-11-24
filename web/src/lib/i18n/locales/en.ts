@@ -404,6 +404,8 @@ export const en: Dict = {
   "orders.detailPage.placedAt": "Placed on {date}",
   "orders.detailPage.unpaidNotice": "This order's payment is still pending.",
   "orders.detailPage.payNow": "Pay now",
+  "orders.deadline.warning": "If you don’t pay within {hours} hours, the order is cancelled automatically and its items released.",
+  "orders.deadline.expired": "The payment time is up, so the order will be cancelled shortly.",
   "orders.cancel.button": "Cancel order",
   "orders.cancel.title": "Cancel order {id}?",
   "orders.cancel.desc": "The order is unpaid, so it will be cancelled and its items released. This can’t be undone.",

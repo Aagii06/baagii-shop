@@ -2,6 +2,7 @@
 
 import OrderProgress from "@/components/orders/OrderProgress";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
+import PayDeadlineNotice from "@/components/orders/PayDeadlineNotice";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import PlaceholderImage from "@/components/ui/placeholder-image";
@@ -127,6 +128,14 @@ export default function OrderDetailPage() {
             </Button>
           </div>
         </div>
+      )}
+
+      {order.status === "pending" && (
+        <PayDeadlineNotice
+          deadline={order.payDeadline}
+          hours={order.unpaidCancelHours}
+          className="-mt-3 mb-6"
+        />
       )}
 
       {askCancel && (
