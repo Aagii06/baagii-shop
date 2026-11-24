@@ -145,9 +145,14 @@ class _ProductFormState extends State<_ProductForm> {
     return d.hasBasics;
   }
 
+  // Дэлгүүр бүртгэлтэй бол шинэ бараа заавал аль нэг дэлгүүрт (дараа нь солигдохгүй)
+  bool get _storeRequired =>
+      d.id == null && (context.read<AdminState>().user?.isAdmin ?? false) && widget.stores.isNotEmpty;
+
   Future<void> _save() async {
     setState(() => _saveTried = true);
     if (!_validateBasics() || d.salePriceError != null || d.salePeriodError != null || d.variantsError != null) return;
+    if (_storeRequired && d.storeId == null) return;
     final admin = context.read<AdminState>();
     setState(() => _saving = true);
     final uploads = {for (final r in d.pendingUploads) r: (d.files[r]!.bytes.toList(), d.files[r]!.name)};
@@ -267,11 +272,13 @@ class _ProductFormState extends State<_ProductForm> {
               isExpanded: true,
               // Дэлгүүрийг зөвхөн үүсгэхдээ сонгоно — бараа дэлгүүр хооронд шилжихгүй.
               decoration: fieldDecoration(tr('Дэлгүүр'),
-                  helper: d.id == null
-                      ? tr('Бараа аль дэлгүүрийнх вэ — вэб дээр брэнд болж харагдана')
-                      : tr('Барааны дэлгүүрийг үүсгэсний дараа солих боломжгүй.')),
+                      helper: d.id == null
+                          ? tr('Бараа аль дэлгүүрийнх вэ — вэб дээр брэнд болж харагдана')
+                          : tr('Барааны дэлгүүрийг үүсгэсний дараа солих боломжгүй.'))
+                  .copyWith(errorText: _saveTried && _storeRequired && d.storeId == null ? tr('Дэлгүүр сонгоно уу') : null),
               items: [
-                DropdownMenuItem<int?>(value: null, child: Text(tr('Үндсэн дэлгүүр (сонгоогүй)'))),
+                DropdownMenuItem<int?>(
+                    value: null, child: Text(_storeRequired || d.storeId != null ? tr('Дэлгүүр сонгоно уу') : tr('Үндсэн дэлгүүр (сонгоогүй)'))),
                 for (final s in widget.stores) DropdownMenuItem<int?>(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis)),
               ],
               onChanged: d.id == null ? (v) => d.update(() => d.storeId = v) : null,
