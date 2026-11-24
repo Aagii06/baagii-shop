@@ -26,7 +26,7 @@ function StoreSalesList() {
 
   return (
     <>
-      <PageHeader title={t("ss.title")}>
+      <PageHeader title={t("ss.title")} hideTitle>
         <ChipTabs
           label={t("ss.period")}
           value={period}
