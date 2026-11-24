@@ -1,13 +1,14 @@
 "use client";
 
 import OrdersSidebar from "@/components/orders/OrdersSidebar";
+import EmailCodeDialog from "@/components/profile/EmailCodeDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPhone } from "@/components/ui/phone-input";
 import { sendEmailCode } from "@/lib/api/auth";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
-import { Check, ChevronRight, LogOut, Pencil, Store, UserRound } from "lucide-react";
+import { Check, ChevronRight, Loader2, LogOut, Pencil, Store, UserRound, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -28,15 +29,15 @@ export default function ProfilePage() {
   const logout = useAuthStore((s) => s.logout);
 
   // Like the admin profile: details are shown read-only, the pencil opens the form.
+  // There are no save/cancel buttons: the name saves on Enter or leaving the field,
+  // the email once its emailed code is typed in the dialog; ✕ closes the form.
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [justSaved, setJustSaved] = useState(false);
-  // Email: type it, "Код авах" emails a code, the code confirms it on save.
   const [emailInput, setEmailInput] = useState("");
   const [codeSentTo, setCodeSentTo] = useState<string | null>(null);
-  const [codeInput, setCodeInput] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [resendIn, setResendIn] = useState(0);
 
@@ -71,35 +72,40 @@ export default function ProfilePage() {
 
   if (signedOut) return null;
 
-  const trimmed = nameInput.trim();
-  const nameChanged = trimmed.length > 0 && trimmed !== (storedName ?? "");
   const email = emailInput.trim().toLowerCase();
   const emailChanged = email.length > 0 && email !== (storedEmail ?? "").toLowerCase();
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  // A changed email needs the code sent to that very address.
-  const emailReady = !emailChanged || (codeSentTo === email && codeInput.trim().length > 0);
-  const canSave = !saving && trimmed.length > 0 && (nameChanged || emailChanged) && emailReady;
   // Phone-signed-in shoppers can add an email; admin accounts change it in the admin panel.
   const canEditEmail = !user && phone != null;
   const displayName = storedName?.trim() || t("profile.noName");
   const formattedPhone = phone ? formatPhone(phone) : "";
 
-  const resetEmailForm = () => {
+  const saveNameIfChanged = () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed) return setNameInput(storedName ?? "");
+    if (trimmed === (storedName ?? "")) return;
+    setName(trimmed);
+    setJustSaved(true);
+  };
+
+  const closeForm = () => {
+    saveNameIfChanged();
     setEmailInput(storedEmail ?? "");
-    setCodeSentTo(null);
-    setCodeInput("");
     setEmailError(null);
+    setEditing(false);
   };
 
   const handleSendCode = async () => {
-    if (!emailValid || sendingCode || resendIn > 0) return;
+    if (!emailValid || sendingCode) return;
+    // Code already on its way to this address: just reopen the dialog.
+    if (resendIn > 0 && codeSentTo === email) return setDialogOpen(true);
     setSendingCode(true);
     setEmailError(null);
     try {
       await sendEmailCode(email);
       setCodeSentTo(email);
-      setCodeInput("");
       setResendIn(30);
+      setDialogOpen(true);
     } catch (err) {
       setEmailError(err instanceof Error ? err.message : t("profile.email.error"));
     } finally {
@@ -107,31 +113,19 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSave) return;
-    if (emailChanged) {
-      setSaving(true);
-      setEmailError(null);
-      try {
-        await saveEmail(email, codeInput.trim());
-      } catch (err) {
-        setEmailError(err instanceof Error ? err.message : t("profile.email.error"));
-        return;
-      } finally {
-        setSaving(false);
-      }
+  // Called by the dialog when the last digit is typed; null means saved.
+  const verifyEmailCode = async (code: string): Promise<string | null> => {
+    try {
+      await saveEmail(email, code);
+    } catch (err) {
+      return err instanceof Error ? err.message : t("profile.email.error");
     }
-    if (nameChanged) setName(trimmed);
-    resetEmailForm();
+    setDialogOpen(false);
+    setCodeSentTo(null);
+    saveNameIfChanged();
     setEditing(false);
     setJustSaved(true);
-  };
-
-  const handleCancel = () => {
-    setNameInput(storedName ?? "");
-    resetEmailForm();
-    setEditing(false);
+    return null;
   };
 
   const handleLogout = () => {
@@ -153,12 +147,32 @@ export default function ProfilePage() {
 
       {editing ? (
         <form
-          onSubmit={handleSave}
-          className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveNameIfChanged();
+          }}
+          className="relative rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-5"
         >
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("profile.section.personal")}
-          </h2>
+          <div className="flex items-center gap-2 pr-10">
+            <h2 className="text-sm font-semibold text-foreground">
+              {t("profile.section.personal")}
+            </h2>
+            {justSaved && (
+              <span className="flex items-center gap-1 text-xs text-green-600">
+                <Check className="h-3.5 w-3.5" />
+                {t("profile.saved")}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={closeForm}
+            aria-label={t("profile.close")}
+            title={t("profile.close")}
+            className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
+          >
+            <X className="h-4 w-4" />
+          </button>
 
           <div className="space-y-1.5">
             <label
@@ -171,8 +185,10 @@ export default function ProfilePage() {
               id="profile-name"
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
+              onBlur={saveNameIfChanged}
               placeholder={t("profile.name.placeholder")}
               autoComplete="name"
+              enterKeyHint="done"
               autoFocus
             />
           </div>
@@ -192,7 +208,7 @@ export default function ProfilePage() {
               <label htmlFor="profile-email" className="text-sm font-medium text-foreground">
                 {t("profile.email.label")}
               </label>
-              <div className="flex gap-2">
+              <div className="relative">
                 <Input
                   id="profile-email"
                   type="email"
@@ -202,48 +218,32 @@ export default function ProfilePage() {
                     setEmailInput(e.target.value);
                     setEmailError(null);
                   }}
+                  onKeyDown={(e) => {
+                    // Enter on a new address asks for its code instead of submitting the form.
+                    if (e.key !== "Enter") return;
+                    e.preventDefault();
+                    if (emailChanged) handleSendCode();
+                  }}
                   placeholder={t("profile.email.placeholder")}
                   autoComplete="email"
+                  className={emailChanged ? "pr-28" : undefined}
                 />
                 {emailChanged && (
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
-                    className="shrink-0"
                     onClick={handleSendCode}
-                    disabled={!emailValid || sendingCode || resendIn > 0}
+                    disabled={!emailValid || sendingCode}
+                    className="absolute right-1 top-1/2 flex h-[calc(100%-8px)] -translate-y-1/2 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
-                    {resendIn > 0 && codeSentTo === email
-                      ? `${t("profile.email.resend")} (${resendIn})`
-                      : codeSentTo === email
-                        ? t("profile.email.resend")
-                        : t("profile.email.sendCode")}
-                  </Button>
+                    {sendingCode && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {t("profile.email.sendCode")}
+                  </button>
                 )}
               </div>
-              {emailChanged && codeSentTo === email && (
-                <div className="space-y-1.5 pt-1">
-                  <p className="text-xs text-muted-foreground">
-                    {t("profile.email.codeSent").replace("{email}", email)}
-                  </p>
-                  <Input
-                    id="profile-email-code"
-                    value={codeInput}
-                    onChange={(e) => {
-                      setCodeInput(e.target.value.replace(/\D/g, "").slice(0, 6));
-                      setEmailError(null);
-                    }}
-                    placeholder={t("profile.email.codePlaceholder")}
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    autoFocus
-                  />
-                </div>
-              )}
               {emailError ? (
                 <p className="text-xs text-destructive">{emailError}</p>
               ) : (
-                emailChanged && codeSentTo !== email && (
+                emailChanged && (
                   <p className="text-xs text-muted-foreground">{t("profile.email.hint")}</p>
                 )
               )}
@@ -263,14 +263,15 @@ export default function ProfilePage() {
             )
           )}
 
-          <div className="flex gap-3 pt-1">
-            <Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={handleCancel}>
-              {t("profile.cancel")}
-            </Button>
-            <Button type="submit" className="flex-1 sm:flex-none" disabled={!canSave}>
-              {t("profile.save")}
-            </Button>
-          </div>
+          {dialogOpen && codeSentTo && (
+            <EmailCodeDialog
+              email={codeSentTo}
+              resendIn={resendIn}
+              onResend={handleSendCode}
+              onVerify={verifyEmailCode}
+              onClose={() => setDialogOpen(false)}
+            />
+          )}
         </form>
       ) : (
         <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">

@@ -425,7 +425,7 @@ const appEn = <String, String>{
   'Утасны дугаараараа нэвтэрнэ үү. Таны утсанд SMS код илгээнэ.': 'Sign in with your phone number. We\'ll text you a code.',
   'Утасны дугаарыг өөрчлөх боломжгүй.': 'Your phone number can\'t be changed.',
   'И-мэйл': 'Email',
-  '{email} хаяг руу код илгээлээ. Кодоо оруулаад хадгална уу.': 'We sent a code to {email}. Enter it and save.',
+  '{email} хаяг руу код илгээлээ. Кодоо оруулахад шууд хадгалагдана.': 'We sent a code to {email}. It saves as soon as you enter it.',
   '6 оронтой код': '6-digit code',
   '«Код авах» дарж имэйлдээ ирсэн кодоор баталгаажуулна.': 'Tap “Get code” and confirm with the code sent to your email.',
   'Утга {i}': 'Value {i}',
