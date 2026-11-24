@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../api/admin_manage_models.dart';
 import '../../api/admin_models.dart';
+import '../../config.dart';
 import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_design.dart';
@@ -194,32 +195,49 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
         : (tr('{remain} нөөц', {'remain': p.remain}), p.remain <= lowStockThreshold ? AdminColors.destructive : AdminColors.mutedForeground);
     return InkWell(
       onTap: () => _openForm(p.id),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(children: [
-          // Дэлгүүрийн лого зургийн буланд, нэр нь тусдаа мөрөнд (admin web-тэй адил).
-          Stack(clipBehavior: Clip.none, children: [
-            ImageBox(fileId: p.images.isEmpty ? null : p.images.first, size: 52),
+      // Зураг мөрийн зүүн ирмэгт наалдсан, мөрийн бүтэн өндөртэй — зай, хүрээгүй (admin web-тэй адил).
+      child: IntrinsicHeight(
+        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // Дэлгүүрийн лого зургийн буланд, нэр нь тусдаа мөрөнд.
+          Stack(children: [
+            SizedBox(
+              width: 96,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 84),
+                child: p.images.isEmpty
+                    ? Container(color: AdminColors.muted, child: const Icon(Icons.image_outlined, color: AdminColors.mutedForeground))
+                    : NetImage(p.image, width: 96),
+              ),
+            ),
+            // Дэлгүүрийн лого зүүн дээд буланд наалдсан, булан бөөрөнхийлөлтгүй.
             if (store.isNotEmpty)
               Positioned(
-                right: -4,
-                bottom: -4,
-                // Лого дугуйг бүтэн дүүргэнэ — хүрээ, зайгүй.
-                child: logo != null
-                    ? ImageBox(fileId: logo, size: 28, circle: true)
-                    : Container(
-                        width: 28,
-                        height: 28,
-                        alignment: Alignment.center,
-                        decoration: const BoxDecoration(color: AdminColors.primary, shape: BoxShape.circle),
-                        child: Text(_storeInitials(store),
-                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, height: 1, letterSpacing: -0.3)),
-                      ),
+                left: 0,
+                top: 0,
+                // Лого байхгүй, эсвэл файл нь олдохгүй бол дэлгүүрийн 2 үсэг.
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: NetImage(
+                    fileUrl(logo, 'icon'),
+                    width: 28,
+                    height: 28,
+                    fallback: Container(
+                      width: 28,
+                      height: 28,
+                      alignment: Alignment.center,
+                      color: AdminColors.primary,
+                      child: Text(_storeInitials(store),
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, height: 1, letterSpacing: -0.3)),
+                    ),
+                  ),
+                ),
               ),
           ]),
-          const SizedBox(width: 12),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               if (store.isNotEmpty)
                 Padding(
@@ -249,14 +267,17 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                   child: Text(formatDate(p.createdAt),
                       style: TextStyle(fontFamily: mono, fontSize: 11, color: AdminColors.mutedForeground.withValues(alpha: 0.7))),
                 ),
+              ]),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Text(mnt(p.price), style: const TextStyle(fontFamily: mono, fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 2),
+              Text(stock, style: TextStyle(fontSize: 12, color: stockColor)),
             ]),
           ),
-          const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(mnt(p.price), style: const TextStyle(fontFamily: mono, fontSize: 14, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 2),
-            Text(stock, style: TextStyle(fontSize: 12, color: stockColor)),
-          ]),
         ]),
       ),
     );

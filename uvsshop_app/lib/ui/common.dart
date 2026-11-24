@@ -58,11 +58,14 @@ class NetImage extends StatelessWidget {
   final double? width;
   final double? height;
   final BorderRadius? radius;
-  const NetImage(this.url, {super.key, this.fit = BoxFit.cover, this.width, this.height, this.radius});
+
+  /// Зураг байхгүй эсвэл ачаалж чадаагүй үед icon-той placeholder-ын оронд.
+  final Widget? fallback;
+  const NetImage(this.url, {super.key, this.fit = BoxFit.cover, this.width, this.height, this.radius, this.fallback});
 
   @override
   Widget build(BuildContext context) {
-    final placeholder = Container(
+    final placeholder = fallback ?? Container(
       width: width,
       height: height,
       color: Colors.grey.shade100,

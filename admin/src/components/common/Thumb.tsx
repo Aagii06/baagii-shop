@@ -16,6 +16,7 @@ export default function Thumb({
   variant = "thumbnail",
   eager = false,
   className,
+  fallback,
 }: {
   id: string | null | undefined;
   alt?: string;
@@ -26,6 +27,8 @@ export default function Thumb({
   /** Load immediately — for the above-the-fold hero image. */
   eager?: boolean;
   className?: string;
+  /** Shown instead of the no-image placeholder when there is no image or it fails to load. */
+  fallback?: React.ReactNode;
 }) {
   const small = fileUrl(id, variant);
   const original = fileUrl(id, "original");
@@ -47,7 +50,9 @@ export default function Thumb({
       )}
       style={size ? { width: size, height: size } : undefined}
     >
-      {missing ? (
+      {missing && fallback ? (
+        fallback
+      ) : missing ? (
         // Small fixed boxes get the small logo file, everything else the medium one.
         <Image
           src={size && size <= 96 ? "/images/no-image-sm.png" : "/images/no-image-md.png"}

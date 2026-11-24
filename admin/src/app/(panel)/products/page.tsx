@@ -205,7 +205,7 @@ export default function ProductsPage() {
           <ErrorState error={page.error} onRetry={() => setVersion((v) => v + 1)} />
         </div>
       ) : !ready ? (
-        <ProductListSkeleton />
+        <ProductListSkeleton flush />
       ) : rows.length === 0 ? (
         <div className="pt-4">
           <EmptyState title={t("products.notFound")} description={t("products.notFoundHint")} />
@@ -221,24 +221,31 @@ export default function ProductsPage() {
                 <li key={post.id}>
                   <Link
                     href={`/products/${post.id}`}
-                    className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60"
+                    className="flex items-stretch bg-white pr-4 transition-colors hover:bg-muted/50"
                   >
-                    {/* The store's logo sits on the image's corner; its name has its own line. */}
-                    <span className="relative shrink-0">
-                      <Thumb id={post.images?.[0]} variant="icon" size={52} className="rounded-xl" />
+                    {/* Photo flush to the row's left edge, full row height (like AjrugShop);
+                        the store's logo sits on its corner, its name on its own line. */}
+                    <span className="relative flex w-24 shrink-0 self-stretch">
+                      <Thumb id={post.images?.[0]} variant="thumbnail" className="min-h-[84px] w-24 shrink-0 self-stretch rounded-none border-0" />
                       {post.storeName && (
-                        <span title={post.storeName} className="absolute -bottom-1 -right-1 shadow-sm rounded-full">
-                          {logo ? (
-                            <Thumb id={logo} variant="icon" size={28} className="rounded-full border-0" />
-                          ) : (
-                            <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-[11px] font-bold leading-none tracking-tight text-primary-foreground">
-                              {storeInitials(post.storeName)}
-                            </span>
-                          )}
+                        // Top-left corner, flush and square (no rounding).
+                        <span title={post.storeName} className="absolute left-0 top-0">
+                          {/* No logo, or its file is missing: the store's two letters. */}
+                          <Thumb
+                            id={logo}
+                            variant="icon"
+                            size={28}
+                            className="rounded-none border-0"
+                            fallback={
+                              <span className="grid size-full place-items-center bg-primary text-[11px] font-bold leading-none tracking-tight text-primary-foreground">
+                                {storeInitials(post.storeName)}
+                              </span>
+                            }
+                          />
                         </span>
                       )}
                     </span>
-                    <span className="min-w-0 grow">
+                    <span className="min-w-0 grow self-center py-3 pl-3.5 pr-2">
                       <span className="block truncate text-[15px] font-semibold">
                         {post.name}
                       </span>
@@ -259,7 +266,7 @@ export default function ProductsPage() {
                         </span>
                       )}
                     </span>
-                    <span className="shrink-0 text-right">
+                    <span className="shrink-0 self-center text-right">
                       <span className="block font-mono text-sm font-bold">
                         {formatMNT(toNumber(post.price))}
                       </span>
@@ -278,7 +285,7 @@ export default function ProductsPage() {
                   {t("common.retry")}
                 </Button>
               ) : (
-                <ProductListSkeleton rows={3} />
+                <ProductListSkeleton flush rows={3} />
               )}
             </div>
           )}
