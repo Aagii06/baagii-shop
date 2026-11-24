@@ -7,11 +7,12 @@ const { sendPhoneOtp, verifyPhoneOtp } = require("../../helper/otpHelper");
 const { mergeGuestCart } = require("../../helper/cartHelper");
 const { notify } = require("../../helper/notificationHelper");
 const { ok, fail, handle, now, phoneDigits } = require("../../helper/helper");
+const { sendCodeMail } = require("../../helper/mailHelper");
 
 // Анх бүртгүүлсэн худалдан авагчийн нэр (web/src/store/authStore.ts DEFAULT_PROFILE_NAME)
 const DEFAULT_NAME = "Зочин";
 
-const toCustomer = (customer) => ({ id: customer.id, phone: customer.phone, name: customer.name });
+const toCustomer = (customer) => ({ id: customer.id, phone: customer.phone, name: customer.name, email: customer.email ?? null });
 
 module.exports.loginGuest = handle("loginGuest", async (req, res) => {
   const guestId = crypto.randomUUID();
@@ -62,6 +63,43 @@ module.exports.updateMe = handle("updateMe", async (req, res) => {
   if (!customer) return fail(res, "Хэрэглэгч олдсонгүй");
   await customer.update({ name: req.body.name.trim(), updated_by: customer.id, updated_at: now() });
   return ok(res, toCustomer(customer));
+});
+
+// Профайлын имэйлийг кодоор баталгаажуулна; код phoneOtps-д имэйл хаягаар нь хадгалагдана
+const EMAIL_OTP = "customerEmail";
+const emailOf = (value) => value?.trim().toLowerCase() || null;
+const findCustomer = (req) => customers.findOne({ where: { id: req.session.customerId, shop_id: req.shopId, status: "active" } });
+
+// { email } — тэр имэйл рүү код илгээнэ; changeEmail-д code-оор баталгаажуулна
+module.exports.sendEmailOtp = handle("sendEmailOtp", async (req, res) => {
+  const customer = await findCustomer(req);
+  if (!customer) return fail(res, "Хэрэглэгч олдсонгүй");
+  const email = emailOf(req.body.email);
+  if (email === emailOf(customer.email)) return fail(res, "Энэ таны одоогийн имэйл байна");
+  // Имэйл тохируулаагүй бол dev-д код консолд хэвлэгдэнэ
+  const mailReady = Boolean(process.env.MAIL_USER_NAME && process.env.MAIL_USER_PASS);
+  if (!mailReady && process.env.NODE_ENV === "production") return fail(res, "Имэйл илгээх тохиргоо хийгдээгүй байна");
+  const send = mailReady
+    ? (code) =>
+        sendCodeMail(req.shopId, email, {
+          title: "Имэйл баталгаажуулах код",
+          intro: "Таны профайлд имэйл хаяг нэмэх хүсэлт ирлээ. Доорх кодыг оруулж баталгаажуулна уу.",
+          code,
+        })
+    : null;
+  const result = await sendPhoneOtp(req.shopId, email, EMAIL_OTP, send);
+  return res.status(200).json({ ...result, data: null });
+});
+
+// { email, code } — код зөв бол имэйлийг хадгална
+module.exports.changeEmail = handle("changeEmail", async (req, res) => {
+  const customer = await findCustomer(req);
+  if (!customer) return fail(res, "Хэрэглэгч олдсонгүй");
+  const email = emailOf(req.body.email);
+  const result = await verifyPhoneOtp(req.shopId, email, req.body.code ?? "", EMAIL_OTP);
+  if (!result.success) return fail(res, result.message);
+  await customer.update({ email, updated_by: customer.id, updated_at: now() });
+  return ok(res, toCustomer(customer), "Имэйл хадгалагдлаа");
 });
 
 const PARTNER_OTP = "partner";

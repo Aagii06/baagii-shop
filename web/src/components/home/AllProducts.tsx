@@ -2,9 +2,8 @@
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getProducts } from "@/lib/api/products";
-import { getStores, goldFirst, type Store } from "@/lib/api/stores";
+import { getStores, saleThenTier, type Store } from "@/lib/api/stores";
 import type { Product } from "@/types/product";
-import { byNewest } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import CategoryShowcase from "./CategoryShowcase";
@@ -34,10 +33,10 @@ export default function AllProducts() {
       .finally(() => setLoading(false));
   }, []);
 
-  // The home list: gold stores' products first (newest first), then the
-  // rest newest first; 40 in all.
+  // The home list: on-sale products first, then by store tier
+  // (gold, silver, bronze, normal), then newest; 40 in all.
   const newest = useMemo(
-    () => goldFirst([...products].sort(byNewest), stores).slice(0, HOME_LIST_SIZE),
+    () => saleThenTier(products, stores).slice(0, HOME_LIST_SIZE),
     [products, stores],
   );
 

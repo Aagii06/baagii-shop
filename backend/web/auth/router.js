@@ -14,6 +14,10 @@ router.get("/getUserData", protectWeb, controller.getUserData);
 router.post("/sendOtp", otpLimiter, validate([phone("phone")]), controller.sendOtp);
 router.post("/verifyOtp", protectWeb, validate([phone("phone"), body("code").trim().notEmpty().withMessage("Код оруулна уу")]), controller.verifyOtp);
 router.put("/me", protectWeb, requireCustomer, validate([body("name").trim().notEmpty().withMessage("Нэр оруулна уу")]), controller.updateMe);
+// Профайлд имэйл нэмэх/солих: имэйл рүү код илгээгээд, кодоор баталгаажуулна
+const email = body("email").trim().isEmail().withMessage("Имэйл буруу байна");
+router.post("/me/email/sendOtp", protectWeb, requireCustomer, otpLimiter, validate([email]), controller.sendEmailOtp);
+router.put("/me/email", protectWeb, requireCustomer, validate([email, body("code").trim().notEmpty().withMessage("Код оруулна уу")]), controller.changeEmail);
 // Хамтран ажиллах хүсэлт (вэбийн /seller): утсаа OTP-оор баталгаажуулж, дэлгүүрийн мэдээллээ илгээнэ
 router.post("/register/sendOtp", otpLimiter, validate([phone("phone")]), controller.sendRegisterOtp);
 router.post(

@@ -79,3 +79,40 @@ export function goldFirst<
   const top = products.filter(isGold).sort(byNewest);
   return [...top, ...products.filter((p) => !isGold(p))];
 }
+
+/** Discount percent (0 when not on sale). */
+function discountPct(p: { price: number; originalPrice?: number }): number {
+  return p.originalPrice && p.originalPrice > p.price
+    ? (p.originalPrice - p.price) / p.originalPrice
+    : 0;
+}
+
+/**
+ * Home order: on-sale products first; then by store tier (gold, silver,
+ * bronze, normal); then bigger discount first; then newest first.
+ */
+export function saleThenTier<
+  P extends {
+    id: number;
+    price: number;
+    originalPrice?: number;
+    storeId?: number;
+    brand?: string;
+    updatedAt?: string;
+  },
+>(products: P[], stores: Store[]): P[] {
+  const byId = new Map(stores.map((s) => [s.id, s.tier]));
+  const byName = new Map(stores.map((s) => [s.name, s.tier]));
+  const rank = (p: P) =>
+    tierRank(p.storeId !== undefined ? byId.get(p.storeId) : p.brand ? byName.get(p.brand) : undefined);
+  return [...products].sort((a, b) => {
+    const da = discountPct(a);
+    const db = discountPct(b);
+    return (
+      Number(db > 0) - Number(da > 0) ||
+      rank(a) - rank(b) ||
+      db - da ||
+      byNewest(a, b)
+    );
+  });
+}

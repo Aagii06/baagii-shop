@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       shop_id: { type: DataTypes.INTEGER },
       phone: { type: DataTypes.STRING },
       name: { type: DataTypes.STRING },
+      email: { type: DataTypes.STRING },
       ...auditFields(DataTypes),
     },
     { sequelize, tableName: "customers", modelName: "customers", timestamps: false },

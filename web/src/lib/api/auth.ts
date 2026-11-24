@@ -52,6 +52,8 @@ export interface Customer {
   id: number;
   phone: string;
   name: string | null;
+  /** Confirmed by an emailed code (`/auth/me/email`). */
+  email?: string | null;
 }
 
 // A guest token is accepted but carries no user, so every field can be
@@ -114,6 +116,17 @@ export const phoneOtp = {
 /** Renames the signed-in shopper. */
 export async function updateProfileName(name: string): Promise<void> {
   await apiFetch<ApiItemResponse<Customer>>("/auth/me", { method: "PUT", body: { name } });
+}
+
+/** Emails a code to `email` for adding it to the profile. */
+export async function sendEmailCode(email: string): Promise<void> {
+  await apiFetch<ApiItemResponse<null>>("/auth/me/email/sendOtp", { method: "POST", body: { email } });
+}
+
+/** Saves `email` on the profile once its emailed `code` checks out. */
+export async function confirmEmail(email: string, code: string): Promise<Customer> {
+  const res = await apiFetch<ApiItemResponse<Customer>>("/auth/me/email", { method: "PUT", body: { email, code } });
+  return res.data;
 }
 
 /**

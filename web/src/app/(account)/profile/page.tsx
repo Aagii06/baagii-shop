@@ -4,6 +4,7 @@ import OrdersSidebar from "@/components/orders/OrdersSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPhone } from "@/components/ui/phone-input";
+import { sendEmailCode } from "@/lib/api/auth";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuthStore } from "@/store/authStore";
 import { Check, ChevronRight, LogOut, Pencil, Store, UserRound } from "lucide-react";
@@ -21,17 +22,38 @@ export default function ProfilePage() {
   const phone = useAuthStore((s) => s.phone);
   const storedName = useAuthStore((s) => s.user?.name ?? s.name);
   const setName = useAuthStore((s) => s.setName);
+  // A signed-in shopper's email (admin accounts show `user.email` instead).
+  const storedEmail = useAuthStore((s) => s.user?.email ?? s.email);
+  const saveEmail = useAuthStore((s) => s.saveEmail);
   const logout = useAuthStore((s) => s.logout);
 
   // Like the admin profile: details are shown read-only, the pencil opens the form.
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [justSaved, setJustSaved] = useState(false);
+  // Email: type it, "Код авах" emails a code, the code confirms it on save.
+  const [emailInput, setEmailInput] = useState("");
+  const [codeSentTo, setCodeSentTo] = useState<string | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [sendingCode, setSendingCode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [resendIn, setResendIn] = useState(0);
 
   // Keep the field in sync once the stored name settles after bootstrap.
   useEffect(() => {
     setNameInput(storedName ?? "");
   }, [storedName]);
+
+  useEffect(() => {
+    setEmailInput(storedEmail ?? "");
+  }, [storedEmail]);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const id = setTimeout(() => setResendIn((n) => n - 1), 1000);
+    return () => clearTimeout(id);
+  }, [resendIn]);
 
   useEffect(() => {
     if (!justSaved) return;
@@ -50,20 +72,65 @@ export default function ProfilePage() {
   if (signedOut) return null;
 
   const trimmed = nameInput.trim();
-  const canSave = trimmed.length > 0 && trimmed !== (storedName ?? "");
+  const nameChanged = trimmed.length > 0 && trimmed !== (storedName ?? "");
+  const email = emailInput.trim().toLowerCase();
+  const emailChanged = email.length > 0 && email !== (storedEmail ?? "").toLowerCase();
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // A changed email needs the code sent to that very address.
+  const emailReady = !emailChanged || (codeSentTo === email && codeInput.trim().length > 0);
+  const canSave = !saving && trimmed.length > 0 && (nameChanged || emailChanged) && emailReady;
+  // Phone-signed-in shoppers can add an email; admin accounts change it in the admin panel.
+  const canEditEmail = !user && phone != null;
   const displayName = storedName?.trim() || t("profile.noName");
   const formattedPhone = phone ? formatPhone(phone) : "";
 
-  const handleSave = (e: React.FormEvent) => {
+  const resetEmailForm = () => {
+    setEmailInput(storedEmail ?? "");
+    setCodeSentTo(null);
+    setCodeInput("");
+    setEmailError(null);
+  };
+
+  const handleSendCode = async () => {
+    if (!emailValid || sendingCode || resendIn > 0) return;
+    setSendingCode(true);
+    setEmailError(null);
+    try {
+      await sendEmailCode(email);
+      setCodeSentTo(email);
+      setCodeInput("");
+      setResendIn(30);
+    } catch (err) {
+      setEmailError(err instanceof Error ? err.message : t("profile.email.error"));
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSave) return;
-    setName(trimmed);
+    if (emailChanged) {
+      setSaving(true);
+      setEmailError(null);
+      try {
+        await saveEmail(email, codeInput.trim());
+      } catch (err) {
+        setEmailError(err instanceof Error ? err.message : t("profile.email.error"));
+        return;
+      } finally {
+        setSaving(false);
+      }
+    }
+    if (nameChanged) setName(trimmed);
+    resetEmailForm();
     setEditing(false);
     setJustSaved(true);
   };
 
   const handleCancel = () => {
     setNameInput(storedName ?? "");
+    resetEmailForm();
     setEditing(false);
   };
 
@@ -120,17 +187,80 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          {user && (
+          {canEditEmail ? (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">
+              <label htmlFor="profile-email" className="text-sm font-medium text-foreground">
                 {t("profile.email.label")}
               </label>
-              <Input
-                value={user.email ?? t("profile.email.empty")}
-                disabled
-                readOnly
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="profile-email"
+                  type="email"
+                  inputMode="email"
+                  value={emailInput}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value);
+                    setEmailError(null);
+                  }}
+                  placeholder={t("profile.email.placeholder")}
+                  autoComplete="email"
+                />
+                {emailChanged && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={handleSendCode}
+                    disabled={!emailValid || sendingCode || resendIn > 0}
+                  >
+                    {resendIn > 0 && codeSentTo === email
+                      ? `${t("profile.email.resend")} (${resendIn})`
+                      : codeSentTo === email
+                        ? t("profile.email.resend")
+                        : t("profile.email.sendCode")}
+                  </Button>
+                )}
+              </div>
+              {emailChanged && codeSentTo === email && (
+                <div className="space-y-1.5 pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    {t("profile.email.codeSent").replace("{email}", email)}
+                  </p>
+                  <Input
+                    id="profile-email-code"
+                    value={codeInput}
+                    onChange={(e) => {
+                      setCodeInput(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      setEmailError(null);
+                    }}
+                    placeholder={t("profile.email.codePlaceholder")}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    autoFocus
+                  />
+                </div>
+              )}
+              {emailError ? (
+                <p className="text-xs text-destructive">{emailError}</p>
+              ) : (
+                emailChanged && codeSentTo !== email && (
+                  <p className="text-xs text-muted-foreground">{t("profile.email.hint")}</p>
+                )
+              )}
             </div>
+          ) : (
+            user && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">
+                  {t("profile.email.label")}
+                </label>
+                <Input
+                  value={user.email ?? t("profile.email.empty")}
+                  disabled
+                  readOnly
+                />
+              </div>
+            )
           )}
 
           <div className="flex gap-3 pt-1">
@@ -152,8 +282,8 @@ export default function ProfilePage() {
             {formattedPhone && (
               <span className="mt-0.5 block truncate font-mono text-sm text-muted-foreground">{formattedPhone}</span>
             )}
-            {user?.email && (
-              <span className="mt-0.5 block truncate text-sm text-muted-foreground">{user.email}</span>
+            {storedEmail && (
+              <span className="mt-0.5 block truncate text-sm text-muted-foreground">{storedEmail}</span>
             )}
             {justSaved && (
               <span className="mt-1 flex items-center gap-1 text-sm text-green-600">

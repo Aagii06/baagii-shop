@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getUserData, phoneOtp, signOut, updateProfileName } from "@/lib/api/auth";
+import { confirmEmail, getUserData, phoneOtp, signOut, updateProfileName } from "@/lib/api/auth";
 import type { AuthUser } from "@/lib/api/auth";
 
 // Left by the old mock sign-in, which kept the phone in the browser only.
@@ -26,6 +26,8 @@ interface AuthStore {
   phone: string | null;
   /** Profile first name — defaults to `DEFAULT_PROFILE_NAME` on registration. */
   name: string | null;
+  /** Shopper's confirmed email, if they added one. */
+  email: string | null;
   /** True until the initial `getUserData` settles. */
   loading: boolean;
 
@@ -37,6 +39,8 @@ interface AuthStore {
   verifyOtp: (phone: string, code: string) => Promise<boolean>;
   /** Updates the profile first name. */
   setName: (name: string) => void;
+  /** Checks the emailed code and saves the email; rejects with the backend's reason. */
+  saveEmail: (email: string, code: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -44,6 +48,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   phone: null,
   name: null,
+  email: null,
   loading: true,
 
   bootstrap: async () => {
@@ -56,9 +61,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
         user: data.user ?? null,
         phone: data.customer?.phone ?? null,
         name: data.customer?.name ?? null,
+        email: data.customer?.email ?? null,
       });
     } catch {
-      set({ user: null, phone: null, name: null });
+      set({ user: null, phone: null, name: null, email: null });
     } finally {
       set({ loading: false });
     }
@@ -73,7 +79,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     if (!customer) return false;
     // The backend moved the guest cart to the shopper; a new phone
     // registration starts with the default first name.
-    set({ phone: customer.phone, name: customer.name ?? DEFAULT_PROFILE_NAME });
+    set({ phone: customer.phone, name: customer.name ?? DEFAULT_PROFILE_NAME, email: customer.email ?? null });
     return true;
   },
 
@@ -84,8 +90,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
     });
   },
 
+  saveEmail: async (email, code) => {
+    const customer = await confirmEmail(email, code);
+    set({ email: customer.email ?? email });
+  },
+
   logout: () => {
-    set({ phone: null, name: null, user: null });
+    set({ phone: null, name: null, email: null, user: null });
     signOut();
   },
 }));
