@@ -2,9 +2,11 @@ const Sequelize = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class orderItems extends Sequelize.Model {
-    static associate({ orders, products }) {
+    static associate({ orders, products, stores }) {
       this.belongsTo(orders, { as: "order", foreignKey: "order_id" });
       this.belongsTo(products, { as: "product", foreignKey: "product_id" });
+      // Захиалах үеийн дэлгүүр — барааны одоогийн дэлгүүрээс (product.store) өөр байж болно
+      this.belongsTo(stores, { as: "store", foreignKey: "store_id" });
     }
   }
 
@@ -14,6 +16,8 @@ module.exports = (sequelize, DataTypes) => {
       order_id: { type: DataTypes.INTEGER },
       product_id: { type: DataTypes.INTEGER },
       variant_id: { type: DataTypes.INTEGER },
+      // Захиалах үеийн дэлгүүр (худалдагч); null — үндсэн дэлгүүрийн бараа
+      store_id: { type: DataTypes.INTEGER },
       // Захиалах үеийн нэр, зураг, үнэ (бараа өөрчлөгдсөн ч хэвээр)
       name: { type: DataTypes.STRING },
       image: { type: DataTypes.STRING },

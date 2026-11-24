@@ -56,6 +56,7 @@ class NotificationBell extends StatelessWidget {
 const _icons = {
   'order': (Icons.receipt_long_outlined, AdminColors.tintBlue, AdminColors.tintBlueInk),
   'order_paid': (Icons.paid_outlined, AdminColors.tintMint, AdminColors.tintMintInk),
+  'order_confirmed': (Icons.inventory_outlined, AdminColors.tintMint, AdminColors.tintMintInk),
   'order_cancelled': (Icons.cancel_outlined, Color(0x1ADC2626), AdminColors.destructive),
   'order_returned': (Icons.undo, AdminColors.tintPeach, AdminColors.tintPeachInk),
   'order_overdue': (Icons.schedule, AdminColors.tintPeach, AdminColors.tintPeachInk),

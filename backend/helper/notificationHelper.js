@@ -106,6 +106,42 @@ const customerTexts = {
 module.exports.notifyOrderCustomer = (order, event, ...args) =>
   notifyCustomer({ shopId: order.shop_id, customerId: order.customer_id, link: `/orders/${order.order_number ?? order.id}`, ...customerTexts[event](order, ...args) });
 
+/**
+ * Нэг захиалгад олон дэлгүүрийн бараа орж болно — дэлгүүр бүрийн худалдагчдад (админд биш)
+ * зөвхөн өөрийнх нь бараа, дүнгээр тусад нь мэдэгдэнэ. Худалдагч захиалга хардаггүй тул
+ * холбоос нь /products. items[].store_id — захиалах үеийн дэлгүүр (null — үндсэн дэлгүүр).
+ * event: placed (шинэ захиалга) | confirmed (баталгаажсан — бэлтгэнэ)
+ */
+module.exports.notifyOrderStores = async (order, event) => {
+  try {
+    const byStore = new Map();
+    for (const item of order.items ?? []) {
+      const qty = item.qty - (item.returned_qty || 0);
+      if (!item.store_id || qty <= 0) continue;
+      const s = byStore.get(item.store_id) ?? { lines: 0, qty: 0, total: 0 };
+      s.lines++;
+      s.qty += qty;
+      s.total += qty * toNumber(item.price);
+      byStore.set(item.store_id, s);
+    }
+    const number = order.order_number ?? `#${order.id}`;
+    for (const [storeId, s] of byStore) {
+      const summary = `Таны ${s.lines} бараа (${s.qty} ширхэг) · ${money(s.total)}`;
+      await module.exports.notify({
+        shopId: order.shop_id,
+        storeId,
+        admins: false,
+        shopperLink: "/products",
+        ...(event === "confirmed"
+          ? { type: "order_confirmed", title: `Захиалга ${number} баталгаажлаа — бэлтгэнэ үү`, body: summary }
+          : { type: "order", title: `Шинэ захиалга ${number}`, body: summary }),
+      });
+    }
+  } catch (error) {
+    console.error("notifyOrderStores failed:", error);
+  }
+};
+
 /** Захиалгын бараанууд аль дэлгүүрийнх вэ (худалдагчдад мэдэгдэхэд). */
 const orderStoreIds = async (order) => {
   const ids = [...new Set((order.items ?? []).map((i) => i.product_id).filter(Boolean))];

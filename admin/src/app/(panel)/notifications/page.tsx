@@ -19,6 +19,7 @@ import {
   Handshake,
   Loader2,
   MessageSquareText,
+  PackageCheck,
   PackageMinus,
   ReceiptText,
   Undo2,
@@ -32,6 +33,7 @@ const PAGE_SIZE = 30;
 const ICON: Record<NotificationType, { icon: LucideIcon; tone: string }> = {
   order: { icon: ReceiptText, tone: "bg-tint-blue text-tint-blue-ink" },
   order_paid: { icon: CircleDollarSign, tone: "bg-tint-mint text-tint-mint-ink" },
+  order_confirmed: { icon: PackageCheck, tone: "bg-tint-mint text-tint-mint-ink" },
   order_cancelled: { icon: CircleX, tone: "bg-destructive/10 text-destructive" },
   order_returned: { icon: Undo2, tone: "bg-tint-peach text-tint-peach-ink" },
   order_overdue: { icon: Clock, tone: "bg-tint-peach text-tint-peach-ink" },

@@ -4,24 +4,13 @@ const { orderStatuses, unpaidCancelHours } = require("../config/constants");
 const { toIso, toNumber, now, parseAt } = require("./helper");
 const { variantImage, sellingPrice } = require("./productHelper");
 const { saveLog } = require("../utils/logHelper");
-const { LOW_STOCK, notifyLowStock } = require("./notificationHelper");
+const { LOW_STOCK, notifyLowStock, notifyOrderStores } = require("./notificationHelper");
 const { makeOrderNumber } = require("./orderNumber");
 
 module.exports.itemsInclude = [{ model: orderItems, as: "items" }];
-// Админы захиалгын дэлгэрэнгүйд бараа бүрийн дэлгүүрийн нэр (худалдагчийн бараа бол)
+// Админы захиалгын дэлгэрэнгүйд бараа бүрийн дэлгүүрийн нэр (захиалах үеийн orderItems.store_id)
 const adminItemsInclude = [
-  {
-    model: orderItems,
-    as: "items",
-    include: [
-      {
-        model: products,
-        as: "product",
-        attributes: ["id", "store_id"],
-        include: [{ model: stores, as: "store", attributes: ["id", "name"] }],
-      },
-    ],
-  },
+  { model: orderItems, as: "items", include: [{ model: stores, as: "store", attributes: ["id", "name"] }] },
 ];
 
 const kept = (item) => item.qty - (item.returned_qty || 0);
@@ -53,7 +42,7 @@ module.exports.toAdminOrder = (order) => ({
       qty: item.qty,
       price: toNumber(item.price),
       ...(item.returned_qty ? { returnedQty: item.returned_qty } : {}),
-      ...(item.product?.store ? { storeName: item.product.store.name } : {}),
+      ...(item.store ? { storeName: item.store.name } : {}),
     })),
   deliveryFee: toNumber(order.delivery_fee),
   timeline: Object.fromEntries(
@@ -148,6 +137,7 @@ module.exports.placeOrder = async ({ shopId, lines, info, by = null, transaction
       items.push({
         product_id: variant.product_id,
         variant_id: variant.id,
+        store_id: variant.product.store_id ?? null,
         name,
         image: variantImage(variant.product.attrs ?? [], variant) ?? variant.product.images?.[0] ?? null,
         qty: line.qty,
@@ -173,6 +163,8 @@ module.exports.placeOrder = async ({ shopId, lines, info, by = null, transaction
 
     // Гүйлгээ амжилттай дууссаны дараа л мэдэгдэнэ (дуудагчийн гүйлгээ ч бай)
     if (lowStock.length > 0) t.afterCommit(() => notifyLowStock(shopId, lowStock));
+    // Худалдагч бүрт зөвхөн өөрийн бараагаар нь
+    t.afterCommit(() => notifyOrderStores({ shop_id: shopId, id: order.id, order_number: orderNumber, items }, "placed"));
     if (!transaction) await t.commit();
     return order.id;
   } catch (error) {

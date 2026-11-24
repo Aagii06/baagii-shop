@@ -10,6 +10,8 @@ import { apiFetch, type ApiItemResponse } from "./client";
 export type NotificationType =
   | "order"
   | "order_paid"
+  /** A seller's items in an order were confirmed — time to prepare them. */
+  | "order_confirmed"
   | "order_cancelled"
   | "order_returned"
   | "order_overdue"

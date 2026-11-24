@@ -49,10 +49,17 @@ module.exports.create = handle("productCreate", async (req, res) => {
 module.exports.update = handle("productUpdate", async (req, res) => {
   const { by, at, ...body } = req.body;
   const own = await ownStoreId(req);
-  if (!(await products.count({ where: { id: req.params.id, shop_id: req.shopId, status: "active", ...storeScope(own) } })))
-    return fail(res, "Бараа олдсонгүй");
+  const current = await products.findOne({
+    where: { id: req.params.id, shop_id: req.shopId, status: "active", ...storeScope(own) },
+    attributes: ["id", "store_id"],
+    raw: true,
+  });
+  if (!current) return fail(res, "Бараа олдсонгүй");
+  // Бараа дэлгүүр хооронд шилжихгүй: захиалга, тооцоо, мэдэгдэл дэлгүүрээрээ явдаг
   const storeId = await storeFor(req, own);
-  const id = await saveProduct({ shopId: req.shopId, id: req.params.id, body, by, storeId });
+  if (storeId !== undefined && storeId !== (current.store_id ?? null))
+    return fail(res, "Барааны дэлгүүрийг солих боломжгүй. Шинэ дэлгүүрт шинээр бараа үүсгэнэ үү");
+  const id = await saveProduct({ shopId: req.shopId, id: req.params.id, body, by });
   return ok(res, toAdminProduct(await findProduct({ id, shop_id: req.shopId })));
 });
 
