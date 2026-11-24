@@ -3,7 +3,7 @@
 import ChipTabs from "@/components/common/ChipTabs";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import Thumb from "@/components/common/Thumb";
-import DetailHeader from "@/components/layout/DetailHeader";
+import PageHeader from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { getStoreSales, PERIOD_KEYS, periodLabelKey, periodOf, readPeriod } from "@/lib/api/storeReport";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -26,14 +26,14 @@ function StoreSalesList() {
 
   return (
     <>
-      <DetailHeader backHref="/profile" title={t("ss.title")} subtitle={t("ss.subtitle")} />
-
-      <ChipTabs
-        label={t("ss.period")}
-        value={period}
-        onChange={(next) => router.replace(`/store-sales?period=${next}`)}
-        options={PERIOD_KEYS.map((key) => ({ value: key, label: t(periodLabelKey[key]) }))}
-      />
+      <PageHeader title={t("ss.title")}>
+        <ChipTabs
+          label={t("ss.period")}
+          value={period}
+          onChange={(next) => router.replace(`/store-sales?period=${next}`)}
+          options={PERIOD_KEYS.map((key) => ({ value: key, label: t(periodLabelKey[key]) }))}
+        />
+      </PageHeader>
 
       {error ? (
         <div className="pt-4">

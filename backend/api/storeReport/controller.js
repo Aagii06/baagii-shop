@@ -94,7 +94,7 @@ module.exports.show = handle("storeReportShow", async (req, res) => {
   ]);
   const [lines] = await sequelize.query(
     `SELECT o.id AS order_id, o.order_number, o.status, o.created_at, o.delivered_at,
-            oi.id, oi.name, oi.image, oi.qty, oi.returned_qty, oi.price
+            oi.id, oi.product_id, oi.variant_id, oi.name, oi.image, oi.qty, oi.returned_qty, oi.price
        FROM orderItems oi
        JOIN orders o ON o.id = oi.order_id
       WHERE o.shop_id = :shopId AND oi.store_id = :storeId AND o.status <> 'cancelled'
@@ -113,9 +113,44 @@ module.exports.show = handle("storeReportShow", async (req, res) => {
     o.amount += kept * toNumber(l.price);
     o.items.push({ id: l.id, name: l.name, image: l.image, qty: l.qty, returnedQty: l.returned_qty, price: toNumber(l.price) });
   }
+  // Захиалгуудыг нэгтгэсэн: бараа (хувилбар) бүр хэдийг зарсан — буцаасныг хассан, цуцлагдсан ороогүй
+  const byItem = new Map();
+  for (const l of lines) {
+    const kept = l.qty - l.returned_qty;
+    const key = `${l.variant_id ?? ""}|${l.name}`;
+    const row = byItem.get(key) ?? {
+      productId: l.product_id,
+      variantId: l.variant_id,
+      name: l.name,
+      image: l.image,
+      orders: new Set(),
+      qty: 0,
+      deliveredQty: 0,
+      returnedQty: 0,
+      amount: 0,
+      deliveredAmount: 0,
+    };
+    row.orders.add(l.order_id);
+    row.qty += kept;
+    row.returnedQty += l.returned_qty;
+    row.amount += kept * toNumber(l.price);
+    if (l.status === "delivered") {
+      row.deliveredQty += kept;
+      row.deliveredAmount += kept * toNumber(l.price);
+    }
+    byItem.set(key, row);
+  }
+  const items = [...byItem.values()]
+    .map((r) => ({ ...r, orders: r.orders.size }))
+    .filter((r) => r.qty > 0 || r.returnedQty > 0)
+    .sort((a, b) => b.qty - a.qty || b.amount - a.amount || a.name.localeCompare(b.name));
+
   const settlements = await storeSettlements.findAll({ where: { shop_id: req.shopId, store_id: store.id }, order: [["id", "desc"]], raw: true });
   return ok(res, {
     ...summaryOf(store, sales.get(store.id), allTime.get(store.id), settled.get(store.id)),
+    // Бүх хугацааны нийт тооцоо: delivered − settled = balance
+    allTime: { delivered: toNumber(allTime.get(store.id)?.delivered), pending: toNumber(allTime.get(store.id)?.pending) },
+    items,
     orders,
     settlements: settlements.map((s) => ({ id: s.id, amount: toNumber(s.amount), note: s.note, createdAt: toIso(s.created_at) })),
   });

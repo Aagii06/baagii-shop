@@ -14,7 +14,7 @@ import { getStoreSalesDetail, PERIOD_KEYS, periodLabelKey, periodOf, readPeriod,
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useApi } from "@/lib/useApi";
 import { cn, formatMNT, formatWhen } from "@/lib/utils";
-import { HandCoins, ReceiptText, SearchX } from "lucide-react";
+import { HandCoins, Package, ReceiptText, SearchX } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -37,6 +37,8 @@ function StoreSalesDetail() {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  // The period's sales rolled up per product, or order by order.
+  const [view, setView] = useState<"items" | "orders">("items");
 
   const backHref = `/store-sales?period=${period}`;
   if (!data)
@@ -90,12 +92,31 @@ function StoreSalesDetail() {
         subtitle={t("ss.title")}
       />
 
+      {/* All-time account with this store: delivered sales − paid = still owed. */}
       <Card className="p-4">
-        <p className="text-sm text-muted-foreground">{t("ss.balance")}</p>
-        <p className={cn("mt-1 font-mono text-2xl font-extrabold", data.balance > 0 ? "text-primary-ink" : "text-foreground")}>
-          {formatMNT(data.balance)}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">{t("ss.settledTotal", { amount: formatMNT(data.settled) })}</p>
+        <h2 className="text-sm font-bold">{t("ss.account")}</h2>
+        <dl className="mt-3 space-y-2 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-muted-foreground">{t("ss.totalDelivered")}</dt>
+            <dd className="font-mono font-semibold">{formatMNT(data.allTime.delivered)}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-muted-foreground">{t("ss.totalPaid")}</dt>
+            <dd className="font-mono font-semibold">− {formatMNT(data.settled)}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-border pt-2">
+            <dt className="font-bold">{t("ss.balance")}</dt>
+            <dd className={cn("font-mono text-xl font-extrabold", data.balance > 0 ? "text-primary-ink" : "text-foreground")}>
+              {formatMNT(data.balance)}
+            </dd>
+          </div>
+          {data.allTime.pending > 0 && (
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <dt className="text-muted-foreground">{t("ss.totalPending")}</dt>
+              <dd className="font-mono text-muted-foreground">{formatMNT(data.allTime.pending)}</dd>
+            </div>
+          )}
+        </dl>
         {!settling ? (
           <Button
             className="mt-4 w-full"
@@ -154,8 +175,55 @@ function StoreSalesDetail() {
         ))}
       </Card>
 
-      <h2 className="mt-6 text-base font-bold">{t("ss.orderList")}</h2>
-      {data.orders.length === 0 ? (
+      <div className="mt-6 flex items-center justify-between gap-3">
+        <h2 className="text-base font-bold">{view === "items" ? t("ss.itemList") : t("ss.orderList")}</h2>
+        <div role="group" aria-label={t("ss.view")} className="flex rounded-full bg-muted p-1 text-sm font-semibold">
+          {(["items", "orders"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={view === v}
+              onClick={() => setView(v)}
+              className={cn("rounded-full px-3 py-1.5", view === v ? "bg-white shadow-sm" : "text-muted-foreground")}
+            >
+              {v === "items" ? t("ss.byItem") : t("ss.byOrder")}
+            </button>
+          ))}
+        </div>
+      </div>
+      {view === "items" ? (
+        data.items.length === 0 ? (
+          <div className="pt-2">
+            <EmptyState icon={Package} title={t("ss.noOrders")} />
+          </div>
+        ) : (
+          <ul className="-mx-4 mt-2 divide-y divide-border border-y border-border bg-white">
+            {data.items.map((item) => (
+              <li key={`${item.variantId}|${item.name}`} className="flex items-center gap-3 px-4 py-3">
+                <Thumb id={item.image} variant="icon" size={44} className="shrink-0 rounded-xl" />
+                <span className="min-w-0 grow">
+                  <span className="block truncate text-[15px] font-semibold">{item.name}</span>
+                  <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                    {t("ss.itemLine", { orders: item.orders, delivered: item.deliveredQty })}
+                    {item.returnedQty > 0 && ` · ${t("ss.itemReturned", { qty: item.returnedQty })}`}
+                  </span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block font-mono text-sm font-bold">{t("ss.pcs", { qty: item.qty })}</span>
+                  <span className="block font-mono text-xs text-muted-foreground">{formatMNT(item.amount)}</span>
+                </span>
+              </li>
+            ))}
+            <li className="flex items-center justify-between px-4 py-3 text-sm font-bold">
+              <span>{t("ss.itemsTotal")}</span>
+              <span className="font-mono">
+                {t("ss.pcs", { qty: data.items.reduce((s, i) => s + i.qty, 0) })} ·{" "}
+                {formatMNT(data.items.reduce((s, i) => s + i.amount, 0))}
+              </span>
+            </li>
+          </ul>
+        )
+      ) : data.orders.length === 0 ? (
         <div className="pt-2">
           <EmptyState icon={ReceiptText} title={t("ss.noOrders")} />
         </div>

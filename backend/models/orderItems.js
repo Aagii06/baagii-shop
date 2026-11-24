@@ -24,6 +24,8 @@ module.exports = (sequelize, DataTypes) => {
       qty: { type: DataTypes.INTEGER, defaultValue: 0 },
       price: { type: DataTypes.DECIMAL(14, 2), defaultValue: 0 },
       returned_qty: { type: DataTypes.INTEGER, defaultValue: 0 },
+      // Дэлгүүрт мөнгийг нь шилжүүлсэн ширхэг (api/storeReport settle)
+      settled_qty: { type: DataTypes.INTEGER, defaultValue: 0 },
     },
     { sequelize, tableName: "orderItems", modelName: "orderItems", timestamps: false },
   );

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Thumb from "@/components/common/Thumb";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, HandCoins, Handshake, KeyRound, LogOut, MessageSquareText, NotebookPen, Pencil, Settings, Store, UserRound, Users, type LucideIcon } from "lucide-react";
+import { ChevronRight, Handshake, KeyRound, LogOut, MessageSquareText, NotebookPen, Pencil, Settings, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon; tone: string }[] = [
@@ -15,13 +15,6 @@ const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon;
     descKey: "profile.stores",
     icon: Store,
     tone: "bg-sky-100 text-sky-600 ring-sky-200",
-  },
-  {
-    href: "/store-sales",
-    labelKey: "ss.title",
-    descKey: "profile.storeSales",
-    icon: HandCoins,
-    tone: "bg-amber-100 text-amber-600 ring-amber-200",
   },
   {
     href: "/users",

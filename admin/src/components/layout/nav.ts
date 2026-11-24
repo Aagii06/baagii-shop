@@ -1,5 +1,6 @@
 import {
   ChartNoAxesColumn,
+  HandCoins,
   ReceiptText,
   Square,
   UserRound,
@@ -19,6 +20,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", labelKey: "nav.dashboard", icon: ChartNoAxesColumn },
   { href: "/products", labelKey: "nav.products", icon: Square },
   { href: "/orders", labelKey: "nav.orders", icon: ReceiptText },
+  { href: "/store-sales", labelKey: "nav.settlements", icon: HandCoins },
   { href: "/profile", labelKey: "nav.profile", icon: UserRound },
 ];
 

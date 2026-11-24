@@ -34,6 +34,22 @@ export interface StoreSalesOrder {
   items: { id: number; name: string; image: string | null; qty: number; returnedQty: number; price: number }[];
 }
 
+/** The period's orders rolled up per product (variant): what this store sold. */
+export interface StoreSoldItem {
+  productId: number | null;
+  variantId: number | null;
+  name: string;
+  image: string | null;
+  /** Orders it was in. */
+  orders: number;
+  /** Units sold, returns taken off (cancelled orders aren't counted). */
+  qty: number;
+  deliveredQty: number;
+  returnedQty: number;
+  amount: number;
+  deliveredAmount: number;
+}
+
 export interface StoreSettlement {
   id: number;
   amount: number;
@@ -62,7 +78,7 @@ export async function getStoreSales(period: Period) {
 }
 
 export async function getStoreSalesDetail(storeId: number, period: Period) {
-  const res = await apiFetch<ApiItemResponse<(StoreSales & { orders: StoreSalesOrder[]; settlements: StoreSettlement[] }) | null>>(
+  const res = await apiFetch<ApiItemResponse<(StoreSales & { allTime: { delivered: number; pending: number }; items: StoreSoldItem[]; orders: StoreSalesOrder[]; settlements: StoreSettlement[] }) | null>>(
     `/storeReport/${storeId}${query(period)}`
   );
   return res.data ?? null;
