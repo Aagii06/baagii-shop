@@ -410,3 +410,45 @@ class LanguagePicker extends StatelessWidget {
         ],
       ]);
 }
+
+
+/// Мэдэгдлийн жагсаалтын дээрх мөр: "N уншаагүй" ба "Бүгдийг уншсанаар тэмдэглэх".
+/// Уншаагүй байхгүй бол юу ч харуулахгүй.
+class NotificationsReadAllBar extends StatelessWidget {
+  final int unread;
+  final VoidCallback onReadAll;
+  final Color accent;
+  const NotificationsReadAllBar({super.key, required this.unread, required this.onReadAll, this.accent = brandColor});
+
+  @override
+  Widget build(BuildContext context) {
+    if (unread <= 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 4),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(99)),
+          child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(tr('уншаагүй мэдэгдэл'), style: TextStyle(fontSize: 13, color: Colors.grey.shade700, fontWeight: FontWeight.w500)),
+        ),
+        TextButton.icon(
+          style: TextButton.styleFrom(
+            foregroundColor: accent,
+            backgroundColor: accent.withValues(alpha: 0.08),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            minimumSize: const Size(0, 34),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+            textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+          onPressed: onReadAll,
+          icon: const Icon(Icons.done_all, size: 18),
+          label: Text(tr('Бүгдийг уншсанаар тэмдэглэх')),
+        ),
+      ]),
+    );
+  }
+}

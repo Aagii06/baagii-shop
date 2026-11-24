@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../api/admin_manage_models.dart';
 import '../../state/admin_state.dart';
+import '../common.dart' show NotificationsReadAllBar;
 import 'admin_design.dart';
 import 'admin_shell.dart';
 import 'admin_widgets.dart';
@@ -152,19 +153,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(tr('Мэдэгдэл')),
-        actions: [
-          if (unread > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: TextButton(
-                onPressed: () {
-                  setState(() => _rows = [for (final r in _rows ?? <AdminNotification>[]) r.asRead()]);
-                  context.read<AdminState>().markAllNotificationsRead();
-                },
-                child: Text(tr('Бүгдийг уншсан')),
-              ),
-            ),
-        ],
       ),
       body: rows == null && _error != null
           ? Center(child: Padding(padding: const EdgeInsets.all(24), child: ErrorText(_error!, onRetry: _load)))
@@ -187,6 +175,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ),
                         ])
                       : ListView(padding: const EdgeInsets.only(bottom: 24), children: [
+                          // "Бүгдийг уншсанаар тэмдэглэх" — жагсаалтын дээр, уншаагүй байвал л.
+                          NotificationsReadAllBar(
+                            unread: unread,
+                            accent: AdminColors.primary,
+                            onReadAll: () {
+                              setState(() => _rows = [for (final r in _rows ?? <AdminNotification>[]) r.asRead()]);
+                              context.read<AdminState>().markAllNotificationsRead();
+                            },
+                          ),
+                          const SizedBox(height: 4),
                           AdminList(children: [for (final n in rows) _item(n)]),
                           if (rows.length < _count)
                             Padding(

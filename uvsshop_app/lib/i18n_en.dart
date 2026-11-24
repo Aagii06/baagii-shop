@@ -424,6 +424,8 @@ const appEn = <String, String>{
   'Утасны дугаараар хайх': 'Search by phone',
   'Утасны дугаараараа нэвтэрнэ үү. Таны утсанд SMS код илгээнэ.': 'Sign in with your phone number. We\'ll text you a code.',
   'Утасны дугаарыг өөрчлөх боломжгүй.': 'Your phone number can\'t be changed.',
+  'уншаагүй мэдэгдэл': 'unread',
+  'Бүгдийг уншсанаар тэмдэглэх': 'Mark all as read',
   'Төлбөрийн хугацаа дууссан тул захиалга удахгүй цуцлагдана.': 'The payment time is up, so the order will be cancelled shortly.',
   'Төлбөрөө {hours} цагийн дотор төлөөгүй бол захиалга автоматаар цуцлагдаж, бараа нөөцөд буцна.': 'If you don’t pay within {hours} hours, the order is cancelled automatically and its items released.',
   'Төлбөр төлөгдөөгүй тул захиалга цуцлагдаж, бараа нөөцөд буцна. Энэ үйлдлийг буцаах боломжгүй.': 'The order is unpaid, so it will be cancelled and its items released. This can’t be undone.',

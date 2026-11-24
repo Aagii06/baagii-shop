@@ -95,16 +95,6 @@ class _ShopNotificationsPageState extends State<ShopNotificationsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(tr('Мэдэгдэл')),
-        actions: [
-          if (shop.unreadNotifications > 0)
-            TextButton(
-              onPressed: () {
-                setState(() => _rows = [for (final r in _rows ?? <AdminNotification>[]) r.asRead()]);
-                shop.markAllNotificationsRead();
-              },
-              child: Text(tr('Бүгдийг уншсан')),
-            ),
-        ],
       ),
       body: !shop.signedIn
           ? EmptyView(icon: Icons.notifications_none, text: tr('Мэдэгдлээ харахын тулд нэвтэрнэ үү'))
@@ -127,7 +117,18 @@ class _ShopNotificationsPageState extends State<ShopNotificationsPage> {
                                 text: tr('Мэдэгдэл алга. Захиалгын төлөв өөрчлөгдөхөд энд харагдана.'),
                               ),
                             ])
-                          : ListView(padding: const EdgeInsets.all(16), children: [
+                          : ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 16), children: [
+                              // "Бүгдийг уншсанаар тэмдэглэх" — жагсаалтын дээр, уншаагүй байвал л.
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: NotificationsReadAllBar(
+                                  unread: shop.unreadNotifications,
+                                  onReadAll: () {
+                                    setState(() => _rows = [for (final r in _rows ?? <AdminNotification>[]) r.asRead()]);
+                                    shop.markAllNotificationsRead();
+                                  },
+                                ),
+                              ),
                               Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white,
