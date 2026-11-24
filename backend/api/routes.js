@@ -19,6 +19,8 @@ Router.use("/blog", protect, require("./blog/router"));
 // Нүүр хуудасны "Эцэг эхчүүдийн сэтгэгдэл" (ADMIN)
 Router.use("/testimonial", protect, require("./testimonial/router"));
 Router.use("/store", protect, require("./store/router"));
+// Дэлгүүрийн борлуулалтын тайлан, худалдагчтай хийсэн тооцоо (ADMIN)
+Router.use("/storeReport", protect, require("./storeReport/router"));
 Router.use("/user", protect, require("./user/router"));
 // Вэбээр нэвтэрсэн худалдан авагчид (ADMIN, зөвхөн харах)
 Router.use("/customer", protect, require("./customer/router"));
