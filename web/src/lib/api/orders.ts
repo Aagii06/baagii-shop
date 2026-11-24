@@ -71,6 +71,12 @@ export async function payOrder(id: string, paymentMethod: PaymentMethod): Promis
   return toOrder(res.data);
 }
 
+/** The shopper cancels their own order — only while it waits and is unpaid. */
+export async function cancelMyOrder(id: string): Promise<Order> {
+  const res = await apiFetch<ApiItemResponse<ApiOrder>>(`/order/${id}/cancel`, { method: "POST" });
+  return toOrder(res.data);
+}
+
 /** Asks QPay whether the order's invoice was paid; comes back paid if so. */
 export async function checkQpay(id: string): Promise<Order> {
   const res = await apiFetch<ApiItemResponse<ApiOrder>>(`/order/${id}/qpay`);

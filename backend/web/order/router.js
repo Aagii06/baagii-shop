@@ -2,11 +2,12 @@ const router = require("express").Router();
 const { cartDetails, orders, sequelize } = require("../../models");
 const { shopSettings, orderStatuses } = require("../../config/constants");
 const { findCart, detailInclude, isActiveLine } = require("../../helper/cartHelper");
-const { placeOrder, findOrder, toWebOrder, itemsInclude } = require("../../helper/orderHelper");
+const { placeOrder, findOrder, toWebOrder, itemsInclude, restock } = require("../../helper/orderHelper");
 const { orderKey } = require("../../helper/orderNumber");
-const { notify } = require("../../helper/notificationHelper");
+const { notify, notifyOrderStaff } = require("../../helper/notificationHelper");
+const { saveLog } = require("../../utils/logHelper");
 const { sellingPrice } = require("../../helper/productHelper");
-const { createInvoice, checkOrder, toWebInvoice } = require("../../helper/qpayHelper");
+const { createInvoice, checkOrder, toWebInvoice, voidOrderInvoices } = require("../../helper/qpayHelper");
 const { paymentSettings } = require("../../models");
 const { ok, fail, handle, now, phoneDigits, isPhone, toNumber } = require("../../helper/helper");
 
@@ -108,6 +109,40 @@ router.post(
     if (order.status === orderStatuses.cancelled) return fail(res, "Захиалга цуцлагдсан байна");
     if (!order.paid_at) await order.update({ payment_method: "bank", updated_at: now() });
     return ok(res, toWebOrder(order));
+  }),
+);
+
+// Худалдан авагч захиалгаа цуцлана — зөвхөн хүлээгдэж буй, төлбөр нь төлөгдөөгүй бол.
+// Бараа үлдэгдэлд буцна; QPay нэхэмжлэх нь хүчингүй болно (төлөгдчихсөн байвал цуцлахгүй).
+router.post(
+  "/:id/cancel",
+  handle("customerCancelOrder", async (req, res) => {
+    const where = { ...orderKey(req.params.id), shop_id: req.shopId, customer_id: req.session.customerId };
+    const found = await findOrder(where);
+    if (!found) return fail(res, "Захиалга олдсонгүй");
+    if (found.status !== orderStatuses.pending) return fail(res, "Зөвхөн хүлээгдэж буй захиалгыг цуцална");
+    if (found.paid_at) return fail(res, "Төлбөр төлөгдсөн захиалгыг цуцлах боломжгүй");
+    if (await voidOrderInvoices(req.shopId, found.id)) return fail(res, "Төлбөр төлөгдсөн тул цуцлах боломжгүй");
+
+    const at = now();
+    const t = await sequelize.transaction();
+    try {
+      // Гүйлгээн дотор дахин шалгана (энэ хооронд админ баталгаажуулсан байж болно)
+      const order = await findOrder({ id: found.id, shop_id: req.shopId }, t);
+      if (order.status !== orderStatuses.pending || order.paid_at) throw "Захиалгын төлөв өөрчлөгдсөн байна. Дахин шалгана уу";
+      for (const item of order.items) {
+        await restock(item.variant_id, item.qty - item.returned_qty, t);
+        await item.update({ returned_qty: item.qty }, { transaction: t });
+      }
+      await order.update({ status: orderStatuses.cancelled, cancelled_at: at, updated_at: at }, { transaction: t });
+      await saveLog({ shop_id: req.shopId, object_name: "orders", object_id: order.id, log_action: "cancelled", modify_data: JSON.stringify({ by: "customer" }), created_at: at }, t);
+      await t.commit();
+      notifyOrderStaff(order, "customerCancelled");
+      return ok(res, toWebOrder(await findOrder({ id: order.id, shop_id: req.shopId })), "Захиалга цуцлагдлаа");
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
   }),
 );
 

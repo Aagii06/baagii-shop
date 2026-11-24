@@ -3,7 +3,9 @@
 import OrderProgress from "@/components/orders/OrderProgress";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import PlaceholderImage from "@/components/ui/placeholder-image";
+import { cancelMyOrder } from "@/lib/api/orders";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatDateTime, formatMNT } from "@/lib/utils";
 import { useOrderStore } from "@/store/orderStore";
@@ -11,12 +13,18 @@ import PageLoader from "@/components/ui/page-loader";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouteId } from "@/lib/useRouteId";
+import { useState } from "react";
 
 export default function OrderDetailPage() {
   const { t, locale } = useLanguage();
   const orderId = useRouteId("orderId", 1);
 
   const ordersLoaded = useOrderStore((s) => s.loaded);
+  const replaceOrder = useOrderStore((s) => s.replaceOrder);
+  // Cancelling: only a waiting, unpaid order ("pending" here) — the backend checks it too.
+  const [askCancel, setAskCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const order = useOrderStore((s) =>
     s.orders.find((order) => order.id === orderId)
   );
@@ -39,6 +47,20 @@ export default function OrderDetailPage() {
   }
 
   const deliveryLabel = t("orders.delivery.standard");
+  const shownId = order.id;
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      replaceOrder(await cancelMyOrder(shownId));
+      setAskCancel(false);
+    } catch (err) {
+      setCancelError(err instanceof Error ? err.message : t("orders.cancel.error"));
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <div className="max-w-3xl">
@@ -81,16 +103,44 @@ export default function OrderDetailPage() {
           <p className="text-sm text-amber-800">
             {t("orders.detailPage.unpaidNotice")}
           </p>
-          <Button
-            asChild
-            size="sm"
-            className="brand-gradient text-white shrink-0"
-          >
-            <Link href={`/checkout/${order.id}/pay`}>
-              {t("orders.detailPage.payNow")}
-            </Link>
-          </Button>
+          <div className="flex shrink-0 gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="border-amber-300 bg-white text-destructive hover:bg-destructive/5 hover:text-destructive"
+              onClick={() => {
+                setCancelError(null);
+                setAskCancel(true);
+              }}
+            >
+              {t("orders.cancel.button")}
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              className="brand-gradient text-white"
+            >
+              <Link href={`/checkout/${order.id}/pay`}>
+                {t("orders.detailPage.payNow")}
+              </Link>
+            </Button>
+          </div>
         </div>
+      )}
+
+      {askCancel && (
+        <ConfirmDialog
+          danger
+          title={t("orders.cancel.title", { id: order.id })}
+          description={t("orders.cancel.desc")}
+          confirmLabel={t("orders.cancel.confirm")}
+          cancelLabel={t("orders.cancel.keep")}
+          busy={cancelling}
+          error={cancelError}
+          onConfirm={handleCancel}
+          onClose={() => setAskCancel(false)}
+        />
       )}
 
       <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 mb-6">

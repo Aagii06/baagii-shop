@@ -159,6 +159,7 @@ module.exports.notifyOrderStaff = async (order, kind, { by = null, item = null, 
     const who = [order.customer_name, order.phone].filter(Boolean).join(" · ");
     const texts = {
       cancelled: { type: "order_cancelled", title: `Захиалга ${order.order_number ?? `#${order.id}`} цуцлагдлаа`, body: `${who} · төлөгдөөгүй удсан` },
+      customerCancelled: { type: "order_cancelled", title: `Захиалга ${order.order_number ?? `#${order.id}`} цуцлагдлаа`, body: `${who} · худалдан авагч өөрөө цуцаллаа` },
       returned: { type: "order_returned", title: `Захиалга ${order.order_number ?? `#${order.id}`} буцаагдлаа`, body: who },
       itemReturned: { type: "order_returned", title: `Захиалга ${order.order_number ?? `#${order.id}`}-ээс бараа буцлаа`, body: item ? `${item.name} × ${qty}` : who },
     };

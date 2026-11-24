@@ -118,7 +118,8 @@ module.exports.createInvoice = async (shopId, order) => {
 
 // QPay-ээс төлөгдсөн эсэхийг асууж, төлөгдсөн бол нэхэмжлэх, захиалгыг тэмдэглэнэ
 const checkInvoice = async (invoice) => {
-  if (invoice.status === "paid") return invoice;
+  // Цуцалсан захиалгын нэхэмжлэхийг дахин төлөгдсөнд тооцохгүй
+  if (invoice.status === "paid" || invoice.status === "cancelled") return invoice;
   const s = await paymentSettings.findOne({ where: { shop_id: invoice.shop_id } });
   if (!qpayReady(s)) return invoice;
   const data = await authed(s, "/v2/payment/check", {
@@ -159,6 +160,33 @@ const checkInvoice = async (invoice) => {
   return invoice;
 };
 module.exports.checkInvoice = checkInvoice;
+
+// Худалдан авагч захиалгаа цуцлахын өмнө: хүлээгдэж буй нэхэмжлэх төлөгдсөн эсэхийг QPay-ээс шалгаж,
+// төлөгдөөгүй бол QPay дээр болон манайд хүчингүй болгоно. Аль нэг нь төлөгдсөн байвал true буцаана.
+module.exports.voidOrderInvoices = async (shopId, orderId) => {
+  const pending = await qpayInvoices.findAll({ where: { shop_id: shopId, order_id: orderId, status: "pending" } });
+  if (pending.length === 0) return false;
+  for (const invoice of pending) {
+    await checkInvoice(invoice);
+    if (invoice.status === "paid") return true;
+  }
+  const s = await paymentSettings.findOne({ where: { shop_id: shopId } });
+  for (const invoice of pending) {
+    if (qpayReady(s) && invoice.invoice_id) {
+      try {
+        await qpayFetch(`${baseUrl(s)}/v2/invoice/${invoice.invoice_id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${await getToken(s)}` },
+        });
+      } catch (error) {
+        // QPay дээр устгаж чадаагүй ч манайд цуцлагдсан тул callback ирсэн ч төлөгдсөнд тооцохгүй
+        console.log("qpayVoidError:", error);
+      }
+    }
+    await invoice.update({ status: "cancelled", updated_at: now() });
+  }
+  return false;
+};
 
 // Захиалгын сүүлийн нэхэмжлэхийг шалгана (вэбийн polling)
 module.exports.checkOrder = async (shopId, orderId) => {
