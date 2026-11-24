@@ -463,6 +463,12 @@ class ShopState extends ChangeNotifier {
     return ShopOrder.fromJson(res['data'] as Map<String, dynamic>);
   }
 
+  /// Захиалгаа цуцална — зөвхөн хүлээгдэж буй, төлбөр нь төлөгдөөгүй бол (backend шалгана).
+  Future<ShopOrder> cancelOrder(String orderId) async {
+    final res = await call(() => api.post('/order/$orderId/cancel'));
+    return ShopOrder.fromJson(res['data'] as Map<String, dynamic>);
+  }
+
   Future<ShopOrder> payByBank(String orderId) async {
     final res = await call(() => api.post('/order/$orderId/pay', body: {'paymentMethod': 'bank'}));
     return ShopOrder.fromJson(res['data'] as Map<String, dynamic>);

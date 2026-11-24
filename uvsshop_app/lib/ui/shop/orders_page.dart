@@ -75,7 +75,10 @@ class _OrderCard extends StatelessWidget {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => OrderDetailPage(order: o))),
+        onTap: () async {
+          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => OrderDetailPage(order: o)));
+          onChanged();
+        },
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -121,13 +124,54 @@ class _OrderCard extends StatelessWidget {
   }
 }
 
-class OrderDetailPage extends StatelessWidget {
+class OrderDetailPage extends StatefulWidget {
   final ShopOrder order;
   const OrderDetailPage({super.key, required this.order});
 
   @override
+  State<OrderDetailPage> createState() => _OrderDetailPageState();
+}
+
+class _OrderDetailPageState extends State<OrderDetailPage> {
+  late ShopOrder _order = widget.order;
+  bool _cancelling = false;
+
+  /// web-тэй адил: зөвхөн хүлээгдэж буй, төлбөр нь төлөгдөөгүй захиалга.
+  bool get _canCancel => !_order.isPaid && _order.status == 'pending';
+
+  Future<void> _cancel() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(tr('{id} захиалгыг цуцлах уу?', {'id': _order.id})),
+        content: Text(tr('Төлбөр төлөгдөөгүй тул захиалга цуцлагдаж, бараа нөөцөд буцна. Энэ үйлдлийг буцаах боломжгүй.')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Үгүй'))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade600),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(tr('Тийм, цуцлах')),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _cancelling = true);
+    try {
+      final next = await context.read<ShopState>().cancelOrder(_order.id);
+      if (!mounted) return;
+      setState(() => _order = next);
+      showMessage(context, tr('Захиалга цуцлагдлаа'));
+    } catch (e) {
+      if (mounted) showMessage(context, e.toString(), error: true);
+    } finally {
+      if (mounted) setState(() => _cancelling = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final o = order;
+    final o = _order;
     Widget sum(String l, double v, {bool bold = false}) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 3),
           child: Row(children: [
@@ -175,6 +219,21 @@ class OrderDetailPage extends StatelessWidget {
             ]),
           ),
         ),
+        if (_canCancel) ...[
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red.shade600,
+              side: BorderSide(color: Colors.red.shade200),
+              minimumSize: const Size.fromHeight(46),
+            ),
+            onPressed: _cancelling ? null : _cancel,
+            icon: _cancelling
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.cancel_outlined, size: 18),
+            label: Text(tr('Захиалга цуцлах')),
+          ),
+        ],
       ]),
     );
   }
