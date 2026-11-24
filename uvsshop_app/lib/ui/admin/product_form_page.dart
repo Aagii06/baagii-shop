@@ -265,12 +265,16 @@ class _ProductFormState extends State<_ProductForm> {
             DropdownButtonFormField<int?>(
               initialValue: widget.stores.any((s) => s.id == d.storeId) ? d.storeId : null,
               isExpanded: true,
-              decoration: fieldDecoration(tr('Дэлгүүр'), helper: tr('Бараа аль дэлгүүрийнх вэ — вэб дээр брэнд болж харагдана')),
+              // Дэлгүүрийг зөвхөн үүсгэхдээ сонгоно — бараа дэлгүүр хооронд шилжихгүй.
+              decoration: fieldDecoration(tr('Дэлгүүр'),
+                  helper: d.id == null
+                      ? tr('Бараа аль дэлгүүрийнх вэ — вэб дээр брэнд болж харагдана')
+                      : tr('Барааны дэлгүүрийг үүсгэсний дараа солих боломжгүй.')),
               items: [
                 DropdownMenuItem<int?>(value: null, child: Text(tr('Үндсэн дэлгүүр (сонгоогүй)'))),
                 for (final s in widget.stores) DropdownMenuItem<int?>(value: s.id, child: Text(s.name, overflow: TextOverflow.ellipsis)),
               ],
-              onChanged: (v) => d.update(() => d.storeId = v),
+              onChanged: d.id == null ? (v) => d.update(() => d.storeId = v) : null,
             )
           else
             // Худалдагчийн бараа үргэлж өөрийнх нь дэлгүүрт орно (backend тавина).

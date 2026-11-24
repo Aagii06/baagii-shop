@@ -1,6 +1,7 @@
 // Generated from baagii-shop web/admin locales (en.ts) plus app-only texts. Keys are the Mongolian text (see i18n.dart).
 
 const appEn = <String, String>{
+  'Барааны дэлгүүрийг үүсгэсний дараа солих боломжгүй.': "A product's store can't be changed after it's created.",
   'Бүх дэлгүүр': 'All stores',
   'Үндсэн дэлгүүр': "The shop's own",
   '{id} захиалгыг буцаах уу?': 'Return order {id}?',
