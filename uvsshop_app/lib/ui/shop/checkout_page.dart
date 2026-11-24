@@ -1,3 +1,4 @@
+import '../../analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -35,6 +36,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
   bool _prefilled = false;
 
   @override
+  void initState() {
+    super.initState();
+    final cart = context.read<ShopState>().cart;
+    if (cart.isNotEmpty) Analytics.beginCheckout(cart);
+  }
+
+  @override
   void dispose() {
     for (final c in [_name, _phone, _extraPhone, _address, _note, _coupon]) {
       c.dispose();
@@ -66,6 +74,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         'deliveryMethod': 'standard',
         'deliveryFee': 0,
       }, couponCode: _coupon.text.trim());
+      Analytics.purchase(order);
       if (!mounted) return;
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => PayPage(orderId: order.id)));
     } catch (e) {

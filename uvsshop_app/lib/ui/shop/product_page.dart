@@ -1,3 +1,4 @@
+import '../../analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,6 +37,7 @@ class _ProductPageState extends State<ProductPage> {
     try {
       final d = await context.read<ShopState>().getProduct(widget.productId);
       if (!mounted) return;
+      Analytics.viewItem(d.product);
       setState(() {
         _detail = d;
         // Эхний бэлэн хувилбарыг урьдчилан сонгоно.
@@ -68,6 +70,7 @@ class _ProductPageState extends State<ProductPage> {
     setState(() => _adding = true);
     try {
       await context.read<ShopState>().addToCart(v, _qty);
+      Analytics.addToCart(_detail!.product, v, _qty);
       if (mounted) showMessage(context, tr('Сагсанд нэмэгдлээ'));
     } catch (e) {
       if (mounted) showMessage(context, e.toString(), error: true);

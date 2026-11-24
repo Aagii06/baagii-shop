@@ -3,6 +3,7 @@
 import PhoneAuthGate from "@/components/checkout/PhoneAuthGate";
 import ShippingForm from "@/components/checkout/ShippingForm";
 import { Button } from "@/components/ui/button";
+import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { placeOrder } from "@/lib/api/orders";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { calculatePricing } from "@/lib/pricing";
@@ -15,7 +16,7 @@ import type { ShippingInfo } from "@/types/order";
 import PageLoader from "@/components/ui/page-loader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function CheckoutPage() {
   const { t } = useLanguage();
@@ -39,6 +40,17 @@ export default function CheckoutPage() {
     cart,
     { shippingFee: deliveryFee || undefined, couponAmount: couponValue }
   );
+
+  // GA4: checkout opened with a loaded cart — once per visit to this page
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current || cart.length === 0) return;
+    checkoutTracked.current = true;
+    trackBeginCheckout(
+      cart.map((i) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+      total
+    );
+  }, [cart, total]);
 
   // The backend turns the server cart into the order (prices, delivery,
   // coupon and stock are checked there) and empties the cart.
