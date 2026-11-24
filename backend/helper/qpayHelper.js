@@ -92,7 +92,8 @@ module.exports.createInvoice = async (shopId, order) => {
     invoice_code: s.qpay_invoice_code,
     sender_invoice_no: senderInvoiceNo,
     invoice_receiver_code: order.phone || "terminal",
-    invoice_description: `Захиалга ${order.order_number}`,
+    // Гүйлгээний утга — зөвхөн захиалгын дугаар (UVS-261123-GMP2JD)
+    invoice_description: order.order_number,
     amount,
     callback_url: `${publicUrl}/web/qpay/callback/${senderInvoiceNo}`,
   });
