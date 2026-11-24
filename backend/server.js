@@ -38,3 +38,7 @@ app.listen(PORT, () => {
 const { scanOverdueOrders } = require("./helper/notificationHelper");
 setTimeout(scanOverdueOrders, 60 * 1000);
 setInterval(scanOverdueOrders, 10 * 60 * 1000);
+// Даваа гараг бүр админд долоо хоногийн тооцооны сануулга (helper/settlementReminder.js)
+const { scanWeeklySettlement } = require("./helper/settlementReminder");
+setTimeout(scanWeeklySettlement, 90 * 1000);
+setInterval(scanWeeklySettlement, 10 * 60 * 1000);

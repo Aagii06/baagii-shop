@@ -8,8 +8,8 @@ import type { OrderStatus } from "./orders";
 // `from`/`to` (YYYY-MM-DD, both inclusive) pick orders by the day they were placed;
 // `balance` is all-time: everything delivered minus everything paid.
 //   GET  /storeReport?from=&to=
-//   GET  /storeReport/:storeId?from=&to=
-//   POST /storeReport/:storeId/settle { amount, note? }
+//   GET  /storeReport/:storeId            — the account: unpaid lines, pending, payouts
+//   POST /storeReport/:storeId/settle      { expected, note? } — pays every unpaid line
 
 export interface StoreSales {
   storeId: number;
@@ -23,18 +23,7 @@ export interface StoreSales {
   balance: number;
 }
 
-export interface StoreSalesOrder {
-  id: number;
-  orderNumber: string;
-  status: OrderStatus;
-  createdAt: string;
-  deliveredAt: string | null;
-  /** This store's lines only, returns taken off. */
-  amount: number;
-  items: { id: number; name: string; image: string | null; qty: number; returnedQty: number; price: number }[];
-}
-
-/** The period's orders rolled up per product (variant): what this store sold. */
+/** Lines rolled up per product (variant). */
 export interface StoreSoldItem {
   productId: number | null;
   variantId: number | null;
@@ -42,12 +31,18 @@ export interface StoreSoldItem {
   image: string | null;
   /** Orders it was in. */
   orders: number;
-  /** Units sold, returns taken off (cancelled orders aren't counted). */
+  /** Units — negative when returned after a payout (taken off the next one). */
   qty: number;
-  deliveredQty: number;
-  returnedQty: number;
   amount: number;
-  deliveredAmount: number;
+}
+
+/** A delivered order's lines that haven't been paid to the store yet. */
+export interface UnsettledOrder {
+  id: number;
+  orderNumber: string;
+  deliveredAt: string | null;
+  amount: number;
+  items: { id: number; name: string; image: string | null; qty: number; price: number }[];
 }
 
 export interface StoreSettlement {
@@ -55,6 +50,18 @@ export interface StoreSettlement {
   amount: number;
   note: string | null;
   createdAt: string;
+  orders: number;
+  qty: number;
+}
+
+export interface StoreAccount extends StoreSales {
+  /** All-time: delivered sales and not-yet-delivered. */
+  allTime: { delivered: number; pending: number };
+  /** What the next payout covers (`balance` in total). */
+  unsettled: { items: StoreSoldItem[]; orders: UnsettledOrder[] };
+  /** In pending / confirmed orders — joins the payout once delivered. */
+  pending: StoreSoldItem[];
+  settlements: StoreSettlement[];
 }
 
 export interface Period {
@@ -77,15 +84,17 @@ export async function getStoreSales(period: Period) {
   return res.data ?? { rows: [], total: { delivered: 0, pending: 0, balance: 0 } };
 }
 
-export async function getStoreSalesDetail(storeId: number, period: Period) {
-  const res = await apiFetch<ApiItemResponse<(StoreSales & { allTime: { delivered: number; pending: number }; items: StoreSoldItem[]; orders: StoreSalesOrder[]; settlements: StoreSettlement[] }) | null>>(
-    `/storeReport/${storeId}${query(period)}`
-  );
+export async function getStoreAccount(storeId: number) {
+  const res = await apiFetch<ApiItemResponse<StoreAccount | null>>(`/storeReport/${storeId}`);
   return res.data ?? null;
 }
 
-export async function settleStore(storeId: number, amount: number, note: string): Promise<void> {
-  await apiFetch(`/storeReport/${storeId}/settle`, { method: "POST", body: { amount, note } });
+/**
+ * Marks every unpaid line as paid. `expected` is the amount the admin saw;
+ * the backend refuses if it changed meanwhile (a delivery or a return).
+ */
+export async function settleStore(storeId: number, expected: number, note: string): Promise<void> {
+  await apiFetch(`/storeReport/${storeId}/settle`, { method: "POST", body: { expected, note } });
 }
 
 export type PeriodKey = "month" | "lastMonth" | "days30" | "all";

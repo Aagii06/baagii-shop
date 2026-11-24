@@ -1,7 +1,8 @@
 const moment = require("moment");
-const { stores, storeSettlements, sequelize } = require("../../models");
+const { stores, storeSettlements, storeSettlementItems, orderItems, sequelize } = require("../../models");
 const { saveLog } = require("../../utils/logHelper");
 const { ok, fail, handle, toNumber, toIso, FORMAT } = require("../../helper/helper");
+const { notify } = require("../../helper/notificationHelper");
 
 // Дэлгүүрийн (худалдагчийн) борлуулалт. Захиалгын мөр бүр захиалах үеийн дэлгүүртэйгээ
 // (orderItems.store_id) — үндсэн дэлгүүрийн өөрийн бараа (null) энд орохгүй.
@@ -9,7 +10,9 @@ const { ok, fail, handle, toNumber, toIso, FORMAT } = require("../../helper/help
 //   pending   — хүлээгдэж буй / баталгаажсан захиалгынх: хүргэгдвэл олгох болно
 // Цуцлагдсан захиалга тоологдохгүй; буцаасан тоо (returned_qty) хасагдана.
 // Хугацаа (?from=&to=, YYYY-MM-DD, хоёулаа орно) нь захиалга үүссэн өдрөөр шүүнэ.
-// Олгох үлдэгдэл (balance) хугацаанаас үл хамааран: бүх хугацааны delivered − шилжүүлсэн нийт дүн.
+// Тооцоо мөрөөр: orderItems.settled_qty — мөнгийг нь шилжүүлсэн ширхэг. Олгох үлдэгдэл (balance) нь
+// хугацаанаас үл хамааран хүргэгдсэн захиалгын (qty − returned_qty − settled_qty) × price-ийн нийлбэр
+// (тооцооны дараа буцаасан бол сөрөг мөр болж хасагдана). Долоо хоногт нэг удаа "settle" хийнэ.
 
 const DAY = "YYYY-MM-DD";
 const range = (q) => {
@@ -28,11 +31,12 @@ const salesByStore = async (shopId, { from, to, storeId = null }) => {
             COUNT(DISTINCT o.id) AS orders,
             SUM(CASE WHEN o.status = 'delivered' THEN oi.qty - oi.returned_qty ELSE 0 END) AS delivered_qty,
             SUM(CASE WHEN o.status = 'delivered' THEN (oi.qty - oi.returned_qty) * oi.price ELSE 0 END) AS delivered,
-            SUM(CASE WHEN o.status IN ('pending', 'confirmed') THEN (oi.qty - oi.returned_qty) * oi.price ELSE 0 END) AS pending
+            SUM(CASE WHEN o.status IN ('pending', 'confirmed') THEN (oi.qty - oi.returned_qty) * oi.price ELSE 0 END) AS pending,
+            SUM(CASE WHEN o.status = 'delivered' THEN (oi.qty - oi.returned_qty - oi.settled_qty) * oi.price ELSE 0 END) AS unsettled
        FROM orderItems oi
        JOIN orders o ON o.id = oi.order_id
       WHERE o.shop_id = :shopId AND o.status <> 'cancelled' AND oi.store_id IS NOT NULL
-        AND oi.qty > oi.returned_qty
+        AND (oi.qty > oi.returned_qty OR oi.settled_qty > 0)
         ${from ? "AND o.created_at >= :from" : ""} ${to ? "AND o.created_at < :to" : ""}
         ${storeId ? "AND oi.store_id = :storeId" : ""}
       GROUP BY oi.store_id`,
@@ -60,7 +64,7 @@ const summaryOf = (store, sales, allTime, settled) => ({
   delivered: toNumber(sales?.delivered),
   pending: toNumber(sales?.pending),
   settled: settled ?? 0,
-  balance: toNumber(allTime?.delivered) - (settled ?? 0),
+  balance: toNumber(allTime?.unsettled),
 });
 
 // GET /storeReport?from=&to= — бүх дэлгүүр, үлдэгдэл ихтэй нь эхэндээ
@@ -82,102 +86,131 @@ module.exports.list = handle("storeReport", async (req, res) => {
   return ok(res, { rows, total });
 });
 
-// GET /storeReport/:storeId?from=&to= — дүн, захиалга бүрээр (зөвхөн тэр дэлгүүрийн бараа), тооцооны түүх
+// Тооцоо хийгдээгүй мөрүүд: хүргэгдсэн захиалгын (qty − returned − settled) ≠ 0. Сөрөг —
+// тооцооны дараа буцаасан (дараагийн тооцооноос хасна). lock — шилжүүлэхэд гүйлгээн дотор түгжинэ.
+const unsettledLines = (shopId, storeId, transaction) =>
+  orderItems.findAll({
+    where: sequelize.literal(
+      `orderItems.store_id = ${Number(storeId)} AND orderItems.qty - orderItems.returned_qty - orderItems.settled_qty <> 0 AND EXISTS (SELECT 1 FROM orders o WHERE o.id = orderItems.order_id AND o.shop_id = ${Number(shopId)} AND o.status = 'delivered')`,
+    ),
+    order: [["order_id", "asc"], ["id", "asc"]],
+    transaction,
+    ...(transaction ? { lock: transaction.LOCK.UPDATE } : {}),
+  });
+
+// Мөрүүдийг бараа (хувилбар) бүрээр нэгтгэнэ — qty нь тооцоо хийгдээгүй ширхэг
+const groupByItem = (lines, qtyOf) => {
+  const map = new Map();
+  for (const l of lines) {
+    const qty = qtyOf(l);
+    const key = `${l.variant_id ?? ""}|${l.name}`;
+    const row = map.get(key) ?? { productId: l.product_id, variantId: l.variant_id, name: l.name, image: l.image, orders: new Set(), qty: 0, amount: 0 };
+    row.orders.add(l.order_id);
+    row.qty += qty;
+    row.amount += qty * toNumber(l.price);
+    map.set(key, row);
+  }
+  return [...map.values()]
+    .map((r) => ({ ...r, orders: r.orders.size }))
+    .sort((a, b) => b.qty - a.qty || b.amount - a.amount || a.name.localeCompare(b.name));
+};
+
+// GET /storeReport/:storeId — нийт тооцоо, тооцоо хийгдээгүй бараа (бараагаар, захиалгаар),
+// хүргэгдээгүй захиалгын бараа, тооцооны түүх
 module.exports.show = handle("storeReportShow", async (req, res) => {
   const store = await stores.findOne({ where: { id: req.params.storeId, shop_id: req.shopId }, attributes: ["id", "name", "logo"], raw: true });
   if (!store) return fail(res, "Дэлгүүр олдсонгүй");
-  const period = range(req.query);
-  const [sales, allTime, settled] = await Promise.all([
-    salesByStore(req.shopId, { ...period, storeId: store.id }),
+  const [allTime, settled, lines] = await Promise.all([
     salesByStore(req.shopId, { storeId: store.id }),
     settledByStore(req.shopId),
+    unsettledLines(req.shopId, store.id),
   ]);
-  const [lines] = await sequelize.query(
-    `SELECT o.id AS order_id, o.order_number, o.status, o.created_at, o.delivered_at,
-            oi.id, oi.product_id, oi.variant_id, oi.name, oi.image, oi.qty, oi.returned_qty, oi.price
-       FROM orderItems oi
-       JOIN orders o ON o.id = oi.order_id
-      WHERE o.shop_id = :shopId AND oi.store_id = :storeId AND o.status <> 'cancelled'
-        ${period.from ? "AND o.created_at >= :from" : ""} ${period.to ? "AND o.created_at < :to" : ""}
-      ORDER BY o.id DESC, oi.id`,
-    { replacements: { shopId: req.shopId, storeId: store.id, ...period } },
-  );
-  const orders = [];
-  for (const l of lines) {
-    let o = orders[orders.length - 1];
-    if (!o || o.id !== l.order_id) {
-      o = { id: l.order_id, orderNumber: l.order_number ?? `#${l.order_id}`, status: l.status, createdAt: toIso(l.created_at), deliveredAt: toIso(l.delivered_at), amount: 0, items: [] };
-      orders.push(o);
-    }
-    const kept = l.qty - l.returned_qty;
-    o.amount += kept * toNumber(l.price);
-    o.items.push({ id: l.id, name: l.name, image: l.image, qty: l.qty, returnedQty: l.returned_qty, price: toNumber(l.price) });
-  }
-  // Захиалгуудыг нэгтгэсэн: бараа (хувилбар) бүр хэдийг зарсан — буцаасныг хассан, цуцлагдсан ороогүй
-  const byItem = new Map();
-  for (const l of lines) {
-    const kept = l.qty - l.returned_qty;
-    const key = `${l.variant_id ?? ""}|${l.name}`;
-    const row = byItem.get(key) ?? {
-      productId: l.product_id,
-      variantId: l.variant_id,
-      name: l.name,
-      image: l.image,
-      orders: new Set(),
-      qty: 0,
-      deliveredQty: 0,
-      returnedQty: 0,
-      amount: 0,
-      deliveredAmount: 0,
+  const unsettledQty = (l) => l.qty - l.returned_qty - l.settled_qty;
+
+  const orderIds = [...new Set(lines.map((l) => l.order_id))];
+  const [orderRows] = orderIds.length
+    ? await sequelize.query("SELECT id, order_number, delivered_at FROM orders WHERE id IN (:ids)", { replacements: { ids: orderIds } })
+    : [[]];
+  const orderInfo = new Map(orderRows.map((o) => [o.id, o]));
+  const orders = orderIds.map((id) => {
+    const own = lines.filter((l) => l.order_id === id);
+    const info = orderInfo.get(id);
+    return {
+      id,
+      orderNumber: info?.order_number ?? `#${id}`,
+      deliveredAt: toIso(info?.delivered_at),
+      amount: own.reduce((sum, l) => sum + unsettledQty(l) * toNumber(l.price), 0),
+      items: own.map((l) => ({ id: l.id, name: l.name, image: l.image, qty: unsettledQty(l), price: toNumber(l.price) })),
     };
-    row.orders.add(l.order_id);
-    row.qty += kept;
-    row.returnedQty += l.returned_qty;
-    row.amount += kept * toNumber(l.price);
-    if (l.status === "delivered") {
-      row.deliveredQty += kept;
-      row.deliveredAmount += kept * toNumber(l.price);
-    }
-    byItem.set(key, row);
-  }
-  const items = [...byItem.values()]
-    .map((r) => ({ ...r, orders: r.orders.size }))
-    .filter((r) => r.qty > 0 || r.returnedQty > 0)
-    .sort((a, b) => b.qty - a.qty || b.amount - a.amount || a.name.localeCompare(b.name));
+  });
+
+  // Хүргэгдээгүй (хүлээгдэж буй / баталгаажсан) — хүргэгдвэл тооцоонд орно
+  const [pendingLines] = await sequelize.query(
+    `SELECT oi.order_id, oi.product_id, oi.variant_id, oi.name, oi.image, oi.qty, oi.returned_qty, oi.price
+       FROM orderItems oi JOIN orders o ON o.id = oi.order_id
+      WHERE o.shop_id = :shopId AND oi.store_id = :storeId AND o.status IN ('pending', 'confirmed') AND oi.qty > oi.returned_qty`,
+    { replacements: { shopId: req.shopId, storeId: store.id } },
+  );
 
   const settlements = await storeSettlements.findAll({ where: { shop_id: req.shopId, store_id: store.id }, order: [["id", "desc"]], raw: true });
+  const settlementItems = settlements.length
+    ? await storeSettlementItems.findAll({ where: { settlement_id: settlements.map((x) => x.id) }, raw: true })
+    : [];
+
   return ok(res, {
-    ...summaryOf(store, sales.get(store.id), allTime.get(store.id), settled.get(store.id)),
-    // Бүх хугацааны нийт тооцоо: delivered − settled = balance
+    ...summaryOf(store, null, allTime.get(store.id), settled.get(store.id)),
     allTime: { delivered: toNumber(allTime.get(store.id)?.delivered), pending: toNumber(allTime.get(store.id)?.pending) },
-    items,
-    orders,
-    settlements: settlements.map((s) => ({ id: s.id, amount: toNumber(s.amount), note: s.note, createdAt: toIso(s.created_at) })),
+    unsettled: { items: groupByItem(lines, unsettledQty), orders },
+    pending: groupByItem(pendingLines, (l) => l.qty - l.returned_qty),
+    settlements: settlements.map((x) => {
+      const items = settlementItems.filter((i) => i.settlement_id === x.id);
+      return {
+        id: x.id,
+        amount: toNumber(x.amount),
+        note: x.note,
+        createdAt: toIso(x.created_at),
+        orders: new Set(items.map((i) => i.order_id)).size,
+        qty: items.reduce((sum, i) => sum + i.qty, 0),
+      };
+    }),
   });
 });
 
-// POST /storeReport/:storeId/settle { amount, note? } — худалдагчид мөнгө шилжүүлснээ тэмдэглэнэ
+// POST /storeReport/:storeId/settle { expected, note? } — тооцоо хийгдээгүй бүх мөрийг шилжүүлснээр
+// тэмдэглэнэ. expected — админы харсан дүн; хооронд өөрчлөгдсөн бол (шинэ хүргэлт, буцаалт) татгалзана.
 module.exports.settle = handle("storeSettle", async (req, res) => {
-  const { amount, note, by, at } = req.body;
-  const store = await stores.findOne({ where: { id: req.params.storeId, shop_id: req.shopId }, attributes: ["id"], raw: true });
+  const { expected, note, by, at } = req.body;
+  const store = await stores.findOne({ where: { id: req.params.storeId, shop_id: req.shopId }, attributes: ["id", "name"], raw: true });
   if (!store) return fail(res, "Дэлгүүр олдсонгүй");
-  const value = Math.round(toNumber(amount) * 100) / 100;
-  if (!(value > 0)) return fail(res, "Шилжүүлсэн дүнгээ оруулна уу");
   const t = await sequelize.transaction();
   try {
-    // Зэрэг хоёр удаа дарвал давхар бичигдэхгүй
-    await stores.findOne({ where: { id: store.id }, lock: t.LOCK.UPDATE, transaction: t });
-    const allTime = (await salesByStore(req.shopId, { storeId: store.id })).get(store.id);
-    const paid = toNumber(await storeSettlements.sum("amount", { where: { shop_id: req.shopId, store_id: store.id }, transaction: t }));
-    const balance = toNumber(allTime?.delivered) - paid;
-    if (value > balance + 0.001) throw `Олгох үлдэгдлээс (${Math.round(balance).toLocaleString("en-US")}₮) их байна`;
+    const lines = await unsettledLines(req.shopId, store.id, t);
+    const amount = lines.reduce((sum, l) => sum + (l.qty - l.returned_qty - l.settled_qty) * toNumber(l.price), 0);
+    if (lines.length === 0 || amount <= 0) throw "Тооцоо хийх бараа алга";
+    if (expected != null && Math.abs(toNumber(expected) - amount) > 0.01)
+      throw "Тооцоо өөрчлөгдсөн байна (шинэ хүргэлт эсвэл буцаалт). Хуудсаа дахин ачаалаад шалгана уу";
     const row = await storeSettlements.create(
-      { shop_id: req.shopId, store_id: store.id, amount: value, note: String(note ?? "").trim().slice(0, 500) || null, created_by: by, created_at: at },
+      { shop_id: req.shopId, store_id: store.id, amount, note: String(note ?? "").trim().slice(0, 500) || null, created_by: by, created_at: at },
       { transaction: t },
     );
-    await saveLog({ shop_id: req.shopId, object_name: "storeSettlements", object_id: row.id, log_action: "created", modify_data: JSON.stringify({ storeId: store.id, amount: value }), created_by: by, created_at: at }, t);
+    await storeSettlementItems.bulkCreate(
+      lines.map((l) => ({ settlement_id: row.id, order_item_id: l.id, order_id: l.order_id, name: l.name, qty: l.qty - l.returned_qty - l.settled_qty, price: l.price })),
+      { transaction: t },
+    );
+    for (const l of lines) await l.update({ settled_qty: l.qty - l.returned_qty }, { transaction: t });
+    await saveLog({ shop_id: req.shopId, object_name: "storeSettlements", object_id: row.id, log_action: "created", modify_data: JSON.stringify({ storeId: store.id, amount, lines: lines.length }), created_by: by, created_at: at }, t);
     await t.commit();
-    return ok(res, { id: row.id });
+    // Худалдагчид: мөнгө шилжүүлсэн
+    notify({
+      shopId: req.shopId,
+      storeId: store.id,
+      admins: false,
+      type: "order_paid",
+      title: `Тооцоо шилжүүллээ: ₮${Math.round(amount).toLocaleString("en-US")}`,
+      body: `${lines.length} бараа${row.note ? ` · ${row.note}` : ""}`,
+      shopperLink: "/products",
+    });
+    return ok(res, { id: row.id, amount });
   } catch (error) {
     await t.rollback();
     throw error;
