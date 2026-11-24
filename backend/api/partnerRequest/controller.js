@@ -44,11 +44,14 @@ const toRecord = (row) => ({
 });
 
 // Хүлээгдэж буй нь эхэндээ, дараа нь шинэ нь эхэндээ.
-// ?status= - зөвхөн тухайн төлөв, ?skip=&take= - хуудаслана (take-гүй бол бүгд).
+// ?status= - зөвхөн тухайн төлөв(үүд), таслалаар олныг ("pending,approved"), ?skip=&take= - хуудаслана (take-гүй бол бүгд).
 // stats - төлөв бүрийн тоо (шүүлтээс үл хамааран)
 module.exports.list = handle("partnerList", async (req, res) => {
   const where = { shop_id: req.shopId };
-  if (partnerStatuses[req.query.status]) where.status = req.query.status;
+  const statuses = String(req.query.status ?? "")
+    .split(",")
+    .filter((s) => partnerStatuses[s]);
+  if (statuses.length) where.status = statuses;
   const take = Number(req.query.take) || undefined;
   const skip = take ? Math.max(Number(req.query.skip) || 0, 0) : undefined;
   const { rows, count } = await partnerRequests.findAndCountAll({ where, order: [[sequelize.literal(`\`status\` = '${partnerStatuses.pending}'`), "desc"], ["id", "desc"]], limit: take, offset: skip, raw: true });

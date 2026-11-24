@@ -46,7 +46,7 @@ export interface PartnerRequestsPage {
   stats: PartnerRequestStats;
 }
 
-/** One page, newest first; `status` narrows to one state. */
+/** One page, newest first; `status` narrows to those states (empty/omitted = all). */
 export async function getPartnerRequestsPage({
   skip,
   take,
@@ -54,10 +54,10 @@ export async function getPartnerRequestsPage({
 }: {
   skip: number;
   take: number;
-  status?: PartnerRequestStatus;
+  status?: PartnerRequestStatus[];
 }): Promise<PartnerRequestsPage> {
   const params = new URLSearchParams({ skip: String(skip), take: String(take) });
-  if (status) params.set("status", status);
+  if (status && status.length > 0) params.set("status", status.join(","));
   const res = await apiFetch<ApiItemResponse<PartnerRequestsPage>>(`/partnerRequest?${params}`);
   return {
     rows: res.data?.rows ?? [],

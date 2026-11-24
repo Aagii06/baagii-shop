@@ -24,7 +24,21 @@ class PartnerRequestsPage extends StatefulWidget {
 
 class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
   final _scroll = ScrollController();
-  String _status = 'all';
+  // Олон төлөв сонгож болно; юу ч сонгоогүй бол бүгд.
+  Set<String> _statuses = {};
+
+  void _toggle(String? status) {
+    final next = {..._statuses};
+    if (status == null) {
+      next.clear();
+    } else if (!next.remove(status)) {
+      next.add(status);
+    }
+    // Бүгдийг сонгосон нь "бүгд"-тэй адил.
+    if (next.length == partnerStatusLabel.length) next.clear();
+    _statuses = next;
+    _reload();
+  }
   final List<PartnerRequest> _rows = [];
   int _count = 0;
   Map<String, int>? _stats;
@@ -63,13 +77,11 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
 
   Future<void> _loadMore({bool force = false}) async {
     if (_loading || (!force && _rows.length >= _count)) return;
-    final status = _status;
+    final statuses = _statuses;
     setState(() => _loading = true);
     try {
-      final r = await context
-          .read<AdminState>()
-          .partnerRequests(skip: _rows.length, take: _take, status: status == 'all' ? null : status);
-      if (!mounted || status != _status) return;
+      final r = await context.read<AdminState>().partnerRequests(skip: _rows.length, take: _take, statuses: statuses);
+      if (!mounted || !identical(statuses, _statuses)) return;
       setState(() {
         _rows.addAll(r.rows.where((n) => !_rows.any((o) => o.id == n.id)));
         _count = r.count;
@@ -135,39 +147,28 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
   Widget build(BuildContext context) {
     final stats = _stats;
     final total = stats?.values.fold(0, (a, b) => a + b) ?? 0;
-    final pending = stats == null ? null : stats['pending'];
     return Scaffold(
       appBar: AppBar(
         title: Text(tr('Хамтран ажиллах хүсэлт')),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(62),
-          child: ChipTabs<String>(
-            value: _status,
-            onChanged: (v) {
-              _status = v;
-              _reload();
-            },
-            tones: {'pending': orderTones['pending']!, 'approved': orderTones['delivered']!, 'rejected': orderTones['returned']!},
-            options: [
-              ('all', tr('Бүгд'), null),
-              for (final e in partnerStatusLabel.entries) (e.key, e.value, e.key == 'pending' ? pending : null),
-            ],
-          ),
-        ),
       ),
       body: RefreshIndicator(
         onRefresh: _reload,
         child: ListView(controller: _scroll, padding: const EdgeInsets.all(12), children: [
+          // Тоотой хэсэг нь шүүлтүүр: олныг сонгож болно (өнгөөр ялгагдана), юу ч сонгоогүй бол бүгд.
           if (stats != null)
             Panel(
-              child: IntrinsicHeight(
-                child: Row(children: [
-                  _Stat(tr('Нийт хүсэлт'), total, null),
-                  for (final e in partnerStatusLabel.entries) ...[
-                    const VerticalDivider(width: 1),
-                    _Stat(e.value, stats[e.key] ?? 0, _statusColor[e.key]),
-                  ],
-                ]),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: IntrinsicHeight(
+                  child: Row(children: [
+                    _Stat(tr('Нийт хүсэлт'), total, null, checked: _statuses.isEmpty, onTap: () => _toggle(null)),
+                    for (final e in partnerStatusLabel.entries) ...[
+                      const VerticalDivider(width: 1),
+                      _Stat(e.value, stats[e.key] ?? 0, _statusColor[e.key],
+                          checked: _statuses.contains(e.key), onTap: () => _toggle(e.key)),
+                    ],
+                  ]),
+                ),
               ),
             ),
           const SizedBox(height: 12),
@@ -180,7 +181,9 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
               padding: const EdgeInsets.only(top: 40),
               child: EmptyView(
                 icon: Icons.handshake_outlined,
-                text: _status == 'all' ? tr('Хүсэлт алга') : tr('“{_status}” хүсэлт алга', {'_status': partnerStatusLabel[_status]}),
+                text: _statuses.isEmpty
+                    ? tr('Хүсэлт алга')
+                    : tr('“{_status}” хүсэлт алга', {'_status': _statuses.map((s) => partnerStatusLabel[s]).join(', ')}),
               ),
             )
           else ...[
@@ -217,18 +220,30 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
   }
 }
 
+/// Тоо + шүүлтүүр: дарахад сонгогдоно; сонгогдсон нь төлөвийн өнгөт дэвсгэр, өнгөт тоотой.
 class _Stat extends StatelessWidget {
   final String label;
   final int value;
   final Color? dot;
-  const _Stat(this.label, this.value, this.dot);
+  final bool checked;
+  final VoidCallback onTap;
+  const _Stat(this.label, this.value, this.dot, {required this.checked, required this.onTap});
 
   @override
   Widget build(BuildContext context) => Expanded(
-        child: Padding(
+        child: Material(
+          color: checked ? (dot ?? AdminColors.primary).withValues(alpha: 0.14) : Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
           child: Column(children: [
-            Text('$value', style: const TextStyle(fontFamily: 'monospace', fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('$value',
+                style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: checked ? (dot ?? AdminColors.primary) : null)),
             const SizedBox(height: 4),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Container(
@@ -243,6 +258,8 @@ class _Stat extends StatelessWidget {
               ),
             ]),
           ]),
+        ),
+          ),
         ),
       );
 }

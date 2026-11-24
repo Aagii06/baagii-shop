@@ -1,7 +1,6 @@
 "use client";
 
 import { atLeast, LOAD_MORE_MARGIN } from "@/components/common/LoadMore";
-import ChipTabs from "@/components/common/ChipTabs";
 import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
@@ -26,7 +25,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { cn, formatPhone, formatWhen } from "@/lib/utils";
 import { Handshake, Loader2, Undo2 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 const TABS: PartnerRequestStatus[] = ["pending", "approved", "rejected"];
 const PAGE_SIZE = 20;
@@ -41,15 +40,47 @@ const STAT_DOT: Record<PartnerRequestStatus, string> = {
 };
 
 /** One cell of the summary strip: a small count over its label. */
-function Stat({ label, value, dot }: { label: string; value: number; dot?: string }) {
+/**
+ * One count on the summary strip; it is also the status filter — tap to pick
+ * or unpick (several at once). A picked one takes its status's colour.
+ */
+function Stat({
+  label,
+  value,
+  dot,
+  checked,
+  activeClassName,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  dot?: string;
+  checked: boolean;
+  /** Background and text while picked (the status's soft colour). */
+  activeClassName?: string;
+  onClick: () => void;
+}) {
   return (
-    <div className="min-w-0 px-2 py-2.5 text-center">
-      <p className="font-mono text-lg font-bold leading-none">{value}</p>
-      <p className="mt-1.5 flex items-center justify-center gap-1 truncate text-[11px] font-medium text-muted-foreground">
+    <button
+      type="button"
+      aria-pressed={checked}
+      onClick={onClick}
+      className={cn(
+        "relative min-w-0 px-2 py-2.5 text-center transition-colors",
+        checked ? (activeClassName ?? "bg-primary/10 text-primary-ink") : "hover:bg-muted/60"
+      )}
+    >
+      <span className="block font-mono text-lg font-bold leading-none">{value}</span>
+      <span
+        className={cn(
+          "mt-1.5 flex items-center justify-center gap-1 truncate text-[11px] font-medium",
+          checked ? "text-current" : "text-muted-foreground"
+        )}
+      >
         <span className={cn("size-1.5 shrink-0 rounded-full", dot ?? "bg-foreground/40")} aria-hidden />
         <span className="truncate">{label}</span>
-      </p>
-    </div>
+      </span>
+    </button>
   );
 }
 
@@ -202,12 +233,21 @@ export default function PartnerRequestsPage() {
   const { t } = useLanguage();
   const { run } = useToast();
   const confirm = useConfirm();
-  const [status, setStatus] = useState<PartnerRequestStatus | "all">("all");
+  // Several statuses can be picked at once; none picked is "all".
+  const [statuses, setStatuses] = useState<PartnerRequestStatus[]>([]);
+  const toggleStatus = (value: PartnerRequestStatus | "all") => {
+    if (value === "all") return setStatuses([]);
+    setStatuses((prev) => {
+      const next = prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value];
+      // Every status ticked is the same as "all".
+      return next.length === TABS.length ? [] : TABS.filter((s) => next.includes(s));
+    });
+  };
 
-  // Pages load as the list is scrolled. `key` ties the loaded rows to the tab
-  // they were fetched for, so a stale page counts as "loading".
-  const filter = status === "all" ? undefined : status;
-  const key = status;
+  // Pages load as the list is scrolled. `key` ties the loaded rows to the
+  // filter they were fetched for, so a stale page counts as "loading".
+  const filter = useMemo(() => (statuses.length > 0 ? statuses : undefined), [statuses]);
+  const key = statuses.join(",") || "all";
   const [page, setPage] = useState<Page | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);
@@ -327,30 +367,20 @@ export default function PartnerRequestsPage() {
   return (
     <>
       <DetailHeader backHref="/profile" title={t("pr.title")} />
-      <div className="-mx-4 -mt-4 border-b border-border px-4 py-4">
-        <ChipTabs
-          label={t("orders.status")}
-          value={status}
-          onChange={setStatus}
-          options={[
-            { value: "all" as const, label: t("common.all") },
-            ...TABS.map((s) => ({
-              value: s,
-              label: partnerStatusLabel(s),
-              count: s === "pending" ? stats?.pending : undefined,
-              idleClassName: TONE[s].soft,
-              activeClassName: TONE[s].solid,
-              badgeClassName: "bg-warning text-white",
-            })),
-          ]}
-        />
-      </div>
-
+      {/* The counts are the status filter: tick several; none ticked shows all. */}
       {stats && (
-        <Card className="mt-4 grid grid-cols-4 divide-x divide-border p-0">
-          <Stat label={t("pr.total")} value={total} />
+        <Card role="group" aria-label={t("orders.status")} className="grid grid-cols-4 divide-x divide-border overflow-hidden p-0">
+          <Stat label={t("pr.total")} value={total} checked={statuses.length === 0} onClick={() => toggleStatus("all")} />
           {TABS.map((s) => (
-            <Stat key={s} label={partnerStatusLabel(s)} value={stats[s]} dot={STAT_DOT[s]} />
+            <Stat
+              key={s}
+              label={partnerStatusLabel(s)}
+              value={stats[s]}
+              dot={STAT_DOT[s]}
+              checked={statuses.includes(s)}
+              activeClassName={TONE[s].soft}
+              onClick={() => toggleStatus(s)}
+            />
           ))}
         </Card>
       )}
@@ -366,9 +396,9 @@ export default function PartnerRequestsPage() {
           <EmptyState
             icon={Handshake}
             title={
-              status === "all"
+              statuses.length === 0
                 ? t("pr.empty")
-                : t("pr.noneInStatus", { status: partnerStatusLabel(status) })
+                : t("pr.noneInStatus", { status: statuses.map(partnerStatusLabel).join(", ") })
             }
           />
         </div>

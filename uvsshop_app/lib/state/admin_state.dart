@@ -361,7 +361,9 @@ class AdminState extends ChangeNotifier {
   // ---------- хамтран ажиллах хүсэлт ----------
 
   Future<({List<PartnerRequest> rows, int count, Map<String, int> stats})> partnerRequests(
-      {int skip = 0, int take = 20, String? status}) async {
+      {int skip = 0, int take = 20, Set<String> statuses = const {}}) async {
+    // Олон төлөв таслалаар ("pending,approved"); хоосон бол бүгд.
+    final status = statuses.isEmpty ? null : statuses.join(',');
     final q = Uri(queryParameters: {'skip': '$skip', 'take': '$take', 'status': ?status}).query;
     final res = await guard(() => api.get('/partnerRequest?$q'));
     final d = res['data'] as Map<String, dynamic>? ?? {};
