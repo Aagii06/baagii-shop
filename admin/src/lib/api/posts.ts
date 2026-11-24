@@ -63,6 +63,8 @@ interface Product {
   // ../backend sends both; the old eshop-admin sent neither.
   isActive?: boolean;
   statusId?: "draft" | "active" | "inactive";
+  /** Only on `GET /product/:id`: it's in an order, so it can't be deleted. */
+  hasOrders?: boolean;
   createdAt: string;
   updatedAt: string;
   variants: ProductVariant[] | null;
@@ -82,6 +84,8 @@ export interface Post {
   note: string | null;
   /** Not on `GET /product` yet — read it through `isPublished`. */
   isActive?: boolean;
+  /** In an order — can only be unpublished (hidden on the website), not deleted. */
+  hasOrders?: boolean;
   mainPrice: string;
   price: string;
   /** Discount period, `YYYY-MM-DD` inclusive; `null` for no limit. */
@@ -161,6 +165,7 @@ function toPostDetail(product: Product): PostDetail {
     name: product.name || product.title || "",
     note: product.description,
     isActive: product.statusId ? product.statusId === "active" : product.isActive,
+    hasOrders: product.hasOrders,
     mainPrice: product.mainPrice,
     price: product.price,
     saleStart: product.saleStart ?? null,

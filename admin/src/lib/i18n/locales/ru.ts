@@ -131,6 +131,8 @@ export const ru: Dict = {
   "pf.notEntered": "Не указано",
   "pf.enterNamePriceFirst": "Сначала введите название и цену",
   "pf.description": "Описание",
+  "pf.publishHint": "Выключите, чтобы скрыть на сайте (в заказах и отчётах останется)",
+  "pf.cantDeleteOrdered": "Товар есть в заказах, поэтому его нельзя удалить. Чтобы скрыть на сайте, выключите «Опубликовать» и сохраните.",
   "pf.publish": "Опубликовать",
   "pf.deleteProduct": "Удалить товар",
   "pf.mustPickCategory": "Выберите категорию.",

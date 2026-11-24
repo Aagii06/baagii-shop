@@ -131,6 +131,8 @@ export const en: Dict = {
   "pf.notEntered": "Not entered",
   "pf.enterNamePriceFirst": "Enter the name and price first",
   "pf.description": "Description",
+  "pf.publishHint": "Off hides it on the website (it stays in orders and reports)",
+  "pf.cantDeleteOrdered": "This product is in an order, so it can't be deleted. To hide it on the website, turn off \"Publish\" and save.",
   "pf.publish": "Publish",
   "pf.deleteProduct": "Delete product",
   "pf.mustPickCategory": "Pick a category.",

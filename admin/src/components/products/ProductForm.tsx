@@ -9,7 +9,7 @@ import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch";
 import { RichTextEditor } from "@/components/common/RichTextEditor";
 import StoreSelect from "@/components/stores/StoreSelect";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -52,7 +52,7 @@ export default function ProductForm() {
   const { run } = useToast();
   const { role, user } = useAuth();
   const confirm = useConfirm();
-  // const publishLabelId = useId();
+  const publishLabelId = useId();
   const nameErrorId = useId();
   const priceErrorId = useId();
   const saleErrorId = useId();
@@ -336,10 +336,13 @@ export default function ProductForm() {
           <RichTextEditor value={form.note} onChange={(html) => set("note", html)} />
         </Field>
 
-        {/* Hidden until the backend saves publishing (`isActive` / `statusId`).
+        {/* Off hides the product on the website; it stays here and in its orders. */}
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-white px-4 py-3.5">
-          <span id={publishLabelId} className="text-[15px]">
-            Нийтлэх
+          <span className="min-w-0">
+            <span id={publishLabelId} className="block text-[15px]">
+              {t("pf.publish")}
+            </span>
+            <span className="block text-xs text-muted-foreground">{t("pf.publishHint")}</span>
           </span>
           <Switch
             checked={form.isActive}
@@ -347,13 +350,16 @@ export default function ProductForm() {
             aria-labelledby={publishLabelId}
           />
         </div>
-        */}
 
-        {post && (
-          <Button type="button" variant="danger" size="lg" className="w-full" loading={deleting} onClick={onDelete}>
-            {t("pf.deleteProduct")}
-          </Button>
-        )}
+        {post &&
+          (post.hasOrders ? (
+            // Ordered products stay for their orders and settlement — hide them instead.
+            <p className="rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">{t("pf.cantDeleteOrdered")}</p>
+          ) : (
+            <Button type="button" variant="danger" size="lg" className="w-full" loading={deleting} onClick={onDelete}>
+              {t("pf.deleteProduct")}
+            </Button>
+          ))}
       </div>
     </form>
   );

@@ -1,4 +1,4 @@
-const { products, productVariants, sequelize, op } = require("../../models");
+const { products, productVariants, orderItems, sequelize, op } = require("../../models");
 const { productInclude, variantOrder, toAdminProduct, saveProduct, findProduct } = require("../../helper/productHelper");
 const { saveLog } = require("../../utils/logHelper");
 const { findStore, ownStoreId } = require("../../helper/storeHelper");
@@ -33,10 +33,13 @@ module.exports.list = handle("productList", async (req, res) => {
   return ok(res, { rows: rows.map(toAdminProduct), count, summary: [] });
 });
 
+// Захиалгад орсон бараа устгагдахгүй — зөвхөн нийтлэлээс хасаж (is_active) web-ээс нууна
+const hasOrders = async (productId) => (await orderItems.count({ where: { product_id: productId } })) > 0;
+
 module.exports.show = handle("productShow", async (req, res) => {
   const scope = storeScope(await ownStoreId(req));
   const product = await findProduct({ id: req.params.id, shop_id: req.shopId, ...scope });
-  return ok(res, product ? toAdminProduct(product) : null);
+  return ok(res, product ? { ...toAdminProduct(product), hasOrders: await hasOrders(product.id) } : null);
 });
 
 module.exports.create = handle("productCreate", async (req, res) => {
@@ -69,6 +72,8 @@ module.exports.destroy = handle("productDestroy", async (req, res) => {
   const scope = storeScope(await ownStoreId(req));
   const product = await products.findOne({ where: { id: req.params.id, shop_id: req.shopId, status: "active", ...scope } });
   if (!product) return fail(res, "Бараа олдсонгүй");
+  if (await hasOrders(product.id))
+    return fail(res, "Энэ бараа захиалгад орсон тул устгах боломжгүй. Вэб дээр харагдахгүй болгох бол \"Нийтлэх\"-ийг унтраана уу");
   const t = await sequelize.transaction();
   try {
     const deleted = { status: "deleted", deleted_by: by, deleted_at: at };
