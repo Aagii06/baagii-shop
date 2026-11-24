@@ -473,7 +473,19 @@ class _AdminOrderPageState extends State<AdminOrderPage> {
             ListTile(
               leading: NetImage(fileUrl(i.imageId, 'icon'), width: 48, height: 48, radius: BorderRadius.circular(6)),
               title: Text(i.name, maxLines: 2, overflow: TextOverflow.ellipsis),
-              subtitle: Text('${money(i.price)} × ${i.qty}${i.returnedQty > 0 ? ' (${tr('буцаасан {n}', {'n': i.returnedQty})})' : ''}'),
+              subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                if (i.storeName != null)
+                  Row(children: [
+                    const Icon(Icons.storefront_outlined, size: 14, color: AdminColors.primaryInk),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(i.storeName!,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AdminColors.primaryInk)),
+                    ),
+                  ]),
+                Text('${money(i.price)} × ${i.qty}${i.returnedQty > 0 ? ' (${tr('буцаасан {n}', {'n': i.returnedQty})})' : ''}'),
+              ]),
               trailing: o.canReturn && i.keptQty > 0 && admin.user?.isAdmin == true
                   ? IconButton(
                       tooltip: tr('Буцаах'),

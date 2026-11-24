@@ -15,7 +15,7 @@ import {
   type OrderItem,
 } from "@/lib/api/orders";
 import { cn, formatMNT } from "@/lib/utils";
-import { CircleAlert, Minus, Plus, Undo2 } from "lucide-react";
+import { CircleAlert, Minus, Plus, Store, Undo2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
@@ -180,6 +180,12 @@ export default function OrderItemsCard({ order, onChanged }: { order: Order; onC
                 >
                   {item.name}
                 </span>
+                {item.storeName && (
+                  <span className="flex min-w-0 items-center gap-1 text-xs font-medium text-primary-ink">
+                    <Store className="size-3.5 shrink-0" aria-hidden />
+                    <span className="truncate">{item.storeName}</span>
+                  </span>
+                )}
                 <span className="block font-mono text-xs text-muted-foreground">
                   {item.qty} × {formatMNT(item.price)}
                 </span>

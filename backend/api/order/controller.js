@@ -1,7 +1,7 @@
 const moment = require("moment");
 const { orders, orderItems, customers, paymentSettings, sequelize, op } = require("../../models");
 const { orderStatuses, orderTransitions, unpaidCancelHours } = require("../../config/constants");
-const { itemsInclude, toAdminOrder, placeOrder, restock, findOrder, revenueOf, isOverdue } = require("../../helper/orderHelper");
+const { itemsInclude, toAdminOrder, placeOrder, restock, findOrder, findAdminOrder, revenueOf, isOverdue } = require("../../helper/orderHelper");
 const { saveLog } = require("../../utils/logHelper");
 const { notifyOrderCustomer, notifyOrderStaff } = require("../../helper/notificationHelper");
 const { ok, fail, handle, toNumber, phoneDigits, isPhone, FORMAT } = require("../../helper/helper");
@@ -37,7 +37,7 @@ module.exports.list = handle("orderList", async (req, res) => {
 });
 
 module.exports.show = handle("orderShow", async (req, res) => {
-  const order = await findOrder({ id: req.params.id, shop_id: req.shopId });
+  const order = await findAdminOrder({ id: req.params.id, shop_id: req.shopId });
   return ok(res, order ? toAdminOrder(order) : null);
 });
 
@@ -61,7 +61,7 @@ module.exports.create = handle("orderCreate", async (req, res) => {
     },
     by,
   });
-  return ok(res, toAdminOrder(await findOrder({ id, shop_id: req.shopId })));
+  return ok(res, toAdminOrder(await findAdminOrder({ id, shop_id: req.shopId })));
 });
 
 const stampOf = { confirmed: "confirmed_at", delivered: "delivered_at", returned: "returned_at" };
@@ -89,7 +89,7 @@ module.exports.setStatus = handle("orderStatus", async (req, res) => {
     await t.commit();
     notifyOrderCustomer(order, status);
     if (status === orderStatuses.returned) notifyOrderStaff(order, "returned", { by });
-    return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
+    return ok(res, toAdminOrder(await findAdminOrder({ id: order.id, shop_id: req.shopId })));
   } catch (error) {
     await t.rollback();
     throw error;
@@ -114,7 +114,7 @@ module.exports.cancel = handle("orderCancel", async (req, res) => {
     await t.commit();
     notifyOrderCustomer(order, "cancelled");
     notifyOrderStaff(order, "cancelled", { by });
-    return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
+    return ok(res, toAdminOrder(await findAdminOrder({ id: order.id, shop_id: req.shopId })));
   } catch (error) {
     await t.rollback();
     throw error;
@@ -152,7 +152,7 @@ module.exports.returnItem = handle("orderReturn", async (req, res) => {
       notifyOrderCustomer(order, "itemReturned", item, count);
       notifyOrderStaff(order, "itemReturned", { by, item, qty: count });
     }
-    return ok(res, toAdminOrder(await findOrder({ id: order.id, shop_id: req.shopId })));
+    return ok(res, toAdminOrder(await findAdminOrder({ id: order.id, shop_id: req.shopId })));
   } catch (error) {
     await t.rollback();
     throw error;

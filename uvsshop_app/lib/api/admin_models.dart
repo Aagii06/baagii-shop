@@ -69,7 +69,9 @@ class AdminOrderItem {
   final int qty;
   final double price;
   final int returnedQty;
-  AdminOrderItem(this.id, this.name, this.imageId, this.qty, this.price, this.returnedQty);
+  /// Худалдагчийн дэлгүүрийн нэр; үндсэн дэлгүүрийн бараа бол null.
+  final String? storeName;
+  AdminOrderItem(this.id, this.name, this.imageId, this.qty, this.price, this.returnedQty, [this.storeName]);
   int get keptQty => qty - returnedQty;
 }
 
@@ -121,7 +123,7 @@ class AdminOrder {
       address: c['address']?.toString() ?? '',
       items: ((j['items'] as List?) ?? [])
           .map((i) => AdminOrderItem(toInt(i['id']), i['name']?.toString() ?? '', i['image']?.toString(), toInt(i['qty']),
-              toNum(i['price']), toInt(i['returnedQty'])))
+              toNum(i['price']), toInt(i['returnedQty']), i['storeName']?.toString()))
           .toList(),
       deliveryFee: toNum(j['deliveryFee']),
       timeline: {for (final e in t.entries) if (e.value != null) e.key.toString(): e.value.toString()},

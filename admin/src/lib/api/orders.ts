@@ -71,6 +71,8 @@ export interface OrderItem {
   price: number;
   /** Units of this line already sent back; absent when none. */
   returnedQty?: number;
+  /** The seller store the product belongs to; absent for the shop's own. */
+  storeName?: string;
 }
 
 export interface Order {

@@ -1,4 +1,4 @@
-const { orders, orderItems, products, productVariants, sequelize } = require("../models");
+const { orders, orderItems, products, productVariants, stores, sequelize } = require("../models");
 const moment = require("moment");
 const { orderStatuses, unpaidCancelHours } = require("../config/constants");
 const { toIso, toNumber, now, parseAt } = require("./helper");
@@ -8,6 +8,21 @@ const { LOW_STOCK, notifyLowStock } = require("./notificationHelper");
 const { makeOrderNumber } = require("./orderNumber");
 
 module.exports.itemsInclude = [{ model: orderItems, as: "items" }];
+// Админы захиалгын дэлгэрэнгүйд бараа бүрийн дэлгүүрийн нэр (худалдагчийн бараа бол)
+const adminItemsInclude = [
+  {
+    model: orderItems,
+    as: "items",
+    include: [
+      {
+        model: products,
+        as: "product",
+        attributes: ["id", "store_id"],
+        include: [{ model: stores, as: "store", attributes: ["id", "name"] }],
+      },
+    ],
+  },
+];
 
 const kept = (item) => item.qty - (item.returned_qty || 0);
 const subtotalOf = (order) => (order.items ?? []).reduce((sum, item) => sum + kept(item) * toNumber(item.price), 0);
@@ -38,6 +53,7 @@ module.exports.toAdminOrder = (order) => ({
       qty: item.qty,
       price: toNumber(item.price),
       ...(item.returned_qty ? { returnedQty: item.returned_qty } : {}),
+      ...(item.product?.store ? { storeName: item.product.store.name } : {}),
     })),
   deliveryFee: toNumber(order.delivery_fee),
   timeline: Object.fromEntries(
@@ -173,3 +189,6 @@ module.exports.restock = async (variantId, qty, t) => {
 
 // where-д shop_id заавал өгнө
 module.exports.findOrder = (where, t) => orders.findOne({ where, include: module.exports.itemsInclude, transaction: t });
+
+// Админы хариу — бараа бүр дэлгүүрийн нэртэй (toAdminOrder → items[].storeName)
+module.exports.findAdminOrder = (where) => orders.findOne({ where, include: adminItemsInclude });
