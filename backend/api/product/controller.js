@@ -44,10 +44,14 @@ module.exports.show = handle("productShow", async (req, res) => {
 
 module.exports.create = handle("productCreate", async (req, res) => {
   const { by, at, ...body } = req.body;
-  const storeId = await storeFor(req, await ownStoreId(req));
-  // Дэлгүүр бүртгэлтэй бол бараа заавал аль нэг дэлгүүрт (үүсгэсний дараа солигдохгүй)
-  if (storeId == null && (await stores.count({ where: { shop_id: req.shopId, status: "active" } })) > 0)
-    return fail(res, "Дэлгүүр сонгоно уу");
+  let storeId = await storeFor(req, await ownStoreId(req));
+  // Дэлгүүр бүртгэлтэй бол бараа заавал аль нэг дэлгүүрт (үүсгэсний дараа солигдохгүй).
+  // Ганц дэлгүүртэй shop-д (ж: Ajrug) сонгоогүй бол тэр дэлгүүрт автоматаар.
+  if (storeId == null) {
+    const list = await stores.findAll({ where: { shop_id: req.shopId, status: "active" }, attributes: ["id"], limit: 2, raw: true });
+    if (list.length === 1) storeId = list[0].id;
+    else if (list.length > 1) return fail(res, "Дэлгүүр сонгоно уу");
+  }
   const id = await saveProduct({ shopId: req.shopId, body, by, storeId });
   return ok(res, toAdminProduct(await findProduct({ id, shop_id: req.shopId })));
 });
