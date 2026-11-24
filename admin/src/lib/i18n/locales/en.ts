@@ -492,6 +492,7 @@ export const en: Dict = {
   "pr.openStore": "View store",
   "pf.store": "Store",
   "pf.storeLocked": "A product's store can't be changed after it's created.",
+  "pf.storeRequired": "Pick a store",
   "pf.storeHint": "Which store sells it — shown as the brand on the website",
   "pf.pickStore": "Pick a store",
   "pf.shopOwn": "The shop's own (none)",

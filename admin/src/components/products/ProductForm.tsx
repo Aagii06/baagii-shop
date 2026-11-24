@@ -14,6 +14,8 @@ import { RichTextEditor } from "@/components/common/RichTextEditor";
 import StoreSelect from "@/components/stores/StoreSelect";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { deletePost, savePost } from "@/lib/api/posts";
+import { getStores } from "@/lib/api/stores";
+import { useApi } from "@/lib/useApi";
 import { attrsSummary } from "@/lib/attributes";
 import { formatQty, toNumber } from "@/lib/utils";
 import { ChevronRight, Loader2, Lock, Palette, Tag } from "lucide-react";
@@ -80,6 +82,11 @@ export default function ProductForm() {
   const sale = saleErrors(form, attrs, variants);
   const periodError = saveTried || (form.saleStart && form.saleEnd) ? sale.salePeriod : undefined;
   const onSale = hasDiscount(form, attrs, variants);
+  // With seller stores registered, a new product must go to one (it never moves later).
+  const { data: stores } = useApi(getStores);
+  const storeRequired = role === "admin" && !post && (stores?.length ?? 0) > 0;
+  const storeError = storeRequired && saveTried && !form.storeId ? t("pf.storeRequired") : undefined;
+  const storeErrorId = useId();
 
   /** Reveals every error and focuses the first bad field; `true` when there are none. */
   function validate() {
@@ -93,6 +100,10 @@ export default function ProductForm() {
   function validateAll() {
     setSaveTried(true);
     if (!validate()) return false;
+    if (storeRequired && !form.storeId) {
+      document.getElementById(storeId)?.focus();
+      return false;
+    }
     if (sale.salePrice) saleRef.current?.focus();
     else if (sale.salePeriod) saleStartRef.current?.focus();
     return !sale.salePrice && !sale.salePeriod && !sale.variants;
@@ -229,13 +240,20 @@ export default function ProductForm() {
         {role === "admin" ? (
           // Optional: left empty, it's the shop's own product. Set once — a
           // product never moves to another store (orders are settled per store).
-          <Field label={t("pf.store")} hint={post ? t("pf.storeLocked") : t("pf.storeHint")}>
+          <Field
+            label={t("pf.store")}
+            hint={post ? t("pf.storeLocked") : t("pf.storeHint")}
+            error={storeError}
+            errorId={storeErrorId}
+          >
             <StoreSelect
               id={storeId}
               value={form.storeId}
               onChange={(id) => set("storeId", id)}
-              placeholder={t("pf.shopOwn")}
+              placeholder={storeRequired || form.storeId ? t("pf.storeRequired") : t("pf.shopOwn")}
               disabled={Boolean(post)}
+              invalid={Boolean(storeError)}
+              describedBy={storeError ? storeErrorId : undefined}
             />
           </Field>
         ) : (

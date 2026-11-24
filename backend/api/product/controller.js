@@ -1,4 +1,4 @@
-const { products, productVariants, orderItems, sequelize, op } = require("../../models");
+const { products, productVariants, orderItems, stores, sequelize, op } = require("../../models");
 const { productInclude, variantOrder, toAdminProduct, saveProduct, findProduct } = require("../../helper/productHelper");
 const { saveLog } = require("../../utils/logHelper");
 const { findStore, ownStoreId } = require("../../helper/storeHelper");
@@ -45,6 +45,9 @@ module.exports.show = handle("productShow", async (req, res) => {
 module.exports.create = handle("productCreate", async (req, res) => {
   const { by, at, ...body } = req.body;
   const storeId = await storeFor(req, await ownStoreId(req));
+  // Дэлгүүр бүртгэлтэй бол бараа заавал аль нэг дэлгүүрт (үүсгэсний дараа солигдохгүй)
+  if (storeId == null && (await stores.count({ where: { shop_id: req.shopId, status: "active" } })) > 0)
+    return fail(res, "Дэлгүүр сонгоно уу");
   const id = await saveProduct({ shopId: req.shopId, body, by, storeId });
   return ok(res, toAdminProduct(await findProduct({ id, shop_id: req.shopId })));
 });
