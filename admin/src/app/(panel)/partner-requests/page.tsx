@@ -1,6 +1,6 @@
 "use client";
 
-import { atLeast, LOAD_MORE_MARGIN, LoadingMore } from "@/components/common/LoadMore";
+import { atLeast, LOAD_MORE_MARGIN } from "@/components/common/LoadMore";
 import ChipTabs from "@/components/common/ChipTabs";
 import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState } from "@/components/common/States";
@@ -394,7 +394,7 @@ export default function PartnerRequestsPage() {
                   {t("common.retry")}
                 </Button>
               ) : (
-                <LoadingMore />
+                <PartnerRequestsSkeleton rows={2} stats={false} />
               )}
             </div>
           )}

@@ -204,14 +204,12 @@ class _PartnerRequestsPageState extends State<PartnerRequestsPage> {
               ]),
             ),
             if (_rows.length < _count)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Center(
-                  child: _loading
-                      ? const CircularProgressIndicator()
-                      : OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох'))),
-                ),
-              ),
+              _loading
+                  ? const LoadingView(count: 2)
+                  : Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Center(child: OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох')))),
+                    ),
           ],
         ]),
       ),

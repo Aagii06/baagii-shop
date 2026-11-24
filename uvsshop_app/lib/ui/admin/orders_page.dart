@@ -189,14 +189,9 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
           else ...[
             AdminList(children: [for (final o in _rows) _row(o)]),
             if (_rows.length < (_count ?? 0))
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Center(
-                  child: _error != null && !_loading
-                      ? OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох')))
-                      : const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
-                ),
-              ),
+              _error != null && !_loading
+                  ? Padding(padding: const EdgeInsets.all(16), child: Center(child: OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох')))))
+                  : const LoadingView(count: 2),
           ],
         ]),
       ),

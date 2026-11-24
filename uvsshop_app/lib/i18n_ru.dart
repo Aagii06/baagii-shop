@@ -1,6 +1,8 @@
 // Generated from baagii-shop web/admin locales (ru.ts) plus app-only texts. Keys are the Mongolian text (see i18n.dart).
 
 const appRu = <String, String>{
+  'Бүх дэлгүүр': 'Все магазины',
+  'Үндсэн дэлгүүр': "Собственный магазин",
   '{id} захиалгыг буцаах уу?': 'Вернуть заказ {id}?',
   '{id} захиалгыг цуцлах уу?': 'Отменить заказ {id}?',
   'Захиалга {id}': 'Заказ {id}',

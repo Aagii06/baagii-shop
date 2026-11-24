@@ -205,14 +205,18 @@ export async function getPostsPage({
   take,
   query = "",
   categoryIds,
+  storeId,
 }: {
   skip: number;
   take: number;
   query?: string;
   categoryIds?: number[];
+  /** A seller store, or "own" for the shop's own products (no store). */
+  storeId?: number | "own";
 }): Promise<{ rows: PostDetail[]; count: number }> {
   const conditions: unknown[] = [];
   if (query.trim()) conditions.push(["name", "contains", query.trim()]);
+  if (storeId != null) conditions.push(["storeId", "=", storeId === "own" ? null : storeId]);
   if (categoryIds && categoryIds.length > 0) {
     conditions.push(
       categoryIds.length === 1

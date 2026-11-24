@@ -28,6 +28,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
   String _query = '';
   List<int> _picked = [];
   List<AdminCategory>? _tree;
+  // '' — бүх дэлгүүр, 'own' — үндсэн дэлгүүрийн бараа, бусад нь дэлгүүрийн id (зөвхөн админд)
+  String _store = '';
+  List<Store>? _stores;
   int? _count;
   bool _loading = false;
   Object? _error;
@@ -41,9 +44,15 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 400) _loadMore();
     });
     _reload();
-    context.read<AdminState>().categoryTree().then((t) {
+    final admin = context.read<AdminState>();
+    admin.categoryTree().then((t) {
       if (mounted) setState(() => _tree = t);
     }, onError: (_) {});
+    if (admin.user?.isAdmin ?? false) {
+      admin.stores().then((s) {
+        if (mounted) setState(() => _stores = s);
+      }, onError: (_) {});
+    }
   }
 
   @override
@@ -71,7 +80,12 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
     try {
       final r = await context
           .read<AdminState>()
-          .products(skip: _rows.length, take: _take, query: _query, categoryIds: _picked);
+          .products(
+              skip: _rows.length,
+              take: _take,
+              query: _query,
+              categoryIds: _picked,
+              storeId: _store.isEmpty ? null : (_store == 'own' ? 'own' : int.parse(_store)));
       if (!mounted || version != _version) return;
       setState(() {
         _rows.addAll(r.rows.where((n) => !_rows.any((o) => o.id == n.id)));
@@ -119,6 +133,21 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                     _reload();
                   },
                 ),
+              if (_stores != null && _stores!.isNotEmpty)
+                DropdownButtonFormField<String>(
+                  initialValue: _store,
+                  isExpanded: true,
+                  decoration: fieldDecoration('').copyWith(labelText: null),
+                  items: [
+                    DropdownMenuItem(value: '', child: Text(tr('Бүх дэлгүүр'))),
+                    DropdownMenuItem(value: 'own', child: Text(tr('Үндсэн дэлгүүр'))),
+                    for (final s in _stores!) DropdownMenuItem(value: '${s.id}', child: Text(s.name, overflow: TextOverflow.ellipsis)),
+                  ],
+                  onChanged: (v) {
+                    _store = v ?? '';
+                    _reload();
+                  },
+                ),
             ],
           ),
           if (!ready && _error == null)
@@ -133,14 +162,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
           else ...[
             AdminList(children: [for (final p in _rows) _row(p, names)]),
             if (_rows.length < (_count ?? 0))
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Center(
-                  child: _error != null && !_loading
-                      ? OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох')))
-                      : const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
-                ),
-              ),
+              _error != null && !_loading
+                  ? Padding(padding: const EdgeInsets.all(16), child: Center(child: OutlinedButton(onPressed: _loadMore, child: Text(tr('Дахин оролдох')))))
+                  : const LoadingView(count: 2),
           ],
         ]),
       ),

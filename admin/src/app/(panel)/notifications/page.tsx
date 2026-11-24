@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { EmptyState, ErrorState } from "@/components/common/States";
+import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import {
   getNotifications,
   markAllNotificationsRead,
@@ -138,9 +138,7 @@ export default function NotificationsPage() {
           <ErrorState error={error} onRetry={load} />
         </div>
       ) : !rows ? (
-        <div className="grid place-items-center py-16">
-          <Loader2 className="size-6 animate-spin text-muted-foreground" />
-        </div>
+        <LoadingState />
       ) : rows.length === 0 ? (
         <div className="pt-4">
           <EmptyState icon={Bell} title={t("nt.empty")} description={t("nt.emptyHint")} />

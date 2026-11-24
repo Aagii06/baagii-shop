@@ -1,16 +1,19 @@
 "use client";
 
-import { atLeast, LOAD_MORE_MARGIN, LoadingMore } from "@/components/common/LoadMore";
+import { atLeast, LOAD_MORE_MARGIN } from "@/components/common/LoadMore";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { tr } from "@/lib/i18n/translations";
 import { EmptyState, ErrorState } from "@/components/common/States";
 import Thumb from "@/components/common/Thumb";
 import PageHeader from "@/components/layout/PageHeader";
+import Select from "@/components/common/Select";
 import CategoryFilter from "@/components/products/CategoryFilter";
 import ProductListSkeleton from "@/components/products/ProductListSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { getCategoryTree, type Category } from "@/lib/api/categories";
+import { getStores } from "@/lib/api/stores";
 import { getPostsPage, isPublished, LOW_STOCK_THRESHOLD, type Post } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
 import { cn, formatDate, formatMNT, formatQty, toNumber } from "@/lib/utils";
@@ -44,6 +47,11 @@ function stockLine(post: Post) {
 export default function ProductsPage() {
   const { t } = useLanguage();
   const { data: tree } = useApi(getCategoryTree);
+  // Only an admin sees every store's products; a shopper's list is their own store.
+  const { role } = useAuth();
+  const { data: stores } = useApi(getStores);
+  // "" — all stores, "own" — the shop's own products, otherwise a store id.
+  const [store, setStore] = useState("");
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -59,11 +67,12 @@ export default function ProductsPage() {
   }, [query]);
 
   const categoryIds = picked.length > 0 ? picked : undefined;
+  const storeId = store === "" ? undefined : store === "own" ? ("own" as const) : Number(store);
 
   // Pages load as the list is scrolled — like a social feed. `key` ties the
   // loaded rows to the search/category they were fetched for, so a stale
   // page is treated as "loading" until the new one lands.
-  const key = `${debouncedQuery}|${picked.join(",")}`;
+  const key = `${debouncedQuery}|${picked.join(",")}|${store}`;
   const [page, setPage] = useState<{ key: string; rows: Post[]; count: number; error?: Error } | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);
@@ -72,7 +81,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    getPostsPage({ skip: 0, take: PAGE_SIZE, query: debouncedQuery, categoryIds }).then(
+    getPostsPage({ skip: 0, take: PAGE_SIZE, query: debouncedQuery, categoryIds, storeId }).then(
       (result) => {
         if (cancelled) return;
         setMoreFailed(false);
@@ -86,7 +95,7 @@ export default function ProductsPage() {
     return () => {
       cancelled = true;
     };
-  }, [key, version, debouncedQuery, categoryIds]);
+  }, [key, version, debouncedQuery, categoryIds, storeId]);
 
   const ready = page?.key === key;
   const rows = ready ? page.rows : [];
@@ -102,6 +111,7 @@ export default function ProductsPage() {
         take: PAGE_SIZE,
         query: debouncedQuery,
         categoryIds,
+        storeId,
       }));
       setPage((prev) =>
         prev && prev.key === key
@@ -117,7 +127,7 @@ export default function ProductsPage() {
     } finally {
       setLoadingMore(false);
     }
-  }, [page, key, loadingMore, debouncedQuery, categoryIds]);
+  }, [page, key, loadingMore, debouncedQuery, categoryIds, storeId]);
 
   // Loads the next page once the bottom of the list nears the screen. A
   // failed page stops the loop; "try again" retries it.
@@ -153,6 +163,17 @@ export default function ProductsPage() {
           onChange={(e) => setQuery(e.target.value)}
         />
         {tree && tree.length > 0 && <CategoryFilter tree={tree} value={picked} onChange={setPicked} />}
+        {role === "admin" && stores && stores.length > 0 && (
+          <Select value={store} onChange={setStore} title={t("products.storeFilter")} aria-label={t("products.storeFilter")}>
+            <option value="">{t("products.allStores")}</option>
+            <option value="own">{t("products.ownStore")}</option>
+            {stores.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </Select>
+        )}
       </PageHeader>
 
       {ready && page.error ? (
@@ -212,7 +233,7 @@ export default function ProductsPage() {
                   {t("common.retry")}
                 </Button>
               ) : (
-                <LoadingMore />
+                <ProductListSkeleton rows={3} />
               )}
             </div>
           )}

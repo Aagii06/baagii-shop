@@ -142,14 +142,16 @@ class AdminState extends ChangeNotifier {
 
   // ---------- бараа ----------
 
-  /// [query] нэрээр, [categoryIds] категориор шүүнэ (web-ийн getPostsPage).
+  /// [query] нэрээр, [categoryIds] категориор, [storeId] дэлгүүрээр (int, эсвэл 'own' —
+  /// дэлгүүргүй, үндсэн дэлгүүрийн бараа) шүүнэ (web-ийн getPostsPage).
   Future<({List<AdminProduct> rows, int count})> products(
-      {int skip = 0, int take = 30, String query = '', List<int> categoryIds = const []}) async {
+      {int skip = 0, int take = 30, String query = '', List<int> categoryIds = const [], Object? storeId}) async {
     final sort = jsonEncode([
       {'selector': 'id', 'desc': true}
     ]);
     final conditions = <Object>[];
     if (query.trim().isNotEmpty) conditions.add(['name', 'contains', query.trim()]);
+    if (storeId != null) conditions.add(['storeId', '=', storeId == 'own' ? null : storeId]);
     if (categoryIds.isNotEmpty) {
       conditions.add(categoryIds.length == 1
           ? ['categoryId', '=', categoryIds.first]

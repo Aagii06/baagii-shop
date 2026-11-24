@@ -116,7 +116,7 @@ class _ShopNotificationsPageState extends State<ShopNotificationsPage> {
                   ]),
                 )
               : rows == null
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const LoadingView(count: 6)
                   : RefreshIndicator(
                       onRefresh: _load,
                       child: rows.isEmpty

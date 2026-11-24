@@ -1,6 +1,6 @@
 "use client";
 
-import { atLeast, LOAD_MORE_MARGIN, LoadingMore } from "@/components/common/LoadMore";
+import { atLeast, LOAD_MORE_MARGIN } from "@/components/common/LoadMore";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useConfirm } from "@/components/common/Confirm";
 import ChipTabs from "@/components/common/ChipTabs";
@@ -334,7 +334,7 @@ function OrdersList() {
                   {t("common.retry")}
                 </Button>
               ) : (
-                <LoadingMore />
+                <OrderListSkeleton rows={2} />
               )}
             </div>
           )}
