@@ -290,29 +290,35 @@ class _SearchPageState extends State<SearchPage> {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             sliver: SliverToBoxAdapter(
-              child: Row(children: [
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                // Сонгосон дэлгүүр тусдаа мөрөнд — эрэмбэ, шүүлтүүрийг шахахгүй.
                 if (pickedStore != null) ...[
-                  StoreAvatar(name: pickedStore, logo: logos[pickedStore], size: 40, radius: 12),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(pickedStore,
-                        maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-                  ),
-                ] else
+                  Row(children: [
+                    StoreAvatar(name: pickedStore, logo: logos[pickedStore], size: 40, radius: 12),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(pickedStore,
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                    ),
+                  ]),
+                  const SizedBox(height: 12),
+                ],
+                Row(children: [
                   const Spacer(),
-                const SizedBox(width: 8),
-                // Нарийн дэлгэц / том фонтод эрэмбэ нь агшиж, "Шүүлтүүр" үргэлж харагдана.
-                Flexible(
-                  child: _SortMenu(value: _sort, onChanged: (s) => setState(() {
-                        _sort = s;
-                        _page = 1;
-                      })),
-                ),
-                const SizedBox(width: 8),
-                FilterButton(
-                  count: _activeFilterCount,
-                  onTap: () => _openFilters(categories, storeNames, logos),
-                ),
+                  const SizedBox(width: 8),
+                  // Нарийн дэлгэц / том фонтод эрэмбэ нь агшиж, "Шүүлтүүр" үргэлж харагдана.
+                  Flexible(
+                    child: _SortMenu(value: _sort, onChanged: (s) => setState(() {
+                          _sort = s;
+                          _page = 1;
+                        })),
+                  ),
+                  const SizedBox(width: 8),
+                  FilterButton(
+                    count: _activeFilterCount,
+                    onTap: () => _openFilters(categories, storeNames, logos),
+                  ),
+                ]),
               ]),
             ),
           ),
