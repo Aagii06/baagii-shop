@@ -413,7 +413,7 @@ class LanguagePicker extends StatelessWidget {
 
 
 /// Мэдэгдлийн жагсаалтын дээрх мөр: "N уншаагүй" ба "Бүгдийг уншсанаар тэмдэглэх".
-/// Уншаагүй байхгүй бол юу ч харуулахгүй.
+/// Үргэлж харагдана; уншаагүй байхгүй бол товч идэвхгүй.
 class NotificationsReadAllBar extends StatelessWidget {
   final int unread;
   final VoidCallback onReadAll;
@@ -422,14 +422,14 @@ class NotificationsReadAllBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (unread <= 0) return const SizedBox.shrink();
+    final active = unread > 0;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 12, 4),
       child: Row(children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(99)),
-          child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+          decoration: BoxDecoration(color: active ? accent : Colors.grey.shade200, borderRadius: BorderRadius.circular(99)),
+          child: Text('$unread', style: TextStyle(color: active ? Colors.white : Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.bold)),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -444,7 +444,7 @@ class NotificationsReadAllBar extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
             textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
-          onPressed: onReadAll,
+          onPressed: active ? onReadAll : null,
           icon: const Icon(Icons.done_all, size: 18),
           label: Text(tr('Бүгдийг уншсанаар тэмдэглэх')),
         ),

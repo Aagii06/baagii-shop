@@ -10,21 +10,7 @@ import {
   type NotificationType,
 } from "@/lib/api/notifications";
 import { cn, formatWhen } from "@/lib/utils";
-import {
-  ArrowLeft,
-  Bell,
-  CircleDollarSign,
-  CircleX,
-  Clock,
-  Handshake,
-  Loader2,
-  MessageSquareText,
-  PackageCheck,
-  PackageMinus,
-  ReceiptText,
-  Undo2,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowLeft, Bell, CheckCheck, CircleDollarSign, CircleX, Clock, Handshake, Loader2, MessageSquareText, PackageCheck, PackageMinus, ReceiptText, Undo2, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -124,16 +110,31 @@ export default function NotificationsPage() {
           <ArrowLeft className="size-5" />
         </button>
         <h1 className="min-w-0 grow truncate text-lg font-extrabold leading-tight">{t("nt.title")}</h1>
-        {unread > 0 && (
+      </header>
+
+      {/* Always here (disabled with nothing unread), so "mark all read" is easy to find. */}
+      {rows && rows.length > 0 && (
+        <div className="flex items-center gap-2 py-3">
+          <span
+            className={cn(
+              "grid h-6 min-w-6 place-items-center rounded-full px-2 font-mono text-xs font-bold",
+              unread > 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            )}
+          >
+            {unread}
+          </span>
+          <span className="min-w-0 grow truncate text-sm font-medium text-muted-foreground">{t("nt.unreadCount")}</span>
           <button
             type="button"
             onClick={readAll}
-            className="shrink-0 rounded-full px-3 py-2 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft"
+            disabled={unread === 0}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-soft px-3.5 py-2 text-sm font-semibold text-primary-ink transition-colors hover:bg-primary-soft/70 disabled:cursor-default disabled:bg-muted disabled:text-muted-foreground"
           >
+            <CheckCheck className="size-4" />
             {t("nt.readAll")}
           </button>
-        )}
-      </header>
+        </div>
+      )}
 
       {error && !rows ? (
         <div className="pt-4">
