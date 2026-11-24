@@ -176,6 +176,15 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
     );
   }
 
+  /// Логогүй дэлгүүрийн 2 үсэг: эхний хоёр үгийн эхний үсэг ("Номин Супермаркет" → "НС"),
+  /// нэг үгтэй бол эхний 2 үсэг ("Alpha" → "AL").
+  static String _storeInitials(String name) {
+    final words = name.split(RegExp(r'\s+')).map((w) => w.replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '')).where((w) => w.isNotEmpty).toList();
+    if (words.isEmpty) return '?';
+    final letters = words.length >= 2 ? words[0].characters.first + words[1].characters.first : words[0].characters.take(2).toString();
+    return letters.toUpperCase();
+  }
+
   Widget _row(AdminProduct p, Map<int, String> names) {
     final category = p.categoryId == null ? '' : names[p.categoryId] ?? '';
     final store = p.storeName?.trim() ?? '';
@@ -197,14 +206,14 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 bottom: -4,
                 // Лого дугуйг бүтэн дүүргэнэ — хүрээ, зайгүй.
                 child: logo != null
-                    ? ImageBox(fileId: logo, size: 24, circle: true)
+                    ? ImageBox(fileId: logo, size: 28, circle: true)
                     : Container(
-                        width: 24,
-                        height: 24,
+                        width: 28,
+                        height: 28,
                         alignment: Alignment.center,
                         decoration: const BoxDecoration(color: AdminColors.primary, shape: BoxShape.circle),
-                        child: Text(store.characters.first.toUpperCase(),
-                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        child: Text(_storeInitials(store),
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, height: 1, letterSpacing: -0.3)),
                       ),
               ),
           ]),

@@ -57,6 +57,16 @@ function FilterSkeleton() {
   );
 }
 
+/**
+ * Two letters for a store with no logo: the first letters of its first two
+ * words ("Номин Супермаркет" → "НС"), or a one-word name's first two ("Alpha" → "AL").
+ */
+function storeInitials(name: string): string {
+  const words = name.split(/\s+/).map((w) => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean);
+  const letters = words.length >= 2 ? words[0][0] + words[1][0] : (words[0] ?? "").slice(0, 2);
+  return letters.toLocaleUpperCase() || "?";
+}
+
 export default function ProductsPage() {
   const { t } = useLanguage();
   const { data: tree, error: treeError } = useApi(getCategoryTree);
@@ -219,10 +229,10 @@ export default function ProductsPage() {
                       {post.storeName && (
                         <span title={post.storeName} className="absolute -bottom-1 -right-1 shadow-sm rounded-full">
                           {logo ? (
-                            <Thumb id={logo} variant="icon" size={24} className="rounded-full border-0" />
+                            <Thumb id={logo} variant="icon" size={28} className="rounded-full border-0" />
                           ) : (
-                            <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                              {post.storeName.trim().charAt(0).toUpperCase()}
+                            <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-[11px] font-bold leading-none tracking-tight text-primary-foreground">
+                              {storeInitials(post.storeName)}
                             </span>
                           )}
                         </span>
