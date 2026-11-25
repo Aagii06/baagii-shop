@@ -15,7 +15,9 @@ class ShareButtons extends StatefulWidget {
   /// Вэб дээрх зам, жишээ нь `/product/12`, `/store?id=3`.
   final String path;
   final bool light;
-  const ShareButtons({super.key, required this.title, required this.path, this.light = false});
+  /// Товчнуудыг голлуулах (бүтээгдэхүүний хуудас).
+  final bool center;
+  const ShareButtons({super.key, required this.title, required this.path, this.light = false, this.center = false});
 
   @override
   State<ShareButtons> createState() => _ShareButtonsState();
@@ -58,16 +60,12 @@ class _ShareButtonsState extends State<ShareButtons> {
     final light = widget.light;
     // Өнгөлөг толгой дээр бүгд хагас тунгалаг цагаан; энгийн үед брэндийн өнгөтэй.
     Color bg(Color c) => light ? Colors.white.withValues(alpha: 0.18) : c;
-    return Wrap(crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 8, children: [
-      Padding(
-        padding: const EdgeInsets.only(right: 10),
-        child: Text(tr('Хуваалцах'),
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: light ? Colors.white.withValues(alpha: 0.85) : Colors.grey.shade600,
-            )),
-      ),
+    // "Хуваалцах" бичиггүй, зөвхөн товчнууд (вебтэй адил); center бол голлуулна.
+    return Wrap(
+        alignment: widget.center ? WrapAlignment.center : WrapAlignment.start,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runSpacing: 8,
+        children: [
       _Circle(
         label: 'Facebook',
         color: bg(const Color(0xFF1877F2)),

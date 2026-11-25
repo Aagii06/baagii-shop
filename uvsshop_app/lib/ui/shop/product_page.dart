@@ -216,7 +216,7 @@ class _ProductPageState extends State<ProductPage> {
               ]),
             ),
           const SizedBox(height: 8),
-          ShareButtons(title: p.name, path: '/product/${p.id}'),
+          ShareButtons(title: p.name, path: '/product/${p.id}', center: true),
         ]),
       ),
       for (final attr in d.attrs)
