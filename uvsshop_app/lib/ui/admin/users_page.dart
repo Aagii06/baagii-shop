@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/admin_manage_models.dart';
@@ -8,6 +7,7 @@ import '../common.dart';
 import 'admin_widgets.dart';
 import 'stores_page.dart';
 import 'package:uvsshop_app/i18n.dart';
+import '../phone_input.dart';
 
 const _minPassword = 6;
 
@@ -141,7 +141,7 @@ class UserFormPage extends StatefulWidget {
 
 class _UserFormPageState extends State<UserFormPage> {
   late final _name = TextEditingController(text: widget.user?.name ?? '');
-  late final _phone = TextEditingController(text: widget.user?.phone ?? '');
+  late final _phone = PhoneController(text: widget.user?.phone ?? '');
   late final _email = TextEditingController(text: widget.user?.email ?? '');
   final _password = TextEditingController();
   late String _role = widget.user?.role ?? 'shopper';
@@ -273,7 +273,7 @@ class _UserFormPageState extends State<UserFormPage> {
           controller: _phone,
           keyboardType: TextInputType.phone,
           maxLength: 8,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          inputFormatters: phoneFormatters,
           style: const TextStyle(fontFamily: 'monospace'),
           onChanged: (_) => setState(() {}),
           decoration: fieldDecoration(tr('Утасны дугаар'),

@@ -8,6 +8,7 @@ import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
 import 'package:uvsshop_app/i18n.dart';
+import '../phone_input.dart';
 
 const _tierColor = {'gold': Color(0xFFB45309), 'silver': Color(0xFF475569), 'bronze': Color(0xFFC2410C)};
 
@@ -339,15 +340,12 @@ class _StoreFormPageState extends State<StoreFormPage> {
           error: _submitted && _phones.isEmpty ? tr('Дор хаяж нэг утасны дугаар нэмнэ үү') : null,
           check: (v) => v.length == 8 ? null : tr('Утасны дугаар 8 оронтой байна'),
           onChanged: (v) => setState(() => _phones = v),
-          input: (value, onChanged, label) => TextFormField(
+          input: (value, onChanged, label) => PhoneFormField(
             initialValue: value,
             autofocus: value.isEmpty,
-            keyboardType: TextInputType.phone,
-            maxLength: 8,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             style: const TextStyle(fontFamily: 'monospace'),
             onChanged: onChanged,
-            decoration: fieldDecoration(label, hint: tr('Утасны дугаар')).copyWith(counterText: ''),
+            decoration: fieldDecoration(label, hint: tr('Утасны дугаар')),
           ),
         ),
         const SizedBox(height: 14),

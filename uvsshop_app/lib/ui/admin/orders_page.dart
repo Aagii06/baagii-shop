@@ -11,6 +11,7 @@ import '../common.dart';
 import 'admin_design.dart';
 import 'admin_widgets.dart';
 import 'package:uvsshop_app/i18n.dart';
+import '../phone_input.dart';
 
 class AdminOrdersPage extends StatefulWidget {
   /// Худалдан авагчийн хуудаснаас нээхэд энэ утсаар шүүнэ.
@@ -24,7 +25,7 @@ class AdminOrdersPage extends StatefulWidget {
 class _AdminOrdersPageState extends State<AdminOrdersPage> {
   static const _take = 20;
   final _scroll = ScrollController();
-  late final _phone = TextEditingController(text: widget.phone ?? '');
+  late final _phone = PhoneController(text: widget.phone ?? '');
   Timer? _debounce;
   String? _status;
   final List<AdminOrder> _rows = [];
@@ -172,6 +173,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               TextField(
                 controller: _phone,
                 keyboardType: TextInputType.phone,
+                inputFormatters: phoneFormatters,
                 maxLength: 8,
                 style: const TextStyle(fontFamily: mono),
                 onChanged: (_) {

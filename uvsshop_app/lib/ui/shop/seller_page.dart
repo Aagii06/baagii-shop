@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'package:uvsshop_app/i18n.dart';
+import '../phone_input.dart';
 
 final _emailRe = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 const _codeLength = 4;
@@ -21,7 +22,7 @@ class SellerPage extends StatefulWidget {
 }
 
 class _SellerPageState extends State<SellerPage> {
-  late final _phone = TextEditingController(text: context.read<ShopState>().customer?.phone ?? '');
+  late final _phone = PhoneController(text: context.read<ShopState>().customer?.phone ?? '');
   final _code = TextEditingController();
   final _storeName = TextEditingController();
   final _name = TextEditingController();
@@ -207,7 +208,7 @@ class _SellerPageState extends State<SellerPage> {
         readOnly: verified,
         keyboardType: TextInputType.phone,
         maxLength: 8,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        inputFormatters: phoneFormatters,
         onChanged: (_) => setState(() {
           _cooldown = 0;
           _phoneError = null;

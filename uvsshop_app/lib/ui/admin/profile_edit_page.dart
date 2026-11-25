@@ -8,6 +8,7 @@ import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
 import 'package:uvsshop_app/i18n.dart';
+import '../phone_input.dart';
 
 /// web-ийн /profile/edit: лого, нэр, утас (шинэ дугаарт SMS код), имэйл (шинэ хаягт имэйл код).
 class ProfileEditPage extends StatefulWidget {
@@ -20,7 +21,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   late final AdminState _admin = context.read<AdminState>();
   late final String _currentPhone = _admin.user?.phone ?? _admin.user?.userName ?? '';
   late final _name = TextEditingController(text: _admin.user?.name ?? '');
-  late final _phone = TextEditingController(text: _currentPhone);
+  late final _phone = PhoneController(text: _currentPhone);
   late final _email = TextEditingController(text: _admin.user?.email ?? '');
   final _code = TextEditingController();
 
@@ -216,7 +217,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           controller: _phone,
           keyboardType: TextInputType.phone,
           maxLength: 8,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          inputFormatters: phoneFormatters,
           onChanged: (_) => setState(() => _phoneCooldown = 0),
           style: const TextStyle(fontFamily: 'monospace'),
           decoration: fieldDecoration(

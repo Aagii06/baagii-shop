@@ -9,6 +9,7 @@ import 'address_fields.dart';
 import 'pay_page.dart';
 import 'sign_in_page.dart';
 import 'package:uvsshop_app/i18n.dart';
+import '../phone_input.dart';
 
 
 class CheckoutPage extends StatefulWidget {
@@ -20,8 +21,8 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   final _form = GlobalKey<FormState>();
   final _name = TextEditingController();
-  final _phone = TextEditingController();
-  final _extraPhone = TextEditingController();
+  final _phone = PhoneController();
+  final _extraPhone = PhoneController();
   final _address = TextEditingController();
   final _note = TextEditingController();
   final _coupon = TextEditingController();
@@ -123,6 +124,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           TextFormField(
             controller: _phone,
             keyboardType: TextInputType.phone,
+            inputFormatters: phoneFormatters,
             decoration: InputDecoration(labelText: tr('Утас *')),
             validator: (v) => digitsOnly(v ?? '').length != 8 ? tr('Утасны дугаар 8 оронтой байна') : null,
           ),
@@ -130,6 +132,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           TextFormField(
             controller: _extraPhone,
             keyboardType: TextInputType.phone,
+            inputFormatters: phoneFormatters,
             decoration: InputDecoration(labelText: tr('Нэмэлт утас')),
             validator: (v) {
               final d = digitsOnly(v ?? '');

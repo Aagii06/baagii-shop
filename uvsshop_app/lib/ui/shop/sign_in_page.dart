@@ -10,6 +10,7 @@ import '../../state/app_state.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
 import 'package:uvsshop_app/i18n.dart';
+import '../phone_input.dart';
 
 /// Нэвтрэх хуудас. Энгийн үед зөвхөн худалдан авагч утасны кодоор нэвтэрнэ.
 /// "Админ / Худалдагч" таб нь зөвхөн утас нь админ/худалдагчаар бүртгэлтэй
@@ -46,7 +47,7 @@ class PhoneOtpForm extends StatefulWidget {
 }
 
 class _PhoneOtpFormState extends State<PhoneOtpForm> {
-  final _phone = TextEditingController();
+  final _phone = PhoneController();
   bool _busy = false;
   String? _error;
 
@@ -134,6 +135,7 @@ class _PhoneOtpFormState extends State<PhoneOtpForm> {
       TextField(
         controller: _phone,
         keyboardType: TextInputType.phone,
+        inputFormatters: phoneFormatters,
         maxLength: 8,
         onChanged: (_) => setState(() {}),
         onSubmitted: (_) => _send(),
@@ -466,7 +468,7 @@ class AdminLoginForm extends StatefulWidget {
 }
 
 class _AdminLoginFormState extends State<AdminLoginForm> {
-  final _phone = TextEditingController();
+  final _phone = PhoneController();
   final _password = TextEditingController();
   bool _busy = false;
   bool _obscure = true;
@@ -509,6 +511,7 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
         TextField(
           controller: _phone,
           keyboardType: TextInputType.phone,
+          inputFormatters: phoneFormatters,
           maxLength: 8,
           decoration: InputDecoration(labelText: tr('Утасны дугаар'), prefixIcon: Icon(Icons.phone_outlined), counterText: ''),
         ),
