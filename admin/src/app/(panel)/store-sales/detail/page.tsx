@@ -4,16 +4,17 @@ import { useConfirm } from "@/components/common/Confirm";
 import { EmptyState, ErrorState, LoadingState } from "@/components/common/States";
 import StoreLogo from "@/components/common/StoreLogo";
 import Thumb from "@/components/common/Thumb";
+import OrderBlock from "@/components/stores/OrderBlock";
 import { useToast } from "@/components/common/Toast";
 import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getStoreAccount, readPeriod, settleStore, type SettlementOrder, type StoreSettlement, type StoreSoldItem } from "@/lib/api/storeReport";
+import { getStoreAccount, readPeriod, settleStore, type StoreSettlement, type StoreSoldItem } from "@/lib/api/storeReport";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useApi } from "@/lib/useApi";
-import { cn, formatDate, formatMNT, formatWhen } from "@/lib/utils";
-import { ChevronDown, CircleCheck, HandCoins, SearchX } from "lucide-react";
+import { cn, formatMNT, formatWhen } from "@/lib/utils";
+import { ChevronRight, CircleCheck, HandCoins, SearchX } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -41,47 +42,12 @@ function ItemRow({ item }: { item: StoreSoldItem }) {
   );
 }
 
-/** An order with its lines — order number links to the order. */
-function OrderBlock({ order, deliveredAt }: { order: SettlementOrder; deliveredAt?: string | null }) {
+/** A past payout; tapping it opens its own page with the orders and items it covered. */
+function SettlementRow({ s, href }: { s: StoreSettlement; href: string }) {
   const { t } = useLanguage();
-  return (
-    <Link href={`/orders/${order.id}`} className="block px-4 py-3.5 transition-colors hover:bg-muted/60">
-      <span className="flex items-center gap-2">
-        <span className="font-mono text-sm font-semibold">{order.orderNumber}</span>
-        <span className="ml-auto font-mono text-sm font-bold">{formatMNT(order.amount)}</span>
-      </span>
-      {deliveredAt && (
-        <span className="mt-0.5 block text-xs text-muted-foreground">{t("ss.deliveredAt", { date: formatDate(deliveredAt) })}</span>
-      )}
-      <ul className="mt-2 space-y-1">
-        {order.items.map((item) => (
-          <li key={item.id} className="flex items-center gap-2 text-sm">
-            <Thumb id={item.image} variant="icon" size={28} className="shrink-0 rounded-lg" />
-            <span className="min-w-0 grow truncate">{item.name}</span>
-            <span className={cn("shrink-0 font-mono text-xs", item.qty < 0 ? "text-destructive" : "text-muted-foreground")}>
-              {item.qty} × {formatMNT(item.price)}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Link>
-  );
-}
-
-/** A past payout; tapping it opens the orders and items it covered. */
-function SettlementRow({ s }: { s: StoreSettlement }) {
-  const { t } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const orders = s.orderList ?? [];
   return (
     <li>
-      <button
-        type="button"
-        aria-expanded={open}
-        disabled={orders.length === 0}
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/60 disabled:hover:bg-transparent"
-      >
+      <Link href={href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/60">
         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-tint-mint text-tint-mint-ink">
           <HandCoins className="size-5" />
         </span>
@@ -93,19 +59,8 @@ function SettlementRow({ s }: { s: StoreSettlement }) {
           </span>
         </span>
         <span className="shrink-0 font-mono text-sm font-bold">{formatMNT(s.amount)}</span>
-        {orders.length > 0 && (
-          <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
-        )}
-      </button>
-      {open && (
-        <ul className="divide-y divide-border border-t border-border bg-muted/30">
-          {orders.map((order) => (
-            <li key={order.id}>
-              <OrderBlock order={order} />
-            </li>
-          ))}
-        </ul>
-      )}
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      </Link>
     </li>
   );
 }
@@ -278,7 +233,11 @@ function StoreAccountPage() {
       ) : (
         <ul className="-mx-4 mt-2 divide-y divide-border border-y border-border bg-white">
           {data.settlements.map((s) => (
-            <SettlementRow key={s.id} s={s} />
+            <SettlementRow
+              key={s.id}
+              s={s}
+              href={`/store-sales/settlement?store=${data.storeId}&id=${s.id}&period=${readPeriod(params.get("period"))}`}
+            />
           ))}
         </ul>
       )}

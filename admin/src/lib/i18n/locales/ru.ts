@@ -646,4 +646,10 @@ export const ru: Dict = {
   "ss.pendingTitle": "Ещё не доставлено",
   "ss.pendingHint": "Войдёт в выплату после доставки",
   "ss.historyLine": "Заказов: {orders} · {qty} шт",
+  "ss.settlementTitle": "Детали выплаты",
+  "ss.settlementNotFound": "Выплата не найдена",
+  "ss.paidAt": "Дата выплаты",
+  "ss.paidAmount": "Сумма выплаты",
+  "ss.ordersLabel": "Заказы",
+  "ss.noteLabel": "Примечание",
 };

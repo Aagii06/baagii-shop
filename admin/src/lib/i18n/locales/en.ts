@@ -646,4 +646,10 @@ export const en: Dict = {
   "ss.pendingTitle": "Not delivered yet",
   "ss.pendingHint": "Joins the payout once delivered",
   "ss.historyLine": "{orders} orders · {qty} pcs",
+  "ss.settlementTitle": "Payout details",
+  "ss.settlementNotFound": "Payout not found",
+  "ss.paidAt": "Paid on",
+  "ss.paidAmount": "Amount paid",
+  "ss.ordersLabel": "Orders",
+  "ss.noteLabel": "Note",
 };

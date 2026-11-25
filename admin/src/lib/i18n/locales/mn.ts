@@ -646,4 +646,10 @@ export const mn: Dict = {
   "ss.pendingTitle": "Хүргэгдээгүй",
   "ss.pendingHint": "Хүргэгдсэний дараа тооцоонд орно",
   "ss.historyLine": "{orders} захиалга · {qty} ш",
+  "ss.settlementTitle": "Тооцооны дэлгэрэнгүй",
+  "ss.settlementNotFound": "Тооцоо олдсонгүй",
+  "ss.paidAt": "Шилжүүлсэн огноо",
+  "ss.paidAmount": "Шилжүүлсэн дүн",
+  "ss.ordersLabel": "Захиалгууд",
+  "ss.noteLabel": "Тэмдэглэл",
 };
