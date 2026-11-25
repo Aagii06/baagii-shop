@@ -28,6 +28,18 @@ app.use("/web", resolveShop, require("./web/routes"));
 // Барааны зураг
 app.use("/file", require("./file/router"));
 
+// Android app татах: /download/uvsshop.apk (эсвэл /download/app).
+// APK-г сервер дээр backend/public/app/uvsshop.apk руу гараар хуулна (git-д ордоггүй).
+const path = require("path");
+const APK_FILE = path.join(__dirname, "public", "app", "uvsshop.apk");
+app.get(["/download/app", "/download/uvsshop.apk"], (req, res) => {
+  res.set("Cache-Control", "no-cache");
+  res.type("application/vnd.android.package-archive");
+  res.download(APK_FILE, "uvsshop.apk", (err) => {
+    if (err && !res.headersSent) res.status(404).send("APK олдсонгүй");
+  });
+});
+
 app.get("/", (req, res) => res.send("UVS shop backend"));
 
 app.listen(PORT, () => {

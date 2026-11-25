@@ -13,3 +13,6 @@ npm-debug.log*
 
 # Firebase service account (FIREBASE_SERVICE_ACCOUNT)
 firebase-service-account*.json
+
+# Android APK (татах линк: /download/uvsshop.apk) — сервер дээр гараар хуулна
+/public/app/*.apk
