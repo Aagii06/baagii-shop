@@ -9,6 +9,8 @@ const { storeTiers } = require("../../config/constants");
 
 // Утас, имэйл, хаяг тус бүр дээд тал нь
 const maxStoreContacts = 5;
+// Тооцоо шилжүүлэх данс дээд тал нь
+const maxStoreBanks = 5;
 
 const saveValidation = validate([
   body("name").trim().notEmpty().withMessage("Дэлгүүрийн нэр оруулна уу"),
@@ -20,8 +22,8 @@ const saveValidation = validate([
   body("emails.*").trim().isEmail().withMessage("Имэйл буруу байна"),
   body("addresses").optional().isArray({ max: maxStoreContacts }).withMessage(`Хаяг ${maxStoreContacts} хүртэл байна`),
   body("tier").optional().isIn(storeTiers).withMessage("Дэлгүүрийн түвшин буруу байна"),
-  body("bank.account")
-    .optional({ checkFalsy: true })
+  body("banks").optional().isArray({ max: maxStoreBanks }).withMessage(`Данс ${maxStoreBanks} хүртэл байна`),
+  body("banks.*.account")
     .customSanitizer((v) => String(v).replace(/\s+/g, ""))
     .matches(/^(MN\d{18}|\d{6,20})$/i)
     .withMessage("Дансны дугаар буруу байна"),

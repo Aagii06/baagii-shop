@@ -63,8 +63,8 @@ export interface SettlementOrder {
 }
 
 export interface StoreAccount extends StoreSales {
-  /** Where to pay the store; the admin copies it into a bank app. */
-  bank?: { name: string | null; account: string | null; holder: string | null };
+  /** Where to pay the store (the first is the main one); the admin copies it into a bank app. */
+  banks?: { id?: number; name: string | null; account: string; holder: string | null }[];
   /** All-time: delivered sales and not-yet-delivered. */
   allTime: { delivered: number; pending: number };
   /** What the next payout covers (`balance` in total). */

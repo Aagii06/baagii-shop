@@ -155,9 +155,7 @@ class _StoreFormPageState extends State<StoreFormPage> {
   late String? _logo = widget.store?.logo;
   PickedImage? _logoFile;
   late String _tier = widget.store?.tier ?? 'normal';
-  late String? _bankName = widget.store?.bankName;
-  late final _bankAccount = TextEditingController(text: widget.store?.bankAccount ?? '');
-  late final _bankHolder = TextEditingController(text: widget.store?.bankHolder ?? '');
+  late final List<_BankDraft> _banks = [for (final b in widget.store?.banks ?? const <StoreBank>[]) _BankDraft(b)];
   bool _submitted = false;
   bool _saving = false;
 
@@ -171,27 +169,28 @@ class _StoreFormPageState extends State<StoreFormPage> {
         _logo != s?.logo ||
         _logoFile != null ||
         _tier != (s?.tier ?? 'normal') ||
-        _bankName != s?.bankName ||
-        _bankAccount.text != (s?.bankAccount ?? '') ||
-        _bankHolder.text != (s?.bankHolder ?? '');
+        _banksJson.toString() != [for (final b in s?.banks ?? const <StoreBank>[]) b.toJson()].toString();
   }
 
-  String? get _accountError {
-    final v = _bankAccount.text;
-    return v.isNotEmpty && !bankAccountRe.hasMatch(v) ? tr('Дансны дугаар буруу байна (6–20 орон, эсвэл MN-ээр эхэлсэн IBAN)') : null;
-  }
+  /// Хадгалах данснууд: дугаартай мөрүүд, дарааллаараа (эхнийх нь үндсэн).
+  List<Map<String, Object?>> get _banksJson => [
+        for (final b in _banks)
+          if (b.account.text.isNotEmpty)
+            {'name': b.name, 'account': b.account.text, 'holder': b.holder.text.trim().isEmpty ? null : b.holder.text.trim()},
+      ];
 
   @override
   void dispose() {
     _name.dispose();
-    _bankAccount.dispose();
-    _bankHolder.dispose();
+    for (final b in _banks) {
+      b.dispose();
+    }
     super.dispose();
   }
 
   Future<void> _save() async {
     setState(() => _submitted = true);
-    if (_name.text.trim().isEmpty || _phones.isEmpty || _accountError != null) return;
+    if (_name.text.trim().isEmpty || _phones.isEmpty || _banks.any((b) => b.error != null)) return;
     final admin = context.read<AdminState>();
     setState(() => _saving = true);
     final saved = await runAction(context, () async {
@@ -203,11 +202,7 @@ class _StoreFormPageState extends State<StoreFormPage> {
         'addresses': _addresses,
         'logo': logo,
         'tier': _tier,
-        'bank': {
-          'name': _bankName,
-          'account': _bankAccount.text.isEmpty ? null : _bankAccount.text,
-          'holder': _bankHolder.text.trim().isEmpty ? null : _bankHolder.text.trim(),
-        },
+        'banks': _banksJson,
       });
     }, widget.store == null ? tr('Дэлгүүрийг бүртгэлээ') : tr('Хадгаллаа'));
     if (!mounted) return;
@@ -217,6 +212,67 @@ class _StoreFormPageState extends State<StoreFormPage> {
       setState(() => _saving = false);
     }
   }
+
+  Widget _bankCard(int i, _BankDraft b) => Card(
+        margin: const EdgeInsets.only(top: 12),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 4, 12),
+          child: Column(children: [
+            Row(children: [
+              Expanded(
+                child: Text(i == 0 ? tr('Үндсэн данс') : tr('Данс {n}', {'n': i + 1}),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black54)),
+              ),
+              IconButton(
+                tooltip: tr('Дансыг хасах'),
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => setState(() {
+                  _banks.remove(b);
+                  b.dispose();
+                }),
+              ),
+            ]),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Column(children: [
+                DropdownButtonFormField<String?>(
+                  initialValue: b.name,
+                  isExpanded: true,
+                  decoration: fieldDecoration(tr('Банк')),
+                  items: [
+                    DropdownMenuItem(value: null, child: Text(tr('Сонгоогүй'))),
+                    // Жагсаалтад байхгүй хадгалсан банкыг алдахгүй
+                    if (b.name != null && !banks.contains(b.name)) DropdownMenuItem(value: b.name, child: Text(b.name!)),
+                    for (final n in banks) DropdownMenuItem(value: n, child: Text(n)),
+                  ],
+                  onChanged: (v) => setState(() => b.name = v),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: b.account,
+                  maxLength: 20,
+                  autocorrect: false,
+                  style: const TextStyle(fontFamily: 'monospace'),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    TextInputFormatter.withFunction((_, v) => v.copyWith(text: v.text.toUpperCase())),
+                  ],
+                  onChanged: (_) => setState(() {}),
+                  decoration:
+                      fieldDecoration(tr('Дансны дугаар'), hint: '5012345678', error: _submitted ? b.error : null).copyWith(counterText: ''),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: b.holder,
+                  maxLength: 150,
+                  onChanged: (_) => setState(() {}),
+                  decoration: fieldDecoration(tr('Данс эзэмшигчийн нэр')).copyWith(counterText: ''),
+                ),
+              ]),
+            ),
+          ]),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -328,42 +384,23 @@ class _StoreFormPageState extends State<StoreFormPage> {
         // Тооцоо шилжүүлэх данс — апп-аас мөнгө шилжүүлэхгүй, зөвхөн хуулж авна
         Text(tr('Тооцоо шилжүүлэх данс'), style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 2),
-        Text(tr('Тооцоо шилжүүлэхдээ эндээс хуулж аваад банкны апп-аараа шилжүүлнэ'),
+        Text(tr('{max} хүртэл, эхнийх нь үндсэн. Тооцоо шилжүүлэхдээ эндээс хуулж аваад банкны апп-аараа шилжүүлнэ', {'max': maxStoreBanks}),
             style: const TextStyle(fontSize: 12, color: Colors.black54)),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<String?>(
-          initialValue: _bankName,
-          isExpanded: true,
-          decoration: fieldDecoration(tr('Банк')),
-          items: [
-            DropdownMenuItem(value: null, child: Text(tr('Сонгоогүй'))),
-            // Жагсаалтад байхгүй хадгалсан банкыг алдахгүй
-            if (_bankName != null && !banks.contains(_bankName)) DropdownMenuItem(value: _bankName, child: Text(_bankName!)),
-            for (final b in banks) DropdownMenuItem(value: b, child: Text(b)),
-          ],
-          onChanged: (v) => setState(() => _bankName = v),
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: _bankAccount,
-          maxLength: 20,
-          autocorrect: false,
-          style: const TextStyle(fontFamily: 'monospace'),
-          inputFormatters: [
-            FilteringTextInputFormatter.deny(RegExp(r'\s')),
-            TextInputFormatter.withFunction((_, v) => v.copyWith(text: v.text.toUpperCase())),
-          ],
-          onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration(tr('Дансны дугаар'), hint: '5012345678', error: _submitted ? _accountError : null)
-              .copyWith(counterText: ''),
-        ),
-        const SizedBox(height: 14),
-        TextField(
-          controller: _bankHolder,
-          maxLength: 150,
-          onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration(tr('Данс эзэмшигчийн нэр')).copyWith(counterText: ''),
-        ),
+        for (final (i, b) in _banks.indexed) _bankCard(i, b),
+        if (_banks.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(tr('Данс нэмээгүй байна'), style: const TextStyle(color: Colors.black54)),
+          ),
+        if (_banks.length < maxStoreBanks)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => setState(() => _banks.add(_BankDraft(null))),
+              icon: const Icon(Icons.add),
+              label: Text(tr('Данс нэмэх')),
+            ),
+          ),
       ]),
     );
   }
@@ -752,5 +789,28 @@ class _AddressPickerState extends State<AddressPicker> {
         decoration: fieldDecoration(tr('Дэлгэрэнгүй хаяг (байр, орц, тоот…)')),
       ),
     ]);
+  }
+}
+
+/// Засаж буй нэг данс (маягт дээр).
+class _BankDraft {
+  String? name;
+  final TextEditingController account;
+  final TextEditingController holder;
+  _BankDraft(StoreBank? b)
+      : name = b?.name,
+        account = TextEditingController(text: b?.account ?? ''),
+        holder = TextEditingController(text: b?.holder ?? '');
+
+  /// Бүрэн хоосон мөрийг хадгалахгүй (алдаа биш).
+  String? get error {
+    final v = account.text;
+    if (v.isEmpty) return (name != null || holder.text.trim().isNotEmpty) ? tr('Дансны дугаар оруулна уу') : null;
+    return bankAccountRe.hasMatch(v) ? null : tr('Дансны дугаар буруу байна (6–20 орон, эсвэл MN-ээр эхэлсэн IBAN)');
+  }
+
+  void dispose() {
+    account.dispose();
+    holder.dispose();
   }
 }

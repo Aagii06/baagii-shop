@@ -649,4 +649,11 @@ const appEn = <String, String>{
   'Хуулах': 'Copy',
   'Хуулагдлаа': 'Copied',
   'Шилжүүлэх дүн': 'Amount to pay',
+  '{max} хүртэл, эхнийх нь үндсэн. Тооцоо шилжүүлэхдээ эндээс хуулж аваад банкны апп-аараа шилжүүлнэ': 'Up to {max}, the first is the main one. Copy from here into your bank app when paying out',
+  'Үндсэн данс': 'Main account',
+  'Данс {n}': 'Account {n}',
+  'Дансыг хасах': 'Remove account',
+  'Данс нэмэх': 'Add account',
+  'Данс нэмээгүй байна': 'No accounts yet',
+  'Дансны дугаар оруулна уу': 'Enter the account number',
 };

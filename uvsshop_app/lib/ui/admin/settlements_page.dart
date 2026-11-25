@@ -293,22 +293,29 @@ class _StoreAccountPageState extends State<StoreAccountPage> {
             },
           ),
         );
-    final b = a.bank;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 4, 4),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(tr('Шилжүүлэх данс'), style: const TextStyle(fontWeight: FontWeight.bold)),
-          if (b.account == null || b.account!.isEmpty)
+          if (a.banks.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(tr('Энэ дэлгүүрт данс бүртгээгүй байна'), style: const TextStyle(color: AdminColors.mutedForeground)),
             )
           else ...[
-            if (b.name != null) row(tr('Банк'), b.name!),
-            row(tr('Дансны дугаар'), b.account!, mono: true),
-            if (b.holder != null) row(tr('Данс эзэмшигчийн нэр'), b.holder!),
+            for (final (i, b) in a.banks.indexed) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(i == 0 ? tr('Үндсэн данс') : tr('Данс {n}', {'n': i + 1}),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AdminColors.mutedForeground)),
+              ),
+              if (b.name != null) row(tr('Банк'), b.name!),
+              row(tr('Дансны дугаар'), b.account, mono: true),
+              if (b.holder != null) row(tr('Данс эзэмшигчийн нэр'), b.holder!),
+              const Divider(height: 8),
+            ],
             row(tr('Шилжүүлэх дүн'), a.summary.balance.round().toString(), mono: true),
           ],
         ]),

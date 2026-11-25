@@ -1,9 +1,27 @@
-const { stores, users } = require("../models");
+const { stores, users, storeBankAccounts } = require("../models");
 const { roles } = require("../config/constants");
 const { toIso } = require("./helper");
 
+// Тооцоо шилжүүлэх данснууд (storeBankAccounts), үндсэн нь эхэндээ
+const toBank = (b) => ({ id: b.id, name: b.bank_name ?? null, account: b.account, holder: b.holder ?? null });
+module.exports.toBank = toBank;
+
+// Дэлгүүр бүрийн данснууд: Map<store_id, bank[]>
+module.exports.banksByStore = async (shopId, storeIds, transaction) => {
+  const map = new Map();
+  if (!storeIds.length) return map;
+  const rows = await storeBankAccounts.findAll({
+    where: { shop_id: shopId, store_id: storeIds },
+    order: [["sort", "asc"], ["id", "asc"]],
+    raw: true,
+    transaction,
+  });
+  for (const r of rows) map.set(r.store_id, [...(map.get(r.store_id) ?? []), toBank(r)]);
+  return map;
+};
+
 // admin/src/lib/api/stores.ts-ийн Store
-module.exports.toStore = (row, productsCnt = undefined) => ({
+module.exports.toStore = (row, productsCnt = undefined, banks = []) => ({
   id: row.id,
   name: row.name,
   phone: row.phone,
@@ -14,7 +32,7 @@ module.exports.toStore = (row, productsCnt = undefined) => ({
   addresses: stores.listOf(row, "addresses", "address"),
   logo: row.logo,
   tier: row.tier || "normal",
-  bank: { name: row.bank_name ?? null, account: row.bank_account ?? null, holder: row.bank_holder ?? null },
+  banks,
   ...(productsCnt !== undefined && { productsCnt }),
   createdAt: toIso(row.created_at),
 });

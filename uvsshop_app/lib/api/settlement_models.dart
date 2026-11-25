@@ -1,3 +1,4 @@
+import 'admin_manage_models.dart' show StoreBank;
 import 'api_client.dart';
 
 /// Дэлгүүрийн (худалдагчийн) борлуулалт ба тооцоо — backend `/storeReport` (зөвхөн админ).
@@ -94,9 +95,9 @@ class StoreAccount {
   final List<Settlement> settlements;
 
   /// Тооцоо шилжүүлэх данс — админ хуулж аваад банкны апп-аар шилжүүлнэ.
-  final ({String? name, String? account, String? holder}) bank;
+  final List<StoreBank> banks;
   StoreAccount(this.summary, this.allTimeDelivered, this.allTimePending, this.unsettledItems, this.unsettledOrders, this.pendingItems,
-      this.settlements, this.bank);
+      this.settlements, this.banks);
 
   factory StoreAccount.fromJson(Map<String, dynamic> j) {
     final all = (j['allTime'] as Map?) ?? {};
@@ -111,11 +112,7 @@ class StoreAccount {
       list(un['orders'], UnsettledOrder.fromJson),
       list(j['pendingItems'], SoldItem.fromJson),
       list(j['settlements'], Settlement.fromJson),
-      (
-        name: (j['bank'] as Map?)?['name']?.toString(),
-        account: (j['bank'] as Map?)?['account']?.toString(),
-        holder: (j['bank'] as Map?)?['holder']?.toString(),
-      ),
+      StoreBank.listOf(j['banks']),
     );
   }
 }

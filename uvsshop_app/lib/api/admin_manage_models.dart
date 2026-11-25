@@ -36,6 +36,25 @@ const banks = [
 /// Дансны дугаар (6–20 орон) эсвэл IBAN (MN + 18 орон), зайгүй.
 final bankAccountRe = RegExp(r'^(MN\d{18}|\d{6,20})$', caseSensitive: false);
 
+/// Дэлгүүрийн данс дээд тал нь (backend api/store/router.js-тэй ижил).
+const maxStoreBanks = 5;
+
+/// Тооцоо шилжүүлэх нэг данс.
+class StoreBank {
+  final String? name;
+  final String account;
+  final String? holder;
+  const StoreBank({this.name, required this.account, this.holder});
+
+  factory StoreBank.fromJson(Map j) =>
+      StoreBank(name: _str(j['name']), account: j['account']?.toString() ?? '', holder: _str(j['holder']));
+
+  Map<String, Object?> toJson() => {'name': name, 'account': account, 'holder': holder};
+
+  static List<StoreBank> listOf(Object? v) =>
+      [for (final b in (v as List?) ?? []) if (b is Map && (b['account']?.toString() ?? '').isNotEmpty) StoreBank.fromJson(b)];
+}
+
 class Store {
   final int id;
   final String name;
@@ -45,10 +64,8 @@ class Store {
   final String? logo;
   final String tier;
 
-  /// Тооцоо шилжүүлэх данс (админ хуулж аваад банкны апп-аар шилжүүлнэ).
-  final String? bankName;
-  final String? bankAccount;
-  final String? bankHolder;
+  /// Тооцоо шилжүүлэх данснууд, эхнийх нь үндсэн (админ хуулж аваад банкны апп-аар шилжүүлнэ).
+  final List<StoreBank> banks;
   final int productsCnt;
   final String createdAt;
 
@@ -60,9 +77,7 @@ class Store {
     required this.addresses,
     this.logo,
     required this.tier,
-    this.bankName,
-    this.bankAccount,
-    this.bankHolder,
+    this.banks = const [],
     required this.productsCnt,
     required this.createdAt,
   });
@@ -86,9 +101,7 @@ class Store {
       addresses: list('addresses', 'address'),
       logo: _str(j['logo']),
       tier: storeTiers.contains(j['tier']) ? j['tier'] as String : 'normal',
-      bankName: _str((j['bank'] as Map?)?['name']),
-      bankAccount: _str((j['bank'] as Map?)?['account']),
-      bankHolder: _str((j['bank'] as Map?)?['holder']),
+      banks: StoreBank.listOf(j['banks']),
       productsCnt: toInt(j['productsCnt']),
       createdAt: j['createdAt']?.toString() ?? '',
     );

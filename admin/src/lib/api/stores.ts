@@ -40,7 +40,12 @@ export const BANKS = [
   "М банк",
 ] as const;
 
+/** Payout accounts a store can have. */
+export const MAX_STORE_BANKS = 5;
+
 export interface StoreBank {
+  /** Only on saved accounts. */
+  id?: number;
   name: string | null;
   /** Account number or IBAN (MN + 18 digits), no spaces. */
   account: string | null;
@@ -60,8 +65,8 @@ export interface Store {
   /** Logo file id. */
   logo: string | null;
   tier: StoreTier;
-  /** Where the shop pays the store's settlements (copied by hand into a bank app). */
-  bank: StoreBank;
+  /** Where the shop pays the store's settlements (copied by hand into a bank app); the first is the main one. */
+  banks: StoreBank[];
   /** Active products; only on the list. */
   productsCnt?: number;
   createdAt: string;
@@ -75,7 +80,7 @@ export interface StoreInput {
   addresses: string[];
   logo: string | null;
   tier: StoreTier;
-  bank: StoreBank;
+  banks: StoreBank[];
 }
 
 /** By tier (gold first), then oldest first; id breaks ties. */

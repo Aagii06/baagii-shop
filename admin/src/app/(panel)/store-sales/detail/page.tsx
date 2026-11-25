@@ -234,11 +234,18 @@ function StoreAccountPage() {
               {/* The store's account, to copy into the bank app — nothing is sent from here. */}
               <Card className="space-y-3 p-4">
                 <h3 className="text-sm font-bold">{t("ss.payTo")}</h3>
-                {data.bank?.account ? (
+                {data.banks?.length ? (
                   <>
-                    {data.bank.name && <CopyLine label={t("st.bankName")} value={data.bank.name} />}
-                    <CopyLine label={t("st.bankAccount")} value={data.bank.account} mono />
-                    {data.bank.holder && <CopyLine label={t("st.bankHolder")} value={data.bank.holder} />}
+                    {data.banks.map((bank, i) => (
+                      <div key={bank.id ?? bank.account} className="space-y-2 rounded-xl border border-border p-3">
+                        <span className="block text-xs font-semibold text-muted-foreground">
+                          {i === 0 ? t("st.bankMain") : t("st.bankN", { n: i + 1 })}
+                        </span>
+                        {bank.name && <CopyLine label={t("st.bankName")} value={bank.name} />}
+                        <CopyLine label={t("st.bankAccount")} value={bank.account} mono />
+                        {bank.holder && <CopyLine label={t("st.bankHolder")} value={bank.holder} />}
+                      </div>
+                    ))}
                     <CopyLine label={t("ss.amountToPay")} value={String(Math.round(data.balance))} mono />
                   </>
                 ) : (
