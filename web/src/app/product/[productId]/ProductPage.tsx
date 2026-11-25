@@ -541,7 +541,7 @@ export default function ProductPage() {
             </div>
           </div>
 
-          <ShareButtons title={product.name} className="pt-4 border-t border-border" />
+          <ShareButtons title={product.name} compact className="justify-center pt-4 border-t border-border" />
         </div>
       </div>
 

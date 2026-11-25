@@ -66,6 +66,7 @@ export default function MobileFilterDrawer({
 
             <div className="flex-1 overflow-y-auto px-4 py-4">
               <FilterPanelContent
+                priceFirst
                 filters={filters}
                 onChange={onChange}
                 priceBounds={priceBounds}

@@ -458,7 +458,8 @@ export default function QuickViewModal({
                 <ShareButtons
                   title={name}
                   path={`/product/${productId}`}
-                  className="border-t border-border pt-4"
+                  compact
+                  className="justify-center border-t border-border pt-4"
                 />
               )}
             </div>

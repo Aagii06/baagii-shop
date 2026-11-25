@@ -17,6 +17,8 @@ export interface SearchFilters {
 }
 
 interface FilterSidebarProps {
+  /** Phones (the filter drawer): the price range comes first. */
+  priceFirst?: boolean;
   filters: SearchFilters;
   onChange: (filters: SearchFilters) => void;
   priceBounds: [number, number];
@@ -90,6 +92,7 @@ function pruneCategories(list: Category[], keep: Set<number>): Category[] {
 }
 
 export function FilterPanelContent({
+  priceFirst = false,
   filters,
   onChange,
   priceBounds,
@@ -221,7 +224,7 @@ export function FilterPanelContent({
     });
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="bg-card px-5 py-4 shadow-sm">
         <h3 className="mb-1 text-lg font-bold text-foreground">
           {t("search.filters.category")}
@@ -270,7 +273,7 @@ export function FilterPanelContent({
         )}
       </div>
 
-      <div className="bg-card px-5 py-4 shadow-sm">
+      <div className={cn("bg-card px-5 py-4 shadow-sm", priceFirst && "order-first")}>
         <h3 className="mb-1 text-lg font-bold text-foreground">
           {t("search.filters.priceRange")}
         </h3>

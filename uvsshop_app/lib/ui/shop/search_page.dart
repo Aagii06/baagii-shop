@@ -577,18 +577,8 @@ class FilterSheetState extends State<FilterSheet> {
         const Divider(height: 1),
         Expanded(
           child: ListView(controller: scroll, padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), children: [
-            Text(tr('Ангилал'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-            _pick(tr('Бүх бараа'), _f.categories.isEmpty, () => setState(() => _f = _f.copyWith(categories: {}))),
-            for (final c in widget.categories) _category(c),
-            if (widget.stores.isNotEmpty) ...[
-              const Divider(height: 24),
-              Text(tr('Дэлгүүрүүд'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-              for (final s in widget.stores)
-                _pick(s, _f.stores.contains(s), () => _toggleStore(s),
-                    leading: StoreAvatar(name: s, logo: widget.logos[s], size: 24, radius: 6)),
-            ],
+            // Үнийн хязгаар хамгийн дээр (вебийн утасны шүүлтүүртэй адил).
             if (b.end > b.start) ...[
-              const Divider(height: 24),
               Text(tr('Үнийн хязгаар'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               RangeSlider(
@@ -601,6 +591,17 @@ class FilterSheetState extends State<FilterSheet> {
                 Text(money(price.start)),
                 Text(money(price.end)),
               ]),
+              const Divider(height: 24),
+            ],
+            Text(tr('Ангилал'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+            _pick(tr('Бүх бараа'), _f.categories.isEmpty, () => setState(() => _f = _f.copyWith(categories: {}))),
+            for (final c in widget.categories) _category(c),
+            if (widget.stores.isNotEmpty) ...[
+              const Divider(height: 24),
+              Text(tr('Дэлгүүрүүд'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              for (final s in widget.stores)
+                _pick(s, _f.stores.contains(s), () => _toggleStore(s),
+                    leading: StoreAvatar(name: s, logo: widget.logos[s], size: 24, radius: 6)),
             ],
           ]),
         ),
