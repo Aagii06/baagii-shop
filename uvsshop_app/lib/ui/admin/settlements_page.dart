@@ -415,38 +415,90 @@ class _StoreAccountPageState extends State<StoreAccountPage> {
                   )
                 else
                   AdminList(children: [
-                    // Дарвал тухайн тооцоонд орсон захиалга, бараа нээгдэнэ
+                    // Дарвал тухайн тооцооны дэлгэрэнгүй хуудас нээгдэнэ
                     for (final s in a.settlements)
-                      Theme(
-                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          enabled: s.orderList.isNotEmpty,
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                          childrenPadding: EdgeInsets.zero,
-                          leading: const CircleAvatar(
-                              backgroundColor: AdminColors.tintMint, child: Icon(Icons.payments_outlined, color: AdminColors.tintMintInk)),
-                          title: Row(children: [
-                            Expanded(child: Text(formatDate(s.createdAt), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600))),
-                            Text(money(s.amount), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
-                          ]),
-                          subtitle: Text(
-                            '${tr('{orders} захиалга · {qty} ш', {'orders': s.orders, 'qty': s.qty})}${s.note != null ? ' · ${s.note}' : ''}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          children: [
-                            for (final o in s.orderList)
-                              DecoratedBox(
-                                decoration: const BoxDecoration(
-                                    color: AdminColors.muted, border: Border(top: BorderSide(color: AdminColors.border))),
-                                child: _orderTile(o),
-                              ),
-                          ],
+                      ListTile(
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => _SettlementPage(settlement: s, storeName: a.summary.storeName, orderTile: _orderTile))),
+                        leading: const CircleAvatar(
+                            backgroundColor: AdminColors.tintMint, child: Icon(Icons.payments_outlined, color: AdminColors.tintMintInk)),
+                        title: Text(formatDate(s.createdAt), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        subtitle: Text(
+                          '${tr('{orders} захиалга · {qty} ш', {'orders': s.orders, 'qty': s.qty})}${s.note != null ? ' · ${s.note}' : ''}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text(money(s.amount), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.chevron_right, color: AdminColors.mutedForeground),
+                        ]),
                       ),
                   ]),
               ]),
             ),
+    );
+  }
+}
+
+/// Нэг тооцооны дэлгэрэнгүй: огноо, дүн, тэмдэглэл, орсон захиалгууд бараатайгаа (админы /store-sales/settlement).
+class _SettlementPage extends StatelessWidget {
+  final Settlement settlement;
+  final String storeName;
+  final Widget Function(UnsettledOrder) orderTile;
+  const _SettlementPage({required this.settlement, required this.storeName, required this.orderTile});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = settlement;
+    const muted = TextStyle(color: AdminColors.mutedForeground);
+    Widget line(String label, Widget value) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: muted),
+            const SizedBox(width: 12),
+            Expanded(child: Align(alignment: Alignment.centerRight, child: value)),
+          ]),
+        );
+    return Scaffold(
+      appBar: AppBar(
+        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(tr('Тооцооны дэлгэрэнгүй')),
+          Text(storeName, style: const TextStyle(fontSize: 13, color: AdminColors.mutedForeground)),
+        ]),
+      ),
+      body: ListView(padding: const EdgeInsets.only(bottom: 24), children: [
+        Card(
+          margin: const EdgeInsets.all(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(children: [
+              line(tr('Шилжүүлсэн огноо'), Text(formatDate(s.createdAt), style: const TextStyle(fontWeight: FontWeight.w600))),
+              line(tr('Захиалгууд'),
+                  Text(tr('{orders} захиалга · {qty} ш', {'orders': s.orders, 'qty': s.qty}), style: const TextStyle(fontWeight: FontWeight.w600))),
+              if (s.note != null)
+                line(tr('Тэмдэглэл'), Text(s.note!, textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w600))),
+              const Divider(),
+              line(tr('Шилжүүлсэн дүн'),
+                  Text(money(s.amount), style: const TextStyle(fontFamily: mono, fontSize: 20, fontWeight: FontWeight.w800))),
+            ]),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Text(tr('Захиалгууд'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ),
+        AdminList(children: [
+          for (final o in s.orderList) orderTile(o),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(children: [
+              Expanded(child: Text(tr('Нийт'), style: const TextStyle(fontWeight: FontWeight.bold))),
+              Text(money(s.amount), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
+            ]),
+          ),
+        ]),
+      ]),
     );
   }
 }

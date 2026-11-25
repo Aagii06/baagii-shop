@@ -636,4 +636,8 @@ const appEn = <String, String>{
   'Админ / Худалдагч': 'Admin / Seller',
   '{name} — та админ хэсэгт нэвтэрсэн байна.': '{name} — you are signed in to the admin side.',
   'Админ хэсэг рүү шилжих': 'Go to the admin side',
+  'Тооцооны дэлгэрэнгүй': 'Payout details',
+  'Шилжүүлсэн огноо': 'Paid on',
+  'Шилжүүлсэн дүн': 'Amount paid',
+  'Захиалгууд': 'Orders',
 };
