@@ -6,7 +6,8 @@ const { isSmsConfigured, sendSms } = require("./smsHelper");
 
 // Утсаар (SMS) нэг удаагийн код. SMS-ийг Android утсан дээрх gateway app илгээнэ
 // (helper/smsHelper.js). Код үргэлж санамсаргүй. SMS_GATEWAY_TOKEN тохируулаагүй үед
-// production-д код илгээхгүй (алдаа буцаана), dev орчинд кодыг консолд хэвлэнэ.
+// production-д код илгээхгүй (алдаа буцаана). Илгээсэн код бүрийг серверийн лог дээр хэвлэнэ
+// (SMS ирээгүй гэх мэтэд шалгахад).
 const OTP_TTL_SECONDS = 10 * 60;
 const OTP_RESEND_SECONDS = 30;
 const OTP_MAX_ATTEMPTS = 5;
@@ -23,7 +24,6 @@ const purposeText = { login: "нэвтрэх код", partner: "бүртгэли
 const deliver = async (shopId, phone, purpose, code) => {
   if (!isSmsConfigured()) {
     if (process.env.NODE_ENV === "production") return "SMS үйлчилгээ одоогоор ажиллахгүй байна";
-    console.log(`[dev, sms холбогдоогүй] OTP ${phone}: ${code}`);
     return null;
   }
   const shop = await shops.findOne({ where: { id: shopId }, attributes: ["name"], raw: true });
@@ -63,7 +63,6 @@ const sendOtp = async (shopId, phone, purpose, send) => {
   if (send === null) {
     if (process.env.NODE_ENV === "production") return { success: false, message: "Код илгээх тохиргоо хийгдээгүй байна" };
     code = String(crypto.randomInt(100000, 1000000));
-    console.log(`[dev, суваг тохируулаагүй] OTP ${phone}: ${code}`);
   } else if (send) {
     code = String(crypto.randomInt(100000, 1000000));
     if (!(await send(code))) return { success: false, message: "Код илгээж чадсангүй. Дахин оролдоно уу" };
@@ -82,6 +81,8 @@ const sendOtp = async (shopId, phone, purpose, send) => {
   };
   if (existing) await existing.update(values);
   else await phoneOtps.create({ ...where, ...values, created_at: at });
+  // Лог дээр код харагдана (SMS ирээгүй үед шалгах, туслах)
+  console.log(`[OTP] ${at} shop ${shopId} · ${phone} · ${purpose}: ${code}`);
   return { success: true, message: "Код илгээлээ" };
 };
 
