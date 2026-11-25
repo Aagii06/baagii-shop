@@ -657,4 +657,13 @@ const appEn = <String, String>{
   'Данс нэмээгүй байна': 'No accounts yet',
   'Дансны дугаар оруулна уу': 'Enter the account number',
   'Төстэй бараа': 'Similar products',
+  'Нууц үгээ мартсан уу?': 'Forgot your password?',
+  'Нууц үг сэргээх': 'Reset password',
+  'Бүртгэлтэй утасны дугаараа оруулна уу. Таны утсанд SMS код илгээнэ.': 'Enter your registered phone number. We will text you a code.',
+  '{phone} дугаарт ирсэн кодыг оруулна уу': 'Enter the code sent to {phone}',
+  'Шинэ нууц үгээ оруулна уу': 'Enter your new password',
+  'SMS код': 'SMS code',
+  'Дахин илгээх ({sec})': 'Resend ({sec})',
+  'Код буруу байна': 'Wrong code',
+  'Шинэ нууц үг таарахгүй байна': 'The new passwords do not match',
 };

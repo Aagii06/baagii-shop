@@ -68,6 +68,20 @@ class AdminState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Нууц үгээ мартсан (нэвтрээгүй): бүртгэлтэй дугаарт SMS код → шалгаад reset токен → шинэ нууц үг.
+  // admin/src/lib/api/auth.ts-ийн sendResetOtp / verifyResetOtp / resetPassword-тэй адил.
+  Future<void> sendResetOtp(String phone) => api.post('/auth/forgot/sendOtp', body: {'phone': phone}, auth: false);
+
+  Future<String> verifyResetOtp(String phone, String code) async {
+    final res = await api.put('/auth/forgot/verify', body: {'phone': phone, 'code': code}, auth: false);
+    final token = res['data']?['resetToken'] as String?;
+    if (token == null) throw ApiException(200, res['message']?.toString() ?? tr('Код буруу байна'));
+    return token;
+  }
+
+  Future<void> resetPassword(String resetToken, String newPassword) => api.put('/auth/forgot/reset',
+      body: {'resetToken': resetToken, 'newPassword': newPassword, 'confirmPassword': newPassword}, auth: false);
+
   Future<void> _loadUserData() async {
     final res = await guard(() => api.get('/auth/getUserData'));
     final u = res['data']?['user'];

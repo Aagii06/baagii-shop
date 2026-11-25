@@ -529,11 +529,19 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
             ),
           ),
         ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => AdminForgotPasswordPage(phone: digitsOnly(_phone.text)))),
+            child: Text(tr('Нууц үгээ мартсан уу?')),
+          ),
+        ),
         if (_error != null) ...[
-          const SizedBox(height: 8),
           Text(_error!, style: const TextStyle(color: Colors.red)),
+          const SizedBox(height: 8),
         ],
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           onPressed: _busy ? null : _login,
@@ -542,4 +550,205 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
               : Text(tr('Нэвтрэх')),
         ),
       ]);
+}
+
+/// Админ / худалдагчийн нууц үг сэргээх (админ вебийн /forgot-password-тэй адил):
+/// бүртгэлтэй дугаар → SMS код → шинэ нууц үг → шууд нэвтэрч админ хэсэг рүү орно.
+class AdminForgotPasswordPage extends StatefulWidget {
+  final String phone;
+  const AdminForgotPasswordPage({super.key, this.phone = ''});
+  @override
+  State<AdminForgotPasswordPage> createState() => _AdminForgotPasswordPageState();
+}
+
+enum _ResetStep { phone, code, password }
+
+class _AdminForgotPasswordPageState extends State<AdminForgotPasswordPage> {
+  static const _resendSeconds = 60;
+  late final _phone = PhoneController(text: widget.phone);
+  final _code = TextEditingController();
+  final _password = TextEditingController();
+  final _confirm = TextEditingController();
+  _ResetStep _step = _ResetStep.phone;
+  String? _resetToken;
+  String? _error;
+  bool _busy = false;
+  bool _obscure = true;
+  int _cooldown = 0;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _phone.dispose();
+    _code.dispose();
+    _password.dispose();
+    _confirm.dispose();
+    super.dispose();
+  }
+
+  Future<void> _attempt(Future<void> Function() action) async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await action();
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _startCooldown() {
+    _timer?.cancel();
+    setState(() => _cooldown = _resendSeconds);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted || _cooldown <= 1) {
+        t.cancel();
+        if (mounted) setState(() => _cooldown = 0);
+        return;
+      }
+      setState(() => _cooldown--);
+    });
+  }
+
+  Future<void> _sendCode() async {
+    final phone = digitsOnly(_phone.text);
+    if (phone.length != 8) return setState(() => _error = tr('Утасны дугаар 8 оронтой байна'));
+    await _attempt(() async {
+      await context.read<AdminState>().sendResetOtp(phone);
+      _code.clear();
+      _startCooldown();
+      if (mounted) setState(() => _step = _ResetStep.code);
+    });
+  }
+
+  Future<void> _verify() async {
+    final code = _code.text.trim();
+    if (code.isEmpty) return setState(() => _error = tr('Код оруулна уу'));
+    await _attempt(() async {
+      final token = await context.read<AdminState>().verifyResetOtp(digitsOnly(_phone.text), code);
+      if (mounted) {
+        setState(() {
+          _resetToken = token;
+          _step = _ResetStep.password;
+        });
+      }
+    });
+  }
+
+  Future<void> _reset() async {
+    if (_password.text.length < 6) return setState(() => _error = tr('Нууц үг 6-аас дээш тэмдэгттэй байна'));
+    if (_password.text != _confirm.text) return setState(() => _error = tr('Шинэ нууц үг таарахгүй байна'));
+    await _attempt(() async {
+      final admin = context.read<AdminState>();
+      final app = context.read<AppState>();
+      final nav = Navigator.of(context);
+      final phone = digitsOnly(_phone.text);
+      await admin.resetPassword(_resetToken!, _password.text);
+      // Шинэ нууц үгээр шууд нэвтэрч админ хэсэг рүү орно.
+      await admin.login(phone, _password.text);
+      nav.popUntil((r) => r.isFirst);
+      app.openAdmin();
+    });
+  }
+
+  void _submit() {
+    if (_busy) return;
+    switch (_step) {
+      case _ResetStep.phone:
+        _sendCode();
+      case _ResetStep.code:
+        _verify();
+      case _ResetStep.password:
+        _reset();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final phone = digitsOnly(_phone.text);
+    final shown = phone.length == 8 ? '${phone.substring(0, 4)} ${phone.substring(4)}' : phone;
+    final (description, label) = switch (_step) {
+      _ResetStep.phone => (tr('Бүртгэлтэй утасны дугаараа оруулна уу. Таны утсанд SMS код илгээнэ.'), tr('Код авах')),
+      _ResetStep.code => (tr('{phone} дугаарт ирсэн кодыг оруулна уу', {'phone': shown}), tr('Шалгах')),
+      _ResetStep.password => (tr('Шинэ нууц үгээ оруулна уу'), tr('Нууц үг солих')),
+    };
+    return Scaffold(
+      appBar: AppBar(title: Text(tr('Нууц үг сэргээх'))),
+      body: ListView(padding: const EdgeInsets.all(20), children: [
+        Text(description),
+        const SizedBox(height: 16),
+        if (_step == _ResetStep.phone)
+          TextField(
+            controller: _phone,
+            autofocus: true,
+            keyboardType: TextInputType.phone,
+            inputFormatters: phoneFormatters,
+            onSubmitted: (_) => _submit(),
+            decoration: InputDecoration(labelText: tr('Утасны дугаар'), prefixIcon: const Icon(Icons.phone_outlined)),
+          ),
+        if (_step == _ResetStep.code) ...[
+          TextField(
+            controller: _code,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            autofillHints: const [AutofillHints.oneTimeCode],
+            onSubmitted: (_) => _submit(),
+            decoration: InputDecoration(labelText: tr('SMS код'), prefixIcon: const Icon(Icons.sms_outlined)),
+          ),
+          Row(children: [
+            TextButton(
+              onPressed: _busy ? null : () => setState(() {
+                _step = _ResetStep.phone;
+                _error = null;
+              }),
+              child: Text(tr('Дугаар солих')),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: _busy || _cooldown > 0 ? null : _sendCode,
+              child: Text(_cooldown > 0 ? tr('Дахин илгээх ({sec})', {'sec': _cooldown}) : tr('Дахин илгээх')),
+            ),
+          ]),
+        ],
+        if (_step == _ResetStep.password) ...[
+          TextField(
+            controller: _password,
+            autofocus: true,
+            obscureText: _obscure,
+            decoration: InputDecoration(
+              labelText: tr('Шинэ нууц үг'),
+              prefixIcon: const Icon(Icons.lock_outline),
+              suffixIcon: IconButton(
+                icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _confirm,
+            obscureText: _obscure,
+            onSubmitted: (_) => _submit(),
+            decoration: InputDecoration(labelText: tr('Шинэ нууц үг давтах'), prefixIcon: const Icon(Icons.lock_outline)),
+          ),
+        ],
+        if (_error != null) ...[
+          const SizedBox(height: 8),
+          Text(_error!, style: const TextStyle(color: Colors.red)),
+        ],
+        const SizedBox(height: 16),
+        FilledButton(
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          onPressed: _busy ? null : _submit,
+          child: _busy
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : Text(label),
+        ),
+      ]),
+    );
+  }
 }
