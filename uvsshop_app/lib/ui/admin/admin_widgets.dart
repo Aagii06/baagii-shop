@@ -285,7 +285,7 @@ class StoreLogoBox extends StatelessWidget {
       alignment: Alignment.center,
       color: AdminColors.primary,
       child: Text(storeInitials(name),
-          style: TextStyle(color: Colors.white, fontSize: (size * 0.38).clamp(10, 40), fontWeight: FontWeight.bold, height: 1, letterSpacing: -0.3)),
+          style: TextStyle(color: Colors.white, fontSize: (size * 0.38).clamp(6, 40), fontWeight: FontWeight.bold, height: 1, letterSpacing: -0.3)),
     );
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius ?? size * 0.2),

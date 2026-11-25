@@ -188,26 +188,16 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
       // Зураг мөрийн зүүн ирмэгт наалдсан, мөрийн бүтэн өндөртэй — зай, хүрээгүй (admin web-тэй адил).
       child: IntrinsicHeight(
         child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          // Дэлгүүрийн лого зургийн буланд, нэр нь тусдаа мөрөнд.
-          Stack(children: [
-            SizedBox(
-              width: 96,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 84),
-                child: p.images.isEmpty
-                    ? Container(color: AdminColors.muted, child: const Icon(Icons.image_outlined, color: AdminColors.mutedForeground))
-                    : NetImage(p.image, width: 96),
-              ),
+          // Дэлгүүр (жижиг лого + нэр) тусдаа мөрөнд.
+          SizedBox(
+            width: 96,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 84),
+              child: p.images.isEmpty
+                  ? Container(color: AdminColors.muted, child: const Icon(Icons.image_outlined, color: AdminColors.mutedForeground))
+                  : NetImage(p.image, width: 96),
             ),
-            // Дэлгүүрийн лого зүүн дээд буланд наалдсан, булан бөөрөнхийлөлтгүй.
-            if (store.isNotEmpty)
-              Positioned(
-                left: 0,
-                top: 0,
-                // Лого байхгүй, эсвэл файл нь олдохгүй бол дэлгүүрийн 2 үсэг.
-                child: StoreLogoBox(fileId: logo, name: store, size: 28, radius: 0),
-              ),
-          ]),
+          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
@@ -217,8 +207,9 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Row(children: [
-                    const Icon(Icons.storefront_outlined, size: 13, color: AdminColors.mutedForeground),
-                    const SizedBox(width: 4),
+                    // Лого байхгүй, эсвэл файл нь олдохгүй бол дэлгүүрийн 2 үсэг.
+                    StoreLogoBox(fileId: logo, name: store, size: 14, radius: 3),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(store,
                           maxLines: 1,

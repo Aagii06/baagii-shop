@@ -18,7 +18,7 @@ import { getStores } from "@/lib/api/stores";
 import { getPostsPage, isPublished, LOW_STOCK_THRESHOLD, type Post } from "@/lib/api/posts";
 import { useApi } from "@/lib/useApi";
 import { cn, formatDate, formatMNT, formatQty, toNumber } from "@/lib/utils";
-import { Plus, Store } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -66,7 +66,7 @@ export default function ProductsPage() {
   const { data: stores, error: storesError } = useApi(getStores);
   // Ticked stores; empty is all of them.
   const [pickedStores, setPickedStores] = useState<number[]>([]);
-  // Store id → logo, for the badge on each product's image.
+  // Store id → logo, shown small before the store name on each row.
   const storeLogo = useMemo(() => new Map((stores ?? []).map((s) => [s.id, s.logo])), [stores]);
 
   const [query, setQuery] = useState("");
@@ -215,24 +215,18 @@ export default function ProductsPage() {
                     className="flex items-stretch bg-white pr-4 transition-colors hover:bg-muted/50"
                   >
                     {/* Photo flush to the row's left edge, full row height (like AjrugShop);
-                        the store's logo sits on its corner, its name on its own line. */}
+                        the store (small logo + name) on its own line. */}
                     <span className="relative flex w-24 shrink-0 self-stretch">
                       <Thumb id={post.images?.[0]} variant="thumbnail" className="min-h-[84px] w-24 shrink-0 self-stretch rounded-none border-0" />
-                      {post.storeName && (
-                        // Top-left corner, flush and square (no rounding).
-                        <span title={post.storeName} className="absolute left-0 top-0">
-                          {/* No logo, or its file is missing: the store's two letters. */}
-                          <StoreLogo id={logo} name={post.storeName} size={28} className="rounded-none border-0" />
-                        </span>
-                      )}
                     </span>
                     <span className="min-w-0 grow self-center py-3 pl-3.5 pr-2">
                       <span className="block truncate text-[15px] font-semibold">
                         {post.name}
                       </span>
                       {post.storeName && (
-                        <span className="mt-0.5 flex items-center gap-1 text-xs font-medium text-foreground/80">
-                          <Store className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        <span className="mt-0.5 flex items-center gap-1.5 text-xs font-medium text-foreground/80">
+                          {/* No logo, or its file is missing: the store's two letters. */}
+                          <StoreLogo id={logo} name={post.storeName} size={14} className="rounded-sm" />
                           <span className="truncate">{post.storeName}</span>
                         </span>
                       )}

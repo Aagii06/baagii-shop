@@ -36,7 +36,7 @@ export default function StoreLogo({
       fallback={
         <span
           className="grid size-full place-items-center bg-primary font-bold leading-none tracking-tight text-primary-foreground"
-          style={{ fontSize: Math.max(10, Math.round(size * 0.38)) }}
+          style={{ fontSize: Math.max(6, Math.round(size * 0.38)) }}
         >
           {storeInitials(name)}
         </span>
