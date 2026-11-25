@@ -36,12 +36,56 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
+  Future<void> _confirmClear(BuildContext context, ShopState shop, int count) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
+        title: Text(tr('Сагсаа хоослох уу?')),
+        content: Text(tr('Сагсанд байгаа {count} бараа бүгд хасагдана.', {'count': count})),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Болих'))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(tr('Сагс хоослох')),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await shop.clearCart();
+    } catch (e) {
+      if (context.mounted) showMessage(context, e.toString(), error: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final shop = context.watch<ShopState>();
     final cart = shop.cart;
     return Scaffold(
-      appBar: AppBar(title: Text(tr('Сагс'))),
+      appBar: AppBar(
+        title: Text(tr('Сагс')),
+        actions: [
+          // Баруун дээд буланд, улаан хүрээтэй — бүгдийг хасах үйлдэл гэдэг нь тод (вебтэй адил).
+          if (cart.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red.shade700,
+                  side: BorderSide(color: Colors.red.shade200),
+                  visualDensity: VisualDensity.compact,
+                ),
+                onPressed: () => _confirmClear(context, shop, cart.fold<int>(0, (n, l) => n + l.qty)),
+                icon: const Icon(Icons.delete_outline, size: 18),
+                label: Text(tr('Сагс хоослох')),
+              ),
+            ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: shop.refreshCart,
         child: cart.isEmpty

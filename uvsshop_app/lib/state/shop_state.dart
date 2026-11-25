@@ -404,6 +404,17 @@ class ShopState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Сагсыг бүхэлд нь хоослоно (вебийн clearServerCart-тай адил: DELETE /cart/{cartId}).
+  Future<void> clearCart() async {
+    try {
+      for (final id in {for (final l in cart) l.cartId}) {
+        await call(() => api.delete('/cart/$id'));
+      }
+    } finally {
+      await refreshCart();
+    }
+  }
+
   /// Хувилбарыг сагсанд нэмнэ (байгаа бол тоог нэмэгдүүлнэ).
   Future<void> addToCart(ProductVariant v, int qty) async {
     final existing = cart.where((l) => l.postProductId == v.id).firstOrNull;
