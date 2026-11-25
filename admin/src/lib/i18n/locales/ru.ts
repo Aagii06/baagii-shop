@@ -292,6 +292,8 @@ export const ru: Dict = {
   "profile.attrs": "Характеристики и значения, например цвет и размер",
   "profile.notes": "Заметки к доставке",
   "profile.notesDesc": "Инструкции по доставке для заказа",
+  "profile.visitShop": "Открыть магазин",
+  "profile.visitShopDesc": "Перейти в раздел покупателя",
   "profile.partner": "Стать партнёром",
   "profile.partnerDesc": "Просмотр и подтверждение заявок",
   "notes.desc": "Инструкции по доставке, которые покупатель может выбрать при заказе.",

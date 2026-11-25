@@ -292,6 +292,8 @@ export const en: Dict = {
   "profile.attrs": "Attributes and values such as colour and size",
   "profile.notes": "Delivery notes",
   "profile.notesDesc": "Delivery instructions to pick for an order",
+  "profile.visitShop": "Visit the shop",
+  "profile.visitShopDesc": "Open the shoppers\u2019 side",
   "profile.partner": "Become a partner",
   "profile.partnerDesc": "View and approve incoming requests",
   "notes.desc": "Delivery instructions shoppers can pick when placing an order.",

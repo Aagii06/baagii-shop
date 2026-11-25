@@ -292,6 +292,8 @@ export const mn: Dict = {
   "profile.attrs": "Өнгө, хэмжээ зэрэг үзүүлэлт, утгууд",
   "profile.notes": "Хүргэлтийн тэмдэглэл",
   "profile.notesDesc": "Захиалгад сонгох хүргэлтийн заавар",
+  "profile.visitShop": "Дэлгүүр үзэх",
+  "profile.visitShopDesc": "Худалдан авагчийн хэсэг рүү зочлох",
   "profile.partner": "Хамтран ажиллах",
   "profile.partnerDesc": "Ирсэн хүсэлтүүдийг харах, батлах",
   "notes.desc": "Худалдан авагч захиалга хийхдээ сонгох боломжтой хүргэлтийн заавар.",

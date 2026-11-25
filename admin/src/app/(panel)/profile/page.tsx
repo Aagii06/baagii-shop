@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Thumb from "@/components/common/Thumb";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { ChevronRight, Handshake, KeyRound, LogOut, MessageSquareText, NotebookPen, Pencil, Settings, Store, UserRound, Users, type LucideIcon } from "lucide-react";
+import { SHOP_URL } from "@/lib/api/config";
+import { ChevronRight, ExternalLink, Handshake, KeyRound, LogOut, MessageSquareText, NotebookPen, Pencil, Settings, Store, UserRound, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const MENU: { href: string; labelKey: string; descKey: string; icon: LucideIcon; tone: string }[] = [
@@ -157,6 +158,25 @@ export default function ProfilePage() {
             <ChevronRight className="size-5 shrink-0 text-orange-400 transition-transform group-hover:translate-x-0.5" />
           </Link>
         )}
+
+        {/* The shoppers' side (the web shop), like the app's "Дэлгүүр үзэх". */}
+        <Card className="overflow-hidden">
+          <a
+            href={SHOP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60 active:bg-muted"
+          >
+            <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary-ink ring-1 ring-inset ring-primary/20 transition-transform group-hover:scale-105">
+              <Store className="size-5" />
+            </span>
+            <span className="min-w-0 grow">
+              <span className="block truncate text-[15px] font-bold">{t("profile.visitShop")}</span>
+              <span className="block truncate text-sm text-muted-foreground">{t("profile.visitShopDesc")}</span>
+            </span>
+            <ExternalLink className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </a>
+        </Card>
 
         <Button variant="danger" size="lg" className="w-full" onClick={logout}>
           <LogOut />
