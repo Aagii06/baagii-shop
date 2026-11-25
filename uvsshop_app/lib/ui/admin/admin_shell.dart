@@ -111,7 +111,7 @@ class _AdminShellState extends State<AdminShell> with WidgetsBindingObserver {
   }
 }
 
-/// Админ хэсгийн AppBar-т байх "Дэлгүүр үзэх" товч.
+/// Админ хэсгийн AppBar-т байх "Дэлгүүр лүү очих" товч.
 class VisitShopButton extends StatelessWidget {
   const VisitShopButton({super.key});
   @override

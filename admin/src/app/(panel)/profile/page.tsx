@@ -159,7 +159,7 @@ export default function ProfilePage() {
           </Link>
         )}
 
-        {/* The shoppers' side (the web shop), like the app's "Дэлгүүр үзэх". */}
+        {/* The shoppers' side (the web shop), like the app's "Дэлгүүр лүү очих". */}
         <Card className="overflow-hidden">
           <a
             href={SHOP_URL}

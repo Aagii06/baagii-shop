@@ -246,7 +246,7 @@ class AdminProfilePage extends StatelessWidget {
                 Panel(
                   child: ListTile(
                     leading: const Icon(Icons.storefront_outlined),
-                    title: Text(tr('Дэлгүүр үзэх')),
+                    title: Text(tr('Дэлгүүр лүү очих')),
                     subtitle: Text(tr('Худалдан авагчийн хэсэг рүү зочлох')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.read<AppState>().openShop(),

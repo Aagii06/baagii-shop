@@ -214,7 +214,7 @@ const appEn = <String, String>{
   'Дэлгүүр сонгох': 'Pick a store',
   'Дэлгүүр устгах уу?': 'Delete store?',
   'Дэлгүүр хэсэх': 'Browse the shop',
-  'Дэлгүүр үзэх': 'View the shop',
+  'Дэлгүүр лүү очих': 'Go to the shop',
   'Дэлгүүр, түүний хэрэглэгч үүсч, {phone} дугаар энэ нууц үгээр админд нэвтэрнэ.': 'A store and its user are created; {phone} signs in to the admin with this password.',
   'Дэлгүүрийг бүртгэлээ': 'Store added',
   'Дэлгүүрийг устгалаа': 'Store deleted',

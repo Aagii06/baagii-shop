@@ -8,7 +8,7 @@ export const API_BASE_URL =
 export const SHOP_ID = process.env.NEXT_PUBLIC_SHOP_ID ?? "1";
 
 /**
- * Public shop origin for "open in shop" links and the profile's "Дэлгүүр үзэх".
+ * Public shop origin for "open in shop" links and the profile's "Дэлгүүр лүү очих".
  * Unset: https://uvsshop.com in production, the local shop (3770) in development.
  */
 export const SHOP_URL = (
