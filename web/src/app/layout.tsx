@@ -17,10 +17,34 @@ const inter = Inter({
   display: "swap",
 });
 
+const SITE_DESCRIPTION =
+  "Увс аймагт хүргэлттэй, найдвартай онлайн худалдаа. Хүнс, хувцас, цахилгаан бараа, гэр ахуйн бараа UVSSHOP.COM-ээс.";
+
+// Link-preview image (Facebook, Messenger, etc.). Change the file name when
+// the picture changes so Facebook doesn't keep showing its cached copy.
+const OG_IMAGE = {
+  url: "/images/og-app-coming-soon.jpg",
+  width: 1200,
+  height: 630,
+  alt: "UVSSHOP гар утасны апп тун удахгүй",
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://uvsshop.com"),
   title: "UVSSHOP.COM Online Shop",
-  description:
-    "Увс аймагт хүргэлттэй, найдвартай онлайн худалдаа. Хүнс, хувцас, цахилгаан бараа, гэр ахуйн бараа UVSSHOP.COM-ээс.",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    url: "https://uvsshop.com",
+    siteName: "UVSSHOP.COM",
+    title: "UVSSHOP.COM Online Shop",
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [OG_IMAGE.url],
+  },
   manifest: "/icons/site.webmanifest",
   icons: {
     icon: [
