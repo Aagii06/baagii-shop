@@ -23,7 +23,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const _homeListSize = 40;
+  // Вебийн утасны харагдацтай адил 8 бараа; үлдсэнийг "Цааш үзэх" — хайлтын хуудас.
+  static const _homeListSize = 8;
   List<Product> _products = [];
   List<Store> _stores = [];
   bool _loading = true;

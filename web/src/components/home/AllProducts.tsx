@@ -12,6 +12,8 @@ import ProductListSkeleton from "./ProductListSkeleton";
 import StoresGrid from "./StoresGrid";
 
 const HOME_LIST_SIZE = 40;
+// Phones (and the app) show fewer; "Цааш үзэх" opens the search page for the rest.
+const HOME_MOBILE_SIZE = 8;
 
 // Everything on the home page below the hero, from one product fetch.
 export default function AllProducts() {
@@ -62,9 +64,10 @@ export default function AllProducts() {
       )}
 
       <section>
-        {loading ? <ProductListSkeleton /> : <ProductList products={newest} />}
-        {!loading && products.length > HOME_LIST_SIZE && (
-          <div className="mt-8 flex justify-center">
+        {loading ? <ProductListSkeleton /> : <ProductList products={newest} mobileLimit={HOME_MOBILE_SIZE} />}
+        {!loading && products.length > HOME_MOBILE_SIZE && (
+          // Phones: always past 8. From `md`: only when there are more than the 40 shown.
+          <div className={`mt-8 justify-center ${products.length > HOME_LIST_SIZE ? "flex" : "flex md:hidden"}`}>
             <Link
               href="/search?sort=new"
               className="rounded-lg border-2 border-primary px-8 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"

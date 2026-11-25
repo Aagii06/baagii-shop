@@ -7,8 +7,11 @@ import ProductCard from "./ProductCard";
 export default function ProductList({
   products,
   hideStore = false,
+  mobileLimit,
 }: {
   products: Product[];
+  /** On phones (under `md`) show only this many; the rest appear from `md` up. */
+  mobileLimit?: number;
   /** On a store's own page: the cards leave out the store they all share. */
   hideStore?: boolean;
 }) {
@@ -17,9 +20,16 @@ export default function ProductList({
   return (
     <div className="grid gap-3 sm:gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {products.length > 0 ? (
-        products.map((product) => (
-          <ProductCard key={product.id} product={product} hideStore={hideStore} />
-        ))
+        products.map((product, i) =>
+          mobileLimit != null && i >= mobileLimit ? (
+            // Hidden on phones; from `md` the wrapper drops out of the grid (`contents`).
+            <div key={product.id} className="hidden md:contents">
+              <ProductCard product={product} hideStore={hideStore} />
+            </div>
+          ) : (
+            <ProductCard key={product.id} product={product} hideStore={hideStore} />
+          ),
+        )
       ) : (
         <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
           <div className="text-6xl mb-4">🔍</div>

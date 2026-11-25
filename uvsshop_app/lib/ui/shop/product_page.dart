@@ -4,9 +4,10 @@ import 'package:provider/provider.dart';
 
 import '../../api/shop_models.dart';
 import '../../config.dart';
+import '../../state/shop_nav.dart';
 import '../../state/shop_state.dart';
 import '../common.dart';
-import 'product_card.dart' show StorePill;
+import 'product_card.dart' show ProductGrid, StorePill;
 import 'share.dart';
 import 'package:uvsshop_app/i18n.dart';
 
@@ -26,6 +27,9 @@ class _ProductPageState extends State<ProductPage> {
   int _imageIndex = 0;
   bool _adding = false;
 
+  /// Төстэй бараа (вебийн RelatedProducts-тэй адил): ижил ангиллын 4, байхгүй бол бусад бараанаас 4.
+  List<Product> _related = [];
+
   @override
   void initState() {
     super.initState();
@@ -44,9 +48,28 @@ class _ProductPageState extends State<ProductPage> {
         final first = d.variants.where((v) => v.stock > 0).firstOrNull ?? d.variants.firstOrNull;
         if (first != null) _picked.addAll(first.attrs);
       });
+      _loadRelated(d.product);
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }
+  }
+
+  Future<void> _loadRelated(Product p) async {
+    final shop = context.read<ShopState>();
+    try {
+      List<Product> pick(List<Product> list) => list.where((x) => x.id != p.id).take(4).toList();
+      var related = p.categoryId == null ? <Product>[] : pick(await shop.getProducts(categoryId: p.categoryId, limit: 5));
+      if (related.isEmpty) related = pick(await shop.getProducts(limit: 5));
+      if (mounted) setState(() => _related = related);
+    } catch (_) {
+      // Төстэй бараа нь нэмэлт — алдаа гарвал зүгээр л харуулахгүй.
+    }
+  }
+
+  /// "Бүгдийг үзэх": бараа хуудсыг хааж, хайлтыг тэр ангиллаар нээнэ.
+  void _openRelatedSearch(Product p) {
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    context.read<ShopNav>().openSearch(SearchRequest(categoryId: p.categoryId));
   }
 
   ProductVariant? get _variant {
@@ -230,6 +253,19 @@ class _ProductPageState extends State<ProductPage> {
             Text(tr('Тайлбар'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
             const SizedBox(height: 8),
             SelectableText(description),
+          ]),
+        ),
+      if (_related.isNotEmpty)
+        Container(
+          decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Colors.grey.shade200))),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Expanded(child: Text(tr('Төстэй бараа'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
+              TextButton(onPressed: () => _openRelatedSearch(p), child: Text(tr('Бүгдийг үзэх'))),
+            ]),
+            const SizedBox(height: 8),
+            ProductGrid(_related),
           ]),
         ),
       const SizedBox(height: 24),

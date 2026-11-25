@@ -656,4 +656,5 @@ const appEn = <String, String>{
   'Данс нэмэх': 'Add account',
   'Данс нэмээгүй байна': 'No accounts yet',
   'Дансны дугаар оруулна уу': 'Enter the account number',
+  'Төстэй бараа': 'Similar products',
 };
