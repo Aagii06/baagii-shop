@@ -17,6 +17,25 @@ const _storeTierLabelMn = {'gold': 'Gold', 'silver': 'Silver', 'bronze': 'Bronze
 /// Shown in the chosen language (i18n.dart).
 Map<String, String> get storeTierLabel => {for (final e in _storeTierLabelMn.entries) e.key: tr(e.value)};
 
+/// Дэлгүүрийн данс бүртгэхэд сонгох банкууд (admin/src/lib/api/stores.ts BANKS-тай ижил).
+const banks = [
+  'Хаан банк',
+  'Голомт банк',
+  'Худалдаа хөгжлийн банк',
+  'Хас банк',
+  'Төрийн банк',
+  'Капитрон банк',
+  'Богд банк',
+  'Ариг банк',
+  'Үндэсний хөрөнгө оруулалтын банк',
+  'Чингис хаан банк',
+  'Тээвэр хөгжлийн банк',
+  'М банк',
+];
+
+/// Дансны дугаар (6–20 орон) эсвэл IBAN (MN + 18 орон), зайгүй.
+final bankAccountRe = RegExp(r'^(MN\d{18}|\d{6,20})$', caseSensitive: false);
+
 class Store {
   final int id;
   final String name;
@@ -25,6 +44,11 @@ class Store {
   final List<String> addresses;
   final String? logo;
   final String tier;
+
+  /// Тооцоо шилжүүлэх данс (админ хуулж аваад банкны апп-аар шилжүүлнэ).
+  final String? bankName;
+  final String? bankAccount;
+  final String? bankHolder;
   final int productsCnt;
   final String createdAt;
 
@@ -36,6 +60,9 @@ class Store {
     required this.addresses,
     this.logo,
     required this.tier,
+    this.bankName,
+    this.bankAccount,
+    this.bankHolder,
     required this.productsCnt,
     required this.createdAt,
   });
@@ -59,6 +86,9 @@ class Store {
       addresses: list('addresses', 'address'),
       logo: _str(j['logo']),
       tier: storeTiers.contains(j['tier']) ? j['tier'] as String : 'normal',
+      bankName: _str((j['bank'] as Map?)?['name']),
+      bankAccount: _str((j['bank'] as Map?)?['account']),
+      bankHolder: _str((j['bank'] as Map?)?['holder']),
       productsCnt: toInt(j['productsCnt']),
       createdAt: j['createdAt']?.toString() ?? '',
     );

@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
       address: { type: DataTypes.STRING },
       addresses: { type: DataTypes.TEXT },
       logo: { type: DataTypes.STRING },
+      // Тооцоо шилжүүлэх данс (админ хуулж аваад банкны апп-аар шилжүүлнэ)
+      bank_name: { type: DataTypes.STRING },
+      bank_account: { type: DataTypes.STRING },
+      bank_holder: { type: DataTypes.STRING },
       // gold / silver / bronze / normal (config/constants.js storeTiers); зөвхөн ADMIN тохируулна
       tier: { type: DataTypes.STRING, defaultValue: "normal" },
       ...auditFields(DataTypes),

@@ -11,13 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { imageSizeError, uploadFile } from "@/lib/api/files";
 import Select from "@/components/common/Select";
-import { createStore, MAX_STORE_CONTACTS, STORE_TIERS, updateStore, type Store, type StoreTier } from "@/lib/api/stores";
+import { BANKS, createStore, MAX_STORE_CONTACTS, STORE_TIERS, updateStore, type Store, type StoreTier } from "@/lib/api/stores";
 import { Loader2, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useDirty } from "@/lib/useDirty";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Account number (6–20 digits) or IBAN (MN + 18 digits); spaces are dropped.
+const ACCOUNT_RE = /^(MN\d{18}|\d{6,20})$/i;
 
 /**
  * Register or edit a seller store: its name, contact details (up to
@@ -43,12 +45,15 @@ export default function StoreForm({ store }: { store: Store | null }) {
   const [logo, setLogo] = useState<string | null>(store?.logo ?? null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [tier, setTier] = useState<StoreTier>(store?.tier ?? "normal");
+  const [bankName, setBankName] = useState(store?.bank?.name ?? "");
+  const [bankAccount, setBankAccount] = useState(store?.bank?.account ?? "");
+  const [bankHolder, setBankHolder] = useState(store?.bank?.holder ?? "");
   const [nameTouched, setNameTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   // From the first tap until the save fails or the page leaves.
   const [saving, setSaving] = useState(false);
   // The save button stays off until something changes.
-  const { dirty } = useDirty({ name, phones, emails, addresses, logo, tier });
+  const { dirty } = useDirty({ name, phones, emails, addresses, logo, tier, bankName, bankAccount, bankHolder });
 
   useEffect(() => {
     if (!logo?.startsWith("blob:")) return;
@@ -58,6 +63,8 @@ export default function StoreForm({ store }: { store: Store | null }) {
   const nameError = (nameTouched || submitted) && !name.trim() ? t("st.nameRequired") : undefined;
   const phoneProblem = phones.length === 0 ? t("st.phoneRequired") : undefined;
   const phoneError = submitted ? phoneProblem : undefined;
+  const accountProblem = bankAccount && !ACCOUNT_RE.test(bankAccount) ? t("st.bankAccountInvalid") : undefined;
+  const accountErrorId = useId();
 
   function onPickLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -81,6 +88,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
     setSubmitted(true);
     if (!name.trim()) return nameRef.current?.focus();
     if (phoneProblem) return;
+    if (accountProblem) return;
 
     setSaving(true);
     const saved = await run(async () => {
@@ -91,6 +99,7 @@ export default function StoreForm({ store }: { store: Store | null }) {
         addresses,
         logo: logoFile ? await uploadFile(logoFile, "stores") : logo,
         tier,
+        bank: { name: bankName || null, account: bankAccount || null, holder: bankHolder.trim() || null },
       };
       await (store ? updateStore(store.id, input) : createStore(input));
     }, store ? t("common.saved") : t("st.added"));
@@ -211,6 +220,42 @@ export default function StoreForm({ store }: { store: Store | null }) {
           check={() => undefined}
           input={(props) => <AddressPicker value={props.value} onChange={props.onChange} aria-label={props["aria-label"]} />}
         />
+
+        {/* Where settlements are paid. The shop copies it into its bank app — no money moves from here. */}
+        <div className="space-y-4 rounded-2xl border border-border p-4">
+          <div>
+            <h3 className="text-sm font-bold">{t("st.bank")}</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("st.bankHint")}</p>
+          </div>
+          <Field label={t("st.bankName")}>
+            <Select title={t("st.bankName")} value={bankName} onChange={setBankName} aria-label={t("st.bankName")}>
+              <option value="">{t("st.bankNone")}</option>
+              {/* Keep a saved bank that's no longer on the list. */}
+              {bankName && !(BANKS as readonly string[]).includes(bankName) && <option value={bankName}>{bankName}</option>}
+              {BANKS.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label={t("st.bankAccount")} error={submitted ? accountProblem : undefined} errorId={accountErrorId}>
+            <Input
+              value={bankAccount}
+              onChange={(e) => setBankAccount(e.target.value.replace(/\s+/g, "").toUpperCase())}
+              inputMode="text"
+              autoComplete="off"
+              maxLength={20}
+              placeholder="5012345678"
+              className="font-mono"
+              aria-invalid={Boolean(submitted && accountProblem)}
+              aria-describedby={submitted && accountProblem ? accountErrorId : undefined}
+            />
+          </Field>
+          <Field label={t("st.bankHolder")}>
+            <Input value={bankHolder} onChange={(e) => setBankHolder(e.target.value)} maxLength={150} autoComplete="off" />
+          </Field>
+        </div>
       </div>
     </form>
   );

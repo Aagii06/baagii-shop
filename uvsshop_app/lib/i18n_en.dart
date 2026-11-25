@@ -640,4 +640,13 @@ const appEn = <String, String>{
   'Шилжүүлсэн огноо': 'Paid on',
   'Шилжүүлсэн дүн': 'Amount paid',
   'Захиалгууд': 'Orders',
+  'Тооцоо шилжүүлэх данс': 'Payout account',
+  'Тооцоо шилжүүлэхдээ эндээс хуулж аваад банкны апп-аараа шилжүүлнэ': 'Copy it from here into your bank app when paying out',
+  'Данс эзэмшигчийн нэр': 'Account holder',
+  'Дансны дугаар буруу байна (6–20 орон, эсвэл MN-ээр эхэлсэн IBAN)': 'Invalid account number (6–20 digits, or an IBAN starting with MN)',
+  'Шилжүүлэх данс': 'Pay to',
+  'Энэ дэлгүүрт данс бүртгээгүй байна': 'This store has no payout account yet',
+  'Хуулах': 'Copy',
+  'Хуулагдлаа': 'Copied',
+  'Шилжүүлэх дүн': 'Amount to pay',
 };

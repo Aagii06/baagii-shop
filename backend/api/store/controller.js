@@ -45,6 +45,13 @@ const fields = (body) => {
     logo: body.logo || null,
     // Түвшин ирээгүй бол (хуучин клиент) өмнөхөө хадгална
     ...(storeTiers.includes(body.tier) && { tier: body.tier }),
+    // Данс ирээгүй бол (хуучин клиент) өмнөхөө хадгална
+    ...(body.bank &&
+      typeof body.bank === "object" && {
+        bank_name: String(body.bank.name ?? "").trim().slice(0, 100) || null,
+        bank_account: String(body.bank.account ?? "").replace(/\s+/g, "").slice(0, 50) || null,
+        bank_holder: String(body.bank.holder ?? "").trim().slice(0, 150) || null,
+      }),
   };
 };
 

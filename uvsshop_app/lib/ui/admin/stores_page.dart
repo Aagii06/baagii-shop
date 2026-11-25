@@ -155,6 +155,9 @@ class _StoreFormPageState extends State<StoreFormPage> {
   late String? _logo = widget.store?.logo;
   PickedImage? _logoFile;
   late String _tier = widget.store?.tier ?? 'normal';
+  late String? _bankName = widget.store?.bankName;
+  late final _bankAccount = TextEditingController(text: widget.store?.bankAccount ?? '');
+  late final _bankHolder = TextEditingController(text: widget.store?.bankHolder ?? '');
   bool _submitted = false;
   bool _saving = false;
 
@@ -167,18 +170,28 @@ class _StoreFormPageState extends State<StoreFormPage> {
         !same(_addresses, s?.addresses ?? []) ||
         _logo != s?.logo ||
         _logoFile != null ||
-        _tier != (s?.tier ?? 'normal');
+        _tier != (s?.tier ?? 'normal') ||
+        _bankName != s?.bankName ||
+        _bankAccount.text != (s?.bankAccount ?? '') ||
+        _bankHolder.text != (s?.bankHolder ?? '');
+  }
+
+  String? get _accountError {
+    final v = _bankAccount.text;
+    return v.isNotEmpty && !bankAccountRe.hasMatch(v) ? tr('Дансны дугаар буруу байна (6–20 орон, эсвэл MN-ээр эхэлсэн IBAN)') : null;
   }
 
   @override
   void dispose() {
     _name.dispose();
+    _bankAccount.dispose();
+    _bankHolder.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     setState(() => _submitted = true);
-    if (_name.text.trim().isEmpty || _phones.isEmpty) return;
+    if (_name.text.trim().isEmpty || _phones.isEmpty || _accountError != null) return;
     final admin = context.read<AdminState>();
     setState(() => _saving = true);
     final saved = await runAction(context, () async {
@@ -190,6 +203,11 @@ class _StoreFormPageState extends State<StoreFormPage> {
         'addresses': _addresses,
         'logo': logo,
         'tier': _tier,
+        'bank': {
+          'name': _bankName,
+          'account': _bankAccount.text.isEmpty ? null : _bankAccount.text,
+          'holder': _bankHolder.text.trim().isEmpty ? null : _bankHolder.text.trim(),
+        },
       });
     }, widget.store == null ? tr('Дэлгүүрийг бүртгэлээ') : tr('Хадгаллаа'));
     if (!mounted) return;
@@ -305,6 +323,46 @@ class _StoreFormPageState extends State<StoreFormPage> {
           check: (_) => null,
           onChanged: (v) => setState(() => _addresses = v),
           input: (value, onChanged, label) => AddressPicker(value: value, onChanged: onChanged),
+        ),
+        const SizedBox(height: 20),
+        // Тооцоо шилжүүлэх данс — апп-аас мөнгө шилжүүлэхгүй, зөвхөн хуулж авна
+        Text(tr('Тооцоо шилжүүлэх данс'), style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
+        Text(tr('Тооцоо шилжүүлэхдээ эндээс хуулж аваад банкны апп-аараа шилжүүлнэ'),
+            style: const TextStyle(fontSize: 12, color: Colors.black54)),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String?>(
+          initialValue: _bankName,
+          isExpanded: true,
+          decoration: fieldDecoration(tr('Банк')),
+          items: [
+            DropdownMenuItem(value: null, child: Text(tr('Сонгоогүй'))),
+            // Жагсаалтад байхгүй хадгалсан банкыг алдахгүй
+            if (_bankName != null && !banks.contains(_bankName)) DropdownMenuItem(value: _bankName, child: Text(_bankName!)),
+            for (final b in banks) DropdownMenuItem(value: b, child: Text(b)),
+          ],
+          onChanged: (v) => setState(() => _bankName = v),
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _bankAccount,
+          maxLength: 20,
+          autocorrect: false,
+          style: const TextStyle(fontFamily: 'monospace'),
+          inputFormatters: [
+            FilteringTextInputFormatter.deny(RegExp(r'\s')),
+            TextInputFormatter.withFunction((_, v) => v.copyWith(text: v.text.toUpperCase())),
+          ],
+          onChanged: (_) => setState(() {}),
+          decoration: fieldDecoration(tr('Дансны дугаар'), hint: '5012345678', error: _submitted ? _accountError : null)
+              .copyWith(counterText: ''),
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _bankHolder,
+          maxLength: 150,
+          onChanged: (_) => setState(() {}),
+          decoration: fieldDecoration(tr('Данс эзэмшигчийн нэр')).copyWith(counterText: ''),
         ),
       ]),
     );

@@ -14,6 +14,7 @@ module.exports.toStore = (row, productsCnt = undefined) => ({
   addresses: stores.listOf(row, "addresses", "address"),
   logo: row.logo,
   tier: row.tier || "normal",
+  bank: { name: row.bank_name ?? null, account: row.bank_account ?? null, holder: row.bank_holder ?? null },
   ...(productsCnt !== undefined && { productsCnt }),
   createdAt: toIso(row.created_at),
 });

@@ -24,6 +24,29 @@ export const TIER_BADGE: Record<Exclude<StoreTier, "normal">, string> = {
   bronze: "bg-orange-100 text-orange-800",
 };
 
+/** Mongolian banks for the store's payout account. */
+export const BANKS = [
+  "Хаан банк",
+  "Голомт банк",
+  "Худалдаа хөгжлийн банк",
+  "Хас банк",
+  "Төрийн банк",
+  "Капитрон банк",
+  "Богд банк",
+  "Ариг банк",
+  "Үндэсний хөрөнгө оруулалтын банк",
+  "Чингис хаан банк",
+  "Тээвэр хөгжлийн банк",
+  "М банк",
+] as const;
+
+export interface StoreBank {
+  name: string | null;
+  /** Account number or IBAN (MN + 18 digits), no spaces. */
+  account: string | null;
+  holder: string | null;
+}
+
 export interface Store {
   id: number;
   name: string;
@@ -37,6 +60,8 @@ export interface Store {
   /** Logo file id. */
   logo: string | null;
   tier: StoreTier;
+  /** Where the shop pays the store's settlements (copied by hand into a bank app). */
+  bank: StoreBank;
   /** Active products; only on the list. */
   productsCnt?: number;
   createdAt: string;
@@ -50,6 +75,7 @@ export interface StoreInput {
   addresses: string[];
   logo: string | null;
   tier: StoreTier;
+  bank: StoreBank;
 }
 
 /** By tier (gold first), then oldest first; id breaks ties. */

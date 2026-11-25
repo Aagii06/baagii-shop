@@ -127,7 +127,11 @@ const groupByItem = (lines, qtyOf) => {
 module.exports.show = handle("storeReportShow", async (req, res) => {
   const own = await ownStoreId(req);
   if (own !== undefined && Number(req.params.storeId) !== own) return fail(res, "Танд энэ үйлдлийг хийх эрх байхгүй");
-  const store = await stores.findOne({ where: { id: req.params.storeId, shop_id: req.shopId }, attributes: ["id", "name", "logo"], raw: true });
+  const store = await stores.findOne({
+    where: { id: req.params.storeId, shop_id: req.shopId },
+    attributes: ["id", "name", "logo", "bank_name", "bank_account", "bank_holder"],
+    raw: true,
+  });
   if (!store) return fail(res, "Дэлгүүр олдсонгүй");
   const [allTime, settled, lines] = await Promise.all([
     salesByStore(req.shopId, { storeId: store.id }),
@@ -191,6 +195,8 @@ module.exports.show = handle("storeReportShow", async (req, res) => {
 
   return ok(res, {
     ...summaryOf(store, null, allTime.get(store.id), settled.get(store.id)),
+    // Тооцоо шилжүүлэх данс — админ хуулж аваад банкны апп-аар шилжүүлнэ
+    bank: { name: store.bank_name ?? null, account: store.bank_account ?? null, holder: store.bank_holder ?? null },
     allTime: { delivered: toNumber(allTime.get(store.id)?.delivered), pending: toNumber(allTime.get(store.id)?.pending) },
     unsettled: { items: groupByItem(lines, unsettledQty), orders },
     pendingItems: groupByItem(pendingLines, (l) => l.qty - l.returned_qty),

@@ -14,7 +14,7 @@ import { getStoreAccount, readPeriod, settleStore, type StoreSettlement, type St
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useApi } from "@/lib/useApi";
 import { cn, formatMNT, formatWhen } from "@/lib/utils";
-import { ChevronRight, CircleCheck, HandCoins, SearchX } from "lucide-react";
+import { ChevronRight, CircleCheck, Copy, HandCoins, SearchX } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -39,6 +39,32 @@ function ItemRow({ item }: { item: StoreSoldItem }) {
         </span>
       </span>
     </li>
+  );
+}
+
+/** One copyable line of the store's payout account. */
+function CopyLine({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  const { t } = useLanguage();
+  const { show } = useToast();
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      show(t("ss.copied"));
+    } catch {
+      show(t("common.error"), "error");
+    }
+  }
+  return (
+    <div className="flex items-center gap-3">
+      <span className="min-w-0 grow">
+        <span className="block text-xs text-muted-foreground">{label}</span>
+        <span className={cn("block truncate font-semibold", mono && "font-mono")}>{value}</span>
+      </span>
+      <Button type="button" variant="outline" size="sm" onClick={copy} aria-label={`${t("ss.copy")}: ${label}`}>
+        <Copy />
+        {t("ss.copy")}
+      </Button>
+    </div>
   );
 }
 
@@ -205,6 +231,25 @@ function StoreAccountPage() {
           {/* Paying out is the admin's; a shopper only sees what they are owed. */}
           {isAdmin && data.balance > 0 && (
             <div className="mt-4 space-y-3">
+              {/* The store's account, to copy into the bank app — nothing is sent from here. */}
+              <Card className="space-y-3 p-4">
+                <h3 className="text-sm font-bold">{t("ss.payTo")}</h3>
+                {data.bank?.account ? (
+                  <>
+                    {data.bank.name && <CopyLine label={t("st.bankName")} value={data.bank.name} />}
+                    <CopyLine label={t("st.bankAccount")} value={data.bank.account} mono />
+                    {data.bank.holder && <CopyLine label={t("st.bankHolder")} value={data.bank.holder} />}
+                    <CopyLine label={t("ss.amountToPay")} value={String(Math.round(data.balance))} mono />
+                  </>
+                ) : (
+                  <p className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+                    {t("ss.noBank")}
+                    <Link href={`/stores/edit?id=${data.storeId}`} className="font-semibold text-primary-ink underline-offset-4 hover:underline">
+                      {t("ss.addBank")}
+                    </Link>
+                  </p>
+                )}
+              </Card>
               <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("ss.note")} aria-label={t("ss.note")} maxLength={500} />
               <Button size="lg" className="w-full" loading={saving} onClick={onSettle}>
                 <HandCoins />

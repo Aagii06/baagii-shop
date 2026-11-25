@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/settlement_models.dart';
@@ -275,6 +276,46 @@ class _StoreAccountPageState extends State<StoreAccountPage> {
         ]),
       );
 
+  /// Дэлгүүрийн данс, хуулах товчтой — шилжүүлгийг банкны апп-аар хийнэ (эндээс мөнгө явахгүй).
+  Widget _payTo(StoreAccount a) {
+    Widget row(String label, String value, {bool mono = false}) => ListTile(
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          title: Text(label, style: const TextStyle(fontSize: 12, color: AdminColors.mutedForeground)),
+          subtitle: Text(value,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87, fontFamily: mono ? 'monospace' : null)),
+          trailing: IconButton(
+            tooltip: tr('Хуулах'),
+            icon: const Icon(Icons.copy, size: 20),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: value));
+              showMessage(context, tr('Хуулагдлаа'));
+            },
+          ),
+        );
+    final b = a.bank;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 4, 4),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(tr('Шилжүүлэх данс'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          if (b.account == null || b.account!.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(tr('Энэ дэлгүүрт данс бүртгээгүй байна'), style: const TextStyle(color: AdminColors.mutedForeground)),
+            )
+          else ...[
+            if (b.name != null) row(tr('Банк'), b.name!),
+            row(tr('Дансны дугаар'), b.account!, mono: true),
+            if (b.holder != null) row(tr('Данс эзэмшигчийн нэр'), b.holder!),
+            row(tr('Шилжүүлэх дүн'), a.summary.balance.round().toString(), mono: true),
+          ],
+        ]),
+      ),
+    );
+  }
+
   /// Захиалга бараатайгаа — дарвал захиалгын дэлгэрэнгүй.
   Widget _orderTile(UnsettledOrder o) => InkWell(
       onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdminOrderPage(orderId: o.id))),
@@ -375,6 +416,8 @@ class _StoreAccountPageState extends State<StoreAccountPage> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        _payTo(a),
+                        const SizedBox(height: 12),
                         TextField(
                           controller: _note,
                           maxLength: 500,

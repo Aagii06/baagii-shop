@@ -20,6 +20,11 @@ const saveValidation = validate([
   body("emails.*").trim().isEmail().withMessage("Имэйл буруу байна"),
   body("addresses").optional().isArray({ max: maxStoreContacts }).withMessage(`Хаяг ${maxStoreContacts} хүртэл байна`),
   body("tier").optional().isIn(storeTiers).withMessage("Дэлгүүрийн түвшин буруу байна"),
+  body("bank.account")
+    .optional({ checkFalsy: true })
+    .customSanitizer((v) => String(v).replace(/\s+/g, ""))
+    .matches(/^(MN\d{18}|\d{6,20})$/i)
+    .withMessage("Дансны дугаар буруу байна"),
   body("addresses.*").trim().notEmpty().isLength({ max: 255 }).withMessage("Хаяг 255 тэмдэгтээс хэтрэхгүй"),
 ]);
 
