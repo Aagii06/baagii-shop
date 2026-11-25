@@ -666,4 +666,7 @@ const appEn = <String, String>{
   'Дахин илгээх ({sec})': 'Resend ({sec})',
   'Код буруу байна': 'Wrong code',
   'Шинэ нууц үг таарахгүй байна': 'The new passwords do not match',
+  '{max} хүртэл данс, эхнийх нь үндсэн. Худалдан авагч аль нэг рүү нь шилжүүлнэ': 'Up to {max} accounts, the first is the main one. Shoppers transfer to any of them',
+  'Дор хаяж нэг данс нэмнэ үү': 'Add at least one account',
+  'Банк, дансны дугаар, нэрийг бүгдийг оруулна уу': 'Enter the bank, account number and name',
 };

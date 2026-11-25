@@ -351,17 +351,22 @@ class BankDetails {
 }
 
 class PaymentMethods {
+  /// Үндсэн (эхний) данс; дансаар авахгүй бол null.
   final BankDetails? bank;
+
+  /// Бүх данс (5 хүртэл, үндсэн нь эхэндээ).
+  final List<BankDetails> banks;
   final bool qpay;
-  PaymentMethods(this.bank, this.qpay);
+  PaymentMethods(this.bank, this.qpay, [List<BankDetails>? banks]) : banks = banks ?? [?bank];
   factory PaymentMethods.fromJson(Map<String, dynamic> j) {
+    BankDetails parse(Map b) => BankDetails(
+        b['bankName']?.toString() ?? '', b['accountName']?.toString() ?? '', b['accountNumber']?.toString() ?? '', b['iban']?.toString());
     final b = j['bank'] as Map?;
+    final list = [for (final x in (j['banks'] as List?) ?? []) if (x is Map) parse(x)];
     return PaymentMethods(
-      b == null
-          ? null
-          : BankDetails(b['bankName']?.toString() ?? '', b['accountName']?.toString() ?? '',
-              b['accountNumber']?.toString() ?? '', b['iban']?.toString()),
+      b == null ? null : parse(b),
       j['qpay'] == true,
+      list.isEmpty ? null : list,
     );
   }
 }

@@ -237,14 +237,28 @@ class DoNote {
 
 // ---------- төлбөрийн тохиргоо ----------
 
+/// Худалдан авагчийн шилжүүлэх нэг данс.
+class ShopBankAccount {
+  final String bankName;
+  final String accountNumber;
+  final String accountName;
+  final String? iban;
+  const ShopBankAccount(this.bankName, this.accountNumber, this.accountName, this.iban);
+
+  factory ShopBankAccount.fromJson(Map j) => ShopBankAccount(j['bankName']?.toString() ?? '', j['accountNumber']?.toString() ?? '',
+      j['accountName']?.toString() ?? '', _str(j['iban']));
+}
+
+/// "Дансаар төлөх" данс дээд тал нь (backend helper/shopBankHelper.js).
+const maxShopBanks = 5;
+
 class PaymentSettings {
   bool deliveryEnabled;
   int deliveryFee;
   bool bankEnabled;
-  String bankName;
-  String accountName;
-  String accountNumber;
-  String iban;
+
+  /// 5 хүртэл данс, эхнийх нь үндсэн. Хуучин backend бол ганц данснаас.
+  List<ShopBankAccount> accounts;
   bool qpayEnabled;
   bool qpaySandbox;
   String qpayUsername;
@@ -255,10 +269,9 @@ class PaymentSettings {
       : deliveryEnabled = j['delivery']?['enabled'] == true,
         deliveryFee = toInt(j['delivery']?['fee']),
         bankEnabled = j['bank']?['enabled'] == true,
-        bankName = j['bank']?['bankName']?.toString() ?? '',
-        accountName = j['bank']?['accountName']?.toString() ?? '',
-        accountNumber = j['bank']?['accountNumber']?.toString() ?? '',
-        iban = j['bank']?['iban']?.toString() ?? '',
+        accounts = j['bank']?['accounts'] is List
+            ? [for (final a in j['bank']['accounts'] as List) if (a is Map) ShopBankAccount.fromJson(a)]
+            : [if ((j['bank']?['accountNumber']?.toString() ?? '').isNotEmpty) ShopBankAccount.fromJson(j['bank'] as Map)],
         qpayEnabled = j['qpay']?['enabled'] == true,
         qpaySandbox = j['qpay']?['sandbox'] == true,
         qpayUsername = j['qpay']?['username']?.toString() ?? '',

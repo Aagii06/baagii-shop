@@ -160,7 +160,7 @@ class _PayPageState extends State<PayPage> {
         ),
       const SizedBox(height: 16),
       if (_method == 'qpay') _qpay(),
-      if (_method == 'bank' && m.bank != null) _bank(m.bank!, o),
+      if (_method == 'bank' && m.bank != null) _bank(m.banks, o),
       if (_method == null) Text(tr('Төлбөрийн хэлбэр тохируулагдаагүй байна. Дэлгүүртэй холбогдоно уу.')),
     ]);
   }
@@ -212,7 +212,7 @@ class _PayPageState extends State<PayPage> {
     ]);
   }
 
-  Widget _bank(BankDetails b, ShopOrder o) {
+  Widget _bank(List<BankDetails> banks, ShopOrder o) {
     Widget row(String label, String value) => ListTile(
           dense: true,
           title: Text(label, style: TextStyle(color: Colors.grey.shade600)),
@@ -226,12 +226,24 @@ class _PayPageState extends State<PayPage> {
           ),
         );
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      // Аль нэг данс руу шилжүүлнэ (5 хүртэл, үндсэн нь эхэндээ)
+      for (final (i, b) in banks.indexed)
+        Card(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (banks.length > 1)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                child: Text(i == 0 ? tr('Үндсэн данс') : tr('Данс {n}', {'n': i + 1}),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+              ),
+            row(tr('Банк'), b.bankName),
+            row(tr('Хүлээн авагч'), b.accountName),
+            row(tr('Дансны дугаар'), b.accountNumber),
+            if (b.iban != null && b.iban!.isNotEmpty) row('IBAN', b.iban!),
+          ]),
+        ),
       Card(
         child: Column(children: [
-          row(tr('Банк'), b.bankName),
-          row(tr('Хүлээн авагч'), b.accountName),
-          row(tr('Дансны дугаар'), b.accountNumber),
-          if (b.iban != null && b.iban!.isNotEmpty) row('IBAN', b.iban!),
           row(tr('Гүйлгээний утга'), o.id),
           row(tr('Дүн'), o.total.round().toString()),
         ]),

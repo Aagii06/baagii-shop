@@ -9,6 +9,7 @@ import '../../state/admin_state.dart';
 import '../common.dart';
 import 'admin_widgets.dart';
 import 'package:uvsshop_app/i18n.dart';
+import 'bank_accounts_editor.dart';
 
 /// web-ийн /payment: хүргэлтийн төлбөр, дансаар шилжүүлэх, QPay.
 /// QPay асаалттай хадгалахад backend эхлээд QPay-д нэвтэрч шалгана.
@@ -26,10 +27,8 @@ class _PaymentPageState extends State<PaymentPage> {
   String _baseline = '';
 
   final _fee = TextEditingController();
-  final _bankName = TextEditingController();
-  final _accountName = TextEditingController();
-  final _accountNumber = TextEditingController();
-  final _iban = TextEditingController();
+  // "Дансаар төлөх" данснууд (5 хүртэл, эхнийх нь үндсэн)
+  final List<BankDraft> _banks = [];
   final _qpayUser = TextEditingController();
   final _qpayPassword = TextEditingController();
   final _qpayInvoice = TextEditingController();
@@ -42,8 +41,11 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   void dispose() {
-    for (final c in [_fee, _bankName, _accountName, _accountNumber, _iban, _qpayUser, _qpayPassword, _qpayInvoice]) {
+    for (final c in [_fee, _qpayUser, _qpayPassword, _qpayInvoice]) {
       c.dispose();
+    }
+    for (final b in _banks) {
+      b.dispose();
     }
     super.dispose();
   }
@@ -60,10 +62,12 @@ class _PaymentPageState extends State<PaymentPage> {
 
   void _fill(PaymentSettings s) {
     _fee.text = '${s.deliveryFee}';
-    _bankName.text = s.bankName;
-    _accountName.text = s.accountName;
-    _accountNumber.text = s.accountNumber;
-    _iban.text = s.iban;
+    for (final b in _banks) {
+      b.dispose();
+    }
+    _banks
+      ..clear()
+      ..addAll([for (final a in s.accounts) BankDraft(name: a.bankName, account: a.accountNumber, holder: a.accountName, iban: a.iban)]);
     _qpayUser.text = s.qpayUsername;
     _qpayPassword.clear();
     _qpayInvoice.text = s.qpayInvoiceCode;
@@ -79,17 +83,24 @@ class _PaymentPageState extends State<PaymentPage> {
     final s = _s;
     if (s == null) return '';
     return jsonEncode([
-      s.deliveryEnabled, _fee.text, s.bankEnabled, _bankName.text, _accountName.text, _accountNumber.text, _iban.text, //
+      s.deliveryEnabled, _fee.text, s.bankEnabled, _banksJson, //
       s.qpayEnabled, s.qpaySandbox, _qpayUser.text, _qpayPassword.text, _qpayInvoice.text,
     ]);
   }
 
   bool _blank(bool on, TextEditingController c) => on && c.text.trim().isEmpty;
 
+  /// Хадгалах данснууд: дугаартай мөрүүд, дарааллаараа.
+  List<Map<String, Object?>> get _banksJson => [
+        for (final b in _banks)
+          if (b.account.text.isNotEmpty)
+            {'bankName': b.name ?? '', 'accountNumber': b.account.text, 'accountName': b.holder.text.trim(), 'iban': b.iban},
+      ];
+
   Future<void> _save() async {
     final s = _s!;
     setState(() => _submitted = true);
-    if ([_bankName, _accountName, _accountNumber].any((c) => _blank(s.bankEnabled, c))) return;
+    if (s.bankEnabled && (_banksJson.isEmpty || _banks.any((b) => b.error(requireAll: true) != null))) return;
     if ([_qpayUser, _qpayInvoice].any((c) => _blank(s.qpayEnabled, c))) return;
     if (!s.qpayHasPassword && _blank(s.qpayEnabled, _qpayPassword)) return;
     if (_blank(s.deliveryEnabled, _fee)) return;
@@ -98,13 +109,7 @@ class _PaymentPageState extends State<PaymentPage> {
     await runAction(context, () async {
       final saved = await admin.savePaymentSettings({
         'delivery': {'enabled': s.deliveryEnabled, 'fee': int.tryParse(_fee.text) ?? 0},
-        'bank': {
-          'enabled': s.bankEnabled,
-          'bankName': _bankName.text,
-          'accountName': _accountName.text,
-          'accountNumber': _accountNumber.text,
-          'iban': _iban.text,
-        },
+        'bank': {'enabled': s.bankEnabled, 'accounts': _banksJson},
         'qpay': {
           'enabled': s.qpayEnabled,
           'sandbox': s.qpaySandbox,
@@ -185,10 +190,25 @@ class _PaymentPageState extends State<PaymentPage> {
                       s.bankEnabled,
                       (v) => s.bankEnabled = v),
                   if (s.bankEnabled) ...[
-                    _field(_bankName, tr('Банк'), error: _req(true, _bankName)),
-                    _field(_accountName, tr('Хүлээн авагч'), error: _req(true, _accountName)),
-                    _field(_accountNumber, tr('Дансны дугаар'), error: _req(true, _accountNumber), mono: true),
-                    _field(_iban, tr('IBAN дугаар'), mono: true),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                          tr('{max} хүртэл данс, эхнийх нь үндсэн. Худалдан авагч аль нэг рүү нь шилжүүлнэ', {'max': maxShopBanks}),
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    ),
+                    BankAccountsEditor(
+                      drafts: _banks,
+                      onChanged: () => setState(() {}),
+                      showErrors: _submitted,
+                      requireAll: true,
+                      holderLabel: tr('Хүлээн авагч'),
+                      max: maxShopBanks,
+                    ),
+                    if (_submitted && _banksJson.isEmpty)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(tr('Дор хаяж нэг данс нэмнэ үү'), style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      ),
                   ],
                 ]),
               ),
