@@ -298,6 +298,8 @@ export const mn: Dict = {
   "checkout.payment.bank.iban": "IBAN дугаар",
   "checkout.payment.bank.note":
     "Гүйлгээний утга дээр захиалгын дугаараа бичиж шилжүүлнэ үү. Төлбөр баталгаажсаны дараа захиалга бэлтгэгдэж эхэлнэ.",
+  "checkout.payment.bank.main": "Үндсэн данс",
+  "checkout.payment.bank.nth": "Данс {n}",
   "checkout.payment.cardNumber": "Картын дугаар",
   "checkout.payment.expiry": "Хүчинтэй хугацаа",
   "checkout.payment.cvv": "CVV",

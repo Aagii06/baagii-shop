@@ -7,12 +7,21 @@ import { apiFetch, type ApiItemResponse } from "./client";
 // The QPay password never comes back; `hasPassword` says one is saved, and
 // an empty `password` on save keeps it.
 
+/** One account shoppers can transfer to. */
+export interface ShopBankAccount {
+  bankName: string;
+  accountNumber: string;
+  /** The receiver's name, as the bank shows it. */
+  accountName: string;
+  iban?: string | null;
+}
+
+/** Bank transfer: up to `MAX_SHOP_BANKS` accounts, the first the main one. */
+export const MAX_SHOP_BANKS = 5;
+
 export interface BankSettings {
   enabled: boolean;
-  bankName: string;
-  accountName: string;
-  accountNumber: string;
-  iban: string;
+  accounts: ShopBankAccount[];
 }
 
 export interface QpaySettings {

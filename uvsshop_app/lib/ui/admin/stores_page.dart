@@ -260,7 +260,7 @@ class _StoreFormPageState extends State<StoreFormPage> {
                   ],
                   onChanged: (_) => setState(() {}),
                   decoration:
-                      fieldDecoration(tr('Дансны дугаар'), hint: '5012345678', error: _submitted ? b.error : null).copyWith(counterText: ''),
+                      fieldDecoration(tr('Дансны дугаар'), hint: tr('Дансны дугаар'), error: _submitted ? b.error : null).copyWith(counterText: ''),
                 ),
                 const SizedBox(height: 12),
                 TextField(

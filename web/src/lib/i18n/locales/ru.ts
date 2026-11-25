@@ -298,6 +298,8 @@ export const ru: Dict = {
   "checkout.payment.bank.iban": "Номер IBAN",
   "checkout.payment.bank.note":
     "Укажите номер заказа в назначении платежа. Заказ начнёт готовиться после подтверждения оплаты.",
+  "checkout.payment.bank.main": "Основной счёт",
+  "checkout.payment.bank.nth": "Счёт {n}",
   "checkout.payment.cardNumber": "Номер карты",
   "checkout.payment.expiry": "Срок действия",
   "checkout.payment.cvv": "CVV",

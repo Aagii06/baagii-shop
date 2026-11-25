@@ -19,8 +19,10 @@ export interface BankDetails {
 }
 
 export interface PaymentMethods {
-  /** `null` when the shop doesn't take transfers. */
+  /** `null` when the shop doesn't take transfers. The main (first) of `banks`. */
   bank: BankDetails | null;
+  /** Every account to transfer to (up to 5, the main one first); older backends leave it out. */
+  banks?: BankDetails[];
   qpay: boolean;
 }
 

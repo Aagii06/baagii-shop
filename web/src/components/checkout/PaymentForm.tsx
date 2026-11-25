@@ -42,6 +42,7 @@ export default function PaymentForm({
   const { t } = useLanguage();
 
   const bank = available.bank;
+  const banks = available.banks?.length ? available.banks : bank ? [bank] : [];
   const methods: {
     id: PaymentMethod;
     labelKey: string;
@@ -125,7 +126,13 @@ export default function PaymentForm({
 
         {method === "bank" && bank && (
           <div className="space-y-3">
-            <div className="rounded-xl border border-border divide-y divide-border">
+            {banks.map((bank, i) => (
+            <div key={bank.accountNumber} className="rounded-xl border border-border divide-y divide-border">
+              {banks.length > 1 && (
+                <div className="px-4 py-2 text-xs font-semibold text-muted-foreground">
+                  {i === 0 ? t("checkout.payment.bank.main") : t("checkout.payment.bank.nth", { n: i + 1 })}
+                </div>
+              )}
               {[
                 {
                   label: t("checkout.payment.bank.accountName"),
@@ -159,6 +166,7 @@ export default function PaymentForm({
                 </div>
               ))}
             </div>
+            ))}
             <p className="text-xs text-muted-foreground leading-relaxed">
               {t("checkout.payment.bank.note")}
             </p>

@@ -298,6 +298,8 @@ export const en: Dict = {
   "checkout.payment.bank.iban": "IBAN",
   "checkout.payment.bank.note":
     "Add your order number as the transfer reference. Your order is prepared once the payment is confirmed.",
+  "checkout.payment.bank.main": "Main account",
+  "checkout.payment.bank.nth": "Account {n}",
   "checkout.payment.cardNumber": "Card number",
   "checkout.payment.expiry": "Expiry date",
   "checkout.payment.cvv": "CVV",

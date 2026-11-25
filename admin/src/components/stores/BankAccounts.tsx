@@ -12,8 +12,9 @@ import { useId } from "react";
 /** Account number (6–20 digits) or IBAN (MN + 18 digits); spaces are dropped. */
 export const ACCOUNT_RE = /^(MN\d{18}|\d{6,20})$/i;
 
-/** One row being edited; `key` keeps React's identity while rows are removed. */
-export type BankDraft = { key: string; name: string; account: string; holder: string };
+/** One row being edited; `key` keeps React's identity while rows are removed.
+ *  `iban` is carried through unchanged (older saved accounts have one). */
+export type BankDraft = { key: string; name: string; account: string; holder: string; iban?: string | null };
 
 export const draftOf = (b: StoreBank): BankDraft => ({
   key: String(b.id ?? Math.random()),
@@ -24,11 +25,13 @@ export const draftOf = (b: StoreBank): BankDraft => ({
 
 export const newDraft = (): BankDraft => ({ key: `new-${Math.random()}`, name: "", account: "", holder: "" });
 
-/** The problem with one row, if any. A row left fully empty is dropped on save. */
-export function bankProblem(b: BankDraft, t: (key: string) => string): string | undefined {
+/** The problem with one row, if any. A row left fully empty is dropped on save.
+ *  `requireAll`: the bank and the holder's name are required too. */
+export function bankProblem(b: BankDraft, t: (key: string) => string, requireAll = false): string | undefined {
   if (!b.account && !b.name && !b.holder.trim()) return undefined;
   if (!b.account) return t("st.bankAccountRequired");
   if (!ACCOUNT_RE.test(b.account)) return t("st.bankAccountInvalid");
+  if (requireAll && (!b.name || !b.holder.trim())) return t("st.bankAllRequired");
   return undefined;
 }
 
@@ -42,12 +45,14 @@ function BankRow({
   index,
   value,
   error,
+  holderLabel,
   onChange,
   onRemove,
 }: {
   index: number;
   value: BankDraft;
   error?: string;
+  holderLabel: string;
   onChange: (v: BankDraft) => void;
   onRemove: () => void;
 }) {
@@ -81,13 +86,13 @@ function BankRow({
           onChange={(e) => onChange({ ...value, account: e.target.value.replace(/\s+/g, "").toUpperCase() })}
           autoComplete="off"
           maxLength={20}
-          placeholder="5012345678"
+          placeholder={t("st.bankAccount")}
           className="font-mono"
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}
         />
       </Field>
-      <Field label={t("st.bankHolder")}>
+      <Field label={holderLabel}>
         <Input value={value.holder} onChange={(e) => onChange({ ...value, holder: e.target.value })} maxLength={150} autoComplete="off" />
       </Field>
     </div>
@@ -102,25 +107,41 @@ export default function BankAccounts({
   value,
   onChange,
   showErrors,
+  title,
+  hint,
+  holderLabel,
+  requireAll = false,
+  bare = false,
 }: {
   value: BankDraft[];
   onChange: (v: BankDraft[]) => void;
   showErrors: boolean;
+  /** Defaults: the store's payout account texts. */
+  title?: string;
+  hint?: string;
+  holderLabel?: string;
+  /** Bank and holder required on every filled row (the shop's own accounts). */
+  requireAll?: boolean;
+  /** No border/heading box (already inside a card). */
+  bare?: boolean;
 }) {
   const { t } = useLanguage();
   return (
-    <div className="space-y-3 rounded-2xl border border-border p-4">
-      <div>
-        <h3 className="text-sm font-bold">{t("st.bank")}</h3>
-        <p className="mt-0.5 text-xs text-muted-foreground">{t("st.bankHint", { max: MAX_STORE_BANKS })}</p>
-      </div>
+    <div className={bare ? "space-y-3" : "space-y-3 rounded-2xl border border-border p-4"}>
+      {(title ?? !bare) && (
+        <div>
+          <h3 className="text-sm font-bold">{title ?? t("st.bank")}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">{hint ?? t("st.bankHint", { max: MAX_STORE_BANKS })}</p>
+        </div>
+      )}
       {value.length === 0 && <p className="text-sm text-muted-foreground">{t("st.bankEmpty")}</p>}
       {value.map((b, i) => (
         <BankRow
           key={b.key}
           index={i}
           value={b}
-          error={showErrors ? bankProblem(b, t) : undefined}
+          error={showErrors ? bankProblem(b, t, requireAll) : undefined}
+          holderLabel={holderLabel ?? t("st.bankHolder")}
           onChange={(nb) => onChange(value.map((x) => (x.key === b.key ? nb : x)))}
           onRemove={() => onChange(value.filter((x) => x.key !== b.key))}
         />
