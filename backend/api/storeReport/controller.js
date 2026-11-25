@@ -165,6 +165,29 @@ module.exports.show = handle("storeReportShow", async (req, res) => {
   const settlementItems = settlements.length
     ? await storeSettlementItems.findAll({ where: { settlement_id: settlements.map((x) => x.id) }, raw: true })
     : [];
+  // Тооцооны дэлгэрэнгүй: захиалгын дугаар, барааны зураг (storeSettlementItems-д хадгалаагүй)
+  const paidOrderIds = [...new Set(settlementItems.map((i) => i.order_id))];
+  const paidLineIds = [...new Set(settlementItems.map((i) => i.order_item_id).filter(Boolean))];
+  const [[paidOrders], [paidLines]] = await Promise.all([
+    paidOrderIds.length
+      ? sequelize.query("SELECT id, order_number FROM orders WHERE id IN (:ids)", { replacements: { ids: paidOrderIds } })
+      : [[]],
+    paidLineIds.length
+      ? sequelize.query("SELECT id, image FROM orderItems WHERE id IN (:ids)", { replacements: { ids: paidLineIds } })
+      : [[]],
+  ]);
+  const paidOrderNo = new Map(paidOrders.map((o) => [o.id, o.order_number]));
+  const paidImage = new Map(paidLines.map((l) => [l.id, l.image]));
+  const settlementOrders = (items) =>
+    [...new Set(items.map((i) => i.order_id))].map((orderId) => {
+      const own = items.filter((i) => i.order_id === orderId);
+      return {
+        id: orderId,
+        orderNumber: paidOrderNo.get(orderId) ?? `#${orderId}`,
+        amount: own.reduce((sum, i) => sum + i.qty * toNumber(i.price), 0),
+        items: own.map((i) => ({ id: i.id, name: i.name, image: paidImage.get(i.order_item_id) ?? null, qty: i.qty, price: toNumber(i.price) })),
+      };
+    });
 
   return ok(res, {
     ...summaryOf(store, null, allTime.get(store.id), settled.get(store.id)),
@@ -180,6 +203,7 @@ module.exports.show = handle("storeReportShow", async (req, res) => {
         createdAt: toIso(x.created_at),
         orders: new Set(items.map((i) => i.order_id)).size,
         qty: items.reduce((sum, i) => sum + i.qty, 0),
+        orderList: settlementOrders(items),
       };
     }),
   });

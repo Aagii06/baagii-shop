@@ -9,11 +9,11 @@ import DetailHeader from "@/components/layout/DetailHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getStoreAccount, readPeriod, settleStore, type StoreSoldItem } from "@/lib/api/storeReport";
+import { getStoreAccount, readPeriod, settleStore, type SettlementOrder, type StoreSettlement, type StoreSoldItem } from "@/lib/api/storeReport";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useApi } from "@/lib/useApi";
 import { cn, formatDate, formatMNT, formatWhen } from "@/lib/utils";
-import { CircleCheck, HandCoins, SearchX } from "lucide-react";
+import { ChevronDown, CircleCheck, HandCoins, SearchX } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -37,6 +37,75 @@ function ItemRow({ item }: { item: StoreSoldItem }) {
           {formatMNT(item.amount)}
         </span>
       </span>
+    </li>
+  );
+}
+
+/** An order with its lines — order number links to the order. */
+function OrderBlock({ order, deliveredAt }: { order: SettlementOrder; deliveredAt?: string | null }) {
+  const { t } = useLanguage();
+  return (
+    <Link href={`/orders/${order.id}`} className="block px-4 py-3.5 transition-colors hover:bg-muted/60">
+      <span className="flex items-center gap-2">
+        <span className="font-mono text-sm font-semibold">{order.orderNumber}</span>
+        <span className="ml-auto font-mono text-sm font-bold">{formatMNT(order.amount)}</span>
+      </span>
+      {deliveredAt && (
+        <span className="mt-0.5 block text-xs text-muted-foreground">{t("ss.deliveredAt", { date: formatDate(deliveredAt) })}</span>
+      )}
+      <ul className="mt-2 space-y-1">
+        {order.items.map((item) => (
+          <li key={item.id} className="flex items-center gap-2 text-sm">
+            <Thumb id={item.image} variant="icon" size={28} className="shrink-0 rounded-lg" />
+            <span className="min-w-0 grow truncate">{item.name}</span>
+            <span className={cn("shrink-0 font-mono text-xs", item.qty < 0 ? "text-destructive" : "text-muted-foreground")}>
+              {item.qty} × {formatMNT(item.price)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Link>
+  );
+}
+
+/** A past payout; tapping it opens the orders and items it covered. */
+function SettlementRow({ s }: { s: StoreSettlement }) {
+  const { t } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const orders = s.orderList ?? [];
+  return (
+    <li>
+      <button
+        type="button"
+        aria-expanded={open}
+        disabled={orders.length === 0}
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/60 disabled:hover:bg-transparent"
+      >
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-tint-mint text-tint-mint-ink">
+          <HandCoins className="size-5" />
+        </span>
+        <span className="min-w-0 grow">
+          <span className="block text-sm font-semibold">{formatWhen(s.createdAt)}</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {t("ss.historyLine", { orders: s.orders, qty: s.qty })}
+            {s.note && ` · ${s.note}`}
+          </span>
+        </span>
+        <span className="shrink-0 font-mono text-sm font-bold">{formatMNT(s.amount)}</span>
+        {orders.length > 0 && (
+          <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+        )}
+      </button>
+      {open && (
+        <ul className="divide-y divide-border border-t border-border bg-muted/30">
+          {orders.map((order) => (
+            <li key={order.id}>
+              <OrderBlock order={order} />
+            </li>
+          ))}
+        </ul>
+      )}
     </li>
   );
 }
@@ -169,28 +238,7 @@ function StoreAccountPage() {
               ? unsettled.items.map((item) => <ItemRow key={`${item.variantId}|${item.name}`} item={item} />)
               : unsettled.orders.map((order) => (
                   <li key={order.id}>
-                    <Link href={`/orders/${order.id}`} className="block px-4 py-3.5 transition-colors hover:bg-muted/60">
-                      <span className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-semibold">{order.orderNumber}</span>
-                        <span className="ml-auto font-mono text-sm font-bold">{formatMNT(order.amount)}</span>
-                      </span>
-                      {order.deliveredAt && (
-                        <span className="mt-0.5 block text-xs text-muted-foreground">
-                          {t("ss.deliveredAt", { date: formatDate(order.deliveredAt) })}
-                        </span>
-                      )}
-                      <ul className="mt-2 space-y-1">
-                        {order.items.map((item) => (
-                          <li key={item.id} className="flex items-center gap-2 text-sm">
-                            <Thumb id={item.image} variant="icon" size={28} className="shrink-0 rounded-lg" />
-                            <span className="min-w-0 grow truncate">{item.name}</span>
-                            <span className={cn("shrink-0 font-mono text-xs", item.qty < 0 ? "text-destructive" : "text-muted-foreground")}>
-                              {item.qty} × {formatMNT(item.price)}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </Link>
+                    <OrderBlock order={order} deliveredAt={order.deliveredAt} />
                   </li>
                 ))}
             <li className="flex items-center justify-between px-4 py-3 text-sm font-bold">
@@ -230,19 +278,7 @@ function StoreAccountPage() {
       ) : (
         <ul className="-mx-4 mt-2 divide-y divide-border border-y border-border bg-white">
           {data.settlements.map((s) => (
-            <li key={s.id} className="flex items-center gap-3 px-4 py-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-tint-mint text-tint-mint-ink">
-                <HandCoins className="size-5" />
-              </span>
-              <span className="min-w-0 grow">
-                <span className="block text-sm font-semibold">{formatWhen(s.createdAt)}</span>
-                <span className="block truncate text-xs text-muted-foreground">
-                  {t("ss.historyLine", { orders: s.orders, qty: s.qty })}
-                  {s.note && ` · ${s.note}`}
-                </span>
-              </span>
-              <span className="shrink-0 font-mono text-sm font-bold">{formatMNT(s.amount)}</span>
-            </li>
+            <SettlementRow key={s.id} s={s} />
           ))}
         </ul>
       )}

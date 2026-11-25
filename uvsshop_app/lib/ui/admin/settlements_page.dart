@@ -275,6 +275,35 @@ class _StoreAccountPageState extends State<StoreAccountPage> {
         ]),
       );
 
+  /// Захиалга бараатайгаа — дарвал захиалгын дэлгэрэнгүй.
+  Widget _orderTile(UnsettledOrder o) => InkWell(
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdminOrderPage(orderId: o.id))),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(child: Text(o.orderNumber, style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.w600))),
+            Text(money(o.amount), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
+          ]),
+          if (o.deliveredAt != null)
+            Text(tr('{date}-нд хүргэгдсэн', {'date': formatDate(o.deliveredAt, time: false)}),
+                style: const TextStyle(fontSize: 12, color: AdminColors.mutedForeground)),
+          for (final i in o.items)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(children: [
+                ImageBox(fileId: i.image, size: 28, placeholder: Icons.image_outlined),
+                const SizedBox(width: 8),
+                Expanded(child: Text(i.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                Text('${i.qty} × ${money(i.price)}',
+                    style: TextStyle(
+                        fontFamily: mono, fontSize: 12, color: i.qty < 0 ? AdminColors.destructive : AdminColors.mutedForeground)),
+              ]),
+            ),
+        ]),
+      ),
+    );
+
   @override
   Widget build(BuildContext context) {
     final a = _a;
@@ -332,33 +361,7 @@ class _StoreAccountPageState extends State<StoreAccountPage> {
                       for (final i in a.unsettledItems) _itemRow(i)
                     else
                       for (final o in a.unsettledOrders)
-                        InkWell(
-                          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AdminOrderPage(orderId: o.id))),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Row(children: [
-                                Expanded(child: Text(o.orderNumber, style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.w600))),
-                                Text(money(o.amount), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
-                              ]),
-                              if (o.deliveredAt != null)
-                                Text(tr('{date}-нд хүргэгдсэн', {'date': formatDate(o.deliveredAt, time: false)}),
-                                    style: const TextStyle(fontSize: 12, color: AdminColors.mutedForeground)),
-                              for (final i in o.items)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Row(children: [
-                                    ImageBox(fileId: i.image, size: 28, placeholder: Icons.image_outlined),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text(i.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                                    Text('${i.qty} × ${money(i.price)}',
-                                        style: TextStyle(
-                                            fontFamily: mono, fontSize: 12, color: i.qty < 0 ? AdminColors.destructive : AdminColors.mutedForeground)),
-                                  ]),
-                                ),
-                            ]),
-                          ),
-                        ),
+                        _orderTile(o),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Row(children: [
@@ -412,17 +415,34 @@ class _StoreAccountPageState extends State<StoreAccountPage> {
                   )
                 else
                   AdminList(children: [
+                    // Дарвал тухайн тооцоонд орсон захиалга, бараа нээгдэнэ
                     for (final s in a.settlements)
-                      ListTile(
-                        leading: const CircleAvatar(
-                            backgroundColor: AdminColors.tintMint, child: Icon(Icons.payments_outlined, color: AdminColors.tintMintInk)),
-                        title: Text(formatDate(s.createdAt), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                        subtitle: Text(
-                          '${tr('{orders} захиалга · {qty} ш', {'orders': s.orders, 'qty': s.qty})}${s.note != null ? ' · ${s.note}' : ''}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      Theme(
+                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          enabled: s.orderList.isNotEmpty,
+                          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                          childrenPadding: EdgeInsets.zero,
+                          leading: const CircleAvatar(
+                              backgroundColor: AdminColors.tintMint, child: Icon(Icons.payments_outlined, color: AdminColors.tintMintInk)),
+                          title: Row(children: [
+                            Expanded(child: Text(formatDate(s.createdAt), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600))),
+                            Text(money(s.amount), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
+                          ]),
+                          subtitle: Text(
+                            '${tr('{orders} захиалга · {qty} ш', {'orders': s.orders, 'qty': s.qty})}${s.note != null ? ' · ${s.note}' : ''}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          children: [
+                            for (final o in s.orderList)
+                              DecoratedBox(
+                                decoration: const BoxDecoration(
+                                    color: AdminColors.muted, border: Border(top: BorderSide(color: AdminColors.border))),
+                                child: _orderTile(o),
+                              ),
+                          ],
                         ),
-                        trailing: Text(money(s.amount), style: const TextStyle(fontFamily: mono, fontWeight: FontWeight.bold)),
                       ),
                   ]),
               ]),

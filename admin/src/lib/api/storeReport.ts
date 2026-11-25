@@ -51,6 +51,15 @@ export interface StoreSettlement {
   createdAt: string;
   orders: number;
   qty: number;
+  /** The orders this payout covered, with their lines. */
+  orderList?: SettlementOrder[];
+}
+
+export interface SettlementOrder {
+  id: number;
+  orderNumber: string;
+  amount: number;
+  items: { id: number; name: string; image: string | null; qty: number; price: number }[];
 }
 
 export interface StoreAccount extends StoreSales {

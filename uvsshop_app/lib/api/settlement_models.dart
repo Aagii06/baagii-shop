@@ -67,7 +67,10 @@ class Settlement {
   final String createdAt;
   final int orders;
   final int qty;
-  Settlement(this.id, this.amount, this.note, this.createdAt, this.orders, this.qty);
+
+  /// Энэ тооцоонд орсон захиалгууд, бараатайгаа (deliveredAt — null).
+  final List<UnsettledOrder> orderList;
+  Settlement(this.id, this.amount, this.note, this.createdAt, this.orders, this.qty, this.orderList);
 
   factory Settlement.fromJson(Map<String, dynamic> j) => Settlement(
         toInt(j['id']),
@@ -76,6 +79,7 @@ class Settlement {
         j['createdAt']?.toString() ?? '',
         toInt(j['orders']),
         toInt(j['qty']),
+        [for (final o in (j['orderList'] as List?) ?? []) UnsettledOrder.fromJson(Map<String, dynamic>.from(o as Map))],
       );
 }
 
