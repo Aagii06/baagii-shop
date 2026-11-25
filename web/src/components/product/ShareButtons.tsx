@@ -105,14 +105,15 @@ export default function ShareButtons({
 
   const light = variant === "light";
   const btn = light
-    ? "grid size-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/30"
-    : "grid size-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors";
+    ? "grid size-9 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/30"
+    : "grid size-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors";
   const accent = light
     ? ""
     : "hover:bg-primary hover:text-primary-foreground hover:border-primary";
 
+  // Buttons never shrink (they'd turn oval on narrow phones); they wrap instead.
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {!compact && (
         <span className={cn("mr-1 text-sm", light ? "text-white/80" : "text-muted-foreground")}>
           {t("product.share")}
