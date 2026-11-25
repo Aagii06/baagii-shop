@@ -10,16 +10,20 @@ import { useCallback, useEffect, useState } from "react";
 
 interface Slide {
   /** Category code the slide is about; also the photo's basename in
-   * /public/images/hero (`<code>.webp` 1920w, `<code>-sm.webp` 900w). */
+   * /public/images/hero (`<code>.webp` 1920w, `<code>-sm.webp` 900w).
+   * "app" is the mobile-app announcement: no photo, no category, no button. */
   code: string;
   /** Where the subject sits in the photo, so `object-cover` keeps it in frame. */
   focus: string;
 }
 
+const APP = "app";
+
 // One slide per featured category. Its name and subcategories come from the
 // API; only the headline is ours (i18n `home.hero.<code>.*`).
 // Photos: Unsplash (free licence) — see public/images/hero/CREDITS.md.
 const SLIDES: Slide[] = [
+  { code: APP, focus: "" },
   { code: "women", focus: "60% 30%" },
   { code: "electronics", focus: "50% 50%" },
   { code: "beauty", focus: "50% 40%" },
@@ -68,7 +72,17 @@ export default function HeroCarousel({ className }: { className?: string }) {
             i === index ? "opacity-100" : "opacity-0"
           )}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {s.code === APP ? (
+            <div className="relative size-full bg-gradient-to-br from-[#faf3fc] via-[#f1e1f7] to-[#e2c6ee]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/icons/app-icon-1024.png"
+                alt=""
+                className="absolute right-4 bottom-12 size-24 rounded-3xl shadow-xl shadow-primary/25 sm:right-[12%] sm:top-1/2 sm:bottom-auto sm:size-52 sm:-translate-y-1/2"
+              />
+            </div>
+          ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={`/images/hero/${s.code}.webp`}
             srcSet={`/images/hero/${s.code}-sm.webp 900w, /images/hero/${s.code}.webp 1920w`}
@@ -82,6 +96,7 @@ export default function HeroCarousel({ className }: { className?: string }) {
             )}
             style={{ objectPosition: s.focus }}
           />
+          )}
         </div>
       ))}
 
@@ -110,12 +125,12 @@ export default function HeroCarousel({ className }: { className?: string }) {
                     ? category.children.map((c) => c.name).join(" · ")
                     : t(`${key}.text`)}
                 </p>
-                <Link
+                {s.code !== APP && <Link
                   href={category ? categoryHref(category) : "/search"}
                   className="mt-3 inline-block rounded-md brand-gradient px-4 py-2 sm:mt-5 sm:px-5 sm:py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/25 transition-opacity hover:opacity-90"
                 >
                   {t("home.hero.cta")}
-                </Link>
+                </Link>}
               </div>
             </div>
           );
